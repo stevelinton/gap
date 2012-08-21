@@ -532,7 +532,7 @@ InstallGlobalFunction( CompatibleConjugacyClassesDefault,
     # Use Galois conjugacy of classes.
     usegalois:= function()
 
-      local galoisfams, copypi1, i, list, fam, id, im, res, fun1, fun2;
+      local galoisfams, copypi1, i, list, fam, id, im, res, pos, fun1, fun2;
 
       galoisfams:= GaloisMat( TransposedMat( Irr( tbl ) ) ).galoisfams;
       galoisfams:= List( Filtered( galoisfams, IsList ), x -> x[1] );
@@ -552,9 +552,11 @@ InstallGlobalFunction( CompatibleConjugacyClassesDefault,
             im:= bijection[ id ];
             res:= PrimeResidues( tbl_orders[ id ] );
             RemoveSet( res, 1 );
+            pos:= Position( pi1, copypi1[i] );
             fun1:= ( j -> First( res, k -> PowerMap( tbl, k, id ) = j ) );
-            fun2:= ( j -> First( res, k -> powerclass( im, k, pi2[i] ) = j ) );
-            if refine( fun1, fun2, [ Position( pi1, copypi1[i] ) ] ) then
+            fun2:= ( j -> First( res,
+                             k -> powerclass( im, k, pi2[ pos ] ) = j ) );
+            if refine( fun1, fun2, [ pos ] ) then
               return true;
             fi;
 
@@ -4383,7 +4385,7 @@ InstallOtherMethod( Display,
 ##
 InstallGlobalFunction( PrintCharacterTable, function( tbl, varname )
 
-    local i, info, class, comp;
+    local i, j, info, class, comp;
 
     # Check the arguments.
     if not IsNearlyCharacterTable( tbl ) then
@@ -4412,8 +4414,18 @@ InstallGlobalFunction( PrintCharacterTable, function( tbl, varname )
         # (This holds also for *nonempty* strings not in `IsStringRep'.)
         Print( "tbl.", SupportedCharacterTableInfo[ i-1 ], ":=\n" );
         if     IsString( info )
-           and ( IsEmptyString( info ) or not IsEmpty( info ) ) then
-          Print( "\"", info, "\";\n" );
+            and ( IsEmptyString( info ) or not IsEmpty( info ) ) then    
+           if '\n' in info then
+             info:= SplitString( info, "\n" );
+             Print( "Concatenation([\n" );
+             for j in [ 1 .. Length( info ) - 1 ] do
+               Print( "\"", info[j], "\\n\",\n" );
+             od;
+             Print( "\"", info[ Length( info ) ], "\"\n]);\n" );
+           else
+             Print( "\"", info, "\";\n" );
+           fi;
+
         elif SupportedCharacterTableInfo[ i-1 ] = "ConjugacyClasses" then
           Print( "[\n" );
           for class in info do

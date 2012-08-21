@@ -1528,6 +1528,34 @@ InstallMethod( IsGeneratorsOfMagmaWithInverses,
     [ IsGeneralMappingCollection ], 0,
     mappinglist -> ForAll( mappinglist, map -> Inverse( map ) <> fail ) );
 
+#############################################################################
+##
+#M  CopyMappingAttributes(<from>,<to>)
+##
+InstallGlobalFunction(CopyMappingAttributes,
+function(f,t)
+  if HasIsTotal(f) and not HasIsTotal(t) then
+    SetIsTotal(t,IsTotal(f));
+  fi;
+  if HasIsSingleValued(f) and not HasIsSingleValued(t) then
+    SetIsSingleValued(t,IsSingleValued(f));
+  fi;
+  if HasIsInjective(f) and not HasIsInjective(t) then
+    SetIsInjective(t,IsInjective(f));
+  fi;
+  if HasIsSurjective(f) and not HasIsSurjective(t) then
+    SetIsSurjective(t,IsSurjective(f));
+  fi;
+  if HasSource(f) and not HasSource(t) then
+    SetSource(t,Source(f));
+  fi;
+  if HasImagesSource(f) and not HasImagesSource(t) then
+    SetImagesSource(t,ImagesSource(f));
+  fi;
+  if HasRange(f) and not HasRange(t) then
+    SetRange(t,Range(f));
+  fi;
+end);
     
 #############################################################################
 ##

@@ -1,6 +1,6 @@
-#############################################################################
+############################################################################
 ##
-#W  grpperm.gi                  GAP library                    Heiko Thei"sen
+#W  grpperm.gi                  GAP library                   Heiko Thei"sen
 ##
 #H  @(#)$Id$
 ##
@@ -625,15 +625,15 @@ end );
 ##
 #M  ClosureGroup( <G>, <gens>, <options> )  . . . . . .  closure with options
 ##
-InstallOtherMethod( ClosureGroup,"permgroup, elements, options",
-    true,
-    [ IsPermGroup, IsList and IsPermCollection, IsRecord ], 0,
-    function( G, gens, options )
+##  The following function implements the method and may be called even with
+##  incomplete (temp) stabilizer chains.
+BindGlobal("DoClosurePrmGp",function( G, gens, options )
     local   C,          # closure of < <G>, <obj> >, result
             P, inpar,   # parent of the closure
             g,          # an element of gens
             chain;      # the stabilizer chain created
 
+    options:=ShallowCopy(options); # options will be overwritten
     # if all generators are in <G>, <G> is the closure
     gens := Filtered( gens, gen -> not gen in G );
     if IsEmpty( gens )  then
@@ -705,37 +705,54 @@ InstallOtherMethod( ClosureGroup,"permgroup, elements, options",
     return C;
 end );
 
+BindGlobal("PG_EMPTY_OPT",rec());
+
+InstallOtherMethod( ClosureGroup,"permgroup, elements, options",
+    true,
+    [ IsPermGroup, IsList and IsPermCollection, IsRecord ], 0,
+    DoClosurePrmGp);
+
+InstallOtherMethod( ClosureGroup, "empty list",true,
+        [ IsPermGroup, IsList and IsEmpty ], 0,
+function( G, nogens )
+    return G;
+end );
+
+InstallMethod( ClosureGroup, "permgroup, element",true,
+  [ IsPermGroup, IsPerm ], 0,
+function( G, g )
+  return DoClosurePrmGp( G, [ g ], PG_EMPTY_OPT );
+end );
+
+InstallMethod( ClosureGroup, "permgroup, elements",true,
+        [ IsPermGroup, IsList and IsPermCollection ], 0,
+function( G, gens )
+  return DoClosurePrmGp( G, gens, PG_EMPTY_OPT );
+end );
+
+InstallOtherMethod( ClosureGroup, "permgroup, element, options",true,
+  [ IsPermGroup, IsPerm, IsRecord ], 0,
+function( G, g, options )
+  return DoClosurePrmGp( G, [ g ], options );
+end );
+
+InstallOtherMethod( ClosureGroup, "permgroup, permgroup, options", true,
+  [ IsPermGroup, IsPermGroup, IsRecord ], 0,
+function( G, H, options )
+  return DoClosurePrmGp( G, GeneratorsOfGroup( H ), options );
+end );
+
 InstallOtherMethod( ClosureGroup, "empty list and options",true,
         [ IsPermGroup, IsList and IsEmpty, IsRecord ], 0,
     function( G, nogens, options )
     return G;
 end );
 
-InstallMethod( ClosureGroup, "supply empty options",true,
-        [ IsPermGroup and HasStabChainMutable, IsObject ], 20,
-function( G, gens )
-  return ClosureGroup( G, gens, rec() );
-end );
-
-InstallOtherMethod( ClosureGroup, "permgroup, element, options",true,
-  [ IsPermGroup, IsPerm, IsRecord ], 0,
-function( G, g, options )
-  return ClosureGroup( G, [ g ], options );
-end );
-
-InstallOtherMethod( ClosureGroup, "permgroup, permgroup, options", true,
-  [ IsPermGroup, IsPermGroup, IsRecord ], 0,
-function( G, H, options )
-  return ClosureGroup( G, GeneratorsOfGroup( H ), options );
-end );
-
 #############################################################################
 ##
 #M  NormalClosureOp( <G>, <U> ) . . . . . . . . . . . . . . . . in perm group
 ##
-InstallMethod( NormalClosureOp, "subgroup of perm group",
-  IsIdenticalObj, [ IsPermGroup, IsPermGroup ], 0,
-    function ( G, U )
+BindGlobal("DoNormalClosurePermGroup",function ( G, U )
     local   N,          # normal closure of <U> in <G>, result
             chain,      # stabilizer chain for the result
             rchain,     # restored version of <chain>, for `VerifySGS'
@@ -748,16 +765,13 @@ InstallMethod( NormalClosureOp, "subgroup of perm group",
             random,  k, # values measuring randomness of <chain>
             param,  missing,  correct,  result,  i;
 
-    # test applicability
-    if not IsSubset(G,U) then
-      TryNextMethod();
-    fi;
-
     # get a set of monoid generators of <G>
     gensG := GeneratorsOfGroup( G );
 
     # make a copy of the group to be closed
-    N := AsSubgroup( G, U );
+    N := SubgroupNC( G, GeneratorsOfGroup(U) );
+    UseIsomorphismRelation(U,N);
+    UseSubsetRelation(U,N);
     SetStabChainMutable( N, StabChainMutable( U ) );
     options := ShallowCopy( StabChainOptions( U ) );
     if IsBound( options.random )  then  random := options.random;
@@ -850,6 +864,16 @@ InstallMethod( NormalClosureOp, "subgroup of perm group",
     return N;
 end );
 
+InstallMethod( NormalClosureOp, "subgroup of perm group",
+  IsIdenticalObj, [ IsPermGroup, IsPermGroup ], 0,
+function(G,U)
+  # test applicability
+  if not IsSubset(G,U) then
+    TryNextMethod();
+  fi;
+  return DoNormalClosurePermGroup(G,U);
+end);
+
 #############################################################################
 ##
 #M  ConjugateGroup( <G>, <g> )  . . . . . . . . . . . .  of permutation group
@@ -874,7 +898,7 @@ end );
 ##
 #M  CommutatorSubgroup( <U>, <V> )  . . . . . . . . . . . . . for perm groups
 ##
-InstallMethod( CommutatorSubgroup, IsIdenticalObj,
+InstallMethod( CommutatorSubgroup, "permgroups", IsIdenticalObj,
         [ IsPermGroup, IsPermGroup ], 0,
     function( U, V )
     local   C,       # the commutator subgroup
@@ -910,7 +934,7 @@ InstallMethod( CommutatorSubgroup, IsIdenticalObj,
                    CUV := ClosureGroup( U, V );
                    doneCUV := true;
                fi;
-               C := NormalClosure( CUV, C );
+               C := DoNormalClosurePermGroup( CUV, C );
            fi;
         until IsEmpty( list );
     fi;
@@ -932,7 +956,7 @@ InstallMethod( CommutatorSubgroup, IsIdenticalObj,
            CUV := ClosureGroup( U, V );
            doneCUV := true;
         fi;
-        C := NormalClosure( CUV, C );
+        C := DoNormalClosurePermGroup( CUV, C );
     fi;
 
     return C;
@@ -942,7 +966,7 @@ end );
 ##
 #M  DerivedSubgroup( <G> )  . . . . . . . . . . . . . .  of permutation group
 ##
-InstallMethod( DerivedSubgroup, true, [ IsPermGroup ], 0,
+InstallMethod( DerivedSubgroup,"permgrps",true, [ IsPermGroup ], 0,
     function( G )
     local   D,          # derived subgroup of <G>, result
             g, h,       # random subproducts of generators 
@@ -968,7 +992,7 @@ InstallMethod( DerivedSubgroup, true, [ IsPermGroup ], 0,
             if Length(list) > 0 then 
                D := ClosureGroup(D,list,rec( random := 0,
                                                temp := true ) );
-               D := NormalClosure( G, D );
+               D := DoNormalClosurePermGroup( G, D );
             fi;
         until list = [];
     fi;
@@ -994,7 +1018,7 @@ InstallMethod( DerivedSubgroup, true, [ IsPermGroup ], 0,
 	  StabChainOptions(D).random:=DefaultStabChainOptions.random;
 	fi;
 
-        D := NormalClosure( G, D );
+        D := DoNormalClosurePermGroup( G, D );
     fi;
 
     return D;
@@ -1013,7 +1037,7 @@ end );
 ##  Finding Composition Factors of Permutation Groups of Degree $n\leq 10^6$,
 ##  J. Symbolic Computation, 12:517--526, 1991.
 ##
-InstallMethod( IsSimpleGroup, true, [ IsPermGroup ], 0,
+InstallMethod( IsSimpleGroup,"for permgrp", true, [ IsPermGroup ], 0,
     function ( G )
     local   D,          # operation domain of <G>
             hom,        # transitive constituent or blocks homomorphism
@@ -1150,7 +1174,7 @@ end );
 ##
 #M  IsSolvableGroup( <G> )  . . . . . . . . . . . . . . . .  solvability test
 ##
-InstallMethod( IsSolvableGroup, true, [ IsPermGroup ], 0,
+InstallMethod( IsSolvableGroup,"for permgrp", true, [ IsPermGroup ], 0,
 function(G)
 local pcgs;
   pcgs:=TryPcgsPermGroup( G, false, false, true );
@@ -1185,14 +1209,14 @@ end);
 ##
 #M  IsNilpotentGroup( <G> ) . . . . . . . . . . . . . . . . . nilpotency test
 ##
-InstallMethod( IsNilpotentGroup, true, [ IsPermGroup ], 0,
+InstallMethod( IsNilpotentGroup,"for permgrp", true, [ IsPermGroup ], 0,
     G -> IsPcgs(PcgsCentralSeries(G) ) );
 
 #############################################################################
 ##
 #M  PcgsCentralSeries( <G> )
 ##
-InstallMethod( PcgsCentralSeries, true, [ IsPermGroup ], 0,
+InstallMethod( PcgsCentralSeries,"for permgrp", true, [ IsPermGroup ], 0,
 function(G)
 local pcgs;
   pcgs:=TryPcgsPermGroup( G, true, false, false );
@@ -1206,7 +1230,7 @@ end);
 ##
 #M  DerivedSeriesOfGroup( <G> ) . . . . . . . . . . . . . . .  derived series
 ##
-InstallMethod( DerivedSeriesOfGroup, true, [ IsPermGroup ], 0,
+InstallMethod( DerivedSeriesOfGroup,"for permgrp", true, [ IsPermGroup ], 0,
     function( G )
     local  pcgs,  series;
 
@@ -1232,7 +1256,7 @@ end );
 ##
 #M  LowerCentralSeriesOfGroup( <G> )  . . . . . . . . .  lower central series
 ##
-InstallMethod( LowerCentralSeriesOfGroup, true, [ IsPermGroup ], 0,
+InstallMethod( LowerCentralSeriesOfGroup,"for permgrp", true, [ IsPermGroup ], 0,
     function( G )
     local  pcgs,  series;
 
@@ -1290,7 +1314,7 @@ end);
 ##
 #M  PcgsPCentralSeriesPGroup( <G> )
 ##
-InstallMethod( PcgsPCentralSeriesPGroup, true, [ IsPermGroup ], 0,
+InstallMethod( PcgsPCentralSeriesPGroup,"for permgrp", true, [ IsPermGroup ], 0,
 function(G)
 local pcgs;
   pcgs:=TryPcgsPermGroup( G, true, true, Factors(Size(G))[1] );
@@ -1307,7 +1331,7 @@ end);
 ##
 #M  PCentralSeries( <G>, <p> )  . . . . . . . . . . . . . .  p-central series
 ##
-InstallMethod( PCentralSeriesOp, true, [ IsPermGroup, IsPosInt ], 0,
+InstallMethod( PCentralSeriesOp,"for permgrp", true, [ IsPermGroup, IsPosInt ], 0,
 function( G, p )
     local  pcgs;
 
@@ -1430,12 +1454,16 @@ end );
 ##
 #M  Socle( <G> )  . . . . . . . . . . .  socle of primitive permutation group
 ##
-InstallMethod( Socle, true, [ IsPermGroup ], 0,
+InstallMethod( Socle,"for permgrp", true, [ IsPermGroup ], 0,
     function( G )
     local   Omega,  deg,  shortcut,  coll,  d,  m,  c,  ds,  L,  z,  ord,
             p,  i;
     
     Omega := MovedPoints( G );
+    
+    if not IsPrimitive( G, Omega )  then
+        TryNextMethod();
+    fi;
     
     # Affine groups first.
     L := Earns( G, Omega );
@@ -1445,10 +1473,6 @@ InstallMethod( Socle, true, [ IsPermGroup ], 0,
     
     deg := Length( Omega );
     if deg >= 6103515625  then
-        Print( "sorry, cannot find socle if degree >= 6 103 515 625" );
-        TryNextMethod();
-    elif not IsPrimitive( G, Omega )  then
-        Print( "sorry, cannot find socle if <G> is imprimitive" );
         TryNextMethod();
     elif deg < 12960000  then
         shortcut := true;
@@ -1494,7 +1518,7 @@ InstallMethod( Socle, true, [ IsPermGroup ], 0,
         L := ds[ Length( ds ) ];
     fi;
     if IsSemiRegular( L, Omega )  then
-        L := ClosureSubgroupNC( L, Centralizer( G, L ) );
+        L := ClosureSubgroup( L, Centralizer( G, L ) );
     fi;
     return L;
 end );
@@ -1503,7 +1527,7 @@ end );
 ##
 #M  FrattiniSubgroup( <G> ) . . . . . . . . . . . .  for permutation p-groups
 ##
-InstallMethod( FrattiniSubgroup, true, [ IsPermGroup ], 0,
+InstallMethod( FrattiniSubgroup,"for permgrp", true, [ IsPermGroup ], 0,
     function( G )
     local   fac,  p,  l,  k,  i,  j;
 
@@ -1549,7 +1573,6 @@ end );
 
 #############################################################################
 ##
-
 #F  MinimizeExplicitTransversal( <U>, <maxmoved> )  . . . . . . . . . . local
 ##
 InstallGlobalFunction( MinimizeExplicitTransversal, function( U, maxmoved )
@@ -2383,13 +2406,14 @@ end);
 ##
 #M  AsList( <G> ) elements of perm group
 ##
-InstallMethod( AsList, true, [ IsPermGroup ], 0, AsSSortedList );
+InstallMethod( AsList,"permgp: AsSSortedList", true,
+  [ IsPermGroup ], 0, AsSSortedList );
 
 #############################################################################
 ##
 #M  AsSSortedList( <G> ) elements of perm group
 ##
-InstallMethod( AsSSortedList, true, [ IsPermGroup ], 0,
+InstallMethod( AsSSortedList,"via stabchain",true, [ IsPermGroup ], 0,
 function( G )
   return ElementsStabChain( StabChainMutable(G));
 end );

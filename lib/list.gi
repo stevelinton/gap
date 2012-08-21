@@ -332,9 +332,7 @@ InstallOtherMethod( RepresentativeSmallest,
     return list[1];
     end );
 
-InstallOtherMethod( RepresentativeSmallest,
-    "for a homogeneous list",
-    true, [ IsHomogeneousList ], 0,
+InstallOtherMethod(RepresentativeSmallest,"for a list",true,[IsList],0,
     MinimumList );
 
 
@@ -1031,9 +1029,8 @@ InstallMethod( IsSSortedList,
 ##
 #M  IsSortedList(<list>)
 ##
-InstallMethod( IsSortedList,
-    "for a finite homogeneous list", true,
-    [ IsHomogeneousList and IsFinite ], 0,
+InstallMethod( IsSortedList, "for a finite list", true,
+    [ IsList and IsFinite ], 0,
     function(l)
     local i;
     # shortcut: strictly sorted is stored for internally represented lists
@@ -1049,10 +1046,8 @@ InstallMethod( IsSortedList,
     return true;
 end);
 
-InstallMethod( IsSortedList,
-    "for a homogeneous list (not nec. finite)",
-    true,
-    [ IsHomogeneousList ], 0,
+InstallMethod( IsSortedList, "for a list (not nec. finite)", true,
+    [ IsList ], 0,
     function( list )
     local i;
     i:= 1;
@@ -1064,19 +1059,6 @@ InstallMethod( IsSortedList,
     od;
     return true;
     end );
-
-InstallOtherMethod( IsSortedList,
-    "for a (nonhomogeneous) list",
-    true,
-    [ IsList ], 0,
-    function( list )
-    if not IsHomogeneousList( list ) then
-      return false;
-    else
-      TryNextMethod();
-    fi;
-    end );
-
 
 #############################################################################
 ##
@@ -1812,10 +1794,8 @@ end );
 ##
 #M  Sortex( <list> ) . . sort a list (stable), return the applied permutation
 ##
-InstallMethod( Sortex,
-    "for a mutable homogeneous list",
-    true,
-    [ IsHomogeneousList and IsMutable ], 0,
+InstallMethod( Sortex, "for a mutable list", true,
+    [ IsList and IsMutable ], 0,
     function ( list )
     local   both, perm, i;
 
@@ -2056,10 +2036,8 @@ end );
 ##
 #M  MaximumList( <list> )
 ##
-InstallMethod( MaximumList,
-    "for a homomgeneous list",
-    true,
-    [ IsHomogeneousList ], 0,
+InstallMethod( MaximumList, "for a list", true,
+    [ IsList ], 0,
     function ( list )
     local max, elm;
     if Length( list ) = 0 then
@@ -2116,10 +2094,8 @@ end );
 ##
 #M  MinimumList( <list> )
 ##
-InstallMethod( MinimumList,
-    "for a homogeneous list",
-    true,
-    [ IsHomogeneousList ], 0,
+InstallMethod( MinimumList, "for a list", true,
+    [ IsList ], 0,
     function ( list )
     local min, elm;
     if Length( list ) = 0 then

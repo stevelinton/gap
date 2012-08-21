@@ -17,15 +17,11 @@ Revision.classic_gd :=
 #1
 ##  The following functions return classical groups.
 ##  For the linear, symplectic, and unitary groups (the latter in dimension
-##  at least $3$), the generators are taken from~\cite{Tay87}.
-##  The generators of the orthogonal groups are taken from
-##
-##    H.Ishibashi,  A.G.Earnest  "Two-Element Generation of Orthogonal Groups
-##    over Finite Fields".
-##
-#T    P.Kleidman,  M.Liebeck "The Subgroup Structure  of the Finite Classical
-#T    Groups"
-#T what is this reference good for?
+##  at least $3$), the generators are taken from~\cite{Tay87};
+##  for the unitary groups in dimension 2, the isomorphism of $SU(2,q)$ and
+##  $SL(2,q)$ is used, see for example~\cite{Hup67}.
+##  The generators of the orthogonal groups are taken
+##  from~\cite{IshibashiEarnest94} and~\cite{KleidmanLiebeck90}.
 ##
 ##  For symplectic and orthogonal matrix groups returned by the functions
 ##  described below, the invariant bilinear form is stored as the value of
@@ -303,7 +299,6 @@ DeclareConstructor( "SymplecticGroupCons", [ IsGroup, IsPosInt, IsPosInt ] );
 ##  If <filt> is not given it defaults to `IsMatrixGroup',
 ##  and the returned group is the symplectic group itself.
 ##
-
 BindGlobal( "SymplecticGroup", function ( arg )
 
   if Length( arg ) = 2 then

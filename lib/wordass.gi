@@ -13,6 +13,69 @@
 Revision.wordass_gi :=
     "@(#)$Id$";
 
+#############################################################################
+##
+#M  \<( <w1>, <w2> )  . . . . . . . . . . . . . . . . . . . . . . . for words
+##
+##  Associative words are ordered by the shortlex order of their external
+##  representation.
+##
+InstallMethod(\<,"assoc words",IsIdenticalObj,[IsAssocWord,IsAssocWord],0,
+function( x, y )
+local n,m;
+
+  x:= ExtRepOfObj( x );
+  y:= ExtRepOfObj( y );
+  n:=Sum([2,4..Length(x)],i->AbsInt(x[i]));
+  m:=Sum([2,4..Length(y)],i->AbsInt(y[i]));
+  # first length
+  if n<m then 
+    return true;
+  elif n>m then 
+    return false;
+  fi;
+  # then lex
+  m:= Minimum( Length( x ), Length( y ) );
+  n:=1;
+  while n<=m and x[n]=y[n] do # common prefix
+    n:=n+1;
+  od;
+
+
+  if n>Length(x) then
+    return x<y; # x is a prefix of y. They could be same
+  elif n>Length(y) then
+    return false; # y is a prefix of x
+  elif not IsInt(n/2) then
+    # discrepancy at generator
+    return x[n]<y[n];
+  fi;
+
+  # so the exponents disagree.
+  if SignInt(x[n])<>SignInt(y[n]) then
+    #they have different sign: The smaller wins
+    return x[n]<y[n];
+  fi;
+  # but have the same sign. We need to compare the generators with the next
+  # one
+  if AbsInt(x[n])<AbsInt(y[n]) then
+    # x runs out first
+    if Length(x)<=n then
+      return true;
+    else
+      return x[n+1]<y[n-1];
+    fi;
+  else
+    # y runs out first
+    if Length(y)<=n then
+      return false;
+    else
+      return x[n-1]<y[n+1];
+    fi;
+  fi;
+
+end );
+
 
 #############################################################################
 ##

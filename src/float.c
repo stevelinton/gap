@@ -30,6 +30,10 @@ const char * Revision_float_c =
 
 #include        "bool.h"
 
+#if HAVE_STDIO_H
+#include <stdio.h>
+#endif
+
 #define VAL_FLOAT(obj) (*(Double *)ADDR_OBJ(obj))
 #define SET_VAL_FLOAT(obj, val) (*(Double *)ADDR_OBJ(obj) = val)
 #define IS_FLOAT(obj) (TNUM_OBJ(obj) == T_FLOAT)

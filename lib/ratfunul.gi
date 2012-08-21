@@ -915,8 +915,9 @@ local d;
   # to avoid chaos with symmetric polynomials, we better compute it as
   # the resultant of f and f'
   d:=DegreeOfLaurentPolynomial(f);
-  return (-1)^(d*(d-1)/2)*Resultant(f,Derivative(f),
+  d:=(-1)^(d*(d-1)/2)*Resultant(f,Derivative(f),
     IndeterminateNumberOfLaurentPolynomial(f))/LeadingCoefficient(f);
+  return ConstantInBaseRingPol(d,IndeterminateNumberOfLaurentPolynomial(f));
 end);
 
 RedispatchOnCondition(Discriminant,true,

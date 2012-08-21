@@ -282,7 +282,7 @@ local P,g,op,act,a,pcgs,ma,mat,d,f,i,j,new,newmat,id,p,dodim,compldim,compl,
       i:=Random(P);
     until not i in Pu;
     Add(Pgens,i);
-    Pu:=ClosureSubgroupNC(Pu,i);
+    Pu:=ClosureSubgroup(Pu,i);
   od;
   if Length(Pgens)>2 and Length(Pgens)>Length(SmallGeneratingSet(P)) then
     Pgens:=SmallGeneratingSet(P);
@@ -409,7 +409,7 @@ local P,g,op,act,a,pcgs,ma,mat,d,f,i,j,new,newmat,id,p,dodim,compldim,compl,
     if kersz=1 then
       a:=SubgroupNC(par,List(i,j->PcElementByExponentsNC(pcgs,j)));
     else
-      a:=ClosureSubgroupNC(ker,List(i,j->PcElementByExponentsNC(pcgs,j)));
+      a:=ClosureSubgroup(ker,List(i,j->PcElementByExponentsNC(pcgs,j)));
     fi;
     SetSize(a,kersz*p^Length(i));
     Add(new,a);
@@ -903,7 +903,7 @@ Assert(1,ForAll(bs,i->ForAll(efunc,j->Image(j,i)=i)));
 		  comnorms:=List(com,i->z.cocycleToComplement(i));
 		  isTrueComnorm:=true;
 		  comnorms:=List(comnorms,
-			      i->ClosureSubgroupNC(CentralizerModulo(n,b,i),i));
+			      i->ClosureSubgroup(CentralizerModulo(n,b,i),i));
 	        else
 		  isTrueComnorm:=false;
 		  comnorms:=List(com,i->bsnorms[bpos]);
@@ -951,7 +951,7 @@ Assert(1,ForAll(bs,i->ForAll(efunc,j->Image(j,i)=i)));
 		    # the projection on the complement
 		    comproj:= GroupHomomorphismByImagesNC(a,a,fghom,
 			       Concatenation(GeneratorsOfGroup(k),bgids));
-		    k:=ClosureSubgroupNC(b,k);
+		    k:=ClosureSubgroup(b,k);
 		    
 		    # now run through the conjugating elements
 		    conjnr:=1;
@@ -1025,7 +1025,7 @@ Assert(1,ForAll(bs,i->ForAll(efunc,j->Image(j,i)=i)));
 		    # there is an invariant complement?
 		    if found<>false then
 		      found:=found[2]*found[1];
-		      l:=ConjugateSubgroup(ClosureSubgroupNC(b,k),found);
+		      l:=ConjugateSubgroup(ClosureSubgroup(b,k),found);
 		      Assert(1,ForAll(efunc,i->Image(i,l)=l));
 		      l:=rec(representative:=l);
 		      if comnorms<>fail then
@@ -1034,7 +1034,7 @@ Assert(1,ForAll(bs,i->ForAll(efunc,j->Image(j,i)=i)));
 			else
 			  l.normalizer:=ConjugateSubgroup(
 			                  Normalizer(bsnorms[bpos],
-				  ClosureSubgroupNC(b,k)), found);
+				  ClosureSubgroup(b,k)), found);
 			fi;
 		      fi;
 		      Add(ncom,l);
@@ -1058,7 +1058,7 @@ Assert(1,ForAll(bs,i->ForAll(efunc,j->Image(j,i)=i)));
 		ncom:=[];
 		for kp in l do
 		  m:=rec(representative:=
-			  ClosureSubgroupNC(b,z.cocycleToComplement(com[kp])));
+			  ClosureSubgroup(b,z.cocycleToComplement(com[kp])));
 		  if comnorms<>fail then
 		    m.normalizer:=comnorms[kp];
 		  fi;

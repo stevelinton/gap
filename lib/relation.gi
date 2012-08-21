@@ -801,8 +801,12 @@ function(tup, rel)
 	elif FamilyObj(tup) <> 
 			FamilyObj(UnderlyingDomainOfBinaryRelation(rel)) then
 		Error("Left hand side must contain elements of relation's domain");
-	fi;
+        fi;
 
+        if tup[1]=tup[2] then
+            return true;
+        fi;
+        
 	part:= EquivalenceRelationPartition(rel);
 	for i in [1..Length(part)] do
 		if tup[1] in part[i] then

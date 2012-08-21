@@ -1940,7 +1940,7 @@ InstallGlobalFunction( MutableBasisOfIdealInNonassociativeAlgebra,
 
     # Return the mutable basis.
     return MB;
-end );
+end );    
 
 
 #############################################################################

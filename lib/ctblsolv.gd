@@ -1,6 +1,6 @@
 #############################################################################
 ##
-#W  ctblsolv.gd                 GAP library                     Thomas Breuer 
+#W  ctblsolv.gd                 GAP library                     Thomas Breuer
 ##
 #H  @(#)$Id$
 ##
@@ -12,6 +12,17 @@
 ##
 Revision.ctblsolv_gd :=
     "@(#)$Id$";
+
+
+#############################################################################
+##
+#V  BaumClausenInfoDebug  . . . . . . . . . . . . . . testing BaumClausenInfo
+##
+##  This global record contains functions used for testing intermediate
+##  results in `BaumClausenInfo' computations;
+##  they are called only inside `Assert' statements.
+##
+DeclareGlobalVariable( "BaumClausenInfoDebug" );
 
 
 #############################################################################
@@ -206,6 +217,6 @@ DeclareAttribute( "IrrConlon", IsGroup );
 
 
 #############################################################################
-##              
+##
 #E
 

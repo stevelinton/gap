@@ -51,11 +51,11 @@ AlwaysMakegap.in:
 	@echo >> Makegap.in
 	@echo '# compile and link GAP' >> Makegap.in
 	@echo 'gap: $$(OBJECTS)' >> Makegap.in
-	@echo '	$$(CC) $$(CFLAGS) $$(LDFLAGS) -o gap $$(OBJECTS) $$(MPILIBS) @LIBS@' >> Makegap.in
+	@echo '	$$(CC) $$(CFLAGS) $$(LDFLAGS) -o gap $$(OBJECTS) $$(MPILIBS) -lm @LIBS@' >> Makegap.in
 	@echo >> Makegap.in
 	@echo '# dependencies are automatically generated' >> Makegap.in
 	@(for i in `eval 'echo $(SOURCE)'`; do \
-	    $(CC) -MM -I ../src -DUSE_PRECOMPILED ../src/$$i.c; \
+	    $(CC) -MM -I .. -I ../src -DUSE_PRECOMPILED ../src/$$i.c; \
 	    echo '	$$(CC) -I. -DCONFIG_H $$(CFLAGS)' -o $$i.o -c ../src/$$i.c; \
 	    echo ; \
 	done \

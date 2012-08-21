@@ -1438,7 +1438,7 @@ local Q,V,hom;
     return U; # no new group
   fi;
 
-  V:=ClosureSubgroupNC(U!.sub,elm);
+  V:=ClosureSubgroup(U!.sub,elm);
   # do we want to get a smaller representation?
   if IsPermGroup(Q) and Length(MovedPoints(Q))>2*Index(Q,V) then
     # we can improve the degree

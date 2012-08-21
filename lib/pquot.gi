@@ -1578,9 +1578,9 @@ InstallMethod( EpimorphismPGroup,
         true,
         [IsSubgroupFpGroup and IsWholeFamily, IsPosInt, IsPosInt],
         0,
-        function( G, p, c )
-    
-    return EpimorphismQuotientSystem( PQuotient( G, p, c ) );
+function( G, p, c )
+    return EpimorphismQuotientSystem( PQuotient( G, p, c,
+            Maximum(256,(c*Length(GeneratorsOfGroup(G)))^2)) );
 end );
 
 
@@ -1830,8 +1830,8 @@ end );
 ##  This function does not belong here
 ##
 InstallGlobalFunction( EpimorphismNilpotentQuotient,
-    function(arg)
-    local g,n,a,h,i,q,d,img,geni,gen,hom;
+function(arg)
+local g,n,a,h,i,q,d,img,geni,gen,hom,lcs,c,sqa,cnqs,genum;
 
     g := arg[1];
     if Length(arg) = 1 then
@@ -1851,11 +1851,36 @@ InstallGlobalFunction( EpimorphismNilpotentQuotient,
     h:=[];
     for i in a do
         if n <> fail then
-            q := PQuotient(g,i,n);
+          # caveat: The PQ gives p-class. We might have to go to a higher
+	  # p-class to get the corresponding nilpotency class
+	  c:=n;
+	  cnqs:=1;
+	  genum:=Maximum(256,(c*Length(GeneratorsOfGroup(g)))^2);
+	  #T the way we run the pq iteratively is a bit stupid. Once the
+	  #T interface is documented it would be better to run it iteratively
+	  repeat
+	    sqa:=cnqs;
+	    c:=c+1;
+            q := PQuotient(g,i,c,genum);
+
+	    # try to increase the number of generators in time
+	    if q!.numberOfGenerators*8>genum then
+	      genum:=genum*16;
+	    fi;
+
+	    q := EpimorphismQuotientSystem( q );
+	    lcs:=LowerCentralSeriesOfGroup(Image(q));
+	    # size of the class-n quotient bit so far
+	    cnqs:=Index(lcs[1],lcs[Minimum(Length(lcs),n+1)]);
+	  until cnqs=sqa; # the class-n-quotient did not grow
+	  if Length(lcs)>n+1 then
+	    # take only the top bit
+	    q:=q*NaturalHomomorphismByNormalSubgroupNC(lcs[1],lcs[n+1]);
+	  fi;
         else
-            q := PQuotient(g,i);
+	  q := PQuotient(g,i);
+	  q := EpimorphismQuotientSystem( q );
         fi;
-        q := EpimorphismQuotientSystem( q );
         Add(h,q);
     od;
 

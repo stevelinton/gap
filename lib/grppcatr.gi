@@ -179,9 +179,8 @@ function( G )
     local   pcgs,  spec,  first,  weights,  m,  pref,  i,  start,  
             next,  p,  pcgsS,  pcgsN,  pcgsL,  mats,  modu,  rad,  
             elms,  P;
-
-    pcgs    := Pcgs(G);
-    spec    := SpecialPcgs( pcgs );
+    
+    spec    := SpecialPcgs( G );
     first   := LGFirst( spec );
     weights := LGWeights( spec );
     m       := Length( spec );
@@ -573,6 +572,17 @@ InstallMethod(SmallGeneratingSet,"using minimal generating set",true,
   [IsPcGroup and IsFinite],0,
 function (G)
   return MinimalGeneratingSet(G);
+end);
+
+InstallOtherMethod( GeneratorOfCyclicGroup,"pc groups",true,
+    [ IsPcGroup and IsFinite ],0,
+function ( G )
+local g;
+  g:=SmallGeneratingSet(G);
+  if Length(g)>1 then
+    Error("not cyclic");
+  fi;
+  return g[1];
 end);
 
 #############################################################################

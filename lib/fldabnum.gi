@@ -1248,7 +1248,7 @@ InstallMethod( CanonicalBasis,
 
       # Let $(c_1, \ldots, c_{mk})$ denote the coefficients with respect
       # to the new base.  To achieve `<coeffs> \* normalbase = <z>' we have
-      # to take $\sum_{i=1}^m c_{i+m(j-1)} v_i$ as $j$--th coefficient\:
+      # to take $\sum_{i=1}^m c_{i+m(j-1)} v_i$ as $j$--th coefficient:
 
       coeffsmat:= [];
       for i in [ 1 .. Length( C ) ] do     # for all rows
@@ -1284,8 +1284,9 @@ InstallMethod( CanonicalBasis,
 #M  Basis( <F> )
 ##
 InstallMethod( Basis,
-    "for abelian number field of cyclotomics",
+    "for abelian number field of cyclotomics (delegate to `CanonicalBasis')",
     [ IsAbelianNumberField and IsCyclotomicCollection ],
+    CANONICAL_BASIS_FLAGS,
     CanonicalBasis );
 
 
@@ -2030,7 +2031,7 @@ InstallMethod( \^,
 ##
 InstallMethod( PrintObj,
     "for ANF automorphism",
-    true, [ IsFieldHomomorphism and IsANFAutomorphismRep ],
+    [ IsFieldHomomorphism and IsANFAutomorphismRep ],
     function ( aut )
     Print( "ANFAutomorphism( ", Source( aut ), ", ", aut!.galois, " )" );
     end );

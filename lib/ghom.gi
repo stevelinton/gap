@@ -326,6 +326,7 @@ function( map )
   gens:= GeneratorsOfGroup( PreImagesRange( map ) );
   gens:=GroupHomomorphismByImagesNC( Source( map ), Range( map ),
       gens, List( gens, g -> ImagesRepresentative( map, g ) ) );
+  CopyMappingAttributes(map,gens);
   return gens;
 end );
 
@@ -336,9 +337,10 @@ local gens, cok;
   gens:= GeneratorsOfGroup( PreImagesRange( map ) );
   cok := GeneratorsOfGroup( CoKernelOfMultiplicativeGeneralMapping( map ) );
   gens:= GroupGeneralMappingByImages( Source( map ), Range( map ),
-  Concatenation( gens, List( cok, g -> One( Source( map ) ) ) ),
-  Concatenation( List( gens, g -> ImagesRepresentative( map, g ) ),
-  cok ) );
+    Concatenation( gens, List( cok, g -> One( Source( map ) ) ) ),
+    Concatenation( List( gens, g -> ImagesRepresentative( map, g ) ),
+    cok ) );
+  CopyMappingAttributes(map,gens);
   return gens;
 end );
     
@@ -559,7 +561,7 @@ InstallMethod( CoKernelOfMultiplicativeGeneralMapping,
             gen := hom!.images[i] * hom!.genimages[k]
                  / hom!.images[ Position( hom!.elements,
                                          hom!.elements[i]*hom!.generators[k])];
-            C := ClosureSubgroupNC( C, gen );
+            C := ClosureSubgroup( C, gen );
 
         od;
     od;

@@ -836,7 +836,8 @@ InstallMethod( \<,
 #F  SingleCollector_GroupRelators( ... )
 ##
 SingleCollector_GroupRelators := function(
-    gens, rods, powersp, powersn, commpp, commpn, commnp, commnn, conjpp,
+    efam, gens, rods, powersp, powersn, 
+    commpp, commpn, commnp, commnn, conjpp,
     conjpn, conjnp, conjnn, conflicts )
 
     local   col,  i,  j,  rhs;
@@ -850,7 +851,7 @@ SingleCollector_GroupRelators := function(
     #        Length(Flat(conjnn)), " ", Length(conflicts), "\n" );
 
     # start with an empty single collector
-    col := SingleCollector( gens, rods );
+    col := SingleCollectorByGenerators( efam, gens, rods );
 
     # we want to use positive powers first
     for i  in [ 1 .. Length(rods) ]  do
@@ -1108,7 +1109,8 @@ function( efam, gens, rels )
     if ForAny( rods, x -> x = 0 )  then
         Error( "not ready yet, only finite polycyclic groups are allowed" );
     else
-        col := SingleCollector_GroupRelators( gens, rods, powersp, powersn,
+        col := SingleCollector_GroupRelators( efam, gens, 
+                   rods, powersp, powersn,
                    commpp, commpn, commnp, commnn, conjpp, conjpn,
                    conjnp, conjnn, conflicts );
     fi;

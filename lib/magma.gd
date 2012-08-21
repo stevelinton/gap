@@ -381,6 +381,15 @@ DeclareAttribute( "Centre", IsMagma );
 
 DeclareSynonym( "Center", Centre );
 
+#############################################################################
+##
+#A  Idempotents( <M> )
+##
+##  The set of elements of <M> which are their own squares.
+##
+##
+DeclareAttribute( "Idempotents", IsMagma );
+
 
 #############################################################################
 ##

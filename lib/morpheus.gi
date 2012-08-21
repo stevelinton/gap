@@ -37,7 +37,7 @@ DeclareRepresentation("IsActionHomomorphismAutomGroup",
 #M  IsGroupOfAutomorphisms(<G>)
 ##
 InstallMethod( IsGroupOfAutomorphisms, "test generators and one",true,
-  [IsGroup and HasGeneratorsOfGroup],0,
+  [IsGroup],0,
 function(G)
 local s;
   if IsGeneralMapping(One(G)) then
@@ -1116,21 +1116,26 @@ local G;
     return NiceMonomorphism(A);
 end);
 
-#############################################################################
-##
-#M  IsomorphismPermGroup 
-##
-InstallMethod(IsomorphismPermGroup,"for automorphism groups",true,
-               [IsGroupOfAutomorphisms and IsFinite],0,
-function(A)
-local nice;
-  nice:=NiceMonomorphism(A);
-  if IsPermGroup(Range(nice)) then
-    return nice;
-  else
-    return CompositionMapping(IsomorphismPermGroup(Image(nice)),nice);
-  fi;
-end);
+# #############################################################################
+# ##
+# #M  IsomorphismPermGroup 
+# ##
+# InstallMethod(IsomorphismPermGroup,"for automorphism groups",true,
+#                [IsGroupOfAutomorphisms and IsFinite],0,
+# function(A)
+# local nice,rest;
+#   nice:=NiceMonomorphism(A);
+#   if not IsIdenticalObj(Source(nice),A) then
+#     rest:=RestrictedNiceMonomorphism(nice,A);
+#   else
+#     rest:=nice;
+#   fi;
+#   if IsPermGroup(Range(rest)) then
+#     return rest;
+#   else
+#     return CompositionMapping(IsomorphismPermGroup(Image(rest)),rest);
+#   fi;
+# end);
 
 
 #############################################################################
@@ -1336,14 +1341,38 @@ InstallMethod(IsomorphicSubgroups,
   # override `IsFinitelyPresentedGroup' filter.
   1,
 function(G,H)
-local cl,cnt,bg,bw,bo,bi,k,gens,go,imgs,params,emb,clg;
+local cl,cnt,bg,bw,bo,bi,k,gens,go,imgs,params,emb,clg,sg;
 
   if not IsInt(Size(G)/Size(H)) then
     Info(InfoMorph,1,"sizes do not permit embedding");
     return [];
   fi;
 
+  if IsAbelian(G) then
+    if not IsAbelian(H) then
+      return [];
+    fi;
+    if IsCyclic(G) then
+      if IsCyclic(H) then
+        return GroupHomomorphismByImagesNC(H,G,[GeneratorOfCyclicGroup(H)],
+	  [GeneratorOfCyclicGroup(G)^(Size(G)/Size(H))]);
+      else
+        return [];
+      fi;
+    fi;
+  fi;
+
   cl:=ConjugacyClasses(G);
+  if IsCyclic(H) then
+    cl:=List(RationalClasses(G),Representative);
+    cl:=Filtered(cl,i->Order(i)=Size(H));
+    return List(cl,i->GroupHomomorphismByImagesNC(H,G,
+                      [GeneratorOfCyclicGroup(H)],
+		      [i]));
+  fi;
+  cl:=ConjugacyClasses(G);
+
+
   # test whether there is a chance to embed
   cnt:=0;
   while cnt<20 do
@@ -1362,6 +1391,7 @@ local cl,cnt,bg,bw,bo,bi,k,gens,go,imgs,params,emb,clg;
     if cnt=0 then
       # first the small gen syst.
       gens:=SmallGeneratingSet(H);
+      sg:=Length(gens);
     else
       # then something random
       repeat
@@ -1369,13 +1399,13 @@ local cl,cnt,bg,bw,bo,bi,k,gens,go,imgs,params,emb,clg;
 	  # try to get down to 2 gens
 	  gens:=List([1,2],i->Random(H));
 	else
-	  gens:=List(gens,i->Random(H));
+	  gens:=List([1..sg],i->Random(H));
 	fi;
 	# try to get small orders
 	for k in [1..Length(gens)] do
 	  go:=Order(gens[k]);
 	  # try a p-element
-	  if Random([1..2*Length(gens)])=1 then
+	  if Random([1..3*Length(gens)])=1 then
 	    gens[k]:=gens[k]^(go/(Random(Factors(go))));
 	  fi;
 	od;

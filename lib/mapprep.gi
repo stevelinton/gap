@@ -1132,6 +1132,7 @@ InstallMethod( IdentityMapping,
     # make the mapping
     id := Objectify( TypeOfDefaultGeneralMapping( D, D,
                                   IsSPGeneralMapping
+                              and IsAdditiveElementWithInverse
                               and IsAttributeStoringRep
                               and IsOne ),
                      rec() );

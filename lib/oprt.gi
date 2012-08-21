@@ -794,7 +794,9 @@ InstallMethod( AsGroupGeneralMappingByImages, "IsActionHomomorphism",
     act := FunctionAction( xset );
     gens := GeneratorsOfGroup( G );
     imgs := List( gens, o -> Permutation( o, D, act ) );
-    return GroupHomomorphismByImagesNC( G, Range(hom), gens, imgs );
+    imgs:=GroupHomomorphismByImagesNC( G, Range(hom), gens, imgs );
+    CopyMappingAttributes(hom,imgs);
+    return imgs;
 end );
 
 #############################################################################
@@ -1148,7 +1150,7 @@ local   orb,  stb,  rep,  p,  q,  img,  sch,  i,d,act,
   fi;
 
   if IsBound(dopr.stabsub) then
-    stabsub:=dopr.stabsub;
+    stabsub:=AsSubgroup(Parent(G),dopr.stabsub);
   else
     stabsub:=TrivialSubgroup(G);
   fi;
@@ -1299,7 +1301,7 @@ local   orb,  stb,  rep,  p,  q,  img,  sch,  i,d,act,
   fi;
 
   if IsBound(dopr.stabsub) then
-    stabsub:=dopr.stabsub;
+    stabsub:=AsSubgroup(Parent(G),dopr.stabsub);
   else
     stabsub:=TrivialSubgroup(G);
   fi;
@@ -2264,18 +2266,6 @@ InstallMethod( IsPrimitive,"transitive and no blocks",
     function( G, D, gens, acts, act )
     return     IsTransitive( G, D, gens, acts, act )
            and Length( Blocks( G, D, gens, acts, act ) ) = 1;
-end );
-
-
-#############################################################################
-##
-#F  Earns( <arg> ) . . . . . . . . elementary abelian regular normal subgroup
-##
-InstallMethod( Earns,
-    true,
-    OrbitsishReq, 0,
-    function( G, D, gens, acts, act )
-    Error( "`Earns' only implemented for primitive permutation groups" );
 end );
 
 

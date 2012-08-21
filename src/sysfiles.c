@@ -90,6 +90,13 @@ extern int write ( int, char *, int );
 # include <vfork.h>
 #endif
 
+#if HAVE_ERRNO_H
+#include <errno.h>
+#else
+extern int errno;
+#endif
+
+
 /* HP-UX already defines SYS_FORK */
 
 #ifdef SYS_HAS_NO_VFORK
@@ -1218,7 +1225,7 @@ Int SyFclose (
 
     /* try to close the file                                               */
     if ( (syBuf[fid].pipe == 0 && fclose( syBuf[fid].fp ) == EOF)
-      || (syBuf[fid].pipe == 1 && pclose( syBuf[fid].fp ) == -1) )
+      || (syBuf[fid].pipe == 1 && pclose( syBuf[fid].fp ) == -1 && errno != ECHILD) )
     {
         fputs("gap: 'SyFclose' cannot close file, ",stderr);
         fputs("maybe your file system is full?\n",stderr);
@@ -4571,14 +4578,6 @@ Char SyLastErrorMessage [ 1024 ];
 **
 *F  SyClearErrorNo()  . . . . . . . . . . . . . . . . .  clear error messages
 */
-#if !SYS_MAC_MWC  /* for the Mac, we use syMacErr, this is declared above */
-extern int errno;
-
-# ifndef SYS_ERRNO_H
-#  include <sys/errno.h>
-# endif
-
-#endif
 
 void SyClearErrorNo ( void )
 {
@@ -5050,18 +5049,25 @@ UInt SyExecuteProcess (
     Int                     tin;                    /* temp in             */
     Int                     tout;                   /* temp out            */
     SYS_SIG_T               (*func)(int);
+    SYS_SIG_T               (*func2)(int);
 
 #if defined(SYS_HAS_WAIT4) || HAVE_WAIT4
     struct rusage           usage;
 #endif
 
 
+    /* turn off the SIGCHLD handling, so that we can be sure to collect this child
+       `After that, we call the old signal handler, in case any other children have died in the
+       meantime. This resets the handler */
+    
+    func2 = signal( SIGCHLD, SIG_DFL );
+
     /* clone the process                                                   */
     pid = SYS_MY_FORK();
     if ( pid == -1 ) {
         return -1;
     }
-
+    
     /* we are the parent                                                   */
     if ( pid != 0 ) {
 
@@ -5073,26 +5079,32 @@ UInt SyExecuteProcess (
 
         if ( wait4( pid, &status, 0, &usage ) == -1 ) {
             signal( SIGINT, func );
+	    (*func2)(SIGCHLD);
             return -1;
         }
         if ( WIFSIGNALED(status) ) {
             signal( SIGINT, func );
+	    (*func2)(SIGCHLD);
             return -1;
         }
         signal( SIGINT, func );
-        return WEXITSTATUS(status);
+	(*func2)(SIGCHLD);
+	return WEXITSTATUS(status);
 
 #else
 
         if ( waitpid( pid, &status, 0 ) == -1 ) {
             signal( SIGINT, func );
+	    (*func2)(SIGCHLD);
             return -1;
         }
         if ( WIFSIGNALED(status) ) {
             signal( SIGINT, func );
+	    (*func2)(SIGCHLD);
             return -1;
         }
         signal( SIGINT, func );
+	(*func2)(SIGCHLD);
         return WEXITSTATUS(status);
 
 #endif

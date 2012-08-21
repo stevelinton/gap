@@ -585,6 +585,7 @@ end );
 ##  input and output are specifically designed only for this purpose,  and it
 ##  does not check the arguments.
 ##
+
 InstallGlobalFunction( RelsViaCosetTable, function ( arg )
     local   G,            # given group
             cosets,       # right cosets of G with respect to H
@@ -598,6 +599,8 @@ InstallGlobalFunction( RelsViaCosetTable, function ( arg )
             fhgens,       # generators of F1
             hrels,        # relators of F1
             helts,        # list of elements of H
+            ng1,          # position number of identity element in G
+            nh1,          # position number of identity element in H
             idword,       # identity element of F
             perms,        # permutations induced by the gens on the cosets
             stage,        # 1 or 2
@@ -611,6 +614,7 @@ InstallGlobalFunction( RelsViaCosetTable, function ( arg )
             g, g1,        # loop variables for generator cols
             c,            # loop variable for coset
             rel,          # loop variables for relator
+            rels1,        # list of relators
             app,          # arguments list for `MakeConsequences'
             index,        # index of the table
             col,          # generator col in auxiliary table
@@ -646,6 +650,11 @@ InstallGlobalFunction( RelsViaCosetTable, function ( arg )
     fi;
     ngens := Length( ggens );
     ngens2 := ngens * 2;
+    if cosets[1] in G then
+        ng1 := PositionSorted( cosets, cosets[1]^0 );
+    else
+        ng1 := 1;
+    fi;
     index := Length( cosets );
     tab0 := [];
     table := [];
@@ -661,6 +670,7 @@ InstallGlobalFunction( RelsViaCosetTable, function ( arg )
         words := arg[4];
         H := arg[5];
         helts := AsSSortedList( H );
+        nh1 := PositionSorted( helts, helts[1]^0 );
         R1 := arg[6];
         FP1 := R1.fpGroup;
         F1 := FreeGroupOfFpGroup( FP1 );
@@ -715,8 +725,8 @@ InstallGlobalFunction( RelsViaCosetTable, function ( arg )
     cosets := ListWithIdenticalEntries( index, 0 );
     actcos := ListWithIdenticalEntries( index, 0 );
     actgen := ListWithIdenticalEntries( index, 0 );
-    cosets[1] := 1;
-    actcos[1] := 1;
+    cosets[1] := ng1;
+    actcos[ng1] := ng1;
     j := 1;
     i := 0;
     while i < index do
@@ -792,14 +802,14 @@ InstallGlobalFunction( RelsViaCosetTable, function ( arg )
 
                 # construct the associated relator
                 rel := idword;
-                while c <> 1 do
+                while c <> ng1 do
                     g := actgen[c];
                     rel := rel * gens2[g]^-1;
                     c := actcos[c];
                 od;
                 rel := rel^-1 * gens2[j]^-1;
                 c := i;
-                while c <> 1 do
+                while c <> ng1 do
                     g := actgen[c];
                     rel := rel * gens2[g]^-1;
                     c := actcos[c];
@@ -807,7 +817,7 @@ InstallGlobalFunction( RelsViaCosetTable, function ( arg )
                 if stage = 2 then
                     h := MappedWord( rel, fgens, ggens );
                     n := PositionSorted( helts, h );
-                    while n <> 1 do
+                    while n <> nh1 do
                         g := right1[n];
                         rel := rel * words2[g]^-1;
                         n := left1[n];
@@ -816,8 +826,13 @@ InstallGlobalFunction( RelsViaCosetTable, function ( arg )
 
                 # compute its representative,
                 # and add it to the set of relators
-                rels := Concatenation(
-                    rels, RelatorRepresentatives( [ rel ] ) );
+                rels1 := RelatorRepresentatives( [ rel ] );
+                if Length( rels1 ) > 0 then
+                    rel := rels1[1];
+                    if not rel in rels then
+                        Add( rels, rel );
+                    fi;
+                fi;
 
                 # make the rows for the relators and distribute over relsGen
                 relsGen := RelsSortedByStartGen( fgens, rels, table, true );
@@ -1747,7 +1762,7 @@ InstallGlobalFunction( TzFindCyclicJoins, function ( T )
                          tietze[TZ_MODIFIED] := true;
                          j := numrels;
                          i := numrels;
-                         if TZ_NUMGENS < numgens then
+                         if tietze[TZ_NUMGENS] < numgens then
                             newstart := true;
                          fi;
                       fi;

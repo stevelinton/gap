@@ -939,7 +939,7 @@ end;
 
 TRY_GCD_CANCEL_EXTREP_POL:=
 function(fam,num,den)
-local q,p,e,i,j,cnt;
+local q,p,e,i,j,cnt,sel,si;
   q:=QuotientPolynomialsExtRep(fam,num,den);
   if q<>fail then
     # true quotient
@@ -958,7 +958,7 @@ local q,p,e,i,j,cnt;
     # is the denominator a constant?
     if Length(den[1])>0 then
       q:=den[1];
-      e:=q{[2,4..Length(q)]}; # the indeterminants exponents
+      e:=q{[2,4..Length(q)]}; # the exponents exponents
       q:=q{[1,3..Length(q)-1]}; # the indeterminant occuring
       IsSSortedList(q);
       i:=1;
@@ -983,13 +983,38 @@ local q,p,e,i,j,cnt;
 	  num[i]:=ShallowCopy(num[i]);
 	  for j in [1,3..Length(num[i])-1] do
 	    p:=Position(q,num[i][j]); # uses PositionSorted
-	    num[i][j+1]:=num[i][j+1]-e[p]; #reduce
+	    # is this an indeterminate, which gets reduced?
+	    if p<>fail then
+	      num[i][j+1]:=num[i][j+1]-e[p]; #reduce
+	    fi;
 	  od;
+	
+	  # remove indeterminates with exponent zero
+	  sel:=[];
+	  for si in [2,4..Length(num[i])] do
+	    if num[i][si]>0 then
+	      Add(sel,si-1);
+	      Add(sel,si);
+	    fi;
+	  od;
+	  num[i]:=num[i]{sel};
+
 	od;
 
 	p:=ShallowCopy(den[1]);
 	i:=[2,4..Length(p)];
 	p{i}:=p{i}-e; # reduce exponents
+	
+	# remove indeterminates with exponent zero
+	sel:=[];
+	for si in i do
+	  if p[si]>0 then
+	    Add(sel,si-1);
+	    Add(sel,si);
+	  fi;
+	od;
+	p:=p{sel};
+
 	den:=[p,den[2]]; #new denominator
       fi;
     fi;

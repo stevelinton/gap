@@ -625,7 +625,6 @@ end );
 
 #############################################################################
 ##
-
 #M  RationalClasses( <G> )  . . . . . . . . . . . . . . . . . . .  of a group
 ##
 InstallMethod( RationalClasses, true, [ IsGroup ], 0,
@@ -657,12 +656,13 @@ InstallGlobalFunction( RationalClassesTry, function(  G, classes, elm  )
 
 end );
 
-InstallMethod( RationalClasses, true, [ IsSolvableGroup ], 20,
+InstallMethod( RationalClasses,"solvable",true,[ CanEasilyComputePcgs ], 20,
     function( G )
-    local   rcls,  cls,  cl,  c,  sum;
-
+    local   rcls,  cls,  cl,  c,  sum, size;
+    
+    size := Size(G);
     rcls := [  ];
-    if IsPrimePowerInt( Size( G ) )  then
+    if IsPrimePowerInt( size )  then
         for cl  in RationalClassesSolvableGroup( G, 1 )  do
             c := RationalClass( G, cl.representative );
             SetStabilizerOfExternalSet( c, cl.centralizer );
@@ -671,29 +671,20 @@ InstallMethod( RationalClasses, true, [ IsSolvableGroup ], 20,
         od;
     else
         sum := 0;
-        if not HasConjugacyClasses( G )  then
-            cls := [  ];
-        fi;
-        for cl  in ClassesSolvableGroup( G, 0 )  do
-            if IsBound( cls )  then
-                c := ConjugacyClass( G, cl.representative,cl.centralizer );
-		Assert(2,Centralizer(G,cl.representative)=cl.centralizer);
-                Add( cls, c );
-            fi;
-            c := RationalClass( G, cl.representative );
-            SetStabilizerOfExternalSet( c, cl.centralizer );
-            if not c in rcls  then
+        for cl in ConjugacyClasses(G)  do
+            c := RationalClass( G, Representative(cl) );
+            SetStabilizerOfExternalSet( c, Centralizer(cl) );
+            if sum < size and not c in rcls  then
                 Add( rcls, c );
                 sum := sum + Size( c );
-                if sum = Size( G )  then
+                if sum = size and not IsBound(cls)  then
                     break;
                 fi;
             fi;
         od;
-        if IsBound( cls )  then
-            SetConjugacyClasses( G, cls );
-        fi;
+
     fi;
+
     return rcls;
 end );
 

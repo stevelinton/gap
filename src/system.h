@@ -83,6 +83,14 @@
 #endif
 
 /* defualt HZ value                                                        */
+/*  on IRIX we need this include to get the system value                   */
+
+#if HAVE_SYS_SYSMACROS_H
+#include <sys/sysmacros.h>
+#endif
+
+
+
 #ifndef  HZ
 # define HZ                     50
 #endif

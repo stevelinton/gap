@@ -297,6 +297,24 @@ InstallMethod( Centre,
 
 #############################################################################
 ##
+#A  Idempotents( <M> ) . .  . . . . . . . . . . . . . . idempotents of a magma
+##
+InstallMethod(Idempotents,"for finite magmas", true,
+               [IsMagma], 0,
+     function(M)
+     local I, m;
+     I := [];
+
+     for m in AsList(M) do  
+         if m*m=m then     
+             Add(I,m);    
+         fi;
+     od;
+     return I;
+end);
+
+#############################################################################
+##
 #F  Magma( <gens> )
 #F  Magma( <Fam>, <gens> )
 ##

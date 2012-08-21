@@ -487,6 +487,29 @@ PropertyMethodByNiceMonomorphism( IsSupersolvableGroup,
 
 #############################################################################
 ##
+#M  IsomorphismPermGroup
+##
+InstallMethod(IsomorphismPermGroup,"via niceomorphisms",true,
+  [IsGroup and IsHandledByNiceMonomorphism],
+  # this is intended to be better than the generic ``action on element''
+  # method. However for example for matrix groups there are better methods
+  -NICE_FLAGS+5,
+function(g)
+local mon,iso;
+  mon:=NiceMonomorphism(g);
+  if not IsIdenticalObj(Source(mon),g) then
+    mon:=RestrictedNiceMonomorphism(mon,g);
+  fi;
+  iso:=IsomorphismPermGroup(NiceObject(g));
+  if iso=fail then
+    return fail;
+  else
+    return mon*iso;
+  fi;
+end);
+
+#############################################################################
+##
 #M  IsomorphismPcGroup
 ##
 InstallMethod(IsomorphismPcGroup,"via niceomorphisms",true,

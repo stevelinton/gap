@@ -112,7 +112,23 @@
 /* define as 1 if you have the include file "unistd.h"                     */
 #define HAVE_UNISTD_H		0
 
+/* define as 1 if you have `getpseudotty'                                  */
+#define HAVE_GETPSEUDOTTY	0
 
+/* define as 1 if you have `_getpty'                                       */
+#define HAVE__GETPTY		0
+
+/* define as 1 if you have the include file "fcntl.h"                      */
+#define HAVE_FCNTL_H            0
+
+#define HAVE_SYS_STAT_H         0
+#define HAVE_SYS_SYSMACROS_H    0
+#define HAVE_ERRNO_H            0
+#define HAVE_ASSERT_H           0
+#define HAVE_STDLIB_H            0
+#define HAVE_STRING_H           0
+#define HAVE_GETPT              0
+#define HAVE_PTSNAME_R         0
 /****************************************************************************
 **
 *D  define if and how dynamic loading is supported

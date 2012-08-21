@@ -711,6 +711,7 @@ DeclareAttribute( "DimensionsLoewyFactors", IsGroup );
 ##
 #A  ElementaryAbelianSeries( <G> )
 #A  ElementaryAbelianSeriesLargeSteps( <G> )
+#A  ElementaryAbelianSeries( [<G>,<NT1>,<NT2>,...] )
 ##
 ##  returns a series of normal subgroups of $G$ such that all factors are
 ##  elementary abelian. If the group is not solvable (and thus no such series
@@ -719,6 +720,9 @@ DeclareAttribute( "DimensionsLoewyFactors", IsGroup );
 ##  The variant `ElementaryAbelianSeriesLargeSteps' tries to make the steps
 ##  in this series large (by eliminating intermediate subgroups if possible)
 ##  at a small additional cost.
+##
+##  In the third variant, an elementary abelian series through the given
+##  series of normal subgroups is constructed.
 ##
 DeclareAttribute( "ElementaryAbelianSeries", IsGroup );
 DeclareAttribute( "ElementaryAbelianSeriesLargeSteps", IsGroup );

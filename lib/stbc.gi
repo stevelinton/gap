@@ -98,13 +98,36 @@ InstallMethod( StabChainOp,"group and option", true,
             S := EmptyStabChain( [  ], One( G ) );
             if IsBound( options.base )  then  S.base := options.base;
                                         else  S.base := [  ];          fi;
-            pcgs := TryPcgsPermGroup( [ G, GroupStabChain( G, S, true ) ],
-                            false, false, false );
+	    if HasPcgs(G) and IsBound(Pcgs(G)!.stabChain) then
+	      # is there already a pcgs with a stabchain?
+	      # the translation to a record is  necessary to be able to copy
+	      # the stab chain.
+	      pcgs:=rec(stabChain:=CopyStabChain(Pcgs(G)!.stabChain));
+	    else
+	      pcgs := TryPcgsPermGroup( [ G, GroupStabChain( G, S, true ) ],
+			      # get the series elementary abelian -- its much
+			      # better
+                            false, false, true );
+	    fi;
         fi;
         if IsPcgs( pcgs )  then
-            options.random := 1000;
-            S := pcgs!.stabChain;
-            
+	  options.random := 1000;
+	  S := pcgs!.stabChain;
+
+	  if not HasPcgs(G) then
+	    # remember the pcgs
+	    SetPcgs(G,pcgs);
+	    SetPcgsElementaryAbelianSeries(G,pcgs);
+	    S := CopyStabChain(S); # keep the pcgs' pristine stabchain
+	    if IsBound(options.base) then
+	      ChangeStabChain( S, options.base, options.reduced );
+	    fi;
+	  fi;
+	elif IsRecord(pcgs) then
+	  S:=pcgs.stabChain;
+	  if IsBound(options.base) then
+	    ChangeStabChain( S, options.base, options.reduced );
+	  fi;
         else
             degree := LargestMovedPoint( G );
             if degree > 100  then
@@ -259,7 +282,9 @@ InstallGlobalFunction(CopyOptionsDefaults,function( G, options )
 
     # See whether we know a base for <G>.
     if not IsBound( options.knownBase )  then
-        if   HasBaseOfGroup( G )  then
+	if HasStabChainMutable(G) then
+	  options.knownBase := BaseStabChain(StabChainMutable(G));
+        elif   HasBaseOfGroup( G )  then
             options.knownBase := BaseOfGroup( G );
         else
             P := Parent( G );
@@ -267,8 +292,10 @@ InstallGlobalFunction(CopyOptionsDefaults,function( G, options )
                   and not IsIdenticalObj( P, Parent( P ) )  do
                 P := Parent( P );
             od;
-            if HasBaseOfGroup( P )  then
-                options.knownBase := BaseOfGroup( P );
+	    if HasStabChainMutable(P) then
+	      options.knownBase := BaseStabChain(StabChainMutable(P));
+	    elif HasBaseOfGroup( P )  then
+	      options.knownBase := BaseOfGroup( P );
             fi;
         fi;
     fi;
@@ -1545,7 +1572,7 @@ local   Sgens,      # smallest generating system of <S>, result
 
     # add this generator to the generators list 
     Add( gens, gen );
-    span:=ClosureSubgroupNC(span,gen);
+    span:=ClosureSubgroup(span,gen);
     stb:=Stabilizer(span,bas,OnTuples);
 
     # test which cosets we can now cover: reduce orbit

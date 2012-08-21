@@ -495,6 +495,7 @@ void SORT_LIST (
         }
         h = h / 3;
     }
+    RESET_FILT_LIST(list, FN_IS_NSORT);
 }
 
 void SortDensePlist (
@@ -523,6 +524,7 @@ void SortDensePlist (
         }
         h = h / 3;
     }
+    RESET_FILT_LIST(list, FN_IS_NSORT);
 }
 
 
@@ -561,6 +563,9 @@ void SORT_LISTComp (
         }
         h = h / 3;
     }
+    /* list is not necc. sorted wrt. \< (any longer) */
+    RESET_FILT_LIST(list, FN_IS_SSORT);
+    RESET_FILT_LIST(list, FN_IS_NSORT);
 }
 
 void SortDensePlistComp (
@@ -590,6 +595,9 @@ void SortDensePlistComp (
         }
         h = h / 3;
     }
+    /* list is not necc. sorted wrt. \< (any longer) */
+    RESET_FILT_LIST(list, FN_IS_SSORT);
+    RESET_FILT_LIST(list, FN_IS_NSORT);
 }
 
 /****************************************************************************
@@ -643,6 +651,11 @@ void SORT_PARA_LIST (
         }
         h = h / 3;
     }
+    /* if list was ssorted, then it still will be,
+       but, we don't know anything else any more */
+    RESET_FILT_LIST(list, FN_IS_NSORT);
+    RESET_FILT_LIST(shadow, FN_IS_SSORT);
+    RESET_FILT_LIST(shadow, FN_IS_NSORT);
 }
 
 void SortParaDensePlist (
@@ -724,6 +737,11 @@ void SORT_PARA_LISTComp (
         }
         h = h / 3;
     }
+    /* list is not necc. sorted wrt. \< (any longer) */
+    RESET_FILT_LIST(list, FN_IS_SSORT);
+    RESET_FILT_LIST(list, FN_IS_NSORT);
+    RESET_FILT_LIST(shadow, FN_IS_NSORT);
+    RESET_FILT_LIST(shadow, FN_IS_SSORT);
 }
 
 void SortParaDensePlistComp (

@@ -224,7 +224,7 @@ local   classes,    # classes to be constructed, the result
                           operator:=WordVector( gens,
                                   #OneOfPcgs( cl.centralizerpcgs ),
                                   One( cl.candidates[1] ),
-                                  exp * N!.subspace.inverse ) );
+                                  exp * N!.subspace.inverse )^-1 );
                 Add( classes, c );
             od;
         else

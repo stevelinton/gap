@@ -21,7 +21,7 @@ OBJECTS=ariths.o blister.o bool.o c_meths1.o c_type1.o c_oper1.o c_filt1.o c_ran
 
 # compile and link GAP
 gap: $(OBJECTS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o gap $(OBJECTS) $(MPILIBS) @LIBS@
+	$(CC) $(CFLAGS) $(LDFLAGS) -o gap $(OBJECTS) $(MPILIBS) -lm @LIBS@
 
 # dependencies are automatically generated
 ariths.o: @srcdir@/ariths.c @srcdir@/system.h @srcdir@/gasman.h \
@@ -197,16 +197,17 @@ gap.o: @srcdir@/gap.c @srcdir@/system.h @srcdir@/gasman.h @srcdir@/objects.h \
  @srcdir@/scanner.h @srcdir@/gap.h @srcdir@/read.h @srcdir@/gvars.h \
  @srcdir@/calls.h @srcdir@/opers.h @srcdir@/ariths.h @srcdir@/integer.h \
  @srcdir@/rational.h @srcdir@/cyclotom.h @srcdir@/finfield.h @srcdir@/bool.h \
- @srcdir@/permutat.h @srcdir@/records.h @srcdir@/precord.h @srcdir@/lists.h \
- @srcdir@/listoper.h @srcdir@/listfunc.h @srcdir@/plist.h @srcdir@/set.h \
- @srcdir@/vector.h @srcdir@/vecffe.h @srcdir@/blister.h @srcdir@/range.h \
- @srcdir@/string.h @srcdir@/vecgf2.h @srcdir@/vec8bit.h @srcdir@/objfgelm.h \
- @srcdir@/objpcgel.h @srcdir@/objscoll.h @srcdir@/objccoll.h \
- @srcdir@/objcftl.h @srcdir@/dt.h @srcdir@/dteval.h @srcdir@/sctable.h \
- @srcdir@/costab.h @srcdir@/tietze.h @srcdir@/code.h @srcdir@/vars.h \
- @srcdir@/exprs.h @srcdir@/stats.h @srcdir@/funcs.h @srcdir@/intrprtr.h \
- @srcdir@/compiler.h @srcdir@/compstat.h @srcdir@/saveload.h \
- @srcdir@/streams.h @srcdir@/sysfiles.h @srcdir@/weakptr.h
+ @srcdir@/float.h @srcdir@/permutat.h @srcdir@/records.h @srcdir@/precord.h \
+ @srcdir@/lists.h @srcdir@/listoper.h @srcdir@/listfunc.h @srcdir@/plist.h \
+ @srcdir@/set.h @srcdir@/vector.h @srcdir@/vecffe.h @srcdir@/blister.h \
+ @srcdir@/range.h @srcdir@/string.h @srcdir@/vecgf2.h @srcdir@/vec8bit.h \
+ @srcdir@/objfgelm.h @srcdir@/objpcgel.h @srcdir@/objscoll.h \
+ @srcdir@/objccoll.h @srcdir@/objcftl.h @srcdir@/dt.h @srcdir@/dteval.h \
+ @srcdir@/sctable.h @srcdir@/costab.h @srcdir@/tietze.h @srcdir@/code.h \
+ @srcdir@/vars.h @srcdir@/exprs.h @srcdir@/stats.h @srcdir@/funcs.h \
+ @srcdir@/intrprtr.h @srcdir@/compiler.h @srcdir@/compstat.h \
+ @srcdir@/saveload.h @srcdir@/streams.h @srcdir@/sysfiles.h @srcdir@/weakptr.h \
+ @srcdir@/iostream.h
 	$(CC) -I. -DCONFIG_H $(CFLAGS) -o gap.o -c @srcdir@/gap.c
 
 gasman.o: @srcdir@/gasman.c @srcdir@/system.h @srcdir@/gasman.h \
@@ -359,7 +360,7 @@ records.o: @srcdir@/records.c @srcdir@/system.h @srcdir@/gasman.h \
 saveload.o: @srcdir@/saveload.c @srcdir@/system.h @srcdir@/gasman.h \
  @srcdir@/objects.h @srcdir@/bool.h @srcdir@/calls.h @srcdir@/gap.h \
  @srcdir@/gvars.h @srcdir@/string.h @srcdir@/scanner.h @srcdir@/sysfiles.h \
- @srcdir@/plist.h @srcdir@/saveload.h @srcdir@/finfield.h
+ @srcdir@/plist.h @srcdir@/float.h @srcdir@/saveload.h @srcdir@/finfield.h
 	$(CC) -I. -DCONFIG_H $(CFLAGS) -o saveload.o -c @srcdir@/saveload.c
 
 scanner.o: @srcdir@/scanner.c @srcdir@/system.h @srcdir@/sysfiles.h \
@@ -466,11 +467,12 @@ weakptr.o: @srcdir@/weakptr.c @srcdir@/system.h @srcdir@/gasman.h \
 iostream.o: @srcdir@/iostream.c @srcdir@/system.h @srcdir@/iostream.h \
  @srcdir@/gasman.h @srcdir@/objects.h @srcdir@/scanner.h @srcdir@/gap.h \
  @srcdir@/gvars.h @srcdir@/lists.h @srcdir@/listfunc.h @srcdir@/plist.h \
- @srcdir@/string.h @srcdir@/records.h
+ @srcdir@/string.h @srcdir@/records.h @srcdir@/bool.h
 	$(CC) -I. -DCONFIG_H $(CFLAGS) -o iostream.o -c @srcdir@/iostream.c
 
 float.o: @srcdir@/float.c @srcdir@/system.h @srcdir@/gasman.h \
- @srcdir@/objects.h @srcdir@/gap.h @srcdir@/ariths.h @srcdir@/float.h
+ @srcdir@/objects.h @srcdir@/gap.h @srcdir@/ariths.h @srcdir@/float.h \
+ @srcdir@/bool.h
 	$(CC) -I. -DCONFIG_H $(CFLAGS) -o float.o -c @srcdir@/float.c
 
 

@@ -163,10 +163,13 @@ InstallTrueMethod(IsGroup,CanEasilyComputePcgs);
 #############################################################################
 ##
 #A  PcgsElementaryAbelianSeries( <G> )
+#A  PcgsElementaryAbelianSeries( [<G>,<N1>,<N2>,....])
 ##
 ##  computes a pcgs for <G> that refines an elementary abelian series.
 ##  `IndicesNormalSteps' gives the indices in the Pcgs, at which normal
 ##  subgroups start.
+##  The second variant returns a pcgs that runs through the normal subgroups
+##  <N1>, <N2>, etc.
 DeclareAttribute( "PcgsElementaryAbelianSeries", IsGroup );
 
 #############################################################################

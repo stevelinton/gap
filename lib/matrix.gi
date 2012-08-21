@@ -908,7 +908,7 @@ InstallMethod( Order,
     else
 
       # The following checks trace and determinant.
-      lat:= InvariantLattice( GroupWithGenerators( mat ) );
+      lat:= InvariantLattice( GroupWithGenerators( [ mat ] ) );
       if lat = fail then
         return infinity;
       fi;

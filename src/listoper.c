@@ -1518,7 +1518,9 @@ Obj FuncINV_MAT_DEFAULT( Obj self, Obj mat)
       row = SHALLOW_COPY_OBJ(zerov);
       ASS_LIST(row,i,one);
       SET_ELM_PLIST(res,i,row);
+      CHANGED_BAG(res);
       SET_ELM_PLIST(matcopy,i,SHALLOW_COPY_OBJ(ELM_LIST(mat,i)));
+      CHANGED_BAG(matcopy);
     }
 
 

@@ -209,6 +209,16 @@ InstallMethod( CanonicalBasis,
 
 #############################################################################
 ##
+#M  Basis( <M> )  . . . . . . . . . . . . . . . . . . . . for full row module
+##
+InstallMethod( Basis,
+    "for full row module (delegate to `CanonicalBasis')",
+    [ IsFreeLeftModule and IsFullRowModule ], CANONICAL_BASIS_FLAGS,
+    CanonicalBasis );
+
+
+#############################################################################
+##
 #M  Coefficients( <B>, <v> )  . .  for a canonical basis of a full row module
 ##
 InstallMethod( Coefficients,
@@ -356,7 +366,9 @@ InstallMethod( \[\],
       n:= QuoInt( n, e!.q );
       i:= i-1;
     od;
-    ConvertToVectorRep(v,e!.q);
+    if IsFFE(e!.coeffszero) then
+      ConvertToVectorRep(v,e!.q);
+    fi;
     return v;
     end );
 
@@ -532,7 +544,8 @@ InstallMethod( EnumeratorByBasis,
       # By construction, the enumerator is sorted.
       filter:= IsEnumeratorOfFiniteFullRowModuleRep and IsSSortedList;
 
-      if IsFinite(LeftActingDomain(V)) and IsPrimeInt(Size(LeftActingDomain(V)))
+      if IsField(LeftActingDomain(V)) and IsFinite(LeftActingDomain(V)) 
+        and IsPrimePowerInt(Size(LeftActingDomain(V)))
         and Size(LeftActingDomain(V))<256
 	and IsInternalRep(One(LeftActingDomain(V))) then
 	filter:=IsEnumeratorOfFiniteFullRowModuleFFRep and IsQuickPositionList;
@@ -807,16 +820,6 @@ InstallMethod( IteratorByBasis,
 
     fi;
     end );
-
-
-#############################################################################
-##
-#M  Basis( <M> )  . . . . . . . . . . . . . . . . . . . . for full row module
-##
-InstallMethod( Basis,
-    "for full row module",
-    [ IsFreeLeftModule and IsFullRowModule ], SUM_FLAGS,
-    CanonicalBasis );
 
 
 #############################################################################

@@ -2445,8 +2445,20 @@ Obj             GcdInt (
         }
 
         /* maybe it's trivial                                              */
-        if ( opR == INTOBJ_INT(0) )
-            return opL;
+        if ( opR == INTOBJ_INT(0) ) {
+            if( TNUM_OBJ( opL ) == T_INTNEG ) {
+                /* If opL is negative, change the sign.  We do this by    */
+                /* copying opL into a bag of type T_INTPOS.  Note that    */
+                /* opL is a large negative number, so it cannot be the    */
+                /* the negative of 1 << NR_SMALL_INT_BITS.                */
+                gcd = NewBag( T_INTPOS, SIZE_OBJ(opL) );
+                l = ADDR_INT(opL); r = ADDR_INT(gcd);
+                for ( k = SIZE_INT(opL); k != 0; k-- ) *r++ = *l++;
+                
+                return gcd;
+            }
+            else return opL;
+        }
 
         /* get the right operand value, make it positive                   */
         i = INT_INTOBJ(opR);  if ( i < 0 )  i = -i;

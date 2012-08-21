@@ -1262,6 +1262,19 @@ DeclareAttribute("AdditiveElementAsMultiplicativeElement",
 ##  just wraps these up to provide another arithmetic.
 DeclareOperation( "UnderlyingElement", [ IsObject ] );
 
+
+
+#############################################################################
+##
+#P  IsIdempotent( <elt> )
+##
+##  true iff <elt> is its own square. 
+##  (Even if IsZero(<elt>) is also true.)
+##
+DeclareProperty("IsIdempotent", IsMultiplicativeElement);
+
+
+
 #############################################################################
 ##
 #E

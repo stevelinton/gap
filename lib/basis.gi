@@ -906,15 +906,15 @@ InstallMethod( IsCanonicalBasis,
 ##
 InstallMethod( Basis,
     "for free module that is handled by a nice basis",
-    [ IsFreeLeftModule and IsHandledByNiceBasis ], 20,
+    [ IsFreeLeftModule and IsHandledByNiceBasis ], NICE_FLAGS,
     # This method shall be called also for FLMLORs
     # that are handled by nice bases.
     # Note that the default method for a FLMLOR
     # without left module generators is to call
     # `MutableBasisOfClosureUnderAction',
-    # and the `ImmutableBasis' call will use `NewBasis',
+    # and the `ImmutableBasis' call will use a function
 #T what is really going on here??
-    # which may again call `MutableBasisOfClosureUnderAction';
+    # that may again call `MutableBasisOfClosureUnderAction';
     # so it is cheaper to create the basis object directly.
     function( V )
     local B;
@@ -1009,15 +1009,16 @@ InstallMethod( NiceFreeLeftModule,
       return LeftModuleByGenerators( LeftActingDomain( V ),
                           List( gens, v -> NiceVector( V, v ) ) );
     fi;
-    end );
+end );
 
 BindGlobal( "NiceFreeLeftModuleForFLMLOR", function( A, side )
 
     local Agens,     # algebra generators of `A'
           F,         # left acting domain of `A'
           MB,        # mutable basis, result
-          Vgens;     # left module generators
-
+          Vgens,     # left module generators
+          v;         # loop variable
+    
     # No closure under action is necessary if module generators are known.
     if HasGeneratorsOfLeftModule( A ) then
       TryNextMethod();
@@ -1040,11 +1041,29 @@ BindGlobal( "NiceFreeLeftModuleForFLMLOR", function( A, side )
                                              \*,
                                              Zero( A ),
                                              infinity );
+      # The original generators may fail to be contained in this basis
+      # if `Agens' does not contain a 1
+      
+      for v in Agens do
+          if not IsContainedInSpan( MB, v ) then
+              CloseMutableBasis( MB, v );
+          fi;
+      od;
+      
+      
     else
       MB:= MutableBasisOfNonassociativeAlgebra( F,
                                                 Agens,
                                                 Zero( A ),
                                                 infinity );
+      # The original generators may fail to be contained in this basis
+      # if `Agens' does not contain a 1
+      
+      for v in Agens do
+          if not IsContainedInSpan( MB, v ) then
+              CloseMutableBasis( MB, v );
+          fi;
+      od;
     fi;
 
     # Store left module generators.
@@ -1060,6 +1079,7 @@ BindGlobal( "NiceFreeLeftModuleForFLMLOR", function( A, side )
                           List( Vgens, v -> NiceVector( A, v ) ) );
     fi;
 end );
+
 
 InstallMethod( NiceFreeLeftModule,
     "for FLMLOR that is handled by a nice basis",

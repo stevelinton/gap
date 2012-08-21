@@ -226,16 +226,16 @@ ln -s docdvi$RBVERSION.zoo split
 
 for i in ${DISTNAME}/doc/*/manual.pdf; do
   zoo ah docpdf$RBVERSION.zoo $i >/dev/null
-  zoo c docpdf$RBVERSION.zoo $i <TEXTCOM >&/dev/null
+  zoo c docpdf$RBVERSION.zoo $i <BINCOM >&/dev/null
   zoo ah gap$RBVERSION.zoo $i >/dev/null
-  zoo c gap$RBVERSION.zoo $i <TEXTCOM >&/dev/null;
+  zoo c gap$RBVERSION.zoo $i <BINCOM >&/dev/null;
 done
 
 
 zoo ah docpdf$RBVERSION.zoo ${DISTNAME}/doc/fullindex.pdf > /dev/null
-zoo c docpdf$RBVERSION.zoo ${DISTNAME}/doc/fullindex.pdf <TEXTCOM >&/dev/null
+zoo c docpdf$RBVERSION.zoo ${DISTNAME}/doc/fullindex.pdf <BINCOM >&/dev/null
 zoo ah gap$RBVERSION.zoo ${DISTNAME}/doc/fullindex.pdf > /dev/null
-zoo c gap$RBVERSION.zoo ${DISTNAME}/doc/fullindex.pdf <TEXTCOM >&/dev/null
+zoo c gap$RBVERSION.zoo ${DISTNAME}/doc/fullindex.pdf <BINCOM >&/dev/null
 
 ln -s docpdf$RBVERSION.zoo split
 

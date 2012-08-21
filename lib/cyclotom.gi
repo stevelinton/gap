@@ -1452,8 +1452,7 @@ InstallMethod( FactorsSquarefree,
     # Let $N = \prod_{i=1}^g N_i$ be a factorization of $N$.
     # For $1 \leq i \leq g$, set $A_i(X) = \gcd( U(X), N_i(X + k \theta) )$.
     # The desired factorization of $U(X)$ is $\prod_{i=1}^g A_i$.
-    R:= PolynomialRing( Rationals, [ xind ] );
-    return List( Factors( R, N ),
+    return List( Factors( PolynomialRing( Rationals, [ xind ] ), N ),
                  f -> Gcd( R, U, Value( f, x + k*theta ) ) );
     end );
 

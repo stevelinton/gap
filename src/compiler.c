@@ -4210,6 +4210,7 @@ void CompFor (
         }
         else /* if ( TNUM_EXPR( ADDR_STAT(stat)[0] ) == T_REF_GVAR ) */ {
             var = (UInt)(ADDR_EXPR( ADDR_STAT(stat)[0] )[0]);
+	    CompSetUseGVar( var, COMP_USE_GVAR_ID );
             vart = 'g';
         }
 
@@ -5580,7 +5581,7 @@ Int CompileFunc (
 
     /* emit code to include the interface files                            */
     Emit( "/* C file produced by GAC */\n" );
-    Emit( "#include \"compiled.h\"\n" );
+    Emit( "#include \"src/compiled.h\"\n" );
 
     /* emit code for global variables                                      */
     Emit( "\n/* global variables used in handlers */\n" );

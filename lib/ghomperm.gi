@@ -83,29 +83,31 @@ DeclareRepresentation( "IsCoKernelGensIteratorRep",
 #F  CoKernelGensIterator( <hom> ) . . . . . . . . . . . . .  make this animal
 ##
 InstallGlobalFunction( CoKernelGensIterator, function( hom )
-    local   S,  iter;
-    
-    S := StabChainMutable( hom );
-    iter := Objectify
-            ( NewType( IteratorsFamily,
-                           IsIterator
-                       and IsMutable
-                       and IsCoKernelGensIteratorRep ),
-              rec( level := S,
-                 pointNo := 1,
-              genlabelNo := 1,
-                 levelNo := 1,
-                    base := BaseStabChain( S ) ) );
-    iter!.img  := S.idimage;
-    iter!.bimg := iter!.base;
-    return iter;
+local   S,  iter,mgi;
+
+  S := StabChainMutable( hom );
+  iter := Objectify
+	  ( NewType( IteratorsFamily,
+			  IsIterator
+		      and IsMutable
+		      and IsCoKernelGensIteratorRep ),
+	    rec( level := S,
+		pointNo := 1,
+	    genlabelNo := 1,
+		levelNo := 1,
+		  base := BaseStabChain( S ) ) );
+  iter!.img  := S.idimage;
+  iter!.bimg := iter!.base;
+  mgi:=[hom!.generators,hom!.genimages];
+  iter!.trivlist:=mgi[2]{Filtered([1..Length(mgi[1])],i->IsOne(mgi[1][i]))};
+  return iter;
 end );
 
 InstallMethod( IsDoneIterator,
     "for `IsCoKernelGensIteratorRep'",
     true,
     [ IsIterator and IsCoKernelGensIteratorRep ], 0,
-    iter -> IsEmpty( iter!.level.genlabels ) );
+    iter -> IsEmpty( iter!.level.genlabels ) and IsEmpty(iter!.trivlist));
 
 InstallMethod( NextIterator,
     "for `IsCoKernelGensIteratorRep'",
@@ -114,6 +116,14 @@ InstallMethod( NextIterator,
     function( iter )
     local   gen,  stb,  bimg,  rep,  pnt,  img,  j,  k;
     
+    # do we have to take care of a trivlist?
+    if not IsEmpty(iter!.trivlist) then
+      j:=Length(iter!.trivlist);
+      gen:=iter!.trivlist[j];
+      Unbind(iter!.trivlist[j]);
+      return gen;
+    fi;
+
     # Make the current cokernel generator.
     stb := iter!.level;
     k := stb.genlabels[ iter!.genlabelNo ];

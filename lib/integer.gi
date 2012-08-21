@@ -101,13 +101,11 @@ DeclareRepresentation(
 
 #############################################################################
 ##
-
 #M  Basis( Integers )
 ##
 InstallMethod( Basis,
-    "for integers (use canonical basis)",
-    true,
-    [ IsIntegers ], 0,
+    "for integers (delegate to `CanonicalBasis')",
+    [ IsIntegers ], CANONICAL_BASIS_FLAGS,
     CanonicalBasis );
 
 

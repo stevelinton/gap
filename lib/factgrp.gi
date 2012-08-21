@@ -363,7 +363,7 @@ InstallMethod(FactorCosetAction,"by right transversal operation, Niceo",
   IsIdenticalObj,[IsGroup and IsHandledByNiceMonomorphism,IsGroup],0,
 function(G,U)
 local hom;
-  hom:=NiceMonomorphism(G);
+  hom:=RestrictedNiceMonomorphism(NiceMonomorphism(G),G);
   return hom*DoFactorCosetAction(Image(hom,G),Image(hom,U));
 end);
 
@@ -372,7 +372,7 @@ InstallOtherMethod(FactorCosetAction,
   [IsGroup and IsHandledByNiceMonomorphism,IsGroup,IsGroup],0,
 function(G,U,N)
 local hom;
-  hom:=NiceMonomorphism(G);
+  hom:=RestrictedNiceMonomorphism(NiceMonomorphism(G),G);
   return hom*DoFactorCosetAction(Image(hom,G),Image(hom,U),Image(hom,N));
 end);
 

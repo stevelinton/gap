@@ -18,11 +18,9 @@ Revision.classic_gi :=
 ##
 InstallMethod( SymplecticGroupCons,
     "matrix group for dimension and finite field size",
-    true,
     [ IsMatrixGroup and IsFinite,
       IsPosInt,
       IsPosInt ],
-    0,
     function( filter, d, q )
 
     local   g,  f,  z,  o,  mat1,  mat2,  i,  size,  qi,  c;
@@ -122,11 +120,9 @@ InstallMethod( SymplecticGroupCons,
 ##
 InstallMethod( GeneralUnitaryGroupCons,
     "matrix group for dimension and finite field size",
-    true,
     [ IsMatrixGroup and IsFinite,
       IsPosInt,
       IsPosInt ],
-    0,
     function( filter, n, q )
 
      local g, i, e, f, z, o, mat1, mat2, size, qi, eps, c;
@@ -223,11 +219,9 @@ InstallMethod( GeneralUnitaryGroupCons,
 ##
 InstallMethod( SpecialUnitaryGroupCons,
     "matrix group for dimension and finite field size",
-    true,
     [ IsMatrixGroup and IsFinite,
       IsPosInt,
       IsPosInt ],
-    0,
     function( filter, n, q )
 
      local g, i, e, f, z, o, mat1, mat2, size, qi, eps, c;
@@ -941,14 +935,16 @@ end );
 #F  Ominus2( <q> )  . . . . . . . . . . . . . . . . . . . . . . . . O-_2(<q>)
 ##
 BindGlobal( "Ominus2", function( q )
-    local   z,  x,  t,  n,  e,  bc,  m2,  m1,  g;
+    local z, f, R, x, t, n, e, bc, m2, m1, g;
 
     # construct the root
     z := Z(q);
 
-    # find irreducible x^2+x+t
-    x := Indeterminate(GF(q));
-    t := z^First( [ 0 .. q-2 ], u -> Length(Factors(x^2+x+z^u)) = 1 );
+    # find $x^2+x+t$ that is irreducible over GF(`q')
+    f:= GF( q );
+    R:= PolynomialRing( f );
+    x:= Indeterminate( f );
+    t:= z^First( [ 0 .. q-2 ], u -> Length( Factors( R, x^2+x+z^u ) ) = 1 );
 
     # get roots in GF(q^2)
     n := List( Factors( PolynomialRing( GF( q^2 ) ), x^2+x+t ),
@@ -959,9 +955,9 @@ BindGlobal( "Ominus2", function( q )
     bc := [ [ n[1]/e, 1/e ], [ n[2], z^0 ] ];
 
     # matrix of order 2
-    m2 := [ [ -1, 0 ], [ -1, 1 ] ] * Z(q)^0;
+    m2 := [ [ -1, 0 ], [ -1, 1 ] ] * z^0;
 
-    # matrix of order q+1 (this will lie in F(q)^dxd)
+    # matrix of order q+1 (this will lie in $GF(q)^{d \times d}$)
     z  := Z(q^2)^(q-1);
     m1 := bc^-1 * [[z,0*z],[0*z,z^-1]] * bc;
 
@@ -974,8 +970,8 @@ BindGlobal( "Ominus2", function( q )
     SetInvariantQuadraticForm( g, rec( matrix:=
       [ [ 1, 1 ], [ 0, t ] ] * z^0 ) );
     SetSize( g, 2*(q+1) );
-    return g;
 
+    return g;
 end );
 
 
@@ -984,7 +980,7 @@ end );
 #F  Ominus4Even( <q> )  . . . . . . . . . . . . . . . . . . . . . . O-_4(<q>)
 ##
 BindGlobal( "Ominus4Even", function( q )
-    local   f,  id,  rho,  delta,  phi,  x,  t,  eichler,  g;
+    local f, id, rho, delta, phi, R, x, t, eichler, g;
 
     # <q> must be even
     if q mod 2 = 1  then
@@ -1008,10 +1004,11 @@ BindGlobal( "Ominus4Even", function( q )
     phi[1][1] := PrimitiveRoot( f );
     phi[2][2] := PrimitiveRoot( f )^-1;
 
-    # find irreducible x^2+x+t
-    x := Indeterminate(f);
-    t := First( [ 0 .. q-2 ], u ->
-        Length(Factors(x^2+x+PrimitiveRoot( f )^u)) = 1 );
+    # find x^2+x+t that is irreducible over <f>
+    R:= PolynomialRing( f, 1 );
+    x:= Indeterminate( f );
+    t:= First( [ 0 .. q-2 ],
+               u -> Length( Factors( R, x^2+x+PrimitiveRoot( f )^u ) ) = 1 );
 
     # compute square root of <t>
     t := t/2 mod (q-1);
@@ -1040,7 +1037,6 @@ BindGlobal( "Ominus4Even", function( q )
 
     # and return
     return g;
-
 end );
 
 
@@ -1049,17 +1045,14 @@ end );
 #F  OminusEven( <d>, <q> )  . . . . . . . . . . . . . . . . . . . O-_<d>(<q>)
 ##
 BindGlobal( "OminusEven", function( d, q )
-    local   f,  id,  k,  phi,  delta,  theta,  i,  delta2,  eichler,
-            rho,  g,  t,  x;
+    local f, id, k, phi, delta, theta, i, delta2, eichler, rho, g, t, R, x;
 
     # <d> and <q> must be odd
     if d mod 2 = 1  then
         Error( "<d> must be even" );
-    fi;
-    if d < 6  then
+    elif d < 6  then
         Error( "<d> must be at least 6" );
-    fi;
-    if q mod 2 = 1  then
+    elif q mod 2 = 1  then
         Error( "<q> must be even" );
     fi;
     f := GF(q);
@@ -1113,10 +1106,11 @@ BindGlobal( "OminusEven", function( d, q )
         od;
     fi;
 
-    # find irreducible x^2+x+t
-    x := Indeterminate(f);
-    t := First( [ 0 .. q-2 ], u ->
-        Length(Factors(x^2+x+PrimitiveRoot( f )^u)) = 1 );
+    # find x^2+x+t that is irreducible over GF(`q')
+    R:= PolynomialRing( f );
+    x:= Indeterminate( f );
+    t:= First( [ 0 .. q-2 ],
+               u -> Length( Factors( R, x^2+x+PrimitiveRoot( f )^u ) ) = 1 );
 
     # compute square root of <t>
     t := t/2 mod (q-1);
@@ -1183,7 +1177,6 @@ BindGlobal( "OminusEven", function( d, q )
     SetSize( g, 2*q^(d/2*(d/2-1))*(q^(d/2)+1)*delta );
 
     return g;
-
 end );
 
 

@@ -1176,11 +1176,17 @@ InstallOtherMethod( RepresentativeActionOp, "permgrp",true, [ IsPermGroup,
         S := true;
     elif     ( act = OnPairs or act = OnTuples )
          and IsPositionsList( d ) and IsPositionsList( e )  then
+	if Length(d)<>Length(e) then
+	  # sanity check
+	  return fail;
+	fi;
         S := true;
     fi;
     if IsBound( S )  then
         if d = e  then
             rep := One( G );
+        elif Length( d ) <> Length( e ) then
+            rep:= fail;
         else
             S := StabChainOp( G, d );
             rep := S.identity;

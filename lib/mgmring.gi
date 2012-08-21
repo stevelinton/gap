@@ -854,9 +854,8 @@ InstallMethod( Coefficients,
 #M  Basis( <RM> ) . . . . . . . . . . . . . . . . . . . for a free magma ring
 ##
 InstallMethod( Basis,
-    "for a free magma ring",
-    [ IsFreeMagmaRing ],
-    10,  # must be higher than default method for (assoc.) FLMLOR(WithOne)
+    "for a free magma ring (delegate to `CanonicalBasis')",
+    [ IsFreeMagmaRing ], CANONICAL_BASIS_FLAGS,
     CanonicalBasis );
 
 

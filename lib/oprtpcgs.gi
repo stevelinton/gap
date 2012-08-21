@@ -525,7 +525,11 @@ end );
 
 InstallMethod( StabilizerOp,
         "G (solv.), D,pnt, gens, gens, act", true,
-        OrbitishReq, 0,
+        [ IsGroup and CanEasilyComputePcgs, IsList,
+	  IsObject,
+          IsList,
+          IsList,
+          IsFunction ], 0,
 function( G,D, pt, gens, acts, op )
   if gens = acts  then
     return Pcgs_MutableOrbitStabilizerOp(G,D,pt,Pcgs(G),Pcgs(G),op).stabilizer;

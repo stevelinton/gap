@@ -3426,6 +3426,7 @@ Obj InverseMat8Bit( Obj mat)
   UInt1 *feltffe;
   UInt pos;
   UInt1 x;
+  UInt o;
   Obj xi;
   Obj xn;
   Obj type;
@@ -3465,6 +3466,7 @@ Obj InverseMat8Bit( Obj mat)
   /* set up cmat and inv. Note that the row numbering is offset */
   cmat = NEW_PLIST(T_PLIST, len); 
   zero = ZeroVec8Bit(q, len, 1);
+  o = FELT_FFE_FIELDINFO_8BIT(info)[1];
   for (i = 1; i <= len; i++)
     {
       row = ELM_MAT8BIT(mat, i);
@@ -3476,9 +3478,8 @@ Obj InverseMat8Bit( Obj mat)
 
       /* we can't retain this pointer, because of garbage collections */
       settab = SETELT_FIELDINFO_8BIT(info);
-      /* we know we are replacing a zero by a one, which lets us
-	 sinplify this line a bit */
-      *ptr = settab[256*((i-1)%elts + elts)];
+      /* we know we are replacing a zero  */
+      *ptr = settab[256*((i-1)%elts + o*elts)];
       SET_ELM_PLIST( inv, i+1, row);
       CHANGED_BAG(inv);
     }
@@ -3514,7 +3515,7 @@ Obj InverseMat8Bit( Obj mat)
 	  SET_ELM_PLIST(inv, j+1, ELM_PLIST(inv, i+1));
 	  SET_ELM_PLIST(inv,i+1, row1);
 	}
-      if (x != 1)
+      if (x != o)
 	{
 	  xi = INV(ffefelt[x]);
 	  MultVec8BitFFEInner( row, row, xi, i, len);

@@ -814,5 +814,18 @@ InstallTrueMethod( IsTotal, IsGeneralMapping and IsZero );
 
 #############################################################################
 ##
+#F  CopyMappingAttributes( <from>, <to> )
+##
+##  Let <from> and <to> be two general mappings which are known to be equal.
+##  `CopyMappingAttributes' copies known mapping attributes from <from> to
+##  <to>. This is used in operations, such as
+##  `AsGroupGeneralMappingByImages', that produce equal mappings in another
+##  representation.
+##
+DeclareGlobalFunction( "CopyMappingAttributes" );
+
+
+#############################################################################
+##
 #E
 

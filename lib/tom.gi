@@ -3069,7 +3069,12 @@ InstallMethod( RepresentativeTomByGeneratorsNC,
                    x -> ResultOfStraightLineProgram( x, gens ) ) );
       fi;
     else
-      gens:= GroupByGenerators( ResultOfStraightLineProgram( prog, gens ) );
+      gens:= ResultOfStraightLineProgram( prog, gens );
+      if IsEmpty( gens ) then
+        gens:= TrivialSubgroup( UnderlyingGroup( tom ) );
+      else
+        gens:= GroupByGenerators( gens );
+      fi;
     fi;
     SetSize( gens, OrdersTom( tom )[ sub ] );
     return gens;

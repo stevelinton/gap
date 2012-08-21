@@ -1649,6 +1649,7 @@ HELP := function( str )
     if str = ""  then
         book := HELP_BOOK_RING[HELP_RING_IDX+1];
         str  := HELP_TOPIC_RING[HELP_RING_IDX+1];
+	origstr:=str;
         move := true;
 
     # if the topic is '-' we are interested in the previous section again
@@ -1656,6 +1657,7 @@ HELP := function( str )
         HELP_RING_IDX := (HELP_RING_IDX-1) mod HELP_RING_SIZE;
         book := HELP_BOOK_RING[HELP_RING_IDX+1];
         str  := HELP_TOPIC_RING[HELP_RING_IDX+1];
+	origstr:=str;
         move := true;
 
     # if the topic is '+' we are interested in the last section again
@@ -1663,6 +1665,7 @@ HELP := function( str )
         HELP_RING_IDX := (HELP_RING_IDX+1) mod HELP_RING_SIZE;
         book := HELP_BOOK_RING[HELP_RING_IDX+1];
         str  := HELP_TOPIC_RING[HELP_RING_IDX+1];
+	origstr:=str;
         move := true;
     fi;
 

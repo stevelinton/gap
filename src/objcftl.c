@@ -72,10 +72,10 @@ void AddIn( Obj list, Obj w, Obj e ) {
       g = INT_INTOBJ( ELM_PLIST( w, i ) );
 
       s = ELM_PLIST( w, i+1 );
-      C_PROD_FIA( t, s, e );
+      C_PROD_FIA( t, s, e );      /*   t = s * e   */
 
       r = ELM_PLIST( list, g );
-      C_SUM_FIA( s, t, r );
+      C_SUM_FIA( s, t, r );       /*   s = r + s * e   */
 
       SET_ELM_PLIST( list, g, s );  CHANGED_BAG( list );
   }

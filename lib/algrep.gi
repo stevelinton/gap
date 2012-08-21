@@ -2111,25 +2111,44 @@ InstallMethod( ConvertToNormalFormMonomialElement,
 
     # Merge wedges and coefficients, apply permutations to make the wedges
     # increasing, take equal wedges together.
+    
+    for i in [1..Length(tensors)] do
+        
+        # The tensors with duplicate entries are zero, we get rid of them.
+        
+        if not IsDuplicateFree( wedge_inds[i] ) then
+            Unbind( wedge_inds[i] );
+            Unbind( tensors[i] );
+            Unbind( cfts[i] );
+        else
+            perm:= Sortex( wedge_inds[i] );
+            tensors[i]:= Permuted( tensors[i], perm );
+            cfts[i]:= SignPerm( perm )*cfts[i];
+        fi;
+        
+    od;
+    
+    tensors:= Filtered( tensors, x -> IsBound(x) );
+    wedge_inds:= Filtered( wedge_inds, x -> IsBound(x) );
+    cfts:= Filtered( cfts, x -> IsBound(x) );
+    
     perm:= Sortex( tensors );
     cfts:= Permuted( cfts, perm );
     wedge_inds:= Permuted( wedge_inds, perm );
     res:= [ ];
     len:= 0;
     for i in [1..Length(tensors)] do
-
-        perm:= Sortex( wedge_inds[i] );
-        wed:= Permuted( tensors[i], perm );
-        if len > 0 and wed = res[len-1] then
-            res[len]:= res[len]+SignPerm( perm )*cfts[i];
+        
+        if len > 0 and tensors[i] = res[len-1] then
+            res[len]:= res[len]+cfts[i];
             if res[len] = 0*res[len] then
                 Unbind( res[len-1] );
                 Unbind( res[len] );
                 len:= len-2;
             fi;
         else
-            Add( res, wed );
-            Add( res, SignPerm( perm )*cfts[i] );
+            Add( res, tensors[i] );
+            Add( res, cfts[i] );
             len:= len+2;
         fi;
     od;
@@ -2411,6 +2430,14 @@ InstallMethod( ConvertToNormalFormMonomialElement,
     # Merge symmetric elements and coefficients, apply permutations to make
     # the symmetric elements
     # increasing, take equal symmetric elements together.
+    
+    for i in [1..Length(tensors)] do
+        
+        perm:= Sortex( symmetric_inds[i] );
+        tensors[i]:= Permuted( tensors[i], perm );
+        
+    od;
+    
     perm:= Sortex( tensors );
     cfts:= Permuted( cfts, perm );
     symmetric_inds:= Permuted( symmetric_inds, perm );
@@ -2418,8 +2445,7 @@ InstallMethod( ConvertToNormalFormMonomialElement,
     len:= 0;
     for i in [1..Length(tensors)] do
 
-        perm:= Sortex( symmetric_inds[i] );
-        wed:= Permuted( tensors[i], perm );
+        wed:= tensors[i];
         if len > 0 and wed = res[len-1] then
             res[len]:= res[len]+cfts[i];
             if res[len] = 0*res[len] then

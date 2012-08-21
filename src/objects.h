@@ -235,8 +235,8 @@ static inline Obj prod_intobjs(Int l, Int r)
 #define T_FUNCTION              (FIRST_CONSTANT_TNUM+10)
 #define T_FLAGS                 (FIRST_CONSTANT_TNUM+11)
 #define T_FLOAT                 (FIRST_CONSTANT_TNUM+12)
-#define T_RESERVED              (FIRST_CONSTANT_TNUM+13)   
-#define LAST_CONSTANT_TNUM      T_RESERVED 
+#define T_RESERVED_BY_GAP       (FIRST_CONSTANT_TNUM+13)   
+#define LAST_CONSTANT_TNUM      T_RESERVED_BY_GAP 
 
 #define IMMUTABLE               1
 

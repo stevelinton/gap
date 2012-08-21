@@ -211,7 +211,7 @@ end );
 ##
 InstallGlobalFunction( LIBTOM, function( arg )
 
-    local name, record, nrgens, entry;
+    local record, entry, nrgens, i, name;
 
     # Make the components.
     record:= rec( Identifier                  := arg[1],
@@ -248,10 +248,18 @@ InstallGlobalFunction( LIBTOM, function( arg )
     fi;
 
     # Construct the straight line programs.
-    if arg[9] <> 0 then
+    if record.StraightLineProgramsTom <> 0 then
       nrgens:= Length( GeneratorsOfGroup( record.UnderlyingGroup ) );
-      record.StraightLineProgramsTom:= List( arg[9],
-          list -> List( list, x -> StraightLineProgram( x, nrgens ) ) );
+      for i in [ 1 .. Length( record.StraightLineProgramsTom ) ] do
+        if arg[9][i] = [[[]]] then
+          # special case for the trivial subgroup
+          record.StraightLineProgramsTom[i]:=
+              StraightLineProgram( [[]], nrgens );
+        else
+          record.StraightLineProgramsTom[i]:= List( arg[9][i],
+              x -> StraightLineProgram( x, nrgens ) );
+        fi;
+      od;
     fi;
 
     # Remove superfluous components.

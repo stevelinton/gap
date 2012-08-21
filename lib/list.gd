@@ -258,7 +258,7 @@ InstallTrueMethod( IsFinite, IsHomogeneousList and IsInternalRep );
 ##  but also non-homogeneous lists may be sorted
 ##  (see~"Comparison Operations for Elements").
 ##
-DeclareProperty( "IsSortedList", IsHomogeneousList);
+DeclareProperty( "IsSortedList", IsList);
 
 
 #############################################################################
@@ -285,8 +285,8 @@ DeclareProperty( "IsSortedList", IsHomogeneousList);
 ##  are sorted but not strictly sorted.)
 ##
 
-#DeclareProperty( "IsSSortedList", IsHomogeneousList);
-DeclarePropertyKernel( "IsSSortedList", IsHomogeneousList, IS_SSORT_LIST );
+#DeclareProperty( "IsSSortedList", IsList);
+DeclarePropertyKernel( "IsSSortedList", IsList, IS_SSORT_LIST );
 DeclareSynonym( "IsSet", IsSSortedList );
 
 InstallTrueMethod( IsSortedList, IsSSortedList );
@@ -681,6 +681,9 @@ DeclareGlobalFunction( "IsLexicographicallyLess" );
 ##
 ##  sorts the list <list> in increasing order.
 ##  In the first form `Sort' uses the operator `\<' to compare the elements.
+##  (If the list is not homogeneous it is the users responsibility to ensure
+##  that `\<' is defined for all element pairs, see~"Comparison Operations
+##  for Elements")
 ##  In the second form `Sort' uses the function <func> to compare elements.
 ##  <func> must be a function taking two arguments that returns `true'
 ##  if the first is regarded as strictly smaller than the second,
@@ -702,13 +705,16 @@ DeclareOperation( "Sort", [ IsList and IsMutable ] );
 ##
 #O  Sortex(<list>) . . . sort a list (stable), return the applied permutation
 ##
-##  sorts the list <list> and  returns the  permutation that must be
-##  applied to <list> to obtain the sorted list.
+##  sorts the list <list> via the operator`\<' and  returns the  permutation
+##  that must be applied to <list> to obtain the sorted list.
+##  (If the list is not homogeneous it is the users responsibility to ensure
+##  that `\<' is defined for all element pairs, see~"Comparison Operations
+##  for Elements")
 ##
 ##  `Permuted' (see~"Permuted") allows you to rearrange a list according to
 ##  a given permutation.
 ##
-DeclareOperation( "Sortex", [ IsHomogeneousList and IsMutable ] );
+DeclareOperation( "Sortex", [  IsMutable ] );
 
 
 #############################################################################
@@ -790,9 +796,9 @@ DeclareGlobalFunction( "Minimum" );
 ##  For example, there are special methods to compute the maximum resp.~the
 ##  minimum of a range (see~"Ranges").
 ##
-DeclareOperation( "MaximumList", [ IsHomogeneousList ] );
+DeclareOperation( "MaximumList", [ IsList ] );
 
-DeclareOperation( "MinimumList", [ IsHomogeneousList ] );
+DeclareOperation( "MinimumList", [ IsList ] );
 
 
 #############################################################################

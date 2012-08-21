@@ -732,6 +732,10 @@ function (L)
 	    grp,	       # the group
             i,k,r;         # loop variables
 
+    if IsBound(L!.func) then
+      Error("cannot compute maximality inclusions for partial lattice");
+    fi;
+
     grp:=L!.group;
     # compute the lattice,fetch the classes,zuppos,and representatives
     classes:=L!.conjugacyClassesSubgroups;
@@ -833,6 +837,10 @@ function (L)
             reps,              # transversal of <N> in <G>
 	    grp,	       # the group
             i,k,r;         # loop variables
+
+    if IsBound(L!.func) then
+      Error("cannot compute maximality inclusions for partial lattice");
+    fi;
 
     grp:=L!.group;
     # compute the lattice,fetch the classes,zuppos,and representatives

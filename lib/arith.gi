@@ -731,6 +731,16 @@ function(x,y)
   return x![1]=y![1];
 end);
 
+#############################################################################
+##
+#M  IsIdempotent( <elm> )
+##
+InstallMethod(IsIdempotent,"multiplicative element",true,
+  [IsMultiplicativeElement],0,
+function(x)
+  return x*x = x;
+end);
+
 
 #############################################################################
 ##

@@ -23,23 +23,25 @@ Revision.smgideal_gi :=
 ##
 #############################################################################
 InstallImmediateMethod(IsLeftSemigroupIdeal, 
-IsLeftMagmaIdeal and HasParentAttr and IsAttributeStoringRep, 0,
+IsLeftMagmaIdeal and HasLeftActingDomain and IsAttributeStoringRep, 0,
 function(I)
-	return HasIsSemigroup(Parent(I)) and IsSemigroup(Parent(I));
+	return HasIsSemigroup(LeftActingDomain(I)) and 
+		IsSemigroup(LeftActingDomain(I));
 end);
 
 
 InstallImmediateMethod(IsRightSemigroupIdeal, 
-IsRightMagmaIdeal and HasParentAttr and IsAttributeStoringRep, 0,
+IsRightMagmaIdeal and HasRightActingDomain and IsAttributeStoringRep, 0,
 function(I)
-	return HasIsSemigroup(Parent(I)) and IsSemigroup(Parent(I));
+	return HasIsSemigroup(RightActingDomain(I)) and 
+		IsSemigroup(RightActingDomain(I));
 end);
 
 
 InstallImmediateMethod(IsSemigroupIdeal, 
-IsMagmaIdeal and HasParentAttr and IsAttributeStoringRep, 0,
+IsMagmaIdeal and HasActingDomain and IsAttributeStoringRep, 0,
 function(I)
-	return HasIsSemigroup(Parent(I)) and IsSemigroup(Parent(I));
+	return HasIsSemigroup(ActingDomain(I)) and IsSemigroup(ActingDomain(I));
 end);
 
 
@@ -52,17 +54,6 @@ end);
 ##                                                                         ##
 #############################################################################
 #############################################################################
-
-#############################################################################
-##
-#R	IsRightSemigroupIdealEnumRep( <R> )
-##
-##	Representation for enumerators of right, left and two sided semigroup
-##	ideals.
-##
-DeclareRepresentation("IsSemigroupIdealEnumRep",
-	IsDomainEnumerator and IsAttributeStoringRep,
-	["currentlist", "gens", "nextelm", "orderedlist"]);
 
 #############################################################################
 ##
@@ -225,7 +216,7 @@ function(I)
 
 	local s, enum, enumdata;
 
-	s:= Parent(I);
+	s:= RightActingDomain(I);
 	if not HasGeneratorsOfSemigroup(s) then
 		TryNextMethod();
 	fi;
@@ -255,7 +246,7 @@ function(I)
 
 	local s, enum, enumdata;
 
-	s:= Parent(I);
+	s:= LeftActingDomain(I);
 	if not HasGeneratorsOfSemigroup(s) then
 		TryNextMethod();
 	fi;
@@ -285,7 +276,7 @@ function(I)
 
 	local s, enum, enumdata;
 
-	s:= Parent(I);
+	s:= ActingDomain(I);
 	if not HasGeneratorsOfSemigroup(s) then
 		TryNextMethod();
 	fi;

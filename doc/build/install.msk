@@ -244,7 +244,7 @@ More files are in the following *subdirectories*:
 
 \index{BSD}\index{4.2BSD}\index{4.3BSD}\index{ULTRIX}
 \index{Linux}\index{OSF}\index{RS/6000}
-\index{System V}\index{SysV}\index{HP-UX}\index{SunOS}\index{Solaris}
+\index{System V}\index{SysV}\index{HP-UX}\index{Solaris}
 \index{IRIX}
 {\GAP} runs very well under UNIX. In fact it is being developed on UNIX
 workstations. {\GAP} running on any UNIX machine should behave exactly
@@ -256,8 +256,8 @@ machines:
 DECalpha under OSF 3.2 with GNU cc 2 or cc,
 HP9000 under HP-UX with GNU cc 2, 
 IBM PC under Linux with GNU cc 2, 
-IBM RS/6000 & AIX with GNU cc 2, SGI Mips under IRIX 5/6 with gcc2 or cc,
-Sun Sparc under SunOS with GCC 2, Sun Sparc under Solaris with GCC 2 or cc. 
+IBM RS/6000 & AIX with GNU cc 2, SGI Mips under IRIX 5/6 with gcc2 or
+cc, Sun Sparc under Solaris with GCC 2 or cc. 
 \endtt
 
 We hope that compiling and installing {\GAP} on another UNIX machine does
@@ -615,11 +615,6 @@ if it is installed on your machine.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{Problems on Particular Systems}
-
-The standard `cc' compiler on a Sun under SunOS 4 canot compile {\GAP}
-because it is not ANSI compliant.  The `configure' script by default
-choses `gcc', if only `cc' is installed on your machine use the
-`gcc'-compiled binary we provide.
 
 The highest levels of optimization of the OSF/4 C compiler `cc' on the
 Compaq alpha chip make assumptions about the use of pointers which are

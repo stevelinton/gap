@@ -167,7 +167,7 @@ local bound,a,b,c,cnt,r,i,j,bb,normalStep,gens;
 		r:=Random(bb);
 	      until not(r in a);
 	      if normalStep then
-		b:=ClosureSubgroupNC(a,r);
+		b:=ClosureSubgroup(a,r);
               else
 		# self normalizing subgroup: thus every element not in <a>
      		# will surely map one generator out
@@ -178,7 +178,7 @@ local bound,a,b,c,cnt,r,i,j,bb,normalStep,gens;
                 until not(gens[j]^r in a);
 		r:=gens[j]^r;
 
-		b:=ClosureSubgroupNC(a,r);
+		b:=ClosureSubgroup(a,r);
 	      fi;
 	      if Size(b)<Size(bb) then
 		bb:=b;
@@ -301,6 +301,52 @@ function(d)
   return Union(List(RepresentativesContainedRightCosets(d),
                     i->RightCoset(LeftActingGroup(d),i)));
 end);
+
+#############################################################################
+##
+#R  IsDoubleCosetEnumerator
+##
+DeclareRepresentation( "IsDoubleCosetEnumerator",
+    IsDomainEnumerator and IsAttributeStoringRep,
+    [ "leftgroupEnumerator", "leftgroup", "rightCosetReps", "leftsize" ] );
+
+InstallMethod(Enumerator, "for a double coset",true,[IsDoubleCoset],0,
+function( d )
+local   enum;
+  enum := Objectify( NewType( FamilyObj(d), IsDoubleCosetEnumerator ),
+	  rec( leftgroupEnumerator := Enumerator( LeftActingGroup( d ) ),
+		leftgroup := LeftActingGroup( d ),
+		leftsize := Size( LeftActingGroup( d ) ),
+		rightCosetReps := RepresentativesContainedRightCosets(d) ) );
+  SetUnderlyingCollection( enum, d );
+  if HasIsFinite( d ) then
+    SetIsFinite( enum, IsFinite( d ) );
+  fi;
+  return enum;
+end );
+
+InstallMethod( \[\], "for double coset enumerator", true,
+  [ IsDoubleCosetEnumerator, IsPosInt ], 0,
+function( enum, pos )
+  pos:=pos-1;
+  return enum!.leftgroupEnumerator[ (pos mod enum!.leftsize)+1] 
+        * enum!.rightCosetReps[QuoInt(pos,enum!.leftsize)+1];
+end );
+
+InstallMethod( Position, "for double coset enumerator", true,
+  [ IsRightCosetEnumerator, IsMultiplicativeElementWithInverse, IsInt ], 0,
+function( enum, elm, after )
+local p;
+  p:=First([1..Length(enum!.rightCosetReps)],
+       i->elm/enum!.rightCosetReps[i] in enum!.leftgroup);
+  p:=(p-1)*enum!.leftsize
+          +Position(enum!.leftgroupEnumerator,elm/enum!.rightCosetReps[p],0);
+  if p<=after then
+    return fail; # no double elements
+  else
+    return p; 
+  fi;
+end );
 
 RightCosetCanonicalRepresentativeDeterminator := 
 function(U,a)
@@ -511,7 +557,7 @@ local c,a1,a2,r,s,t,rg,st,i,j,nr,o,oi,nu,step,p,img,rep,
 	    if blist[ps] then
 	      if compst then
 		# known image
-		st := ClosureSubgroupNC(st,rep[i]*lstgens[j]/rep[oi[ps]]);
+		st := ClosureSubgroup(st,rep[i]*lstgens[j]/rep[oi[ps]]);
 	      fi;
 	    else
 	      # new image
@@ -544,28 +590,33 @@ local c,a1,a2,r,s,t,rg,st,i,j,nr,o,oi,nu,step,p,img,rep,
       if normal then
 	# in the normal case, we can obtain the other orbits easily via
 	# the orbit theorem (same stabilizer)
-	if Length(o)>1 then
-	  rt:=RightTransversal(a1,
-	        ClosureSubgroupNC(a2,t{Filtered([1..Length(oi)],
-		                     i->IsBound(oi[i]))}));
-	else
-	  rt:=t;
-	fi;
+	rt:=RightTransversal(lst,st);
+	Assert(1,Length(rt)=Length(o));
 
-	for rg in rt do
-          if not IsOne(rg) then
-	    ps:=e*rg*p;
-	    Add(nr,ps);
-	    Add(nstab,st);
-	    if unten then
-	      if flip then
-		Add(dcs,[ps^(-1),siz]);
-	      else
-		Add(dcs,[ps,siz]);
-	      fi;
+	while bsz>0 do
+	  ps:=Position(blist,false);
+	  e:=t[ps];
+	  blist[ps]:=true;
+	  ep:=e*p;
+	  Add(nr,ep);
+	  Add(nstab,st);
+
+	  if unten then
+	    if flip then
+	      Add(dcs,[ep^(-1),siz]);
+	    else
+	      Add(dcs,[ep,siz]);
 	    fi;
 	  fi;
+
+	  # tick off the orbit
+	  for i in rt do
+	    ps:=PositionCanonical(t,e*p*i/p);
+	    blist[ps]:=true;
+	  od;
+	  bsz:=bsz-Length(rt);
 	od;
+
       fi;
 
     od;

@@ -2798,8 +2798,14 @@ Obj FuncExportToKernelFinished (
 
 Obj FuncSleep( Obj self, Obj secs )
 {
-  Int s = INT_INTOBJ(secs);
-  if (s > 0)
+  Int  s;
+
+  while( ! IS_INTOBJ(secs) )
+    secs = ErrorReturnObj( "<secs> must be a small integer", 0L, 0L, 
+                           "you can return a small integer" );
+
+  
+  if ( (s = INT_INTOBJ(secs)) > 0)
     SySleep((UInt)s);
   
   /* either we uised up the time, or we were interrupted. */

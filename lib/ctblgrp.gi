@@ -12,7 +12,6 @@
 Revision.ctblgrp_gi :=
     "@(#)$Id$";
 
-
 #############################################################################
 ##
 #V  USECTPGROUP . . . . . . . . . . indicates,whether CharTablePGroup should
@@ -830,8 +829,10 @@ CharacterMorphismOrbits := function(D,space)
     a:=DxActiveCols(D,space);
     # calculate invariant space as intersection of E.S to E.V. 1
     for gen in GeneratorsOfGroup(s) do
-      b:=NullspaceMat(List(b,i->D.asCharacterMorphism(i,gen){a})
-                       -IdentityMat(Length(b),o))*b;
+      if Length(b)>0 then
+	b:=NullspaceMat(List(b,i->D.asCharacterMorphism(i,gen){a})
+			-IdentityMat(Length(b),o))*b;
+      fi;
 #T cheaper!
       b:=rec(base:=b,dim:=Length(b));
       a:=DxActiveCols(D,b);
@@ -924,7 +925,7 @@ SplitTwoSpace := function(D,raum)
   v2v2:=DxModProduct(D,v2,v2);
   char:=[];
   char2:=[];
-  NotFailed:=true;
+  NotFailed:=not IsZero(v2v2);
   di:=1;
   while di<=Length(ol) and NotFailed do
     d:=ol[di];
@@ -1715,17 +1716,19 @@ StandardClassMatrixColumn := function(D,M,r,t)
     M[D.inversemap[r]][t]:=D.classiz[r];
   else
     orb:=DxGaloisOrbits(D,r);
-    z:=D.classreps[t];
+    z:=D.classreps[t]; 
     c:=orb.orbits[t][1];
     if c<>t then
-      p:=RepresentativeAction(orb.group,c,t);
-      # was the first column of the galois class active?
-      if ForAny(M,i->i[c]>0) then
-	for i in D.classrange do
-	  M[i^p][t]:=M[i][c];
-	od;
-	Info(InfoCharacterTable,2,"by GaloisImage");
-	return;
+      p:=RepresentativeAction(Stabilizer(orb.group,r),c,t);
+      if p<>fail then
+	# was the first column of the galois class active?
+	if ForAny(M,i->i[c]>0) then
+	  for i in D.classrange do
+	    M[i^p][t]:=M[i][c];
+	  od;
+	  Info(InfoCharacterTable,2,"by GaloisImage");
+	  return;
+	fi;
       fi;
     fi;
 
@@ -1735,7 +1738,7 @@ StandardClassMatrixColumn := function(D,M,r,t)
     if IsDxLargeGroup(D.group) then
       # if r and t are unique,the conjugation test can be weak (i.e. up to
       # galois automorphisms)
-      w:=Length(orb.orbits[t])=1;
+      w:=Length(orb.orbits[t])=1 and Length(orb.orbits[r])=1;
       for i in [1..Length(T[1])] do
 	e:=T[1][i]*z;
         if w then
@@ -1755,7 +1758,7 @@ StandardClassMatrixColumn := function(D,M,r,t)
         gt:=Set(Filtered(orb.orbits,i->Length(i)>1));
         for i in gt do
           if i[1] in orb.identifees then
-            # were these classes detected weak ?
+            # were these classes detected weakly ?
             e:=M[i[1]][t];
             if e>0 then
               Info(InfoCharacterTable,2,"GaloisIdentification ",i,": ",e);

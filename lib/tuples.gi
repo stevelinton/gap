@@ -84,10 +84,14 @@ local n, tupfams, freepos, len, i, fam, tuplespos,
       Info( InfoTuples, 1, "Created new tuples family, length ", n );
       filter:=IsTuple;
       filter2:=IsTupleFamily;
-      if ForAll(famlist,i->CanEasilySortElements(i)) then
+      # inherit positive element comparison from the families but do not
+      # trigger the computation. 
+      if ForAll(famlist,i->HasCanEasilyCompareElements(i) and 
+       CanEasilySortElements(i)) then
         filter:=filter and CanEasilySortElements;
         filter2:=filter2 and CanEasilySortElements;
-      elif ForAll(famlist,i->CanEasilyCompareElements(i)) then
+      elif ForAll(famlist,i->HasCanEasilyCompareElements(i) and 
+        CanEasilyCompareElements(i)) then
         filter:=filter and CanEasilyCompareElements;
         filter2:=filter2 and CanEasilyCompareElements;
       fi;

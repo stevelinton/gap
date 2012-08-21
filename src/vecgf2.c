@@ -2693,7 +2693,7 @@ Obj ProductCoeffsGF2Vec( Obj vec1, UInt len1, Obj vec2, UInt len2)
 	  block = *ptr++;
 	  e = 0;
 	}
-      if (block & (1 << e++))
+      if (block & ((UInt)1 << e++))
 	AddShiftedVecGF2VecGF2( prod, vec2, len2, i);
     }
   return prod;
@@ -2749,9 +2749,9 @@ void ReduceCoeffsGF2Vec( Obj vec1, Obj vec2, UInt len2 )
   ptr = BLOCKS_GF2VEC(vec1) + (i/BIPEB);
   while (i+ 1 >= len2)
     {
-      if (*ptr & (1 << e))
+      if (*ptr & ((UInt)1 << e))
 	AddShiftedVecGF2VecGF2(vec1, vec2, len2, i - len2 + 1);
-      assert(!(*ptr & (1<<e)));
+      assert(!(*ptr & ((UInt)1<<e)));
       if (e == 0)
 	{
 	  e = BIPEB -1;

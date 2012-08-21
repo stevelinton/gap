@@ -635,22 +635,28 @@ SimpleLieAlgebraTypeA_G:= function( type, n, F )
     SetChevalleyBasis( L, [ PositiveRootVectors( R ), 
                             NegativeRootVectors( R ),
                             vectors ] );
-    C:= 2*IdentityMat( n );
-    for i in [1..n] do
-        for j in [1..n] do
-            if i <> j then
-                q:= 0;
-                r:= posR[i]+posR[j];
-                while r in posR do
-                    q:=q+1;
-                    r:= r+posR[j];
-                od;
-                C[i][j]:= -q;
-            fi;           
+    
+    if not ( Characteristic( F ) in [ 2, 3 ] ) then  
+                              
+                                                                  
+        C:= 2*IdentityMat( n );
+        for i in [1..n] do
+            for j in [1..n] do
+                if i <> j then
+                    q:= 0;
+                    r:= posR[i]+posR[j];
+                    while r in posR do
+                        q:=q+1;
+                        r:= r+posR[j];
+                    od;
+                    C[i][j]:= -q;
+                fi;           
+            od;
         od;
-    od;
 
-    SetCartanMatrix( R, C );
+        SetCartanMatrix( R, C );
+    fi;
+    
     SetRootSystem( L, R );
     return L;
     

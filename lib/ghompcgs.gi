@@ -184,7 +184,7 @@ local pcgs,pcgsimg,r,i,j,k,o,elm,img,exp;
   # we still need to test any additional generators. (This could happen
   # easily, if the mapping is a general inverse.)
   for i in [1..Length(map!.generators)] do
-    if not i in pcgs then
+    if not map!.genimages[i] in pcgsimg then
       exp:=ExponentsOfPcElement(pcgs,map!.generators[i]);
       img  := o;
       for k in [1..Length(pcgsimg)] do
@@ -480,7 +480,7 @@ InstallMethod( NaturalHomomorphismByNormalSubgroupOp, IsIdenticalObj,
     local   pcgsG,  pcgsN,  pcgsF,  F,  hom;
     
     pcgsG := SpecialPcgs( G );
-    pcgsN := InducedPcgsWrtSpecialPcgs( N ); 
+    pcgsN := InducedPcgs(pcgsG, N ); 
     pcgsF := pcgsG mod pcgsN;
     F     := PcGroupWithPcgs( pcgsF );
     hom   := Objectify( NewType( GeneralMappingsFamily

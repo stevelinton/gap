@@ -920,7 +920,13 @@ InstallMethod( AdjointBasis,
         CloseMutableBasis( adLsp, adi );
       fi;
     od;
-    adLbas:= Basis( VectorSpace( F, adL ), adL );
+
+    if adL = [ ] then
+       adLbas:= Basis( VectorSpace( F, [ ], NullMat(n,n,F) ) );
+    else                    
+ 
+       adLbas:= Basis( VectorSpace( F, adL ), adL );
+    fi;
 
     SetIndicesOfAdjointBasis( adLbas, inds );
 
@@ -5204,6 +5210,7 @@ InstallGlobalFunction( FpLieAlgebraByCartanMatrix, function( C )
 
 end );
 
+
 #############################################################################
 ##
 #M  JenningsLieAlgebra( <G> )
@@ -5241,7 +5248,12 @@ InstallMethod( JenningsLieAlgebra,
           B,         # Basis of L 
           vv, x,     # elements of L
           comp,      # homogeneous component
-          grading;   # list of homogeneous components 
+          grading,   # list of homogeneous components 
+          pcgps,     # list of pc groups, isom to the elts of `grades'.
+          hom_pcg,   # list of isomomorphisms of `grades[i]' to `pcgps[i]'. 
+          enum_gens, # List of numbers of elts of `gens' in extrep.
+          pp;        # Position in a list.
+
 
     # We do not know the characteristic if `G' is trivial.
     if IsTrivial( G ) then
@@ -5254,11 +5266,17 @@ InstallMethod( JenningsLieAlgebra,
     Homs:= List ( [1..Length(J)-1] , x -> 
                   NaturalHomomorphismByNormalSubgroup ( J[x], J[x+1] ));
     grades := List ( Homs , Range );
+    hom_pcg:= List( grades, IsomorphismPcGroup );
+    pcgps:= List( hom_pcg, Range );
     gens := [];
+    enum_gens:= [ ];
     pos := [];
     for i in [1.. Length(grades)] do
-        tempgens:= GeneratorsOfGroup( grades[i] );
+        tempgens:= GeneratorsOfGroup( pcgps[i] );
         Append ( gens , tempgens);
+
+        # Record the number that each generator has in extrep.
+        Add( enum_gens, List( tempgens, x -> ExtRepOfObj( x )[1] ) );
         Append ( pos , List ( tempgens , x-> i ) );
     od;
 
@@ -5270,12 +5288,14 @@ InstallMethod( JenningsLieAlgebra,
     T:= EmptySCTable( dim , Zero(F) , "antisymmetric" );
     pimgs := [];
     for i in [1..dim] do
-        a:= PreImagesRepresentative( Homs[pos[i]] , gens[i] );
+        a:= PreImagesRepresentative( Homs[pos[i]] , 
+                    PreImagesRepresentative( hom_pcg[pos[i]], gens[i] ) );
 
         # calculate the p-th power image of `a':
 
         if pos[i]*p <= Length(Homs) then
-            Add( pimgs, Image( Homs[pos[i]*p], a^p) );
+            Add( pimgs, Image( hom_pcg[pos[i]*p], 
+                    Image( Homs[pos[i]*p], a^p) ) );
         else
             Add( pimgs, "zero" );
         fi;
@@ -5284,18 +5304,17 @@ InstallMethod( JenningsLieAlgebra,
             if pos[i]+pos[j] <= Length( Homs ) then
    
                # Calculate the commutator [a,b], and map the result into
-               # the right homogeneous component.
+               # the correct homogeneous component.
 
-                b:= PreImagesRepresentative( Homs[pos[j]] , gens[j] );
-                c:= Image(Homs[pos[i] + pos[j]], a^-1*b^-1*a*b);
+                b:= PreImagesRepresentative( Homs[pos[j]], 
+                         PreImagesRepresentative( hom_pcg[pos[j]], gens[j] ));
+                c:= Image( hom_pcg[pos[i] + pos[j]], 
+                           Image(Homs[pos[i] + pos[j]], a^-1*b^-1*a*b) );
                 e:= ExtRepOfObj(c);
                 co:=[];
                 for k in [1,3..Length(e)-1] do
-                    if c in G then
-                        f:= GeneratorsOfGroup( G )[e[k]];
-                    else
-                        f:= GeneratorsOfGroup( grades[pos[i]+pos[j]] )[e[k]];
-                    fi;
+                    pp:= Position( enum_gens[pos[i]+pos[j]], e[k] );
+                    f:= GeneratorsOfGroup( pcgps[pos[i]+pos[j]] )[pp];
                     t:= Position( gens, f );
                     Add( co, One( F )*e[k+1] );
                     Add( co, t );
@@ -5350,11 +5369,8 @@ InstallMethod( JenningsLieAlgebra,
             e:= ExtRepOfObj( pimgs[i] );
             x:= Zero( L );
             for k in [1,3..Length(e)-1] do
-                if pimgs[i] in G then
-                    f:= GeneratorsOfGroup( G )[e[k]];
-                else
-                    f:= GeneratorsOfGroup( grades[pos[i]*p] )[e[k]];
-                fi;
+                pp:= Position( enum_gens[pos[i]*p], e[k] );
+                f:= GeneratorsOfGroup( pcgps[pos[i]*p] )[pp];
                 t:= Position( gens, f );
                 x:= x+ One( F )*e[k+1]*vv[t];
             od;
@@ -5366,6 +5382,7 @@ InstallMethod( JenningsLieAlgebra,
     return L;
             
 end );
+
 
 
 #############################################################################

@@ -37,6 +37,9 @@ DeclareProperty( "IsGroupOfAutomorphisms", IsGroup );
 
 InstallTrueMethod( IsHandledByNiceMonomorphism,IsGroupOfAutomorphisms );
 
+InstallSubsetMaintenance( IsGroupOfAutomorphisms,
+    IsGroup and IsGroupOfAutomorphisms, IsGroup );
+
 #############################################################################
 ##
 #A  AutomorphismDomain(<G>)

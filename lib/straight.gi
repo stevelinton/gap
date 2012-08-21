@@ -114,11 +114,17 @@ InstallGlobalFunction( StringToStraightLineProgram,
         pos:= pos + 1;
         if pos < len and string[ pos ] = '^' then
           exp:= 0;
+          sign:= 1;
           pos:= pos + 1;
+          if pos <=len and string[ pos ] = '-' then
+            sign:= -1;
+            pos:= pos + 1;
+          fi;
           while pos <= len and IsDigitChar( string[ pos ] ) do
             exp:= 10 * exp + Position( "0123456789", string[ pos ] ) - 1;
             pos:= pos + 1;
           od;
+          exp:= sign * exp;
         else
           exp:= 1;
         fi;
@@ -429,7 +435,7 @@ InstallOtherMethod( Display,
         Print( "r[", line[2], "]:= " );
         PrintLine( line[1] );
         Print( ";\n" );
-        if len < line[2] then
+        if len < line[2] or i = Length( lines ) then
           len:= line[2];
         fi;
 

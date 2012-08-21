@@ -137,7 +137,21 @@ InstallMethod(IsConstantRationalFunction,"polynomial",true,
   [IsRationalFunction and IsPolynomial],0,
 function(f)
 local extf;
+  extf := ExtRepPolynomialRatFun(f);
+  return  Length(extf) = 0 or (Length(extf)=2 and extf[1]=[]);
+end);
 
+#############################################################################
+##
+#M  IsConstantRationalFunction(<ulaurent>)
+##
+InstallMethod(IsConstantRationalFunction,"rational function",true,
+  [IsRationalFunction],0,
+function(f)
+local extf;
+  if not IsPolynomial(f) then
+    return false;
+  fi;
   extf := ExtRepPolynomialRatFun(f);
   return  Length(extf) = 0 or (Length(extf)=2 and extf[1]=[]);
 end);
@@ -1381,7 +1395,32 @@ function(pol,ind)
            IndeterminateNumberOfLaurentPolynomial(ind));
 end);
 
+#############################################################################
+##
+#M  ZeroCoefficientRatFun( <ratfun> )
+##
+InstallMethod(ZeroCoefficientRatFun,"via family",[IsRationalFunction],0,
+  p->FamilyObj(p)!.zeroCoefficient);
 
+#############################################################################
+##
+#F  ConstantInBaseRingPol(pol,ind)   remove indeterminate ind from polynomial
+##
+BindGlobal("ConstantInBaseRingPol",function(pol,ind)
+local e;
+  if IsRationalFunction(pol) and IsConstantRationalFunction(pol) and
+    (not HasIndeterminateNumberOfUnivariateRationalFunction(pol) or
+    IndeterminateNumberOfUnivariateRationalFunction(pol)=ind) then
+    # constant polynomial represented as univariate: take coefficient
+    e:=ExtRepPolynomialRatFun(pol);
+    if Length(e)=0 then
+      return ZeroCoefficientRatFun(pol); 
+    else
+      return e[2];
+    fi;
+  fi;
+  return pol;
+end);
 
 #############################################################################
 ##
@@ -1390,10 +1429,14 @@ end);
 InstallOtherMethod(Discriminant,"poly,inum",true,
   [IsRationalFunction and IsPolynomial,IsPosInt],0,
 function(f,ind)
-local d;
+local d,l;
   d:=DegreeIndeterminate(f,ind);
-  return (-1)^(d*(d-1)/2)*Resultant(f,Derivative(f,ind),ind)/
-                           LeadingCoefficient(f,ind);
+  l:=LeadingCoefficient(f,ind);
+  if IsZero(l) then
+    return l;
+  fi;
+  d:=(-1)^(d*(d-1)/2)*Resultant(f,Derivative(f,ind),ind)/l;
+  return ConstantInBaseRingPol(d,ind);
 end);
 
 InstallOtherMethod(Discriminant,"poly,ind",true,
@@ -1453,20 +1496,6 @@ local e,f,i,j,l,ll,cmp;
   else
     return RationalFunctionByExtRep(FamilyObj(p),f[1],f[2]);
   fi;
-end);
-
-#############################################################################
-##
-#F  ConstantInBaseRingPol(pol,ind)   remove indeterminate ind from polynomial
-##
-BindGlobal("ConstantInBaseRingPol",function(pol,ind)
-  if IsConstantRationalFunction(pol) and
-    HasIndeterminateNumberOfUnivariateRationalFunction(pol) and
-    IndeterminateNumberOfUnivariateRationalFunction(pol)=ind then
-    # constant polynomial represented as univariate: take coefficient
-    pol:=ExtRepPolynomialRatFun(pol)[2];
-  fi;
-  return pol;
 end);
 
 #############################################################################
