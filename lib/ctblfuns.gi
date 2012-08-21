@@ -19,9 +19,6 @@ Revision.ctblfuns_gi :=
     "@(#)$Id$";
 
 
-#T TODO: code of 'InertiaSubgroup'
-
-
 #############################################################################
 ##
 ##  1. class functions as lists
@@ -173,9 +170,13 @@ InstallMethod( \+,
 
 #############################################################################
 ##
-#M  AdditiveInverse( <psi> )  . . . . . . . . . . . . .  for a class function
+#M  AdditiveInverseOp( <psi> )  . . . . . . . . . . . .  for a class function
 ##
-InstallMethod( AdditiveInverse,
+##  The additive inverse of a virtual character is again a virtual character,
+##  but the additive inverse of a character is not a character,
+##  so  we cannot use `ClassFunctionSameType'.
+##
+InstallMethod( AdditiveInverseOp,
     "for a class function",
     true,
     [ IsClassFunction ], 0,
@@ -183,7 +184,7 @@ InstallMethod( AdditiveInverse,
                AdditiveInverse( ValuesOfClassFunction( psi ) ) ) );
 
 
-InstallMethod( AdditiveInverse,
+InstallMethod( AdditiveInverseOp,
     "for a virtual character",
     true,
     [ IsClassFunction and IsVirtualCharacter ], 0,
@@ -193,9 +194,9 @@ InstallMethod( AdditiveInverse,
 
 #############################################################################
 ##
-#M  Zero( <psi> ) . . . . . . . . . . . . . . . . . . .  for a class function
+#M  ZeroOp( <psi> ) . . . . . . . . . . . . . . . . . .  for a class function
 ##
-InstallMethod( Zero,
+InstallMethod( ZeroOp,
     "for a class function",
     true,
     [ IsClassFunction ], 0,
@@ -306,9 +307,9 @@ InstallMethod( \/,
 
 #############################################################################
 ##
-#M  One( <psi> )  . . . . . . . . . . . . . . . . . . .  for a class function
+#M  OneOp( <psi> )  . . . . . . . . . . . . . . . . . .  for a class function
 ##
-InstallMethod( One,
+InstallMethod( OneOp,
     "for class function",
     true,
     [ IsClassFunction ], 0,
@@ -403,44 +404,14 @@ InstallOtherMethod( \^,
 ##
 #M  \^( <chi>, <g> )  . . . . .  conjugate class function under action of <g>
 ##
-##  If the underlying group $H$ of <chi> has a parent and knows the value of
-##  'NormalizerInParent' then we use the information stored in
-##  'PermClassesHomomorphism(' $H$ ')',
-##  that is,
-##  we write $g = \prod_i g_i^{a_i}$ in terms of the generators $g_i$ of $G$,
-##  and compute the permutation $\pi_g = \prod_i \pi_{g_i}^{a_i}$, where the
-##  $\pi_{g_i}$ have already been computed.
-##
-##  If <obj> just acts on $H$ via '\^' then we compute the
-##  permutation of classes induced by this action in the same way as the
-##  $\pi_{g_i}$ mentioned above are computed
-##  (see 'CorrespondingPermutation').
-##  
 InstallMethod( \^,
     "for class function with group, and group element",
     true,
     [ IsClassFunctionWithGroup, IsMultiplicativeElementWithInverse ], 0,
     function( chi, g )
-
-    local G,      # underlying group
-          perm;   # conjugating permutation
-
-    G:= UnderlyingGroup( chi );
-
-    if     HasParent( G ) and HasNormalizerInParent( G )
-       and g in NormalizerInParent( G ) then
-
-      # Compute the image of 'obj' under the homomorphism.
-      perm:= Image( PermClassesHomomorphism( G ), g );
-
-    else
-
-      perm:= CorrespondingPermutation( chi, g );
-
-    fi;
-
-    return ClassFunctionSameType( G, chi,
-               Permuted( ValuesOfClassFunction( chi ), perm ) );
+    return ClassFunctionSameType( UnderlyingCharacterTable( chi ), chi,
+               Permuted( ValuesOfClassFunction( chi ),
+                         CorrespondingPermutations( chi, [ g ] )[1] ) );
     end );
 
 
@@ -472,7 +443,9 @@ InstallOtherMethod( \^,
     [ IsClassFunction, IsGeneralMapping and IsANFAutomorphismRep ], 0,
     function( chi, galaut )
     galaut:= galaut!.galois;
-    return List( chi, x -> GaloisCyc( x, galaut ) );
+    return ClassFunctionSameType( UnderlyingCharacterTable( chi ), chi,
+               List( ValuesOfClassFunction( chi ),
+                     x -> GaloisCyc( x, galaut ) ) );
     end );
 
 
@@ -513,9 +486,9 @@ InstallOtherMethod( \^,
 
 #############################################################################
 ##
-#M  Inverse( <chi> )  . . . . . . . . . . . . . . . . .  for a class function
+#M  InverseOp( <chi> )  . . . . . . . . . . . . . . . .  for a class function
 ##
-InstallOtherMethod( Inverse,
+InstallOtherMethod( InverseOp,
     "for a class function",
     true,
     [ IsClassFunction ], 0,
@@ -1011,25 +984,6 @@ InstallMethod( DegreeOfCharacter,
 
 #############################################################################
 ##
-#M  InertiaSubgroupInParent( <chi> )  . . . . . .  for a character with group
-##
-InstallMethod( InertiaSubgroupInParent,
-    "for a character",
-    true,
-    [ IsClassFunctionWithGroup and IsCharacter ], 0,
-    function( chi )
-    local G, N;
-    G:= UnderlyingGroup( chi );
-    if not HasParent( G ) then
-      return G;
-    fi;
-    N:= NormalizerInParent( G );
-    return InertiaSubgroup( chi, N );
-    end );
-
-
-#############################################################################
-##
 #M  KernelOfCharacter( <chi> )  . . . . . . . . . . . . . . . for a character
 ##
 InstallMethod( KernelOfCharacter,
@@ -1093,10 +1047,11 @@ InstallMethod( NaturalCharacter,
     true,
     [ IsGroup and IsPermCollection ], 0,
     function( G )
-    local deg;
+    local deg, tbl;
     deg:= NrMovedPoints( G );
-    return CharacterByValues( OrdinaryCharacterTable( G ),
-               List( ConjugacyClasses( G ),
+    tbl:= OrdinaryCharacterTable( G );
+    return CharacterByValues( tbl,
+               List( ConjugacyClasses( tbl ),
                C -> deg - NrMovedPointsPerm( Representative( C ) ) ) );
     end );
 
@@ -1110,9 +1065,11 @@ InstallMethod( NaturalCharacter,
     true,
     [ IsGroup and IsRingElementCollCollColl ], 0,
     function( G )
+    local tbl;
     if Characteristic( G ) = 0 then
-      return CharacterByValues( OrdinaryCharacterTable( G ),
-                 List( ConjugacyClasses( G ),
+      tbl:= OrdinaryCharacterTable( G );
+      return CharacterByValues( tbl,
+                 List( ConjugacyClasses( tbl ),
                        C -> TraceMat( Representative( C ) ) ) );
     else
       TryNextMethod();
@@ -1129,9 +1086,10 @@ InstallMethod( PermutationCharacter,
     IsIdenticalObj,
     [ IsGroup, IsGroup ], 0,
     function( G, U )
-    local C, c, s, i;
+    local tbl, C, c, s, i;
 
-    C := ConjugacyClasses( G );
+    tbl:= OrdinaryCharacterTable( G );
+    C := ConjugacyClasses( tbl );
     c := [ Index( G, U ) ];
     s := Size( U );
 
@@ -1142,20 +1100,26 @@ InstallMethod( PermutationCharacter,
     od;
 
     # Return the character.
-    return CharacterByValues( OrdinaryCharacterTable( G ), c );
+    return CharacterByValues( tbl, c );
     end );
+
 
 #############################################################################
 ##
 #M  PermutationCharacter( <G> )  . . . . . . . . . . .  for group action
 ##
 InstallOtherMethod( PermutationCharacter,
-  "group action on domain",true,[IsPermGroup,IsListOrCollection,IsFunction],0,
-function(G,dom,opr)
-    return CharacterByValues(OrdinaryCharacterTable(G),
-	     List(ConjugacyClasses(G),
-	          i->Number(dom,j->j=opr(j,Representative(i)))));
-end);
+#T matches declaration? (installed for right operation at all?)
+    "group action on domain",
+    true,
+    [ IsPermGroup, IsListOrCollection, IsFunction ], 0,
+    function( G, dom, opr )
+    local tbl;
+    tbl:= OrdinaryCharacterTable( G );
+    return CharacterByValues( tbl, List( ConjugacyClasses( tbl ),
+	       i -> Number( dom, j -> j = opr( j, Representative(i) ) ) ) );
+    end);
+
 
 #T #############################################################################
 #T ##
@@ -1166,12 +1130,13 @@ end);
 #T     IsIdenticalObj,
 #T     [ IsGroup and IsSmallGroup, IsGroup and IsSmallGroup ], 0,
 #T     function( G, U )
-#T     local E, I;
+#T     local E, I, tbl;
 #T 
 #T     E := AsList( U );
 #T     I := Size( G ) / Length( E );
-#T     return CharacterByValues( OrdinaryCharacterTable( G ),
-#T         List( ConjugacyClasses( G ),
+#T     tbl:= OrdinaryCharacterTable( G );
+#T     return CharacterByValues( tbl,
+#T         List( ConjugacyClasses( tbl ),
 #T         C -> I * Length( Intersection2( AsList( C ), E ) ) / Size( C ) ) );
 #T     end );
 
@@ -1201,20 +1166,20 @@ InstallGlobalFunction( CycleStructureClass, function( permchar, class )
     divs:= DivisorsInt( n );
     fixed:= [];
     for i in [ 1 .. Length( divs ) ] do
-    
+
       # Compute the number of cycles of the element of order `n / d'.
       d:= divs[i];
       fixed[d]:= permchar[ PowerMap( tbl, d, class ) ];
       for j in [ 1 .. i-1 ] do
         if d mod divs[j] = 0 then
-    
+
           # Subtract the number of fixed points with stabilizer exactly
           # of order `n / divs[j]'.
           fixed[d]:= fixed[d] - fixed[ divs[j] ];
-    
+
         fi;
       od;
-    
+
     od;
 
     # Convert these numbers into numbers of cycles.
@@ -1224,7 +1189,7 @@ InstallGlobalFunction( CycleStructureClass, function( permchar, class )
         cycstruct[ i-1 ]:= fixed[i] / i;
       fi;
     od;
-    
+
     # Return the cycle structure.
     return cycstruct;
 end );
@@ -1317,7 +1282,9 @@ InstallMethod( CharacterByValues,
 ##
 InstallGlobalFunction( ClassFunctionSameType,
     function( tbl, chi, values )
-    if HasIsCharacter( chi ) and IsCharacter( chi ) then
+    if not IsClassFunction( chi ) then
+      return values;
+    elif HasIsCharacter( chi ) and IsCharacter( chi ) then
       return CharacterByValues( tbl, values );
     elif HasIsVirtualCharacter( chi ) and IsVirtualCharacter( chi ) then
       return VirtualCharacterByValues( tbl, values );
@@ -1430,7 +1397,7 @@ InstallOtherMethod( DeterminantChar,
 
     return det;
     end );
-    
+
 
 ##############################################################################
 ##
@@ -1614,8 +1581,10 @@ InstallMethod( RestrictedClassFunction,
     true,
     [ IsClassFunctionWithGroup, IsGroup ], 0,
     function( chi, H );
+    H:= OrdinaryCharacterTable( H );
     return ClassFunctionSameType( H, chi, ValuesOfClassFunction( chi ){ 
-               FusionConjugacyClasses( H, UnderlyingGroup( chi ) ) } );
+               FusionConjugacyClasses( H,
+                   UnderlyingCharacterTable( chi ) ) } );
     end );
 
 InstallOtherMethod( RestrictedClassFunction,
@@ -1668,7 +1637,6 @@ InstallOtherMethod( RestrictedClassFunctions,
     function( tbl, subtbl, chars )
     local fusion;
     fusion:= FusionConjugacyClasses( subtbl, tbl );
-#T really ?
     if fusion = fail then
       return fail;
     fi;
@@ -1702,7 +1670,7 @@ InstallOtherMethod( RestrictedClassFunctions,
 ##
 #F  InducedClassFunctionByFusionMap( <chi>, <tbl> )
 ##
-InducedClassFunctionByFusionMap := function( chi, tbl, fus )
+BindGlobal( "InducedClassFunctionByFusionMap", function( chi, tbl, fus )
 
     local H,
           values,
@@ -1721,7 +1689,7 @@ InducedClassFunctionByFusionMap := function( chi, tbl, fus )
 
     # initialize zero vector
     Gcentsizes:= SizesCentralizers( tbl );
-    induced:= Zero( Gcentsizes );
+    induced:= ListWithIdenticalEntries( Length( Gcentsizes ), 0 );
 
     # add the weighted values
     Hclasslengths:= SizesConjugacyClasses( H );
@@ -1738,7 +1706,7 @@ InducedClassFunctionByFusionMap := function( chi, tbl, fus )
     od;
 
     return ClassFunctionSameType( tbl, chi, induced );
-end;
+end );
 
 
 #############################################################################
@@ -1753,7 +1721,8 @@ InstallMethod( InducedClassFunction,
     function( chi, G )
     return InducedClassFunctionByFusionMap( chi,
                OrdinaryCharacterTable( G ),
-               FusionConjugacyClasses( UnderlyingGroup( chi ), G ) );
+               FusionConjugacyClasses( UnderlyingCharacterTable( chi ),
+                   OrdinaryCharacterTable( G ) ) );
     end );
 
 
@@ -1774,7 +1743,8 @@ InstallOtherMethod( InducedClassFunction,
 ##
 ##  is the list of class function values lists
 ##
-InducedClassFunctionsByFusionMap := function( subtbl, tbl, chars, fusion )
+BindGlobal( "InducedClassFunctionsByFusionMap",
+    function( subtbl, tbl, chars, fusion )
 
     local j, im,          # loop variables
           centralizers,   # centralizer orders in hte supergroup
@@ -1801,7 +1771,7 @@ InducedClassFunctionsByFusionMap := function( subtbl, tbl, chars, fusion )
     for char in chars do
 
       # preset the character with zeros
-      singleinduced:= Zero( centralizers );
+      singleinduced:= ListWithIdenticalEntries( nccl, 0 );
 
       # add the contribution of each class of the subgroup
       for j in [ 1 .. subnccl ] do
@@ -1833,7 +1803,7 @@ InducedClassFunctionsByFusionMap := function( subtbl, tbl, chars, fusion )
 
     # Return the list of induced characters.
     return induced;
-end;
+end );
 
 
 #############################################################################
@@ -1856,7 +1826,8 @@ InstallMethod( InducedClassFunctions,
     function( chars, G )
     return InducedClassFunctionsByFusionMap( chars,
                OrdinaryCharacterTable( G ),
-               FusionConjugacyClasses( UnderlyingGroup( chars[1] ), G ) );
+               FusionConjugacyClasses( UnderlyingCharacterTable( chars[1] ),
+                   OrdinaryCharacterTable( G ) ) );
     end );
 
 
@@ -2200,13 +2171,13 @@ end );
 ##
 
 #############################################################################
-##                     
+##
 #M  GaloisMat( <mat> )  . . . . . . . . . . . . for a list of class functions
-##                  
+##
 ##  Note that we must not mix up plain lists and class functions, since
 ##  these objects ie in different families.
-##                                       
-InstallMethod( GaloisMat,  
+##
+InstallMethod( GaloisMat,
     "for a list of class functions",
     true,
     [ IsMatrix and IsClassFunctionCollection ], 0,
@@ -2230,7 +2201,7 @@ InstallMethod( GaloisMat,
       od;
 
     fi;
-  
+
     return rec( mat        := mat,
                 galoisfams := gal.galoisfams,
                 generators := gal.generators
@@ -2240,13 +2211,13 @@ InstallMethod( GaloisMat,
 
 #############################################################################
 ##
-#M  GlobalPartitionOfClasses( <G> )
+#M  GlobalPartitionOfClasses( <tbl> )
 ##
 InstallMethod( GlobalPartitionOfClasses,
-    "for a group",
+    "for an ordinary character table",
     true,
-    [ IsGroup ], 0,
-    function( G )
+    [ IsOrdinaryTable ], 0,
+    function( tbl )
 
     local part,     # partition that has to be respected
           list,     # list of all maps to be respected
@@ -2257,43 +2228,30 @@ InstallMethod( GlobalPartitionOfClasses,
           j,        # loop over 'orb'
           pt;       # one point to map
 
-    if     HasOrdinaryCharacterTable( G )
-       and HasAutomorphismsOfTable( OrdinaryCharacterTable( G ) ) then
+    if HasAutomorphismsOfTable( tbl ) then
 
       # The orbits define the finest possible global partition.
-      part:= Orbits( AutomorphismsOfTable( OrdinaryCharacterTable( G ) ),
-                     [ 1 .. Length( NrConjugacyClasses( G ) ) ] );
+      part:= Orbits( AutomorphismsOfTable( tbl ),
+                     [ 1 .. Length( NrConjugacyClasses( tbl ) ) ] );
 
     else
 
       # Conjugate classes must have same representative order and
       # same centralizer order.
+      list:= [ OrdersClassRepresentatives( tbl ),
+               SizesCentralizers( tbl ) ];
 
-      if HasOrdinaryCharacterTable( G ) then
-
-        list:= [ OrdersClassRepresentatives( OrdinaryCharacterTable( G ) ),
-                 SizesCentralizers( OrdinaryCharacterTable( G ) ) ];
-
-        # The number of root classes is by definition invariant under
-        # table automorphisms.
-        for map in Compacted( ComputedPowerMaps(
-                                  OrdinaryCharacterTable( G ) ) ) do
-          inv:= map * 0;
-          for j in map do
-            inv[j]:= inv[j] + 1;
-          od;
-          Add( list, inv );
+      # The number of root classes is by definition invariant under
+      # table automorphisms.
+      for map in Compacted( ComputedPowerMaps( tbl ) ) do
+        inv:= 0 * map;
+        for j in map do
+          inv[j]:= inv[j] + 1;
         od;
-        
-      else
+        Add( list, inv );
+      od;
 
-        list:= [ List( ConjugacyClasses( G ),
-                       x -> Order( Representative( x ) ) ),
-                 List( ConjugacyClasses( G ), Size ) ];
-#T  Use power maps also ?
-      fi;
-
-      # All elements in 'list' must be respected.
+      # All elements in `list' must be respected.
       # Transform each of them into a partition,
       # and form the intersection of these partitions.
       part:= Partition( [ [ 1 .. Length( list[1] ) ] ] );
@@ -2315,24 +2273,26 @@ InstallMethod( GlobalPartitionOfClasses,
 #T unfortunately 'Set' necessary ...
 
     fi;
-  
+
     return part;
     end );
 
 
 #############################################################################
 ##
-#M  CorrespondingPermutation( <G>, <g> )  . . . . action on the conj. classes
+#M  CorrespondingPermutations( <tbl>, <elms> )  . action on the conj. classes
 ##
-InstallMethod( CorrespondingPermutation,
-    "for group and group element",
-    IsCollsElms,
-    [ IsGroup, IsMultiplicativeElementWithInverse ], 0,
-    function( G, g )
+InstallMethod( CorrespondingPermutations,
+    "for character table and list of group elements",
+    true,
+    [ IsOrdinaryTable, IsHomogeneousList ], 0,
+    function( tbl, elms )
 
     local classes,  # list of conjugacy classes
+          perms,    # list of permutations, result
           part,     # partition that has to be respected
           base,     # base of aut. group
+          g,        # loop over `elms'
           images,   # list of images
           pt,       # one point to map
           im,       # actual image class
@@ -2340,150 +2300,198 @@ InstallMethod( CorrespondingPermutation,
           len,      # length of 'orb'
           found,    # image point found? (boolean value)
           j,        # loop over 'orb'
-          perm,     # permutation, result
           list,     # one list in 'part'
           first,    # first point in orbit of 'g'
           min;      # minimal length of nontrivial orbit of 'g'
 
-    # Test whether 'g' is the identity
-    if IsOne( g ) then
-      return ();
-    fi;
+    classes:= ConjugacyClasses( tbl );
 
-    classes:= ConjugacyClasses( G );
+    perms:= [];
 
     # If the table automorphisms are known then we only must determine
     # the images of a base of this group.
-    if     HasOrdinaryCharacterTable( G )
-       and HasAutomorphismsOfTable( OrdinaryCharacterTable( G ) ) then
+    if HasAutomorphismsOfTable( tbl ) then
 
-      part:= AutomorphismsOfTable( OrdinaryCharacterTable( G ) );
+      part:= AutomorphismsOfTable( tbl );
+
+      if IsTrivial( part ) then
+        return ListWithIdenticalEntries( Length( elms ), () );
+      fi;
 
       # Compute the images of the base points of this group.
       base:= BaseOfGroup( part );
-      images:= [];
-      for pt in base do
-        im:= Representative( classes[ pt ] ) ^ g;
-        orb:= Orbit( part, pt );
-        len:= Length( orb );
-        found:= false;
-        j:= 1;
-        while not found and j <= len do
-#T better CanonicalClassElement ??
-          if im in classes[ orb[j] ] then
-            Add( images, orb[j] );
-            found:= true;
-          fi;
-          j:= j+1;
-        od;
 
-        # check that 'g' really normalizes 'G'
-        if not found then
-          return fail;
+      for g in elms do
+
+        if IsOne( g ) then
+
+          # If `g' is the identity then nothing is to do.
+          Add( perms, () );
+
+        else
+
+          images:= [];
+          for pt in base do
+    
+            im:= Representative( classes[ pt ] ) ^ g;
+            found:= false;
+            for j in Orbit( part, pt ) do
+#T better CanonicalClassElement ??
+              if im in classes[j] then
+                Add( images, j );
+                found:= true;
+                break;
+              fi;
+            od;
+    
+            # Check that `g' really acts on the set of classes.
+            if not found then
+              break;
+            fi;
+    
+          od;
+    
+          # Compute a group element (if possible).
+          if found then
+            Add( perms,
+                 RepresentativeOperation( part, base, images, OnTuples ) );
+          else
+            Add( perms, fail );
+          fi;
+
         fi;
 
       od;
 
-      # Determine the group element.
-      perm:= RepresentativeOperation( part, base, images, OnTuples );
-   
     else
 
       # We can use only a partition into unions of orbits.
 
-      part:= GlobalPartitionOfClasses( G );
+      part:= GlobalPartitionOfClasses( tbl );
+      if Length( part ) = Length( classes ) then
+        return ListWithIdenticalEntries( Length( elms ), () );
+      fi;
 
-      # Compute orbits of 'g' on the lists in 'part', store the images.
-      # Note that if we have taken away a union of orbits such that the
-      # number of remaining points is smaller than the smallest prime
-      # divisor of the order of 'g' then all these points must be fixed.
-      min:= FactorsInt( Order( g ) )[1];
-      images:= [];
+      for g in elms do
 
-      for list in part do
+        if IsOne( g ) then
 
-#T why not 'min' ?
-        if Length( list ) = 1 then
-
-          # necessarily fixed point
-          images[ list[1] ]:= list[1];
+          # If `g' is the identity then nothing is to do.
+          Add( perms, () );
 
         else
 
-          orb:= ShallowCopy( list );
-          while min <= Length( orb ) do
+          # Compute orbits of `g' on the lists in `part', store the images.
+          # Note that if we have taken away a union of orbits such that the
+          # number of remaining points is smaller than the smallest prime
+          # divisor of the order of `g' then all these points must be fixed.
+          min:= FactorsInt( Order( g ) )[1];
+          images:= [];
   
-            # There may be nontrivial orbits.
-            pt:= orb[1];
-            first:= pt;
-            j:= 1;
-  
-            while j <= Length( orb ) do
-  
-              im:= Representative( classes[ pt ] ) ^ g;
-              found:= false; 
-              while j <= Length( orb ) and not found do
-#T better CanonicalClassElement ??
-                if im in classes[ orb[j] ] then
-                  images[pt]:= orb[j];
-                  found:= true;
-                fi;
-                j:= j+1;
-              od;
-  
-              # check that 'g' really normalizes 'G'
-              if not found then
-                return fail;
-              fi;
-
-              RemoveSet( orb, pt );
-  
-              if found then
+          for list in part do
+    
+            if Length( list ) = 1 then
+#T why not `min' ?
+    
+              # necessarily fixed point
+              images[ list[1] ]:= list[1];
+    
+            else
+    
+              orb:= ShallowCopy( list );
+              while min <= Length( orb ) do
+    
+                # There may be nontrivial orbits.
+                pt:= orb[1];
+                first:= pt;
                 j:= 1;
-                pt:= images[pt];
+    
+                while j <= Length( orb ) do
+    
+                  im:= Representative( classes[ pt ] ) ^ g;
+                  found:= false;
+                  while j <= Length( orb ) and not found do
+#T better CanonicalClassElement ??
+                    if im in classes[ orb[j] ] then
+                      images[pt]:= orb[j];
+                      found:= true;
+                    fi;
+                    j:= j+1;
+                  od;
+    
+                  # Check that `g' really acts on the set of classes.
+                  if not found then
+                    break;
+                  fi;
+    
+                  RemoveSet( orb, pt );
+    
+                  if found then
+                    j:= 1;
+                    pt:= images[pt];
+                  fi;
+    
+                od;
+    
+                # Check that `g' really acts on the set of classes.
+                if not found then
+                  break;
+                fi;
+  
+                # The image must be the first point of the orbit under `g'.
+                images[pt]:= first;
+  
+              od;
+    
+              # Check that `g' really acts on the set of classes.
+              if not found then
+                break;
               fi;
   
-            od;
-  
-            # The image must be the first point of the orbit under 'g'.
-            images[pt]:= first;
-  
+              # The remaining points of the orbit must be fixed.
+              for pt in orb do
+                images[pt]:= pt;
+              od;
+    
+            fi;
+    
           od;
   
-          # The remaining points of the orbit must be fixed.
-          for pt in orb do
-            images[pt]:= pt;
-          od;
+          # Compute a group element (if possible).
+          if found then
+            Add( perms, PermList( images ) );
+          else
+            Add( perms, fail );
+          fi;
 
         fi;
 
       od;
-          
-      # Determine the group element.
-      perm:= PermList( images );
-   
+
     fi;
 
-    return perm;
+    return perms;
     end );
 
 
 #############################################################################
 ##
-#M  CorrespondingPermutation( <chi>, <g> )
-#T for 'g' in 'H' is the identity or not?
+#M  CorrespondingPermutations( <chi>, <elms> )
 ##
-InstallOtherMethod( CorrespondingPermutation,
-    "for a class function with group, and an object",
+InstallMethod( CorrespondingPermutations,
+    "for a class function with group, and list of group elements",
     true,
-    [ IsClassFunctionWithGroup, IsObject ], 0,
-    function( chi, g )
+    [ IsClassFunctionWithGroup, IsHomogeneousList ], 0,
+    function( chi, elms )
 
     local G,        # underlying group
+          tbl,      # character table
           values,   # list of class function values
           classes,  # list of conjugacy classes
+          perms,    # list of permutations, result
           part,     # partition that has to be respected
           base,     # base of aut. group
+          g,        # loop over `elms'
           images,   # list of images
           pt,       # one point to map
           im,       # actual image class
@@ -2491,421 +2499,283 @@ InstallOtherMethod( CorrespondingPermutation,
           len,      # length of 'orb'
           found,    # image point found? (boolean value)
           j,        # loop over 'orb'
-          perm,     # permutation, result
           list,     # one list in 'part'
           first,    # first point in orbit of 'g'
           min;      # minimal length of nontrivial orbit of 'g'
 
-    # Test whether 'g' is the identity
-    if IsOne( g ) then
-      return ();
-    fi;
-
     values:= ValuesOfClassFunction( chi );
-    G:= UnderlyingGroup( chi );
+    tbl:= UnderlyingCharacterTable( chi );
 
-    classes:= ConjugacyClasses( G );
+    classes:= ConjugacyClasses( tbl );
+    perms:= [];
 
     # If the table automorphisms are known then we only must determine
     # the images of a base of this group.
-    if     HasOrdinaryCharacterTable( G )
-       and HasAutomorphismsOfTable( OrdinaryCharacterTable( G ) ) then
+    if HasAutomorphismsOfTable( tbl ) then
 
-      part:= AutomorphismsOfTable( OrdinaryCharacterTable( G ) );
+      part:= AutomorphismsOfTable( tbl );
+
+      if IsTrivial( part ) then
+        return ListWithIdenticalEntries( Length( elms ), () );
+      fi;
 
       # Compute the images of the base points of this group.
       base:= BaseOfGroup( part );
-      images:= [];
-      for pt in base do
-        im:= Representative( classes[ pt ] ) ^ g;
-        orb:= Orbit( part, pt );
-        len:= Length( orb );
-        found:= false;
-        j:= 1;
-        while not found and j <= len do
-#T better CanonicalClassElement ??
-          if im in classes[ orb[j] ] then
-            Add( images, orb[j] );
-            found:= true;
-          fi;
-          j:= j+1;
-        od;
 
-        # check that 'g' really normalizes
-        if not found then
-          return fail;
+      for g in elms do
+
+        if IsOne( g ) then
+
+          # If `g' is the identity then nothing is to do.
+          Add( perms, () );
+
+        else
+
+          images:= [];
+          for pt in base do
+
+            im:= Representative( classes[ pt ] ) ^ g;
+            found:= false;
+            for j in Orbit( part, pt ) do
+#T better CanonicalClassElement ??
+              if im in classes[j] then
+                Add( images, j );
+                found:= true;
+                break;
+              fi;
+              j:= j+1;
+            od;
+    
+            # Check that `g' really acts on the set of classes.
+            if not found then
+              break;
+            fi;
+    
+          od;
+    
+          # Compute a group element (if possible).
+          if found then
+            Add( perms,
+                 RepresentativeOperation( part, base, images, OnTuples ) );
+          else
+            Add( perms, fail );
+          fi;
+
         fi;
 
       od;
 
-      # Determine the group element.
-      perm:= RepresentativeOperation( part, base, images, OnTuples );
-   
     else
 
       # We can use only a partition into unions of orbits.
 
-      part:= GlobalPartitionOfClasses( G );
+      part:= GlobalPartitionOfClasses( tbl );
+      if Length( part ) = Length( classes ) then
+        return ListWithIdenticalEntries( Length( elms ), () );
+      fi;
 
-      # Compute orbits of 'g' on the lists in 'part', store the images.
-      # Note that if we have taken away a union of orbits such that the
-      # number of remaining points is smaller than the smallest prime
-      # divisor of the order of 'g' then all these points must be fixed.
-      min:= FactorsInt( Order( g ) )[1];
-      images:= [];
+      for g in elms do
 
-      for list in part do
+        if IsOne( g ) then
 
-#T why not 'min' ?
-        if Length( list ) = 1 then
-
-          # necessarily fixed point
-          images[ list[1] ]:= list[1];
-
-        elif Length( Set( values{ list } ) ) = 1 then
-
-          # We may take any permutation of the orbit.
-          for j in list do
-            images[j]:= j;
-          od;
+          # If `g' is the identity then nothing is to do.
+          Add( perms, () );
 
         else
 
-          orb:= ShallowCopy( list );
-          while Length( orb ) >= min do
-  
-            # There may be nontrivial orbits.
-            pt:= orb[1];
-            first:= pt;
-            j:= 1;
-  
-            while j <= Length( orb ) do
-  
-              im:= Representative( classes[ pt ] ) ^ g;
-              found:= false; 
-              while j <= Length( orb ) and not found do
-#T better CanonicalClassElement ??
-                if im in classes[ orb[j] ] then
-                  images[pt]:= orb[j];
-                  found:= true;
-                fi;
-                j:= j+1;
+          # Compute orbits of `g' on the lists in `part', store the images.
+          # Note that if we have taken away a union of orbits such that the
+          # number of remaining points is smaller than the smallest prime
+          # divisor of the order of `g' then all these points must be fixed.
+          min:= FactorsInt( Order( g ) )[1];
+          images:= [];
+    
+          for list in part do
+    
+            if Length( list ) = 1 then
+#T why not `min' ?
+    
+              # necessarily fixed point
+              images[ list[1] ]:= list[1];
+    
+            elif Length( Set( values{ list } ) ) = 1 then
+    
+              # We may take any permutation of the orbit.
+              for j in list do
+                images[j]:= j;
               od;
-  
-              # check that 'g' really normalizes
-              if not found then
-                return fail;
-              fi;
-
-              RemoveSet( orb, pt );
-  
-              if found then
+    
+            else
+    
+              orb:= ShallowCopy( list );
+              while Length( orb ) >= min do
+#T fishy for S4 acting on V4 !!
+    
+                # There may be nontrivial orbits.
+                pt:= orb[1];
+                first:= pt;
                 j:= 1;
-                pt:= images[pt];
-              fi;
-  
-            od;
-  
-            # The image must be the first point of the orbit under 'g'.
-            images[pt]:= first;
-  
+    
+                while j <= Length( orb ) do
+    
+                  im:= Representative( classes[ pt ] ) ^ g;
+                  found:= false;
+                  while j <= Length( orb ) and not found do
+#T better CanonicalClassElement ??
+                    if im in classes[ orb[j] ] then
+                      images[pt]:= orb[j];
+                      found:= true;
+                    fi;
+                    j:= j+1;
+                  od;
+    
+                  RemoveSet( orb, pt );
+    
+                  if found then
+                    j:= 1;
+                    pt:= images[pt];
+                  fi;
+    
+                od;
+    
+                # The image must be the first point of the orbit under `g'.
+                images[pt]:= first;
+    
+              od;
+    
+              # The remaining points of the orbit must be fixed.
+              for pt in orb do
+                images[pt]:= pt;
+              od;
+    
+            fi;
+    
           od;
-  
-          # The remaining points of the orbit must be fixed.
-          for pt in orb do
-            images[pt]:= pt;
-          od;
+    
+          # Compute a group element (if possible).
+          if IsHomogeneousList( images ) then
+#T not sufficient
+            Add( perms, PermList( images ) );
+          else
+            Add( perms, fail );
+          fi;
 
         fi;
 
       od;
-          
-      # Determine the group element.
-      perm:= PermList( images );
-   
+
     fi;
 
-    return perm;
+    return perms;
     end );
 
 
 #############################################################################
 ##
-#M  PermClassesHomomorphism( <H> )
-##
-InstallMethod( PermClassesHomomorphism,
-    "for a group",
+#M  InertiaSubgroup( <G>, <chi> ) . . . . . . inertia subgroup of a character
+##  
+InstallMethod( InertiaSubgroup,
+    "for a group, and a class function (character) with group",
     true,
-    [ IsGroup ], 0,
-    function( H )
+    [ IsGroup, IsClassFunctionWithGroup ], 0,
+    function( G, chi )
 
-    local N,      # normalizer of 'H' in its parent
-          Ngens,  # generators of 'N'
-          gens,   # images of the generators of 'N'
-          hom;    # the homomorphism, result
+    local H,          # group of `chi'
+          index,      # index of `H' in `G'
+          induced,    # induced of `chi' from `H' to `G'
+          global,     # global partition of classes
+          chi_values, # values of `chi'
+          part,       # refined partition
+          p,          # one set in `global' and `part'
+          val,        # one value in `p'
+          values,     # list of character values on `p'
+          new,        # list of refinements of `p'
+          i,          # loop over stored partitions
+          pos,        # position where to store new partition later
+          perms,      # permutations corresp. to generators of `G'
+          permgrp,    # group generated by `perms'
+          stab;       # the inertia subgroup, result
 
-    N:= NormalizerInParent( H );
-    Ngens:= GeneratorsOfGroup( N );
-
-    # compute the permutations corresponding to the generators of 'N'.
-    if IsEmpty( Ngens ) then
-      hom:= GroupHomomorphismByImagesNC( N, GroupByGenerators( () ),
-                                         Ngens, [] );
-    else
-      gens:= List( Ngens, g -> CorrespondingPermutation( H, g ) );
-      hom:= GroupHomomorphismByImagesNC( N, GroupByGenerators( gens ),
-                                         Ngens, gens );
+    # `chi' must be a character.
+    if not IsCharacter( chi ) then
+      Error( "<chi> must be a character" );
     fi;
 
-    return hom;
+    # `G' must normalize the group of `chi'.
+    H:= UnderlyingGroup( chi );
+    if not ( IsSubset( G, H ) and IsNormal( G, H ) ) then
+      Error( "<H> must be a normal subgroup in <G>" );
+    fi;
+
+    # For prime index, check the norm of the induced character.
+    # (We get a decision if `chi' is irreducible.)
+    index:= Index( G, H );
+    if IsPrimeInt( index ) then
+      induced:= InducedClassFunction( chi, G );
+      if ScalarProduct( induced, induced ) = 1 then
+        return H;
+      elif ScalarProduct( chi, chi ) = 1 then
+        return G;
+      fi;
+    fi;
+
+    # Compute the partition that must be stabilized.
+#T Why is `StabilizerPartition' no longer available?
+#T In GAP 3.5, there was such a function.
+    # (We need only those cells where `chi' really yields a refinement.)
+    global:= GlobalPartitionOfClasses( UnderlyingCharacterTable( chi ) );
+    chi_values:= ValuesOfClassFunction( chi );
+
+    part:= [];
+    for p in global do
+#T only if `p' has length > 1 !
+      val:= chi_values[ p[1] ];
+      if ForAny( p, x -> chi_values[x] <> val ) then
+
+        # proper refinement will yield a condition.
+        values:= [];
+        new:= [];
+        for i in p do
+          pos:= Position( values, chi_values[i] );
+          if pos = fail then
+            Add( values, chi_values[i] );
+            Add( new, [ i ] );
+          else
+            Add( new[ pos ], i );
+          fi;
+        od;
+        Append( part, new );
+
+      fi;
+    od;
+
+    # If no refinement occurs, the character is necessarily invariant in <G>.
+    if IsEmpty( part ) then
+      return G;
+    fi;
+
+    # Compute the permutations corresponding to the generators of `G'.
+    perms:= CorrespondingPermutations( chi, GeneratorsOfGroup( G ) );
+    permgrp:= GroupByGenerators( perms );
+
+    # `G' acts on the set of conjugacy classes given by each cell of `part'.
+    stab:= permgrp;
+    for p in part do
+      stab:= Stabilizer( stab, p, OnSets );
+#T Better one step (partition stabilizer) ??
+    od;
+
+    # Construct and return the result.
+    if IsTrivial( stab ) then
+      return H;
+    elif stab = permgrp then
+      return G;
+    else
+      return PreImagesSet( GroupHomomorphismByImages( G, permgrp,
+                               GeneratorsOfGroup( G ), perms ),
+                 stab );
+    fi;
     end );
-
-
-#T #############################################################################
-#T ##
-#T #M  InertiaSubgroup( <G>, <chi> ) . . . . . . inertia subgroup of a character
-#T ##  
-#T ##  Given a character $\chi$ of a group $H$ that is given as subgroup of
-#T ##  the group $P$, compute for $G \leq N = N_P(H)$ the inertia subgroup
-#T ##  $I_G(\chi) = \{ g\in G; \chi^g = \chi \}$ where the conjugate class
-#T ##  function $\chi^g$ is defined by $\chi^g(h) = \chi(h^g)$.
-#T ##  
-#T ##  Let $\pi(g)$ denote the permutation of the conjugacy classes $Cl(H)$
-#T ##  that is induced by the conjugation action of $g$.  The map $\pi$ is
-#T ##  then a homomorphism $N\rightarrow S_{Cl(H)}$, obviously $H\leq\ker\pi$.
-#T ##  
-#T ##  Here is an algorithm to compute $I_G(\chi)$.
-#T ##  Since $N_G(\chi) = G \cap I_N(\chi)$ we need to consider only the
-#T ##  case $G = N$.
-#T ##  
-#T ##  \begin{enumerate}
-#T ##  \item Let $(O_i;i\in I)$ be a partition of $Cl(H)$ such that each
-#T ##        set $O_i$ is invariant under automorphisms of $H$.
-#T ##        For example, take $I = \{ (\|g\|,\|C_H(g)\|); g\in H \}$ and
-#T ##        $O_{(a,b)} = \{ g\in H; \|g\|=a, \|C_H(g)\|=b \}$, or refine
-#T ##        this using power maps or the table automorphism group of $H$.
-#T ##        Note that this is independent of $\chi$.
-#T ##  
-#T ##  \item Refine this partition using $\chi$.
-#T ##        Define $V_{\chi} = \{ \chi(g); g\in H \}$ and
-#T ##        $J = I\times V_{\chi}$, and write
-#T ##        $\tilde{O}_{i,x} = \{ g\in O_i; \chi(g) = x \}$.
-#T ##        Then $I_N(\chi) = \bigcap_{j\in J} Stab_{\pi(N)}(\tilde{O}_j)$
-#T ##        where $Stab$ denotes the set stabilizer.
-#T ##  
-#T ##        We need not inspect those sets where no refinement occurs, i.e., 
-#T ##        those with $\tilde{O}_{i,x} = O_i$ for a value $x$.
-#T ##        Especially, if $\chi$ does not impose refinement conditions then
-#T ##        it is necessarily invariant, that is, $I_N(\chi) = N$.
-#T ##  
-#T ##  \item If the partition $p = (\tilde{O}_j;j\in J)$ is already stored in
-#T ##        a list of partitions and their stabilizers then return the
-#T ##        intersection of $G$ with the corresponding stabilizer.
-#T ##  
-#T ##  \item If we have already stored the stabilizer of a refinement
-#T ##        $p^{\prime}$ of $p$ then let $S = Stab_{\pi(N)}(p^{\prime})$.
-#T ##        Otherwise take $S$ the trivial group.
-#T ##        $S$ is a subgroup of $\pi(I_N(\chi))$.
-#T ##  
-#T ##  \item Define the homomorphism $\pi$ by computing the images $\pi(g)$
-#T ##        for $g$ in a generating set of $N$.
-#T ##        This is again independent of $\chi$.
-#T ##  
-#T ##  \item Compute $\bigcap_{j\in J} Stab_{\pi(N)}(\tilde{O}_j)$.
-#T ##        If $J = \{j_1,j_2,\ldots,j_n\}$ then this can be done by first
-#T ##        initializing $T = Stab_{\pi(N)}(\tilde{O}_{j_1})$ and then
-#T ##        replacing $T$ by $Stab_T(\tilde{O}_{j_i}$ for $i = 2,3,\ldots,n$.
-#T ##  
-#T ##        The subgroup $S$ can be used to speed up the computations.
-#T ##  
-#T ##  \item Compute $I_N(\chi)$ which is the full preimage of $T$ under $\pi$.
-#T ##  
-#T ##  \item Store the partition $p$ and $I_N(\chi)$ in the lists.
-#T ##  
-#T ##  \item Output $I_G(\chi) = G \cap I_N(\chi)$.
-#T ##  \end{enumerate}
-#T ##
-#T InstallMethod( InertiaSubgroup,
-#T     "for a group, and a character with group",
-#T     true,
-#T     [ IsGroup, IsClassFunctionWithGroup ], 0,
-#T     function( G, chi )
-#T 
-#T     local H,          # group of 'chi'
-#T           N,          # normalizer of 'H' in its parent
-#T           global,     # global partition of classes
-#T           part,       # refined partition
-#T           p,          # one set in 'global' and 'part'
-#T           val,        # one value in 'p'
-#T           values,     # list of character values on 'p'
-#T           new,        # list of refinements of 'p'
-#T           hom,        # 'PermClassesHomomorphism( H )'
-#T           i,          # loop over stored partitions
-#T           pos,        # position where to store new partition later
-#T           found,      # flag:  Is 'part' already stored?
-#T           substab,    # known subgroup of the inertia group
-#T           stab,       # the inertia subgroup, result
-#T           len;        # length of 'part'
-#T 
-#T     if not IsCharacter( chi ) then
-#T       Error( "<chi> must be a character" );
-#T     fi;
-#T 
-#T     H:= UnderlyingGroup( chi );
-#T     if not IsSubset( G, H ) then
-#T       Error( "<H> must be contained in <G>" );
-#T     fi;
-#T 
-#T     N:= NormalizerInParent( H );
-#T 
-#T     # The inertia subgroup stored in 'chi' is that w.r.t. 'N'.
-#T     if HasInertiaSubgroupInParent( chi ) and IsIdenticalObj( G, N ) then
-#T       return InertiaSubgroupInParent( chi );
-#T     fi;
-#T 
-#T     # 1. Compute the global partition.
-#T     global:= GlobalPartitionOfClasses( H );
-#T 
-#T     # 2. Refine the partition using the character values distribution.
-#T     #    We need only those parts where we really get a refinement.
-#T     part:= [];
-#T     chi_values:= ValuesOfClassFunction( chi );
-#T     for p in global do
-#T #T only if 'p' has length > 1 !
-#T       val:= chi_values[ p[1] ];
-#T       if ForAny( p,  x-> chi_values[x] <> val ) then
-#T         # proper refinement
-#T         values:= [];
-#T         new:= [];
-#T         for i in p do
-#T           pos:= Position( values, chi_values[i] );
-#T           if pos = false then
-#T             Add( values, chi_values[i] );
-#T             Add( new, [ i ] );
-#T           else
-#T             Add( new[ pos ], i );
-#T           fi;
-#T         od;
-#T         Append( part, new );
-#T       fi;
-#T     od;
-#T 
-#T     if Size( N ) = Size( Parent( H ) ) then
-#T       N:= Parent( H );
-#T     fi;
-#T #T a situation where I would prefer if this would be settled in general.
-#T 
-#T     if   Length( part ) = 0 then
-#T 
-#T       # If no refinement occurs, the character is necessarily invariant
-#T       # in $N$.
-#T       stab:= N;
-#T 
-#T     else
-#T 
-#T       if not IsBound( H.inertiaInfo ) then
-#T         H.inertiaInfo:= rec( partitions  := [],
-#T                              stabilizers := [] );
-#T       fi;
-#T 
-#T       # 3. Check whether $I_N( 'part' )$ is already stored.
-#T       pos:= Position( H.inertiaInfo.partitions, part );
-#T       if pos <> false then
-#T 
-#T         if G = N then
-#T           stab:= H.inertiaInfo.stabilizers[ pos ];
-#T         else
-#T           stab:= Intersection( H.inertiaInfo.stabilizers[ pos ], G );
-#T         fi;
-#T 
-#T       else
-#T 
-#T         # 4. If not, try to take a stored partition that is a
-#T         #    refinement of 'part'.
-#T         #    The partitions are stored according to increasing length,
-#T         #    so we have to check those partitions that are longer than
-#T         #    'part', and may take the first that fits.
-#T         len:= Length( part );
-#T 
-#T         # We will insert the stabilizer at position 'pos' later.
-#T         pos:= 1;
-#T         while pos <= Length( H.inertiaInfo.partitions ) and
-#T               Length( H.inertiaInfo.partitions[ pos ] ) <= len do
-#T           pos:= pos+1;
-#T         od;
-#T 
-#T         found:= false;
-#T         i:= pos - 1;
-#T         while i < Length( H.inertiaInfo.partitions ) and not found do
-#T 
-#T           i:= i+1;
-#T           if ForAll( H.inertiaInfo.partitions[i],
-#T                      x -> ForAny( part, y -> IsSubset( y, x ) ) ) then
-#T             found:= true;
-#T           fi;
-#T 
-#T         od;
-#T #T  Up to now we do not use 'substab'
-#T         if found then
-#T 
-#T           # The stabilizer is a subgroup of the required inertia group.
-#T #T map this under pi!
-#T           substab:= H.inertiaInfo.stabilizers[i];
-#T 
-#T         else
-#T           substab:= Group( () );
-#T         fi;
-#T 
-#T         # 5. Compute the corresponding permutations if necessary.
-#T         hom:= PermClassesHomomorphism( H );
-#T 
-#T         # 6. Compute the stabilizer of 'part' in 'permgrp'.
-#T         stab:= hom.range;
-#T         for p in part do
-#T           stab:= stab.operations.StabilizerSet( stab, p );
-#T #T  Here I would like to give 'substab' as additional argument!!
-#T #T  Better one step (partition stabilizer) ??
-#T         od;
-#T 
-#T         # 7. Compute the preimage in $N$.
-#T         stab:= PreImage( hom, stab );
-#T 
-#T         # 8. Store the stabilizer at position 'pos'.
-#T         for i in Reversed( [ pos ..
-#T                              Length( H.inertiaInfo.partitions ) ] ) do
-#T           H.inertiaInfo.partitions[ i+1 ]:= H.inertiaInfo.partitions[i];
-#T           H.inertiaInfo.stabilizers[ i+1 ]:= H.inertiaInfo.stabilizers[i];
-#T         od;
-#T         H.inertiaInfo.partitions[ pos ]:= part;
-#T         H.inertiaInfo.stabilizers[ pos ]:= stab;
-#T 
-#T       fi;
-#T     fi;
-#T 
-#T     # 9. Return the result.
-#T     if G = N then
-#T 
-#T       # If the inertia subgroup os equal to the whole group 'N'
-#T       # or to the normal subgroup 'H' then take these groups themselves.
-#T       if   Size( stab ) = Size( H ) then
-#T         stab:= H;
-#T       elif Size( stab ) = Size( N ) then
-#T         stab:= N;
-#T       else
-#T         stab:= AsSubgroup( Parent( H ), stab );
-#T       fi;
-#T   
-#T       # Store and return the inertia subgroup.
-#T       chi.inertiaSubgroup:= stab;
-#T       return chi.inertiaSubgroup;
-#T 
-#T     else
-#T 
-#T       # We return the inertia subgroup without storing it.
-#T       return Intersection( stab, G );
-#T 
-#T     fi;
-#T     end );
 
 
 ##############################################################################
@@ -2914,12 +2784,12 @@ InstallMethod( PermClassesHomomorphism,
 ##
 InstallGlobalFunction( OrbitChar, function( chi, linear )
 
-    local classes,   # range of positions in 'chi'
-          nofcyc,    # describes the conductor of values of 'chi'
+    local classes,   # range of positions in `chi'
+          nofcyc,    # describes the conductor of values of `chi'
           gens,      # generators of Galois automorphism group
           orb,       # the orbit, result
-          gen,       # loop over 'gens'
-          image;     # one image of 'chi' under operation
+          gen,       # loop over `gens'
+          image;     # one image of `chi' under operation
 
     classes:= [ 1 .. Length( chi ) ];
     nofcyc:= Conductor( chi );
@@ -2962,16 +2832,16 @@ InstallGlobalFunction( OrbitsCharacters, function( irr )
     local irrvals,     # list of value lists
           oldirrvals,  # store original succession
           tbl,         # underlying character table
-          linear,      # linear characters of 'tbl'
+          linear,      # linear characters of `tbl'
           orbits,      # list of orbits, result
-          indices,     # from 1 to number of conjugacy classes of 'tbl'
+          indices,     # from 1 to number of conjugacy classes of `tbl'
           orb,         # one orbit
           gens,        # generators of the acting group
           chi,         # one irreducible character
           gen,         # one generator of the acting group
           image,       # image of a character
           i,           # loop over one orbit
-          pos;         # position of value list in 'oldirrvals'
+          pos;         # position of value list in `oldirrvals'
 
     orbits:= [];
 
@@ -2998,12 +2868,12 @@ InstallGlobalFunction( OrbitsCharacters, function( irr )
 
         # The linear characters form an orbit.
         # We remove them from the other characters,
-        # and remove the trivial character from 'linear'.
+        # and remove the trivial character from `linear'.
         orb:= ShallowCopy( linear );
         SubtractSet( irrvals, linear );
         RemoveSet( linear, List( linear[1], x -> 1 ) );
 
-        # Make 'linear' closed under Galois automorphisms.
+        # Make `linear' closed under Galois automorphisms.
         gens:= Flat( GeneratorsPrimeResidues(
                         Conductor( Flat( linear ) ) ).generators );
 
@@ -3016,7 +2886,7 @@ InstallGlobalFunction( OrbitsCharacters, function( irr )
           od;
         od;
 
-        # Make 'linear' closed under multiplication with linear characters.
+        # Make `linear' closed under multiplication with linear characters.
         for chi in orb do
           for gen in linear do
             image:= List( indices, x -> gen[x] * chi[x] );
@@ -3070,9 +2940,9 @@ InstallGlobalFunction( OrbitRepresentativesCharacters, function( irr )
 
     local irrvals,     # list of value lists
           oldirrvals,  # store original succession
-          chi,         # loop over 'irrvals'
-          linear,      # linear characters in 'irr'
-          nonlin,      # nonlinear characters in 'irr'
+          chi,         # loop over `irrvals'
+          linear,      # linear characters in `irr'
+          nonlin,      # nonlinear characters in `irr'
           repres,      # list of representatives, result
           orb;         # one orbit
 
@@ -3129,10 +2999,10 @@ end );
 
 #############################################################################
 ##
-#M  GroupByGenerators( <classfuns> )
-#M  GroupByGenerators( <classfuns>, <id> )
+#M  GroupWithGenerators( <classfuns> )
+#M  GroupWithGenerators( <classfuns>, <id> )
 ##
-InstallOtherMethod( GroupByGenerators,
+InstallOtherMethod( GroupWithGenerators,
     "for list of class functions",
     true,
     [ IsHomogeneousList and IsClassFunctionCollection ], 0,
@@ -3155,7 +3025,7 @@ InstallOtherMethod( GroupByGenerators,
     return G;
     end );
 
-InstallOtherMethod( GroupByGenerators,
+InstallOtherMethod( GroupWithGenerators,
     "for list of class functions and identity",
     IsCollsElms,
     [ IsHomogeneousList and IsClassFunctionCollection, IsClassFunction ], 0,
@@ -3181,7 +3051,7 @@ InstallOtherMethod( GroupByGenerators,
     return G;
     end );
 
-InstallOtherMethod( GroupByGenerators,
+InstallOtherMethod( GroupWithGenerators,
     "for empty list and trivial character",
     true,
     [ IsList and IsEmpty, IsClassFunction ], 0,
@@ -3198,7 +3068,7 @@ InstallOtherMethod( GroupByGenerators,
                             IsGroup and IsAttributeStoringRep and
 			    IsFinitelyGeneratedGroup ),
                    rec() );
-    SetGeneratorsOfMagmaWithInverses( G, [] );
+    SetGeneratorsOfMagmaWithInverses( G, empty );
     SetOne( G, id );
     return G;
     end );
@@ -3211,16 +3081,233 @@ InstallOtherMethod( GroupByGenerators,
 
 #############################################################################
 ##
+#R  IsClassFunctionsSpaceRep( <V> )
+##
+##  Free left modules of class functions are handled by associating to a
+##  class function the row vector given by its values.
+##
+##  Free left modules of class functions contain the component
+##
+##  \beginitems
+##  `elementsunderlying' &
+##       the underlying character table of the elements.
+##  \enditems
+##
+DeclareRepresentation( "IsClassFunctionsSpaceRep",
+    IsAttributeStoringRep and IsHandledByNiceBasis,
+    [ "elementsunderlying" ] );
+
+
+#############################################################################
+##
+#M  LeftModuleByGenerators( <F>, <gens> ) . . . . create space of class funs.
+#M  LeftModuleByGenerators( <F>, <gens>, <zero> )
+#M  LeftModuleByGenerators( <F>, <empty>, <zero> )
+##
+##  These methods differ from the default methods only by setting the flag
+##  `IsClassFunctionsSpaceRep' and the component `elementsunderlying'.
+##
+InstallMethod( LeftModuleByGenerators,
+    "for division ring and collection of class functions",
+    true,
+    [ IsDivisionRing, IsClassFunctionCollection ] , 0,
+    function( F, gens )
+    local V;
+    V:= Objectify( NewType( FamilyObj( gens ),
+                                IsFreeLeftModule
+                            and IsLeftActedOnByDivisionRing
+                            and IsClassFunctionsSpaceRep ),
+                   rec() );
+    SetLeftActingDomain( V, F );
+    SetGeneratorsOfLeftModule( V, AsList( gens ) );
+    V!.elementsunderlying:= UnderlyingCharacterTable(
+                                Representative( V ) );
+    return V;
+    end );
+
+InstallOtherMethod( LeftModuleByGenerators,
+    "for division ring, collection of class functions, and zero",
+    true,
+    [ IsDivisionRing, IsClassFunctionCollection, IsClassFunction ], 0,
+    function( F, gens, zero )
+    local V;
+    V:= Objectify( NewType( CollectionsFamily( FamilyObj( zero ) ),
+                                IsFreeLeftModule
+                            and IsLeftActedOnByDivisionRing
+                            and IsClassFunctionsSpaceRep ),
+                   rec() );
+    SetLeftActingDomain( V, F );
+    SetGeneratorsOfLeftModule( V, AsList( gens ) );
+    SetZero( V, zero );
+    V!.elementsunderlying:= UnderlyingCharacterTable(
+                                Representative( V ) );
+    return V;
+    end );
+
+InstallOtherMethod( LeftModuleByGenerators,
+    "for division ring, empty list, and class function",
+    true,
+    [ IsDivisionRing, IsList and IsEmpty, IsClassFunction ], 0,
+    function( F, empty, zero )
+    local V;
+    V:= Objectify( NewType( CollectionsFamily( FamilyObj( zero ) ),
+                                IsFreeLeftModule
+                            and IsLeftActedOnByDivisionRing
+                            and IsTrivial
+                            and IsClassFunctionsSpaceRep ),
+                   rec() );
+    SetLeftActingDomain( V, F );
+    SetGeneratorsOfLeftModule( V, AsList( empty ) );
+    SetZero( V, zero );
+    V!.elementsunderlying:= UnderlyingCharacterTable(
+                                Representative( V ) );
+    return V;
+    end );
+
+
+#############################################################################
+##
+#M  FLMLORByGenerators( <F>, <gens> )  . . . . . create FLMLOR of class funs.
+#M  FLMLORByGenerators( <F>, <gens>, <zero> )
+#M  FLMLORByGenerators( <F>, <empty>, <zero> )
+##
+##  These methods differ from the default methods only by setting the flag
+##  `IsClassFunctionsSpaceRep' and the component `elementsunderlying'.
+##
+InstallMethod( FLMLORByGenerators,
+    "for division ring and collection of class functions",
+    true,
+    [ IsDivisionRing, IsClassFunctionCollection ] , 0,
+    function( F, gens )
+    local V;
+    V:= Objectify( NewType( FamilyObj( gens ),
+                                IsFLMLOR
+                            and IsLeftActedOnByDivisionRing
+                            and IsClassFunctionsSpaceRep ),
+                   rec() );
+    SetLeftActingDomain( V, F );
+    SetGeneratorsOfFLMLOR( V, AsList( gens ) );
+    V!.elementsunderlying:= UnderlyingCharacterTable(
+                                Representative( V ) );
+    return V;
+    end );
+
+InstallOtherMethod( FLMLORByGenerators,
+    "for division ring, collection of class functions, and zero",
+    true,
+    [ IsDivisionRing, IsClassFunctionCollection, IsClassFunction ], 0,
+    function( F, gens, zero )
+    local V;
+    V:= Objectify( NewType( CollectionsFamily( FamilyObj( zero ) ),
+                                IsFLMLOR
+                            and IsLeftActedOnByDivisionRing
+                            and IsClassFunctionsSpaceRep ),
+                   rec() );
+    SetLeftActingDomain( V, F );
+    SetGeneratorsOfFLMLOR( V, AsList( gens ) );
+    SetZero( V, zero );
+    V!.elementsunderlying:= UnderlyingCharacterTable(
+                                Representative( V ) );
+    return V;
+    end );
+
+InstallOtherMethod( FLMLORByGenerators,
+    "for division ring, empty list, and class function",
+    true,
+    [ IsDivisionRing, IsList and IsEmpty, IsClassFunction ], 0,
+    function( F, empty, zero )
+    local V;
+    V:= Objectify( NewType( CollectionsFamily( FamilyObj( zero ) ),
+                                IsFLMLOR
+                            and IsLeftActedOnByDivisionRing
+                            and IsTrivial
+                            and IsClassFunctionsSpaceRep ),
+                   rec() );
+    SetLeftActingDomain( V, F );
+    SetGeneratorsOfFLMLOR( V, AsList( empty ) );
+    SetZero( V, zero );
+    V!.elementsunderlying:= UnderlyingCharacterTable(
+                                Representative( V ) );
+    return V;
+    end );
+
+
+#############################################################################
+##
+#M  FLMLORWithOneByGenerators( <F>, <gens> )
+#M  FLMLORWithOneByGenerators( <F>, <gens>, <zero> )
+#M  FLMLORWithOneByGenerators( <F>, <empty>, <zero> )
+##
+##  These methods differ from the default methods only by setting the flag
+##  `IsClassFunctionsSpaceRep' and the component `elementsunderlying'.
+##
+InstallMethod( FLMLORWithOneByGenerators,
+    "for division ring and collection of class functions",
+    true,
+    [ IsDivisionRing, IsClassFunctionCollection ] , 0,
+    function( F, gens )
+    local V;
+    V:= Objectify( NewType( FamilyObj( gens ),
+                                IsFLMLORWithOne
+                            and IsLeftActedOnByDivisionRing
+                            and IsClassFunctionsSpaceRep ),
+                   rec() );
+    SetLeftActingDomain( V, F );
+    SetGeneratorsOfFLMLORWithOne( V, AsList( gens ) );
+    V!.elementsunderlying:= UnderlyingCharacterTable(
+                                Representative( V ) );
+    return V;
+    end );
+
+InstallOtherMethod( FLMLORWithOneByGenerators,
+    "for division ring, collection of class functions, and zero",
+    true,
+    [ IsDivisionRing, IsClassFunctionCollection, IsClassFunction ], 0,
+    function( F, gens, zero )
+    local V;
+    V:= Objectify( NewType( CollectionsFamily( FamilyObj( zero ) ),
+                                IsFLMLORWithOne
+                            and IsLeftActedOnByDivisionRing
+                            and IsClassFunctionsSpaceRep ),
+                   rec() );
+    SetLeftActingDomain( V, F );
+    SetGeneratorsOfFLMLORWithOne( V, AsList( gens ) );
+    SetZero( V, zero );
+    V!.elementsunderlying:= UnderlyingCharacterTable(
+                                Representative( V ) );
+    return V;
+    end );
+
+InstallOtherMethod( FLMLORWithOneByGenerators,
+    "for division ring, empty list, and class function",
+    true,
+    [ IsDivisionRing, IsList and IsEmpty, IsClassFunction ], 0,
+    function( F, empty, zero )
+    local V;
+    V:= Objectify( NewType( CollectionsFamily( FamilyObj( zero ) ),
+                                IsFLMLORWithOne
+                            and IsLeftActedOnByDivisionRing
+                            and IsTrivial
+                            and IsClassFunctionsSpaceRep ),
+                   rec() );
+    SetLeftActingDomain( V, F );
+    SetGeneratorsOfFLMLORWithOne( V, AsList( empty ) );
+    SetZero( V, zero );
+    V!.elementsunderlying:= UnderlyingCharacterTable(
+                                Representative( V ) );
+    return V;
+    end );
+
+
+#############################################################################
+##
 #M  PrepareNiceFreeLeftModule( <V> )
 ##
 InstallMethod( PrepareNiceFreeLeftModule,
     "for a space of class functions",
     true,
     [ IsFreeLeftModule and IsClassFunctionsSpaceRep ], 0,
-    function( V )
-    V!.elementsunderlying:= UnderlyingCharacterTable(
-                                Representative( V ) );
-    end );
+    Ignore );
 
 
 #############################################################################
@@ -3313,13 +3400,27 @@ InstallOtherMethod( ScalarProduct,
 
 ##############################################################################
 ##
-#F  NormalSubgroupClasses( <G>, <classes> )
+#M  NormalSubgroupClassesInfo( <tbl> )
 ##
-InstallGlobalFunction( NormalSubgroupClasses, function( G, classes )
+InstallMethod( NormalSubgroupClassesInfo,
+    "default method, initialization",
+    true,
+    [ IsOrdinaryTable ], 0,
+    tbl -> rec( nsg        := [],
+                nsgclasses := [],
+                nsgfactors := [] ) );
+
+
+##############################################################################
+##
+#F  NormalSubgroupClasses( <tbl>, <classes> )
+##
+InstallGlobalFunction( NormalSubgroupClasses, function( tbl, classes )
 
     local info,
           pos,        # position of the group in the list of such groups
-          ccl,        # <G>-conjugacy classes in our normal subgroup
+          G,          # underlying group of `tbl'
+          ccl,        # `G'-conjugacy classes in our normal subgroup
           size,       # size of our normal subgroup
           candidates, # bound normal subgroups that possibly are our group
           group,      # the normal subgroup
@@ -3327,31 +3428,25 @@ InstallGlobalFunction( NormalSubgroupClasses, function( G, classes )
           found,      # normal subgroup already identified
           i;          # loop over normal subgroups
 
-    # Initialize components to store kernel information.
-    if not HasNormalSubgroupClassesInfo( G ) then
-      SetNormalSubgroupClassesInfo( G, rec( 
-                                            nsg        := [],
-                                            nsgclasses := [],
-                                            nsgfactors := []
-                                           ) );
-    fi;
-    info:= NormalSubgroupClassesInfo( G );
-#T default method!
+    info:= NormalSubgroupClassesInfo( tbl );
 
     classes:= Set( classes );
     pos:= Position( info.nsgclasses, classes );
     if pos = fail then
 
-      # The group is not yet stored here, try 'NormalSubgroups( G )'.
+      # The group is not yet stored here, try `NormalSubgroups( G )'.
+      G:= UnderlyingGroup( tbl );
+
       if HasNormalSubgroups( G ) then
 
         # Identify our normal subgroup.
-        ccl:= ConjugacyClasses( G ){ classes };
+        ccl:= ConjugacyClasses( tbl ){ classes };
         size:= Sum( ccl, Size, 0 );
         candidates:= Filtered( NormalSubgroups( G ), x -> Size( x ) = size );
         if Length( candidates ) = 1 then
           group:= candidates[1];
         else
+
           repres:= List( ccl, Representative );
           found:= false;
           i:= 0;
@@ -3361,17 +3456,28 @@ InstallGlobalFunction( NormalSubgroupClasses, function( G, classes )
               found:= true;
             fi;
           od;
+
+          if not found then
+            Error( "<classes> does not describe a normal subgroup" );
+          fi;
+
           group:= candidates[i];
+
         fi;
+
+      elif classes = [ 1 ] then
+
+        group:= TrivialSubgroup( G );
 
       else
 
         # The group is not yet stored, we have to construct it.
-        repres:= List( ConjugacyClasses(G), Representative );
-        group := NormalClosure( G, Subgroup( Parent(G), repres{ classes } ) );
+        repres:= List( ConjugacyClasses( tbl ){ classes }, Representative );
+        group := NormalClosure( G, SubgroupNC( G, repres ) );
 
       fi;
 
+      MakeImmutable( classes );
       Add( info.nsgclasses, classes );
       Add( info.nsg       , group   );
       pos:= Length( info.nsg );
@@ -3384,28 +3490,20 @@ end );
 
 ##############################################################################
 ##
-#M  ClassesOfNormalSubgroup( <G>, <N> )
+#M  ClassesOfNormalSubgroup( <tbl>, <N> )
 ##
-InstallGlobalFunction( ClassesOfNormalSubgroup, function( G, N )
+InstallGlobalFunction( ClassesOfNormalSubgroup, function( tbl, N )
 
     local info,
           classes,    # result list
-          found,      # 'N' already found?
-          pos,        # position in 'G.nsg'
-          ccl;        # conjugacy classes of 'G'
+          found,      # `N' already found?
+          pos,        # position in `info.nsg'
+          G,          # underlying group of `tbl'
+          ccl;        # conjugacy classes of `tbl'
 
-    # Initialize components to store kernel information.
-    if not HasNormalSubgroupClassesInfo( G ) then
-      SetNormalSubgroupClassesInfo( G, rec( 
-                                            nsg        := [],
-                                            nsgclasses := [],
-                                            nsgfactors := []
-                                           ) );
-    fi;
-    info:= NormalSubgroupClassesInfo( G );
-#T def. method!
+    info:= NormalSubgroupClassesInfo( tbl );
 
-    # Search for 'N' in 'info.nsg'.
+    # Search for `N' in `info.nsg'.
     found:= false;
     pos:= 0;
     while ( not found ) and pos < Length( info.nsg ) do
@@ -3418,9 +3516,10 @@ InstallGlobalFunction( ClassesOfNormalSubgroup, function( G, N )
       pos:= Position( info.nsg, N );
     fi;
 
-    if pos = false then
+    if pos = fail then
 
-      # The group is not yet stored here, try 'NormalSubgroups( G )'.
+      # The group is not yet stored here, try `NormalSubgroups( G )'.
+      G:= UnderlyingGroup( tbl );
       if HasNormalSubgroups( G ) then
 
         # Identify our normal subgroup.
@@ -3428,7 +3527,7 @@ InstallGlobalFunction( ClassesOfNormalSubgroup, function( G, N )
 
       fi;
 
-      ccl:= ConjugacyClasses( G );
+      ccl:= ConjugacyClasses( tbl );
       classes:= Filtered( [ 1 .. Length( ccl ) ],
                           x -> Representative( ccl[x] ) in N );
 
@@ -3444,39 +3543,26 @@ end );
 
 ##############################################################################
 ##
-#F  FactorGroupNormalSubgroupClasses( <G>, <classes> )
+#F  FactorGroupNormalSubgroupClasses( <tbl>, <classes> )
 ##
-InstallGlobalFunction( FactorGroupNormalSubgroupClasses, function( G, classes )
+InstallGlobalFunction( FactorGroupNormalSubgroupClasses,
+    function( tbl, classes )
 
     local info,
           f,     # the result
           pos;   # position in list of normal subgroups
 
-    if not HasNormalSubgroupClassesInfo( G ) then
+    info:= NormalSubgroupClassesInfo( tbl );
+    pos:= Position( info.nsgclasses, classes );
 
-      info:= rec( 
-                  nsg        := [],
-                  nsgclasses := [],
-                  nsgfactors := []
-                 );
-      SetNormalSubgroupClassesInfo( G, info );
-      f:= G / NormalSubgroupClasses( G, classes );
-      info.nsgfactors[1]:= f;
-
+    if pos = fail then
+      f:= UnderlyingGroup( tbl ) / NormalSubgroupClasses( tbl, classes );
+      info.nsgfactors[ Length( info.nsgclasses ) ]:= f;
+    elif IsBound( info.nsgfactors[ pos ] ) then
+      f:= info.nsgfactors[ pos ];
     else
-
-      info:= NormalSubgroupClassesInfo( G );
-      pos:= Position( info.nsgclasses, classes );
-      if pos = false then
-        f:= G / NormalSubgroupClasses( G, classes );
-        info.nsgfactors[ Length( info.nsgclasses ) ]:= f;
-      elif IsBound( info.nsgfactors[ pos ] ) then
-        f:= info.nsgfactors[ pos ];
-      else
-        f:= G / info.nsg[ pos ];
-        info.nsgfactors[ pos ]:= f;
-      fi;
-
+      f:= UnderlyingGroup( tbl ) / info.nsg[ pos ];
+      info.nsgfactors[ pos ]:= f;
     fi;
 
     return f;
@@ -3485,7 +3571,5 @@ end );
 
 #############################################################################
 ##
-#E  ctblfuns.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-
-
+#E
 

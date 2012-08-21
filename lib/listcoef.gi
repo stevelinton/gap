@@ -28,50 +28,191 @@ Revision.listcoef_gi :=
 #M  AddRowVector( <list1>, <list2>, <mult>, <from>, <to> )
 ##
 InstallMethod( AddRowVector,
-    true,
+        "kernel method for plain lists of cyclotomics",
+        IsCollsCollsElmsXX,
+        [ IsSmallList and IsDenseList and IsMutable and
+          IsCyclotomicCollection and IsPlistRep,
+      IsDenseList and IsCyclotomicCollection and IsPlistRep,
+      IsCyclotomic,
+      IsPosInt,
+      IsPosInt ],
+    0,
+        ADD_ROW_VECTOR_5_FAST
+        );
+
+InstallMethod( AddRowVector,
+        "kernel method for small lists",
+        IsCollsCollsElmsXX,
+        
+    [ IsSmallList and IsDenseList and IsMutable,
+      IsDenseList,
+      IsMultiplicativeElement,
+      IsPosInt,
+      IsPosInt ],
+    0,
+        ADD_ROW_VECTOR_5
+        );
+
+InstallMethod( AddRowVector,
+        "generic method",
+    IsCollsCollsElmsXX,
     [ IsDenseList and IsMutable,
       IsDenseList,
       IsMultiplicativeElement,
       IsPosInt,
       IsPosInt ],
     0,
-
-function( l1, l2, m, f, t )
+        function( l1, l2, m, f, t )
     local   i;
-
+    
     for i  in [ f .. t ]  do
         l1[i] := l1[i] + m * l2[i];
     od;
-end );
+end 
+  );
 
+L1_IMMUTABLE_ERROR:=function(arg)
+  if IsMutable(arg[1]) then
+    TryNextMethod();
+  else
+    Error("arg[1] must be mutable");
+  fi;
+end;
+
+InstallOtherMethod( AddRowVector,"error if immutable",true,
+    [ IsList,IsObject,IsObject,IsPosInt,IsPosInt],0,
+L1_IMMUTABLE_ERROR);
 
 #############################################################################
 ##
 #M  AddRowVector( <list1>, <list2>, <mult> )
 ##
 InstallOtherMethod( AddRowVector,
-    true,
+        "kernel method for plain lists of cyclotomics(3 args)",
+        IsCollsCollsElms,
+        [ IsSmallList and IsDenseList and IsMutable and IsCyclotomicCollection
+          and IsPlistRep,
+      IsDenseList and IsPlistRep and IsCyclotomicCollection,
+      IsCyclotomic ],
+    0,
+        ADD_ROW_VECTOR_3_FAST );
+
+InstallOtherMethod( AddRowVector,
+        "kernel method for small lists (3 args)",
+        IsCollsCollsElms,
+    [ IsSmallList and IsDenseList and IsMutable,
+      IsDenseList,
+      IsMultiplicativeElement ],
+    0,
+        ADD_ROW_VECTOR_3 );
+
+InstallOtherMethod( AddRowVector,
+        "kernel method for GF2 (5 args, last 2 ignored)",
+        IsCollsCollsElmsXX,
+    [ IsGF2VectorRep and IsMutable,
+      IsGF2VectorRep,
+      IS_FFE, IsPosInt, IsPosInt ],0,
+        function(sum, vec, mult, from, to)
+    AddRowVector( sum, vec, mult);
+end);
+
+InstallOtherMethod( AddRowVector,
+        "kernel method for GF2 (3 args)",
+        IsCollsCollsElms,
+    [ IsGF2VectorRep and IsMutable,
+      IsGF2VectorRep,
+      IS_FFE ],0,
+        ADDCOEFFS_GF2VEC_GF2VEC_MULT );
+        
+InstallOtherMethod( AddRowVector,
+        "kernel method for vecffe (5 args -- ignores last 2)",
+        IsCollsCollsElmsXX,
+    [ IsRowVector and IsMutable and IsPlistRep and IsFFECollection,
+      IsRowVector and IsPlistRep and IsFFECollection,
+      IS_FFE, IsPosInt, IsPosInt ],0,
+        function( sum, vec, mult, from, to)
+    AddRowVector(sum,vec,mult);
+end);
+
+InstallOtherMethod( AddRowVector,
+        "kernel method for vecffe (3 args)",
+        IsCollsCollsElms,
+    [ IsRowVector and IsMutable and IsPlistRep and IsFFECollection,
+      IsRowVector and IsPlistRep and IsFFECollection,
+      IS_FFE ],0,
+        ADD_ROWVECTOR_VECFFES_3 );
+        
+InstallOtherMethod( AddRowVector,
+        "generic method",
+    IsCollsCollsElms,
     [ IsDenseList and IsMutable,
       IsDenseList,
       IsMultiplicativeElement ],
     0,
-
+        
 function( l1, l2, m )
     local   i;
-
     for i  in [ 1 .. Length(l1) ]  do
         l1[i] := l1[i] + m * l2[i];
     od;
-end );
+end 
+  );
+        
+InstallOtherMethod( AddRowVector,
+        "generic method",
+    IsCollsCollsElms,
+    [ IsDenseList and IsMutable,
+      IsDenseList,
+      IsMultiplicativeElement ],
+    0,
+        
+function( l1, l2, m )
+    local   i;
+    for i  in [ 1 .. Length(l1) ]  do
+        l1[i] := l1[i] + m * l2[i];
+    od;
+end 
+  );
 
+InstallOtherMethod( AddRowVector,"error if immutable",true,
+    [ IsList,IsObject,IsObject],0,L1_IMMUTABLE_ERROR);
 
+InstallOtherMethod( AddRowVector, "do nothing if mult is zero",
+        IsCollsCollsElms,
+        [ IsList, IsObject, IsObject and IsZero], SUM_FLAGS,
+        ReturnTrue);
 
 #############################################################################
 ##
 #M  AddRowVector( <list1>, <list2> )
 ##
 InstallOtherMethod( AddRowVector,
-    true,
+        "kernel method for plain lists of cyclotomics (2 args)",
+    IsIdenticalObj,
+        [ IsSmallList and IsDenseList and IsMutable and
+          IsCyclotomicCollection and IsPlistRep,
+      IsDenseList and IsCyclotomicCollection and IsPlistRep ],
+    0,
+        ADD_ROW_VECTOR_2_FAST
+        );
+
+InstallOtherMethod( AddRowVector,
+        "kernel method for GF2 (2 args)",
+        IsIdenticalObj,
+    [ IsGF2VectorRep and IsMutable and IsRowVector,
+      IsGF2VectorRep and IsRowVector],0,
+        ADDCOEFFS_GF2VEC_GF2VEC );
+
+InstallOtherMethod( AddRowVector,
+        "kernel method for vecffe (2 args)",
+        IsIdenticalObj,
+    [ IsRowVector and IsMutable and IsPlistRep and IsFFECollection,
+      IsRowVector and IsPlistRep and IsFFECollection],0,
+        ADD_ROWVECTOR_VECFFES_2 );
+
+InstallOtherMethod( AddRowVector,
+        "generic method (2 args)",
+    IsIdenticalObj,
     [ IsDenseList and IsMutable,
       IsDenseList ],
     0,
@@ -83,6 +224,57 @@ function( l1, l2 )
         l1[i] := l1[i] + l2[i];
     od;
 end );
+
+InstallOtherMethod( AddRowVector,
+        "kernel method for small lists (2 args)",
+    IsIdenticalObj,
+    [ IsSmallList and IsDenseList and IsMutable,
+      IsDenseList ],
+    0,
+        ADD_ROW_VECTOR_2);
+
+InstallOtherMethod( AddRowVector,
+        "kernel method for GF2 (2 args)",
+        IsIdenticalObj,
+    [ IsGF2VectorRep and IsMutable,
+      IsGF2VectorRep],0,
+        ADDCOEFFS_GF2VEC_GF2VEC );
+        
+InstallOtherMethod( AddRowVector,
+        "generic method",
+    IsCollsCollsElms,
+    [ IsDenseList and IsMutable,
+      IsDenseList,
+      IsMultiplicativeElement ],
+    0,
+        
+function( l1, l2, m )
+    local   i;
+    for i  in [ 1 .. Length(l1) ]  do
+        l1[i] := l1[i] + m * l2[i];
+    od;
+end 
+  );
+        
+InstallOtherMethod( AddRowVector,
+        "generic method",
+    IsCollsCollsElms,
+    [ IsDenseList and IsMutable,
+      IsDenseList,
+      IsMultiplicativeElement ],
+    0,
+        
+function( l1, l2, m )
+    local   i;
+    for i  in [ 1 .. Length(l1) ]  do
+        l1[i] := l1[i] + m * l2[i];
+    od;
+end 
+  );
+
+InstallOtherMethod( AddRowVector,"error if immutable",true,
+    [ IsList,IsObject],0,
+        L1_IMMUTABLE_ERROR);
 
 
 #############################################################################
@@ -106,6 +298,9 @@ function( l, s )
     od;
 end );
 
+InstallOtherMethod( LeftShiftRowVector,"error if immutable",true,
+    [ IsList,IsObject],0,
+    L1_IMMUTABLE_ERROR);
 
 #############################################################################
 ##
@@ -139,12 +334,16 @@ function( l1, p1, l2, p2, m )
     l1{p1} := m * l2{p2};
 end );
 
+InstallOtherMethod( MultRowVector,"error if immutable",true,
+    [ IsList,IsObject,IsObject,IsObject,IsObject],0,
+    L1_IMMUTABLE_ERROR);
 
 #############################################################################
 ##
 #M  MultRowVector( <list>, <mul> )
 ##
 InstallOtherMethod( MultRowVector,
+        "two argument generic method",
     true,
     [ IsDenseList and IsMutable,
       IsMultiplicativeElement ],
@@ -157,6 +356,36 @@ function( l, m )
         l[i] := m * l[i];
     od;
 end );
+
+InstallOtherMethod( MultRowVector,"error if immutable",true,
+    [ IsList,IsObject],0,
+    L1_IMMUTABLE_ERROR);
+
+InstallOtherMethod( MultRowVector,
+        "Two argument kernel method for small list",
+    IsCollsElms,
+    [ IsSmallList and IsDenseList and IsMutable,
+      IsMultiplicativeElement ],
+    0,
+    MULT_ROW_VECTOR_2    
+);
+
+InstallOtherMethod( MultRowVector,
+        "Two argument kernel method for plain list of cyclotomics and an integer",
+    IsCollsElms,
+        [ IsSmallList and IsDenseList and IsMutable and IsPlistRep and
+          IsCyclotomicCollection,
+      IsCyclotomic ],
+    0,
+    MULT_ROW_VECTOR_2_FAST    
+);
+
+InstallOtherMethod( MultRowVector,
+        "kernel method for vecffe (2 args)",
+        IsCollsElms,
+        [ IsRowVector and IsMutable and IsPlistRep and IsFFECollection,
+          IsFFE],0,
+        MULT_ROWVECTOR_VECFFES );
 
 
 #############################################################################
@@ -178,6 +407,10 @@ function( l, s, f )
         l[i] := f;
     od;
 end );
+
+InstallOtherMethod( RightShiftRowVector,"error if immutable",true,
+    [ IsList,IsObject],0,
+    L1_IMMUTABLE_ERROR);
 
 
 #############################################################################
@@ -218,10 +451,13 @@ function( l1 )
     fi;
 end );
 
+InstallOtherMethod( ShrinkRowVector,"error if immutable",true,
+    [ IsList],0,
+    L1_IMMUTABLE_ERROR);
+
 
 #############################################################################
 ##
-
 #M  AddCoeffs( <list1>, <poss1>, <list2>, <poss2>, <mul> )
 ##
 InstallMethod( AddCoeffs,
@@ -259,6 +495,10 @@ function( l1, p1, l2, p2, m )
     return n1;
 end );
 
+InstallOtherMethod( AddCoeffs,"error if immutable", true,
+    [ IsList,IsObject,IsObject,IsObject,IsObject],0,
+    L1_IMMUTABLE_ERROR);
+
 
 #############################################################################
 ##
@@ -278,6 +518,10 @@ function( l1, l2, m )
     pos := [ 1 .. Length(l2) ];
     return AddCoeffs( l1, pos, l2, pos, m );
 end );
+
+InstallOtherMethod( AddCoeffs,"error if immutable", true,
+    [ IsList,IsObject,IsObject],0,
+    L1_IMMUTABLE_ERROR);
 
 
 #############################################################################
@@ -310,6 +554,10 @@ function( l1, l2 )
         return AddCoeffs( l1, pos, l2, pos, One(l2[1]) );
     fi;
 end );
+
+InstallOtherMethod( AddCoeffs,"error if immutable", true,
+    [ IsList,IsObject],0,
+    L1_IMMUTABLE_ERROR);
 
 
 #############################################################################
@@ -359,6 +607,10 @@ function( l1, l2, n2, l3, n3 )
 
 end );
 
+InstallOtherMethod( MultCoeffs,"error if immutable", true,
+    [ IsList,IsObject,IsInt,IsObject,IsInt],0,
+    L1_IMMUTABLE_ERROR);
+
 
 #############################################################################
 ##
@@ -407,6 +659,10 @@ function( l1, n1, l2, n2 )
     return n1;
 end );
 
+InstallOtherMethod( ReduceCoeffs,"error if immutable", true,
+    [ IsList,IsInt,IsObject,IsInt],0,
+    L1_IMMUTABLE_ERROR);
+
 
 #############################################################################
 ##
@@ -421,6 +677,10 @@ InstallOtherMethod( ReduceCoeffs,
 function( l1, l2 )
     return ReduceCoeffs( l1, Length(l1), l2, Length(l2) );
 end );
+
+InstallOtherMethod( ReduceCoeffs,"error if immutable", true,
+    [ IsList,IsObject],0,
+    L1_IMMUTABLE_ERROR);
 
 
 #############################################################################
@@ -471,6 +731,10 @@ function( l1, n1, l2, n2, p )
     return n1;
 end );
 
+InstallOtherMethod( ReduceCoeffsMod,"error if immutable", true,
+    [ IsList,IsInt,IsObject,IsInt,IsInt],0,
+    L1_IMMUTABLE_ERROR);
+
 
 #############################################################################
 ##
@@ -486,6 +750,10 @@ InstallOtherMethod( ReduceCoeffsMod,
 function( l1, l2, p )
     return ReduceCoeffsMod( l1, Length(l1), l2, Length(l2), p );
 end );
+
+InstallOtherMethod( ReduceCoeffsMod,"error if immutable", true,
+    [ IsList,IsObject,IsInt],0,
+    L1_IMMUTABLE_ERROR);
 
 
 #############################################################################
@@ -520,6 +788,10 @@ function( l1, n1, p )
 
 end );
 
+InstallOtherMethod( ReduceCoeffsMod,"error if immutable", true,
+    [ IsList,IsInt,IsInt],0,
+    L1_IMMUTABLE_ERROR);
+
 
 #############################################################################
 ##
@@ -534,6 +806,10 @@ InstallOtherMethod( ReduceCoeffsMod,
 function( l1, p )
     return ReduceCoeffsMod( l1, Length(l1), p );
 end );
+
+InstallOtherMethod( ReduceCoeffsMod,"error if immutable", true,
+    [ IsList,IsInt],0,
+    L1_IMMUTABLE_ERROR);
 
 
 #############################################################################
@@ -576,6 +852,10 @@ function( l, c )
     return m;
 end );
 
+InstallOtherMethod( RemoveOuterCoeffs,"error if immutable", true,
+    [ IsList,IsObject],0,
+    L1_IMMUTABLE_ERROR);
+
 
 #############################################################################
 ##
@@ -591,10 +871,13 @@ function( l1 )
     return Length(l1);
 end );
 
+InstallOtherMethod( ShrinkCoeffs,"error if immutable", true,
+    [ IsList],0,
+    L1_IMMUTABLE_ERROR);
+
 
 #############################################################################
 ##
-
 #M  CoeffsMod( <list>, <len>, <mod> )
 ##
 InstallMethod( CoeffsMod,
@@ -834,7 +1117,7 @@ InstallMethod(DistancesDistributionMatFFEVecFFE,"generic",IsCollsElmsElms,
   [IsMatrix,IsFFECollection, IsList],0,
 function(mat,f,vec)
 local d,i,j,l,m,z,cnt,v,pos;
-  f:=AsListSorted(f);
+  f:=AsSSortedList(f);
   Assert(1,f[1]=Zero(f[1]));
   l:=Length(f);
   m:=Length(mat);
@@ -876,7 +1159,7 @@ InstallMethod(AClosestVectorCombinationsMatFFEVecFFE,"generic",
 function(mat,f,vec,len,stop)
 local d,b,bd,i,j,l,comb,umat,z,cnt,v,pos;
 
-  f:=AsListSorted(f);
+  f:=AsSSortedList(f);
   Assert(1,f[1]=Zero(f[1]));
   f:=f{[2..Length(f)]}; # we want to exclude linear combinations with `zero'.
   l:=Length(f);
@@ -936,17 +1219,17 @@ end);
 InstallMethod(CosetLeadersMatFFE,"generic",IsCollsElms,
   [IsMatrix,IsFFECollection],0,
 function(mat,f)
-local m,bas,umat,z,reps,found,fs,l,cnt,sy,len,pos,v,comb,k,symod,fl;
+local m,bas,umat,z,reps,found,fs,l,cnt,sy,len,pos,v,comb,k,symod,fl,i,j;
 
   m:=Length(mat);
-  bas:=IdentityMat(Length(mat[1]),One(f));
+  bas:= Immutable( IdentityMat(Length(mat[1]),One(f)) );
   z:=Zero(mat[1]);
   reps:=[z];
   found:=Size(f)^Length(mat)-1;
   symod:=found+1;
 
   fs:=Size(f);
-  fl:=AsListSorted(f);
+  fl:=AsSSortedList(f);
   Assert(1,f[1]=Zero(f[1]));
   f:=fl{[2..Length(fl)]}; # we want to exclude linear combinations with `zero'.
   l:=Length(f);

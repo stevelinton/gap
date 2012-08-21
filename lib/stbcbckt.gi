@@ -23,6 +23,7 @@ if not IsBound( LARGE_TASK )  then  LARGE_TASK := false;   fi;
 #F  IsSymmetricGroupQuick( <G> )  . . . . . . . . . . . . . . . .  quick test
 ##
 InstallGlobalFunction( IsSymmetricGroupQuick, function( G )
+    return false;
     return ( HasIsNaturalSymmetricGroup( G )  or  NrMovedPoints( G ) <= 100 )
        and IsNaturalSymmetricGroup( G );
 end );
@@ -391,24 +392,25 @@ InstallGlobalFunction( Suborbits, function( arg )
     if Omega <> MovedPoints( H )  then
         suborbits := [  ];
     elif len <> 0  then
-        b := b ^ conj;
-        if not IsBound( H!.stabSuborbits )  then
-            H!.stabSuborbits       := [  ];
-            H!.stabSuborbitsLabels := [  ];
-        fi;
-        p := Position( H!.stabSuborbitsLabels, tofix );
-        if p = fail  then
-            Add( H!.stabSuborbitsLabels, tofix );
-            p := Length( H!.stabSuborbitsLabels );
-        fi;
-        tofix := p;
-        if not IsBound( H!.stabSuborbits[ tofix ] )  then
-            H!.stabSuborbits[ tofix ] := [  ];
-        fi;
-        if not IsBound( H!.stabSuborbits[ tofix ][ len ] )  then
-            H!.stabSuborbits[ tofix ][ len ] := [  ];
-        fi;
-        suborbits := H!.stabSuborbits[ tofix ][ len ];
+      b := b ^ conj;
+#        if not IsBound( H!.stabSuborbits )  then
+#            H!.stabSuborbits       := [  ];
+#            H!.stabSuborbitsLabels := [  ];
+#        fi;
+#        p := Position( H!.stabSuborbitsLabels, tofix );
+#        if p = fail  then
+#            Add( H!.stabSuborbitsLabels, tofix );
+#            p := Length( H!.stabSuborbitsLabels );
+##        fi;
+#        tofix := p;
+#        if not IsBound( H!.stabSuborbits[ tofix ] )  then
+#            H!.stabSuborbits[ tofix ] := [  ];
+#        fi;
+#        if not IsBound( H!.stabSuborbits[ tofix ][ len ] )  then
+#            H!.stabSuborbits[ tofix ][ len ] := [  ];
+#        fi;
+#        suborbits := H!.stabSuborbits[ tofix ][ len ];
+        suborbits:=[];
     else
         if not IsBound( H!.suborbits )  then
             H!.suborbits := [  ];
@@ -427,6 +429,7 @@ InstallGlobalFunction( Suborbits, function( arg )
                    InverseRepresentative( GG, a );
   
     ran := [ 1 .. Maximum( Omega ) ];
+    # disabled. See also `suborbits' assignement below
     if IsBound( suborbits[ a ] )  then
         subs := suborbits[ a ];
     else
@@ -774,7 +777,7 @@ InstallGlobalFunction( RegisterRBasePoint, function( P, rbase, pnt )
     Info( InfoBckt, 1, "Level ", Length( rbase.base ), ": ", pnt, ", ",
             P.lengths[ k ] + 1, " possible images" );
     if not ProcessFixpoint( rbase, pnt )  then
-        Error( "this can't happen: R-base point is already fixed" );
+        Info(InfoWarning,2,"Warning: R-base point is already fixed" );
     fi;
     Add( rbase.where, k );
     Add( rbase.rfm, [  ] );
@@ -2166,6 +2169,14 @@ InstallGlobalFunction( IsomorphismPermGroups, function( arg )
     fi;
     Omega := MovedPointsPerms( Concatenation( GeneratorsOfGroup( G ),
                      GeneratorsOfGroup( E ), GeneratorsOfGroup( F ) ) );
+
+    # test whether we have a chance mapping the groups (as their orbits fit
+    # together)
+    if Collected(List(Orbits(E,Omega),Length))<>
+       Collected(List(Orbits(F,Omega),Length)) then
+      return fail;
+    fi;
+
     Pr := gen -> ForAll( GeneratorsOfGroup( E ), g -> g ^ gen in F );
     if Length( arg ) > 3  then
         L := arg[ Length( arg ) - 1 ];
@@ -2218,13 +2229,18 @@ InstallGlobalFunction( AutomorphismGroupPermGroup, function( arg )
     else                          L := TrivialSubgroup( G );  fi;
     
     if not IsTrivial( G )  then
-        if IsSymmetricGroupQuick( G )  then
+        if IsSymmetricGroupQuick( G ) and
+	  IsSubset(MovedPoints(G),MovedPoints(E)) then
             div := YndexSymmetricGroup( G, E );
         elif IsSubset( G, E )  then
             div := SmallestPrimeDivisor( Index( G, E ) );
         else
             div := SmallestPrimeDivisor( Size( G ) );
         fi;
+	if Length(MovedPoints(G))>Size(G) and Length(MovedPoints(G))>500 then
+	  return SubgroupProperty(G,
+	    i->ForAll(GeneratorsOfGroup(E),j->j^i in E));
+	fi;
         B := OrbitsPartition( E, Omega );
         rbase := RBaseGroupsBloxPermGroup( false, G, Omega, E, div, B );
         data := [ true, E, [  ], B, [  ] ];
@@ -2238,7 +2254,12 @@ InstallGlobalFunction( AutomorphismGroupPermGroup, function( arg )
     return N;
 end );
 
-InstallMethod( NormalizerOp,"perm group", IsIdenticalObj, [ IsPermGroup, IsPermGroup ], 0,
+InstallMethod( NormalizerOp,"perm group", IsIdenticalObj,
+  [ IsPermGroup, IsPermGroup ], 0,
+        AutomorphismGroupPermGroup );
+
+InstallOtherMethod( NormalizerOp,"perm group", true,
+  [ IsPermGroup, IsPermGroup,IsPermGroup ], 0,
         AutomorphismGroupPermGroup );
 
 #############################################################################
@@ -2303,9 +2324,6 @@ end );
 ##
 #M  PartitionStabilizerPermGroup(<G>,<part>)
 ##
-##  <part> must be a list of sets of points, on which <G> acts. This
-##  function computes the stabilizer in <G> of <part>, that is the subgroup
-##  which maps every set from <part> to another set from <part>.
 InstallGlobalFunction( PartitionStabilizerPermGroup, function(G,part)
 local pl,i,p,W,op;
 
@@ -2615,5 +2633,5 @@ InstallMethod(TwoClosure,"permutation group",true,[IsPermGroup],0,
 
 #############################################################################
 ##
-#E  stbcbckt.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

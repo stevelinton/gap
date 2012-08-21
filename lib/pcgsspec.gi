@@ -156,6 +156,7 @@ PcgsSystemWithWf := function( pcgs, wf )
         newpcgs := pcgs;
     else
         newpcgs := PcgsByPcSequenceNC( FamilyObj(OneOfPcgs(pcgs)), list );
+        SetOneOfPcgs( newpcgs, OneOfPcgs(pcgs) );
     fi;
 
     # set up layers
@@ -415,7 +416,7 @@ PcgsSystemWithHallSystem := function( pcgssys )
 
             # calculate new i-th base element
             new := ShallowCopy( pcgssys.pcgs!.pcSequence );
-            subs := PcElementByExponents(pcgssys.pcgs, base, solution);
+            subs := PcElementByExponentsNC(pcgssys.pcgs, base, solution);
             new[i] := new[i] * subs;
             pcgssys.pcgs := PcgsByPcSequenceNC( F, new );
 
@@ -546,7 +547,7 @@ PcgsSystemWithComplementSystem := function( pcgssys )
 
             # calculate new i-th base element
             new := ShallowCopy( pcgssys.pcgs!.pcSequence );
-            subs:= PcElementByExponents(pcgssys.pcgs, base, solution);
+            subs:= PcElementByExponentsNC(pcgssys.pcgs, base, solution);
             new[i] := new[i] * subs;
             pcgssys.pcgs := PcgsByPcSequenceNC( F, new );
 
@@ -573,7 +574,7 @@ InstallMethod( SpecialPcgs,
 InstallMethod( SpecialPcgs,
     "generic method for pcgs",
     true,
-    [ IsPcgs ],
+    [ IsPcgs and IsFiniteOrdersPcgs and IsPrimeOrdersPcgs ],
     0,
 
 function( pcgs )
@@ -606,6 +607,8 @@ function( pcgs )
         SetLGWeights( newpcgs, pcgssys.weights );
         SetLGLayers( newpcgs, pcgssys.layers );
         SetLGFirst( newpcgs, pcgssys.first );
+        SetIsFiniteOrdersPcgs( newpcgs, true );
+        SetIsPrimeOrdersPcgs( newpcgs, true );
     fi;
     return newpcgs;
 end );
@@ -727,6 +730,48 @@ function( pcgs )
     Add( first, Length(pcgs) + 1 );
     return first;
 end );
+
+#############################################################################
+##
+#M LGLength( G )
+##
+InstallMethod( LGLength, 
+               "for groups",
+               true,
+               [ IsGroup ],                         
+               0,                                     
+function( G )
+    local weights, first, o, i, w;
+
+    if not IsSolvableGroup( G ) then
+        return fail;
+    fi;
+    return Length( Set( LGWeights( SpecialPcgs( G ) ) ) );
+end );
+
+#############################################################################
+##
+#M  PClassPGroup( <G> )   . . . . . . . . . .  . . . . . . <p>-central series
+##
+InstallMethod( PClassPGroup,
+    "for groups with special pcgs",                                       
+    true, [ IsPGroup and HasSpecialPcgs ], 1,
+    function( G )
+
+    return LGLength( G );
+    end );
+
+#############################################################################
+##
+#M  RankPGroup( <G> ) . . . . . . . . . . . .  . . . . . . <p>-central series
+##
+InstallMethod( RankPGroup,
+    "for groups with special pcgs",                                       
+    true, [ IsPGroup and HasSpecialPcgs ], 1,
+    function( G )
+
+    return LGFirst( SpecialPcgs( G ) )[ 2 ] - 1;
+    end );
 
 #############################################################################
 ##

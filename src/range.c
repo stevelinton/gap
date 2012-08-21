@@ -1201,6 +1201,18 @@ Obj FuncIS_RANGE_REP (
     return (IS_RANGE( obj ) ? True : False);
 }
 
+/****************************************************************************
+**
+*F  MakeImmutableRange( <range> )
+**
+*/
+
+void MakeImmutableRange( Obj range )
+{
+  RetypeBag( range, IMMUTABLE_TNUM(TNUM_OBJ(range)));
+}
+
+
 
 /****************************************************************************
 **
@@ -1494,6 +1506,10 @@ static Int InitKernel (
     CleanObjFuncs[ T_RANGE_SSORT +IMMUTABLE          ] = CleanRange;
     CleanObjFuncs[ T_RANGE_SSORT +IMMUTABLE +COPYING ] = CleanRangeCopy;
 
+    /* Make immutable methods */
+    MakeImmutableObjFuncs[ T_RANGE_NSORT ] = MakeImmutableRange;
+    MakeImmutableObjFuncs[ T_RANGE_SSORT ] = MakeImmutableRange;
+    
     /* install the print method                                            */
     PrintObjFuncs[ T_RANGE_NSORT            ] = PrintRange;
     PrintObjFuncs[ T_RANGE_NSORT +IMMUTABLE ] = PrintRange;

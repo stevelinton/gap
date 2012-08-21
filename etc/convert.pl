@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w
+# was: /usr/bin/perl -w
 #
 # Script to convert the GAP manual to HTML
 # usage convert.pl [-cs] <doc-directory> [<html-directory>]
@@ -84,20 +85,26 @@ sub getchaps {
     my ($chap,$sec,$chapno,$chap_as_sec);
     while (<TOC>) {
         if ( /$chapexp/o ) {
-            $chap = {name => $2,  
-                     number => $1};
-            $chap_as_sec = {name => $2,
-                            chapnum => $1, 
+	    $chapnam = $2;
+	    $chanu   = $1;
+		
+	    # remove `(preliminary)' part that messes everything up
+	    $chapnam =~ s/ \(preliminary\)//g;
+
+            $chap = {name => $chapnam,  
+                     number => $chanu};
+            $chap_as_sec = {name => $chapnam,
+                            chapnum => $chanu, 
                             secnum => 0,
                             chapter => $chap};
             $chap->{sections}[0] = $chap_as_sec;
-            if (defined ($chapters[$1])) {
+            if (defined ($chapters[$chanu])) {
                 die ("chapter number repeated");
             }
-            $chapters[$1] = $chap;
+            $chapters[$chanu] = $chap;
         } elsif ( /$secexp/o ) {
             if (not defined ($chapters[$1])) {
-                die ("section in unknown chapter");
+                die ("section $2:$3 in unknown chapter $1");
             }
             if (defined ( $chapters[$1]{sections}[$2])) {
                 die "section number repeated";
@@ -131,6 +138,9 @@ sub getlabs {
         die "Can't open $dir../$bok/manual.lab";
     while (<LAB>) {
         if ( /\\makelabel\s*\{([^}]+)\}\s*\{(\d+)\.(\d+)\}/ ) {
+            $sections_by_name{canonize $1} = {chapnum => $2,
+                                              secnum => $3};
+        } elsif ( /\\makelabel\s*\{([^}]+)\}\s*\{(\d+)\.(\d+)\.(\d+)\}/ ) {
             $sections_by_name{canonize $1} = {chapnum => $2,
                                               secnum => $3};
         } elsif ( /\\makelabel\s*\{([^}]+)\}\s*\{(\d+)\}/ ) {
@@ -174,7 +184,7 @@ $footer = "<P>\n<address>GAP 4 manual<br>" .
 sub name2fn {
     my ($name) = @_;
     my $bdir = "";
-    
+
     # : indicates a cross-volume reference
     if ($name =~ /^(\w\w\w):(.+)$/) {
         $bdir = "../$1/";
@@ -264,7 +274,7 @@ $TeXaccents = "\'`\"~^";  # ^ must come last, this is also used as regexp
 
 sub convert_text {
     my $fname = $_[0];
-    my $refchars = '[\\w\\s-`\',.:!?$]'; # these make up cross references
+    my $refchars = '[\\w\\s-`\',.:!()?$]'; # these make up cross references
     my $boldcommands = 'GAP|CAS|ATLAS|[A-Z]|danger|exercise';
     my $ref = "";
     my $endline = "";           # used for </code> at the end of line
@@ -370,7 +380,10 @@ sub convert_text {
       	  # several references to one key
       	  if  (/^\\index/) {
       	      while (/\\index\{(.*?)\}/g) {
-      		  $outline .= inxentry($fname,$1,$sec);
+      		  #$outline .= inxentry($fname,$1,$sec);
+      		  $bla = inxentry($fname,$1,$sec);
+      		  $outline .= $bla;
+		  print "$outline\n";
       	      }
       	      next LINE;
       	  }
@@ -380,16 +393,22 @@ sub convert_text {
 	  }
       	  if (/^\\>`([^\']+)\'\{([^}]+)\}(!\{.*)?\s*$/) {
       	      $endline = "</code>";
-      	      $outline .= inxentry($fname,"$2$3",$sec);
+              if (!defined($3)) {$drei=""}
+	      else {$drei=$3};
+      	      $outline .= inxentry($fname,"$2$drei",$sec);
       	      $outline .= "<li><code>";
       	      $tt = 1;
       	      $rest = $1;
       	  } elsif (/^\\>([^!%(]+)(\([^!]*)?(!\{.*)?\s*$/) {
       	      $endline = "</code>";
-      	      $outline .= inxentry($fname,"$1$3",$sec);
+              if (!defined($2)) {$zwei=""}
+	      else {$zwei=$2};
+              if (!defined($3)) {$drei=""}
+	      else {$drei=$3};
+      	      $outline .= inxentry($fname,"$1$drei",$sec);
       	      $outline .= "<li><code>";
       	      $tt = 1;
-      	      $rest = "$1$2";
+      	      $rest = "$1$zwei";
       	  } elsif (/^\\\)(.*)$/) {
       	      $endline = "</code>";
       	      $outline .= "<br><code>";
@@ -700,7 +719,7 @@ sub startfile {
         $num = $chap->{number};
         $name = $chap->{name};
         $name1 = quotemeta $name;
-        $re = "^\\\\Chapter\\{$name1\\}";
+        $re = "^\\\\(Chapter|FakeChapter|PreliminaryChapter)\\{$name1\\}";
     } else {
         $num = $sec->{chapnum} . "." .$sec->{secnum};
         $name = $sec->{name};  
@@ -754,7 +773,7 @@ sub navigation {
     my $sec = $_[0];
     my $chap = $sec->{chapter};
     my $cfname = name2fn $chap->{name};
-    print  "[<a href = \"../index.html\">Top</a>] ";
+    print  "[<a href = \"../index.htm\">Top</a>] ";
     if ($sec->{secnum} == 0) {
         if ($chap->{number} != 1) {
             my $prev = name2fn $chapters[$chap->{number} - 1]{name};
@@ -863,7 +882,7 @@ END
 <li><a href=\"biblio.htm\">References</a>
 <li><a href=\"theindex.htm\">Index</a>
 </ul><p>
-[<a href=\"../index.html\">Top</a>]<p>
+[<a href=\"../index.htm\">Top</a>]<p>
 END
     ;
 
@@ -879,28 +898,50 @@ END
 sub caseless { lc($a) cmp lc ($b) or $a cmp $b }
 
 sub index_page {
-    my ($ent, $ref, $letter, $nextletter);
+    my ($ent, $ref, $letter, $bstb, $nextletter);
+    $letter = "_";
+    $nextletter = "A";
+
     open OUT, ">${odir}theindex.htm";
     select OUT;
     print <<END
-<html><head><title>The GAP 4 $booktitle - Index</title></head>
-<body bgcolor=\"ffffff\"><h1>The GAP 4 $booktitle - Index</h1>
+<html><head><title>The GAP 4 $booktitle - Index ${letter}</title></head>
+<body bgcolor=\"ffffff\"><h1>The GAP 4 $booktitle - Index ${letter}</h1>
 <p>
 END
     ;
-    foreach $letter  ("A".."Z") {
-        print  "<a href=\"theindex.htm#L$letter\">$letter</A> ";
+    foreach $bstb  ("A".."Z") {
+        print  "<a href=\"indx${bstb}.htm\">$bstb</A> ";
     }
-    print  "\n<ul>";
+    print  "\n<ul>\n";
 
-    $nextletter = "A";
         
   ENTRY: for $ent (sort caseless keys %index) {
       $letter = uc(substr($ent,0,1));
       if ($letter ge "A" and $letter le "Z" and $nextletter le "Z") {
            until ($letter lt $nextletter) {
-               print  "<a name = \"L$nextletter\"></a>";
+	       print  "</ul><p>\n";
+	       print  "[<a href=\"../index.htm\">Top</a>] ";
+	       print  "[<a href=\"chapters.htm\">Up</a>]";
+	       print  "<p>\n$footer";
+	       close OUT;
+	       select STDOUT;
+
                $nextletter++;
+
+	      open OUT, ">${odir}indx${letter}.htm";
+	      select OUT;
+	      print <<END
+<html><head><title>The GAP 4 $booktitle - Index ${letter}</title></head>
+<body bgcolor=\"ffffff\"><h1>The GAP 4 $booktitle - Index ${letter}</h1>
+<p>
+END
+	      ;
+	      foreach $bstb  ("A".."Z") {
+		  print  "<a href=\"indx${bstb}.htm\">$bstb</A> ";
+	      }
+	      print  "\n<ul>";
+
            }
       }
       $ent1 = $ent;
@@ -913,7 +954,7 @@ END
       print  "\n";
     }
     print  "</ul><p>\n";
-    print  "[<a href=\"../index.html\">Top</a>] ";
+    print  "[<a href=\"../index.htm\">Top</a>] ";
     print  "[<a href=\"chapters.htm\">Up</a>]";
     print  "<p>\n$footer";
     close OUT;
@@ -980,7 +1021,7 @@ END
         }
     }
   }
-  print "</dl><p>\n[<a href=\"../index.html\">Top</a>] ";
+  print "</dl><p>\n[<a href=\"../index.htm\">Top</a>] ";
   print "[<a href=\"chapters.htm\">Up</a>]";
   print "<p>\n$footer\n";
   close OUT;
@@ -1056,7 +1097,7 @@ CHAP: foreach $chap (@chapters) {
 
 print  "and the chapters page\n" unless ($opt_s);
 chapters_page;
-print  "and the index page\n" unless ($opt_s);
+print  "and the index pages\n" unless ($opt_s);
 index_page;
 print  "and the references\n" unless ($opt_s);
 biblio_page;

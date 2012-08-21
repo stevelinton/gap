@@ -3,8 +3,6 @@
 #X  first read the very basic stuff that the kernel needs to function at all,
 #X  after this file is read an 'ExportToKernelFinished' is done.
 ##
-ReadLib( "kernel.g"    );
-ReadLib( "global.g"    );
 ReadLib( "filter.g"    );
 ReadLib( "oper.g"      );
 ReadLib( "type.g"      );
@@ -24,7 +22,7 @@ ReadLib( "ffe.gd"      );
 
 ReadLib( "string.g"    );
 ReadLib( "cyclotom.g"  );
-ReadLib( "set.g"       );
+ReadLib( "set.gd"      );
 
 ReadLib( "coll.gi"     );
 
@@ -34,7 +32,7 @@ ReadLib( "record.g"    );
 ReadLib( "ffe.g"       );
 ReadLib( "arith.gi"    );
 ReadLib( "list.g"      );
-ReadLib( "wpobj.g"      );
+ReadLib( "wpobj.g"     );
 ReadLib( "permutat.g"  );
 
 ReadLib( "object.gi"   );
@@ -45,10 +43,14 @@ ReadLib( "files.gd"    );
 ReadLib( "streams.gd"  );
 
 ReadLib( "vecmat.gd"   );
+ReadLib( "vec8bit.gd"   );
 
 ReadLib( "global.gd"   );
 
 ReadLib( "info.gi"     );
 ReadLib( "assert.gi"   );
 ReadLib( "global.gi"   );
+
+ReadLib( "options.gd"  );
+ReadLib( "options.gi"  );
 

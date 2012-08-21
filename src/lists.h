@@ -762,7 +762,7 @@ extern  Obj             TYPES_LIST_FAM (
 **  The macro  `SET_FILT_LIST' is  used  to  set  the filter  for a  list  by
 **  changing its type number.
 */
-extern Int SetFiltListTNums [ LAST_REAL_TNUM ] [ LAST_FN ];
+extern UInt SetFiltListTNums [ LAST_REAL_TNUM ] [ LAST_FN ];
 
 
 /****************************************************************************
@@ -771,16 +771,21 @@ extern Int SetFiltListTNums [ LAST_REAL_TNUM ] [ LAST_FN ];
 */
 #define SET_FILT_LIST(list,fn) \
   do { \
-    Int     new; \
+    UInt     new; \
     new = SetFiltListTNums[TNUM_OBJ(list)][fn]; \
     if ( new > 0 ) \
       RetypeBag( list, new ); \
-    else if ( new < 0 ) { \
+   /*  else if ( new < 0 ) { \
       Pr( "#E  SET_FILT_LIST[%s][%d] in ", (Int)TNAM_OBJ(list), fn ); \
       Pr( "%s line %d\n", (Int)__FILE__, (Int)__LINE__); \
-    } \
+      } */ \
   } while (0)
 
+/****************************************************************************
+**
+*F  FuncSET_FILTER_LIST( <self>, <list>, <filter> ) . . . . . . .  set filter
+*/
+extern Obj FuncSET_FILTER_LIST ( Obj self, Obj list, Obj filter );
 
 /****************************************************************************
 **
@@ -794,7 +799,7 @@ extern Int SetFiltListTNums [ LAST_REAL_TNUM ] [ LAST_FN ];
 **  The macro `RESET_FILT_LIST' is used  to  set  the filter  for a  list  by
 **  changing its type number.
 */
-extern Int ResetFiltListTNums [ LAST_REAL_TNUM ] [ LAST_FN ];
+extern UInt ResetFiltListTNums [ LAST_REAL_TNUM ] [ LAST_FN ];
 
 
 /****************************************************************************
@@ -803,14 +808,14 @@ extern Int ResetFiltListTNums [ LAST_REAL_TNUM ] [ LAST_FN ];
 */
 #define RESET_FILT_LIST(list,fn) \
   do { \
-    Int     new; \
+    UInt     new; \
     new = ResetFiltListTNums[TNUM_OBJ(list)][fn]; \
     if ( new > 0 ) \
       RetypeBag( list, new ); \
-    else if ( new < 0 ) { \
+/*    else if ( new < 0 ) { \
       Pr( "#E  RESET_FILT_LIST[%s][%d] in ", (Int)TNAM_OBJ(list), fn ); \
       Pr( "%s line %d\n", (Int)__FILE__, (Int)__LINE__); \
-    } \
+      } */ \
   } while (0)
 
 
@@ -839,7 +844,7 @@ extern Int HasFiltListTNums [ LAST_REAL_TNUM ] [ LAST_FN ];
 **
 **  The macro `CLEAR_PROPS_LIST' is used to clear all properties of a list.
 */
-extern Int ClearFiltsTNums [ LAST_REAL_TNUM ];
+extern UInt ClearFiltsTNums [ LAST_REAL_TNUM ];
 
 
 /****************************************************************************
@@ -848,14 +853,14 @@ extern Int ClearFiltsTNums [ LAST_REAL_TNUM ];
 */
 #define CLEAR_FILTS_LIST(list) \
   do { \
-    Int     new; \
+    UInt     new; \
     new = ClearFiltsTNums[TNUM_OBJ(list)]; \
     if ( new > 0 ) \
       RetypeBag( list, new ); \
-    else if ( new < 0 ) { \
+/*    else if ( new < 0 ) { \
       Pr( "#E  CLEAR_FILTS_LIST[%s] in ", (Int)TNAM_OBJ(list), 0 ); \
       Pr( "%s line %d\n", (Int)__FILE__, (Int)__LINE__); \
-    } \
+      } */ \
   } while (0)
 
 /****************************************************************************

@@ -189,7 +189,7 @@ void            AssGVar (
         ErrorReturnVoid(
             "Variable: '%s' is read only",
             (Int)CSTR_STRING( ELM_PLIST(NameGVars,gvar) ), 0L,
-            "you can return after makeing it writable" );
+            "you can return after making it writable" );
     }
 
     /* assign the value to the global variable                             */
@@ -691,6 +691,7 @@ Obj FuncISB_GVAR (
     Obj                 self,
     Obj                 gvar )
 {
+  UInt gv;
     /* check the argument                                                  */
     while ( ! IsStringConv( gvar ) ) {
         gvar = ErrorReturnObj(
@@ -699,7 +700,9 @@ Obj FuncISB_GVAR (
             "you can return a string for <gvar>" );
     }
 
-    return ValAutoGVar( GVarName( CSTR_STRING(gvar) ) ) ? True : False;
+    gv = GVarName( CSTR_STRING(gvar) );
+    return ( VAL_GVAR( gv ) ||
+	     ELM_PLIST( ExprGVars, gv )) ? True : False;
 }
 
 
@@ -710,7 +713,7 @@ Obj FuncISB_GVAR (
 
 Obj FuncVAL_GVAR (
     Obj                 self,
-    Obj                 gvar )
+   Obj                 gvar )
 {
   Obj val;
     /* check the argument                                                  */
@@ -1029,6 +1032,10 @@ static Int InitKernel (
     /* init filters and functions                                          */
     InitHdlrFuncsFromTable( GVarFuncs );
 
+    /* Get a copy of REREADING                                             */
+    ImportGVarFromLibrary("REREADING", &REREADING);
+    
+    
     /* return success                                                      */
     return 0;
 }
@@ -1050,8 +1057,6 @@ static Int PostRestore (
     /* create the global variable '~'                                      */
     Tilde = GVarName( "~" );
 
-    /* Get a copy of REREADING                                             */
-    ImportGVarFromLibrary("REREADING", &REREADING);
 
     /* update fopies and copies                                            */
     UpdateCopyFopyInfo();

@@ -262,9 +262,9 @@ InstallGlobalFunction( CollectorSQ, function( G, M, isSplit )
     r := ShallowCopy(Gcoll);
 
     # create module gens (the transposed is a technical detail)
-    r.module := List( M.generators, x -> TransposedMat(x) );
-    r.mone   := IdentityMat( M.dimension, M.field );
-    r.mzero  := NullMat( M.dimension, M.dimension, M.field );
+    r.module := List( M.generators, TransposedMat );
+    r.mone   := Immutable( IdentityMat( M.dimension, M.field ) );
+    r.mzero  := Immutable( NullMat( M.dimension, M.dimension, M.field ) );
 
     # add avoid 
     r.avoid := [];
@@ -678,16 +678,14 @@ function( G, M )
     local C, co, cb, cc, pr;
     C := CollectorSQ( G, M, false );
     co := TwoCocyclesSQ( C, G, M );
+    co := VectorSpace( M.field, co );
     cb := TwoCoboundariesSQ( C, G, M );
-    cc := BaseSteinitzVectors( co, cb ).factorspace;
+    cb := SubspaceNC( co, cb );
     pr := FpGroupPcGroupSQ( G );
     return rec( group := G,
-                pcgs := Pcgs( G ),
                 module := M,
                 collector := C,
-                cocycles := co,
-                coboundaries := cb,
-                cohomology := cc,
-                fpgens := GeneratorsOfGroup( pr.group ),
-                fprelators := pr.relators );
+                cohom := 
+                NaturalHomomorphismBySubspaceOntoFullRowSpace(co,cb),
+                presentation := FpGroupPcGroupSQ( G ) );
 end );

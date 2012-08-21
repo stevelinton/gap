@@ -55,7 +55,7 @@ case "$host" in
 	gp_cv_c_long_align=8;;
    mips-* )
         gp_cv_c_long_align=4;;
-   i586-* )
+   i586-* | i686-* )
         gp_cv_c_long_align=2;;
         * )
 
@@ -109,20 +109,25 @@ AC_DEFUN(GP_PROG_CC_DYNFLAGS,
  [ case "$host-$CC" in
     *-hpux-gcc )
         gp_cv_prog_cc_cdynoptions="-fpic";;
-    *-gcc )
-     	gp_cv_prog_cc_cdynoptions="-fpic -ansi -Wall -O2";;
+    *-gcc | *-egcs )
+     	gp_cv_prog_cc_cdynoptions="-fpic -Wall -O2";;
     *-next-nextstep-cc )
-        gp_cv_prog_cc_cdynoptions="-ansi -Wall -O2 -arch $hostcpu";;
+        gp_cv_prog_cc_cdynoptions=" -Wall -O2 -arch $hostcpu";;
+    *-osf*-cc )
+	gp_cv_prog_cc_cdynoptions=" -shared -x -O2";;
+   
     * )
         gp_cv_prog_cc_cdynoptions="UNSUPPORTED";;
    esac 
  ])
  AC_CACHE_CHECK(dynamic linker, gp_cv_prog_cc_cdynlinker,
  [ case "$host-$CC" in
-    *-gcc )
+    *-gcc | *-egcs )
         gp_cv_prog_cc_cdynlinker="ld";;
     *-next-nextstep-cc )
         gp_cv_prog_cc_cdynlinker="cc";;
+    *-osf*-cc )
+	gp_cv_prog_cc_cdynlinker="cc";;
     * )
         gp_cv_prog_cc_cdynlinker="echo";;
    esac 
@@ -135,6 +140,8 @@ AC_DEFUN(GP_PROG_CC_DYNFLAGS,
         gp_cv_prog_cc_cdynlinking="-Bshareable -x";;
     *hpux* )
         gp_cv_prog_cc_cdynlinking="-b +e Init__Dynamic";;
+    *osf*cc )
+	gp_cv_prog_cc_cdynlinking="-shared -r";;
 
     *-nextstep*cc )
         gp_cv_prog_cc_cdynlinking="-arch $hostcpu -Xlinker -r -Xlinker -x -nostdlib";;

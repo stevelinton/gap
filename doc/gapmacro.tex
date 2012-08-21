@@ -1,8 +1,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-%A  gapmacro.tex                GAP manual       Frank Celler, Heiko Theissen
+%A  gapmacro.tex                GAP manual                   Frank Celler
+%A                                                           Heiko Theissen
+%A                                                           Alexander Hulpke
 %%
 %%  @(#)$Id$
+%%
+%%  DO NOT RELY ON MACRO DEFINITIONS IN THIS FILE!
+%%  The official definition of the manual style is to be found in the file
+%%  `ext:document.tex'.
 %%
 %%  The following macros are defined in this file.
 %%
@@ -21,12 +27,12 @@
 %%    item & text ...
 %%  \enditems
 %%
-%%  \begintt            verbatim text in typewriter style (`|' is
-%%    verbatim material   temporary escape character, a line
-%%  \endtt                `|_' allows a page break)
-%%  \beginexamplett     verbatim text in typewriter style (`|' is
-%%    verbatim material   temporary escape character, a line
-%%  \endtt                `|_' allows a page break)
+%%  \begintt            verbatim text in typewriter style
+%%    verbatim material
+%%  \endtt
+%%  \beginexample     verbatim text in typewriter style
+%%    verbatim material
+%%  \endexample
 %%
 %%  \Input{file}  includes file `file.tex' (not recommended for appendices)
 %%  \Chapter title \par
@@ -73,6 +79,8 @@
 % Create and initialize new dimensions.
 \newdimen\pagewidth  \newdimen\pageheight  \newdimen\colwidth
 \pagewidth=\hsize    \pageheight=\vsize    \colwidth=3.2truein
+
+\def\draft{\hsize 42pc\vsize 63pc\pagewidth=\hsize \pageheight=\vsize}
 
 \def\pif{\char39}
 
@@ -132,6 +140,7 @@
 \font\manual=manfnt
 \font\sf=cmss10
 \font\bsf=cmssdc10
+\font\smallrom=cmr8
 \font\sevenit=cmti10 at 7pt \scriptfont\itfam=\sevenit
 \font\fiveit=cmti10 at 5pt  \scriptscriptfont\itfam=\fiveit
 
@@ -159,37 +168,51 @@
   \catcode`\_=\other     \catcode`\*=\other     \catcode`\`=\other
   \catcode`\!=\other     \catcode`\"=\other     \catcode`\&=\other
   \catcode`\#=\other     \catcode`\|=\other}
+\def\ttindent{5mm} % indentation amount of verbatim examples
 {\obeyspaces\global\let =\ }
 {\obeylines\gdef\obeylines{\catcode`^^M=\active}\gdef^^M{\par}%
-\catcode`#=\active \catcode`&=6 \gdef#&1^^M{\hbox{\char35 &1}^^M}%
+\catcode`#=\active \catcode`&=6 \gdef#{\char35}%
+%\catcode`#=\active \catcode`&=6 \gdef#&1^^M{\hbox{\char35 &1}^^M}%
  \gdef\ttverbatim{\begingroup\undocatcodespecials \catcode`\#=\active%
    \parindent 0pt \def\_^^M{\allowbreak}\def\${$}\def\`{`}%
-   \def\par{\ifvmode\allowbreak\vskip 1pc plus 1pt\else\endgraf\nobreak\fi}%
+   \def\par{\ifvmode\allowbreak\vskip 1pc plus 1pt\else\endgraf\penalty100\relax\fi}%
    \obeyspaces \obeylines \tt}}
 \outer\def\begintt{\par
+  \begingroup\advance\leftskip by \ttindent
   \ttverbatim \parskip=0pt \catcode`\|=0 \rightskip-5pc \ttfinish}
 {\catcode`\|=0 |catcode`|\=\other % | is temporary escape character
   |obeylines % end of line is active
   |gdef|ttfinish#1^^M#2\endtt{#1|medskip{#2}|endgroup %
+  |endgroup%
   |vskip-|parskip|medskip|noindent|ignorespaces}}
 \outer\def\beginexample{\par
+  \begingroup\advance\leftskip by \ttindent
   \ttverbatim \parskip=0pt \catcode`\|=0 \rightskip-5pc \examplefinish}
 {\catcode`\|=0 |catcode`|\=\other % | is temporary escape character
   |obeylines % end of line is active
   |gdef|examplefinish#1^^M#2\endexample{#1|medskip{#2}|endgroup %
+  |endgroup%
   |vskip-|parskip|medskip|noindent|ignorespaces}}
 
 % Input/output streams. Chapter and section counters.
 \newwrite\labelout \newwrite\indexout \newwrite\secindout
 \newwrite\tocout   \newwrite\citeout  \newwrite\ans
 \newread \labelin  \newread \indexin  \newread \tocin  \newread \citein
-\countdef\chapno=1 \newcount\secno    \newcount\exno
+\countdef\chapno=1 \newcount\secno    \newcount\subsecno \newcount\exno
 \def\chapterno{{\edef\tempa{\thechapter}\tempa}}
+%\def\folio{\ifnum\pageno<0 \romannumeral-\pageno \else
+%  \chapterno\ifx\thechapter\emptychapter\else--\fi \number\pageno\fi}
+%\def\doindex#1#2#3{\write\indexout{\noexpand\indexentry{#1#2#3}%
+%  {\ifnum\pageno<0 \romannumeral-\pageno \else
+%   \thechapter\ifx\thechapter\emptychapter\else--\fi \number\pageno\fi}}%
+%  \ifvmode\nobreak\fi}
+
+%AH
 \def\folio{\ifnum\pageno<0 \romannumeral-\pageno \else
-  \chapterno\ifx\thechapter\emptychapter\else--\fi \number\pageno\fi}
+  \number\pageno\fi}
 \def\doindex#1#2#3{\write\indexout{\noexpand\indexentry{#1#2#3}%
   {\ifnum\pageno<0 \romannumeral-\pageno \else
-   \thechapter\ifx\thechapter\emptychapter\else--\fi \number\pageno\fi}}%
+   \number\pageno\fi}}%
   \ifvmode\nobreak\fi}
 
 % Additional active characters and their default meanings.
@@ -200,7 +223,7 @@
 \catcode`^=\active \def^{\ifmmode\sp\else{\char`\^}\fi}
 \catcode`_=\active \def_{\ifmmode\sb\else\_\fi}         \let\_=\underscore
 \catcode`*=\active \def*{\ifmmode\let\next=\*\else\let\next=\bold\fi\next}
-                   \def\bold#1*{{\sl #1\/}}             \chardef\*=`*
+                   \def\bold#1*{{\bf #1\/}}             \chardef\*=`*
 \catcode`<=\active \def<#1>{{\chardef*=`*\let_=\_\it#1\/}}
                                                         \chardef\<=`<
 \catcode`"=\active \def"{\begingroup\undoquotes\doref}  \chardef\"=`"
@@ -212,32 +235,45 @@
 \def\bookref#1:#2"{\def\tempa{#2}\ifx\tempa\empty\printref{\book:#1}\else
   \printbookref#1:#2"\fi}
 \def\printbookref#1:#2:"{\printref{#1:#2}}
+
+
 {\catcode`@=11%
 %
 \gdef\makelabel#1#2{\expandafter\gdef\csname r@#1\endcsname{#2}}
-\gdef\printref#1{\expandafter\ifx\csname r@#1\endcsname\relax\lqq#1''%
-  \immediate\write16{Label `#1' undefined.}\global\labundeftrue
-  \else \csname r@#1\endcsname \fi\endgroup}
-% %T currently unused, should go away
-% \gdef\ov#1#2#3#4{\def\tempa{#2}\def\tempb{for #3}\ifx\tempa\tempb\else
-%   \expandafter\ifx\csname r@#1!for #3\endcsname \relax
-%   \else \allowbreak\null\nobreak\hskip.5em plus 1fill
-%     \hbox{#4$\,\to\,$\csname r@#1!for #3\endcsname.}\fi \fi}
+\gdef\printref#1{%
+\let\next=\relax%
+\expandafter\edef\next{\def\noexpand\xpandlowr{#1}}%
+\lowercase\expandafter{\next}%
+\expandafter\ifx\csname r@\xpandlowr\endcsname\relax\lqq\xpandlowr''%
+  \immediate\write16{Label `#1' undefined.}\global\labundeftrue%
+  \else \csname r@\xpandlowr\endcsname \fi\endgroup}
 }
 
 % Macros for generating the table of contents.
 \newif\iffirstsec \firstsectrue
 \def\dotsfill{\leaders\hbox to12pt{\hss.\hss}\hfill}
-\def\chapcontents#1#2#3{\iffirstsec\else \enddoublecolumns\firstsectrue\fi
-  \medbreak \leftline{\bf\strut\hbox to\manindent
-   {\hss #1\kern\smallmanindent}#2}}
-\def\seccontents#1#2#3{\iffirstsec\nobreak\smallskip\firstsecfalse
-  \begindoublecolumns\fi
+
+% obsolete with other double columns style
+%\def\chapcontents#1#2#3{%\iffirstsec\else \enddoublecolumns\firstsectrue\fi
+%  \medbreak \leftline{\bf\strut\hbox to\manindent
+%   {\hss #1\kern\smallmanindent}#2}}
+
+\def\chapcontents#1#2#3{
+   \line{}% empty line
+   \line{\bf\kern\manindent\vbox{\advance\hsize by-\manindent
+   \advance\hsize by-1.5em
+   \rightskip 0pt plus1fil \emergencystretch 3em
+   \noindent\llap{\hbox to\manindent{\hss #1\kern\smallmanindent}}\strut
+   #2}\hfil}}
+
+\def\seccontents#1#2#3{%\iffirstsec\nobreak\smallskip\firstsecfalse
+  %\begindoublecolumns\fi
    \line{\kern\manindent\vbox{\advance\hsize by-\manindent
    \advance\hsize by-1.5em
    \rightskip 0pt plus1fil \emergencystretch 3em
    \noindent\llap{\hbox to\manindent{\hss #1\kern\smallmanindent}}\strut
    #2~\dotsfill \strut\rlap{\hbox to1.5em{\hss #3}}}\hfil}}
+
 \def\appno#1{{\count0=#1\advance\count0 by64 \char\count0}}
 
 % Macros which write labels, citations and index entries on auxiliary files.
@@ -245,12 +281,18 @@
 {\catcode`|=0 \catcode`\\=12 |gdef|bs{\}}
 {\catcode`@=11
  \gdef\label#1{{\catcode`_=11\def_{X}
- {\ifnum\secno=0 \edef\next{\the\chapno}\else
-  \edef\next{\the\chapno.\the\secno}
-  \expandafter\ifx\csname r@\book:#1\endcsname\next\else
+ {\let\next=\relax
+  \expandafter\edef\next{\def\noexpand\xpandlowr{#1}}
+  \lowercase\expandafter{\next}
+  \ifnum\secno=0 \edef\next{\the\chapno}\else
+  \ifnum\subsecno=0 \edef\next{\the\chapno.\the\secno}\else
+  \edef\next{\the\chapno.\the\secno.\the\subsecno}\fi
+  \expandafter\ifx\csname r@\book:\xpandlowr\endcsname\next\else
   \immediate\write16{Label `\book:#1' has changed.}
   \global\labchangedtrue\fi\fi
-  \immediate\write\labelout{\noexpand\makelabel{\book:#1}{\next}}}}}
+  \immediate\write\labelout{\noexpand\makelabel{\book:\xpandlowr}{\next}}}}}
+
+
  \gdef\sigel#1{[\expandafter\ifx\csname c@#1\endcsname\relax
   \immediate\write16{Reference `#1' undefined.}\global\labundeftrue
   #1\else \csname c@#1\endcsname\fi]}
@@ -273,19 +315,35 @@
 \def\normalchapter{\the\chapno}
 
 \def\Chapter#1 \par{\vfill\supereject \headlinefalse
-  \ifodd\pageno\else\null\vfill\eject\headlinefalse\fi
-  \advance\chapno by1 \secno=0 \exno=0 \ifnum\pageno>0 \pageno=1 \fi
+%  \ifodd\pageno\else\null\vfill\eject\headlinefalse\fi
+  \advance\chapno by1 \secno=0\subsecno=0\exno=0%\ifnum\pageno>0 \pageno=1 \fi
   \def\chapname{#1} \label{#1}
   \write\tocout{\noexpand\chapcontents{\thechapter}{#1}{\the\pageno}}
   \ifx\thechapter\normalchapter
     \immediate\write\secindout{C \filename\space\thechapter. \chapname}\fi
   \setbox0=\hbox{\inchhigh\kern-.075em \chapterno}
   \setbox1=\vbox{\titlefont \advance\hsize by-\wd0 \advance\hsize by-1em
-    \hyphenpenalty=10000 \linepenalty=10000
+%    \hyphenpenalty=10000 \linepenalty=10000
     \leftskip 0pt plus\hsize \parfillskip 0pt \baselineskip 44pt\relax #1}
   \line{\box0\hfil\box1}\nobreak \vskip 40pt}
 
+% start hack added by TB
+\def\PreliminaryChapter#1 \par{\vfill\supereject \headlinefalse
+%  \ifodd\pageno\else\null\vfill\eject\headlinefalse\fi
+  \advance\chapno by1 \secno=0\subsecno=0\exno=0%\ifnum\pageno>0 \pageno=1 \fi
+  \def\chapname{#1 (preliminary)} \label{#1}
+  \write\tocout{\noexpand\chapcontents{\thechapter}{#1 (preliminary)}{\the\pageno}}
+  \ifx\thechapter\normalchapter
+    \immediate\write\secindout{C \filename\space\thechapter. \chapname}\fi
+  \setbox0=\hbox{\inchhigh\kern-.075em \chapterno}
+  \setbox1=\vbox{\titlefont \advance\hsize by-\wd0 \advance\hsize by-1em
+%    \hyphenpenalty=10000 \linepenalty=10000
+    \leftskip 0pt plus\hsize \parfillskip 0pt \baselineskip 44pt\relax #1 (preliminary)}
+  \line{\box0\hfil\box1}\nobreak \vskip 40pt}
+% end hack added by TB
+
 \outer\def\Section#1#2\par{\bigbreak \advance\secno by1
+  \subsecno=0
   \ifx\thechapter\emptychapter
     \edef\tempa{\the\secno}
   \else
@@ -293,7 +351,7 @@
   \fi%
   \expandafter\writesecline\tempa\\{#1}
   \dosecindex S{#1}{}{\let\ =\space\label{#1}}
-  \ifx#2\null\else \edef\tempb{{#1}}
+  \ifx#2\null\else \edef\tempb{{#1@#1}}
     \expandafter\doindex\tempb{|indexit}{}\fi
   \noindent{\baselineskip 18pt\let!=\space \mark{Section \the\secno. #1}%
   \secfont \tempa \enspace #1}\par\nobreak\medskip}
@@ -302,9 +360,6 @@
   {\the\pageno}}}
 \def\letter#1{\medskip{\secfont #1}\endgraf\nobreak}
 
-%T danger should not be used
-\def\danger{\hang\hangafter=-2 \clubpenalty=10000 \noindent
-  \llap{\smash{\manual\char127}\enspace}\ignorespaces}
 % Macros for generating paragraph headings (e.g., function descriptions).
 \def\fmark{\noindent\llap{\manual\char120\rm\enspace}}
 \def\moveup#1{\leavevmode \raise.16ex\hbox{\rm #1}}
@@ -313,7 +368,9 @@
 \def\){\begingroup\obeylines\cloparen}
 {\obeylines
 \gdef\angle#1
-  {\endgroup \ifx\par\fpar \else%
+  {\endgroup \ifx\par\fpar \global\def\susemarker{\fmark}\else%
+  \global\advance\subsecno by1%
+  \global\def\susemarker{\noindent\llap{\smallrom\the\subsecno\kern.5ex\manual\char120\rm\enspace}}%
     \ifvmode \vskip -\lastskip \fi \medskip%
     \begingroup\let\par=\fpar \parskip 0pt \fi%
   \endgraf\nobreak\oporfunc#1\end}%
@@ -324,19 +381,22 @@
   \endgraf{\def\[{\moveup\lbrack}\def\]{\moveup\rbrack}\def\|{\vrule\relax}%
   \noindent\typewriter#1'}}%
 \gdef\scanparen#1(#2\end{\def\tempa{#2}\ifx\tempa\empty%
-  \def\next{\begingroup\cloparen\fmark#1
+  \def\next{\begingroup\cloparen\susemarker#1
   \label{#1}\bothindex F{#1}{@`#1'}{}}%
   \else\def\next{\delparen#1(#2\end}\fi \next}}
 \def\delparen#1(\end{\function#1}
 \def\oporfunc#1#2\end{\ifx#1`\def\next{\operation#1#2}\else
                              \def\next{\scanparen#1#2(\end}\fi \next}
 \long\def\operation`#1'#2#3{{\def\[{\moveup\lbrack}\def\]{\moveup\rbrack}%
-  \def\|{\vrule\relax}}\fmark\typewriter#1'%
+  \def\|{\vrule\relax}}
+  \susemarker\typewriter#1'%
   \ifx#3!\def\next{\suboperation{#2}}
+    \else\ifx#3@\def\next{\subatoperation{#2}}
     \else\endheaderline \label{#2}%
-    \bothindex F{#2}{}{}\let\next=#3\fi\next}
+    \bothindex F{#2}{}{}\let\next=#3\fi\fi\next}
 \long\def\function#1(#2)#3{{\def\[{\moveup\lbrack}\def\]{\moveup\rbrack}%
-  \def\|{\vrule\relax}\fmark\typewriter#1(#2)'}%
+  \def\|{\vrule\relax}
+  \susemarker\typewriter#1(#2)'}%
   \ifx#3!\def\next{\subfunction{#1}}\else
     \endheaderline\label{#1}\bothindex F{#1}{@`#1'}{}%
     \let\next=#3\fi\next}
@@ -344,6 +404,8 @@
   \bothindex F{#1}{@`#1'}{!#2}}
 \def\suboperation#1#2{\endheaderline\label{#1!#2}%
   \bothindex F{#1}{}{!#2}}
+\def\subatoperation#1#2{\endheaderline\label{#1}%
+  \bothindex F{#1}{@#2}{}}
 
 \def\endheaderline{\hskip 0pt plus 1filll}
 
@@ -397,11 +459,12 @@
 
 % Miscellaneous macros.
 \def\GAP{{\sf GAP}}
+\def\ATLAS{{\sf ATLAS}}
 \def\N{{\Bbb N}} \def\Z{{\Bbb Z}} \def\Q{{\Bbb Q}} \def\R{{\Bbb R}}
 \def\C{{\Bbb C}} \def\F{{\Bbb F}}
 
 %T do we want these
-\def\stars{\bigskip\centerline{\*\qquad\*\qquad\*}\bigskip}
+%\def\stars{\bigskip\centerline{\*\qquad\*\qquad\*}\bigskip}
 
 % Page numbers and running heads.
 \newif\ifheadline
@@ -418,7 +481,7 @@
   \immediate\closein#1 \input#2\jobname.#3 \fi}
 
 % Macros for the parts of the manual.
-\outer\def\FrontMatter{\iffirstsec\else\enddoublecolumns\fi
+\outer\def\FrontMatter{%\iffirstsec\else\enddoublecolumns\fi
   \let\thechapter=\emptychapter
   \def\lefthead{\it\chapname} \let\righthead=\lefthead
 
@@ -439,7 +502,8 @@
   \immediate\write\citeout{\bs bibstyle{alpha}}
 
   \ifodd\pageno\else\headlinefalse\null\vfill\eject\fi
-  \pageno=1 }
+%  \pageno=1
+}
   
 \outer\def\Chapters{\vfill\eject
   \chapno=0 \let\thechapter=\normalchapter
@@ -460,6 +524,7 @@
 \def\BeginningOfBook#1{%
   \def\book{#1}%
   \pageno=-1%
+  \pageno=1%
   \headlinefalse%
   \let\thechapter=\emptychapter%
   \def\lefthead{\it\chapname}%
@@ -510,8 +575,6 @@
 
 % explanation at the beginning of the table of contents
 \def\TOCMatter{%
-The pages are numbered chapterwise. This table of contents
-gives for each section the page number within the chapter.
 }
 
 % macros for generating the table of contents
@@ -526,7 +589,9 @@ gives for each section the page number within the chapter.
 \begingroup
 \rigidtrue
 \let!=\space
+\begindoublecolumns
 \inputaux\tocin{}{toc}\vfill\eject
+\enddoublecolumns
 \endgroup
 }
 
@@ -592,13 +657,17 @@ gives for each section the page number within the chapter.
 
 % explanation at the beginning of the index
 \def\IndexMatter{%
-  Page numbers are given in the form <chapter>--<page_within_chapter>. A page
-  number in {\it italics} refers to a whole section which is devoted to the
-  indexed subject. Some index entries refer to exercises, whose answers in
-  appendix~A should then also be read. Keywords are sorted with case and
-  spaces ignored, e.g., ```PermutationCharacter''' comes before ``permutation
-  group''.%
+This index covers only this manual.
+Page numbers are given in the form <chapter>--<page_within_chapter>. A page
+number in {\it italics} refers to a whole section which is devoted to the
+indexed subject. Some index entries refer to exercises, whose answers in
+appendix~A should then also be read. Keywords are sorted with case and
+spaces ignored, e.g., ```PermutationCharacter''' comes before ``permutation
+group''.%
 }
+
+% kerning in full index after letter
+\def\idxkern{\kern.3em}
 
 % produce the chapter index
 \def\Index{\Chapter{\IndexHeader}
@@ -622,8 +691,7 @@ gives for each section the page number within the chapter.
 
 % nasty trick to cope with the `newcommand' created by bibtex
 \def\newcommand#1#2#3#4#5{}
-%
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%E  gapmacro.tex  . . . . . . . . . . . . . . . . . . . . . . . ends here
+
+% ragged bottom will avoid large blank spaces
+\raggedbottom
+\frenchspacing

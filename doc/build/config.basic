@@ -1,0 +1,4 @@
+@msfiles = ("addmagma","magma","monoid","semigrp");
+@gdfiles = ("addmagma","magma","monoid","semigrp","grptbl");
+$DIR = "../ref";
+$LIB = "../../lib"; 

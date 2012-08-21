@@ -28,10 +28,30 @@ DeclareAttribute("AutomorphismGroup",IsDomain);
 
 #############################################################################
 ##
+#P  IsGroupOfAutomorphisms(<G>)
+##
+##  indicates whether <G> consists of automorphisms of another group <H>.
+##  The group <H> can be obtained from <G> via the attribute
+##  `AutomorphismDomain'.
+DeclareProperty( "IsGroupOfAutomorphisms", IsGroup );
+
+InstallTrueMethod( IsHandledByNiceMonomorphism,IsGroupOfAutomorphisms );
+
+#############################################################################
+##
+#A  AutomorphismDomain(<G>)
+##
+##  If <G> consists of automorphisms of <H>, this attribute returns <H>.
+DeclareAttribute( "AutomorphismDomain", IsGroupOfAutomorphisms );
+
+#############################################################################
+##
 #P  IsAutomorphismGroup(<G>)
 ##
-##  indicates whether <G> is the automorphism group of another group.
-DeclareProperty( "IsAutomorphismGroup", IsGroup );
+##  indicates whether <G> is the full automorphism group of another group.
+DeclareProperty( "IsAutomorphismGroup", IsGroupOfAutomorphisms );
+
+InstallTrueMethod( IsGroupOfAutomorphisms,IsAutomorphismGroup );
 
 #############################################################################
 ##
@@ -51,6 +71,9 @@ DeclareAttribute("InnerAutomorphismsAutomorphismGroup",IsGroup);
 ##  This list must be chosen to yield a faithful representation. <elmsgens>
 ##  is a list of generators which are a subset of <elms>. (They can differ
 ##  from the groups original generators.)
+##
+##  If elms is set to `false' it will be computed as the union of orbits of
+##  <elmsgens>.
 ##
 DeclareGlobalFunction("StoreNiceMonomorphismAutomGroup");
 
@@ -143,7 +166,7 @@ DeclareGlobalFunction("MorFindGeneratingSystem");
 ##
 #F  Morphium(<G>,<H>,<DoAuto>) . . . . . . . . local
 ##
-##  This function is a frontend to 'MorClassLoop' and is used to find
+##  This function is a frontend to `MorClassLoop' and is used to find
 ##  isomorphisms between <G> and <H> or the automorphism group of <G> (in which
 ##  case <G> must equal <H>). The boolean flag <DoAuto> indicates if all
 ##  automorphisms should be found.

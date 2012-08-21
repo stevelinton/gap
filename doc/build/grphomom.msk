@@ -6,60 +6,191 @@
 %%
 %Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 %%
-\Chapter{Group Homomorphisms}
+\PreliminaryChapter{Group Homomorphisms}
 
 A group homomorphism is a general mapping that is total and single valued
 and respects multiplication and inverses (see "IsGroupHomomorphism").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Creating group homomorphisms}
+\Section{Creating Group Homomorphisms}
 
 \Declaration{GroupGeneralMappingByImages}
+\beginexample
+gap> gens:=[(1,2,3,4),(1,2)];             
+[ (1,2,3,4), (1,2) ]
+gap> g:=Group(gens);           
+Group([ (1,2,3,4), (1,2) ])
+gap> h:=Group((1,2,3),(1,2));
+Group([ (1,2,3), (1,2) ])
+gap> map:=GroupGeneralMappingByImages(g,h,gens,[(1,2,3),(1,2)]);
+[ (1,2,3,4), (1,2) ] -> [ (1,2,3), (1,2) ]
+gap> IsMapping(map);
+false
+\endexample
+
 \Declaration{GroupHomomorphismByImages}
 \Declaration{GroupHomomorphismByImagesNC}
+\beginexample
+gap> hom:=GroupHomomorphismByImages(g,h,gens,[(1,2),(1,3)]);  
+[ (1,2,3,4), (1,2) ] -> [ (1,2), (1,3) ]
+gap> Image(hom,(1,4));
+(2,3)
+gap> map:=GroupHomomorphismByImages(g,h,gens,[(1,2,3),(1,2)]);  
+fail
+\endexample
+
+\Declaration{GroupHomomorphismByFunction}
+\beginexample
+gap> hom:=GroupHomomorphismByFunction(g,h,
+> function(x) if SignPerm(x)=-1 then return (1,2); else return ();fi;end);
+MappingByFunction( Group([ (1,2,3,4), (1,2) ]), Group([ (1,2,3), (1,2) 
+ ]), function( x ) ... end )
+gap> ImagesSource(hom);
+Group([ (1,2), (1,2) ])
+gap> Image(hom,(1,2,3,4));
+(1,2)
+\endexample
 
 \Declaration{AsGroupGeneralMappingByImages}
+\beginexample
+gap> AsGroupGeneralMappingByImages(hom);
+[ (1,2,3,4), (1,2) ] -> [ (1,2), (1,2) ]
+\endexample
 
 \Declaration{NaturalHomomorphismByNormalSubgroup}
+\beginexample
+gap> f:=NaturalHomomorphismByNormalSubgroup(g,Group((1,2)(3,4),(1,3)(2,4)));   
+[ (3,4), (2,4,3), (1,2)(3,4), (1,3)(2,4) ] -> 
+[ f1, f2, <identity> of ..., <identity> of ... ]
+gap> Size(ImagesSource(f));
+6
+\endexample
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Representations for group homomorphisms}
+\Section{Operations for Group Homomorphisms}
+\index{kernel!group homomorphism}
+
+Group homomorphisms are mappings, so all the operations and properties for
+mappings described in chapter~"Mappings" are applicable to them.
+`KernelOfMultiplicativeGeneralMapping' should be used to compute the kernel
+of a group homomorphism.
+
+\beginexample
+gap> hom:=GroupHomomorphismByImages(g,h,gens,[(1,2),(1,3)]);;
+gap> Kernel(hom);
+Group([ (1,2)(3,4), (1,3)(2,4) ])
+\endexample
+
+\index{Inverse!group homomorphism}
+
+For an automorphism <aut>, `Inverse' returns the inverse automorphism
+$<aut>^{-1}$. However if <hom> is a bijective homomorphism between
+different groups, or if <hom> is injective and cionsidered to be a bijection
+to its image, the operation `InverseGeneralMapping' should be used instead.
+(See~"Inverse" for a further discussion of this problem.)
+
+\beginexample
+gap> iso:=IsomorphismPcGroup(g);
+Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ]) -> [ f1, f2, f3, f4 ]
+gap> Inverse(iso);
+#I  The mapping must be bijective and have source=range
+#I  You might want to use `InverseGeneralMapping'
+fail
+gap> InverseGeneralMapping(iso);
+[ f1, f2, f3, f4 ] -> Pcgs([ (3,4), (2,4,3), (1,4)(2,3), (1,3)(2,4) ])
+\endexample
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Representations for Group Homomorphisms}
 
 \Declaration{IsGroupGeneralMappingByImages}
 \Declaration{IsGroupGeneralMappingByPcgs}
 \Declaration{IsGroupGeneralMappingByAsGroupGeneralMappingByImages}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Nice Monomorphisms}
+
+{\GAP} contains very efficient algorithms for some special representations
+of groups (for example pc groups or permutation groups) while for other
+representations only slow generic methods are available. In this case it
+can be worthwhile to do all calculations rather in an isomorphic image of
+the group, which is in a ``better'' representation. The way to acchieve this
+in {\GAP} is via *nice monomorphisms*.
+
+\Declaration{IsHandledByNiceMonomorphism}
+\Declaration{NiceMonomorphism}
+\Declaration{NiceObject}
+
+A typical example are finite matrix groups, which use a faithful action on
+vectors to translate all calculations in a permutation group.
+\beginexample
+gap> gl:=GL(3,2);
+SL(3,2)
+gap> IsHandledByNiceMonomorphism(gl);
+true
+gap> NiceObject(gl);
+Group([ (5,7)(6,8), (2,3,5)(4,7,6) ])
+gap> Image(NiceMonomorphism(gl),Z(2)*[[1,0,0],[0,1,1],[1,0,1]]);
+(2,6)(3,4,7,8)
+\endexample
+
+\Declaration{IsCanonicalNiceMonomorphism}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{Group Automorphisms}
 
+Group automorphisms are bijective homomorphism from a group onto itself.
+
 \Declaration{InnerAutomorphism}
+\Declaration{IsInnerAutomorphism}
+\Declaration{IsConjugatorAutomorphism}
+\Declaration{ConjugatorInnerAutomorphism}
+
+\beginexample
+gap> hgens:=[(1,2,3),(1,2,4)];;h:=Group(hgens);;
+gap> hom:=GroupHomomorphismByImages(h,h,hgens,[(1,2,3),(2,3,4)]);;
+gap> IsInnerAutomorphism(hom);
+true
+gap> ConjugatorInnerAutomorphism(hom);
+(1,2,3)
+gap> hom:=GroupHomomorphismByImages(h,h,hgens,[(1,3,2),(1,4,2)]);
+[ (1,2,3), (1,2,4) ] -> [ (1,3,2), (1,4,2) ]
+gap> IsInnerAutomorphism(hom);
+false
+gap> IsConjugatorAutomorphism(hom);
+true
+gap> ConjugatorInnerAutomorphism(hom);
+(1,2)
+\endexample
 
 \Declaration{AutomorphismGroup}
-\Requirements
+\Declaration{IsGroupOfAutomorphisms}
+\Declaration{AutomorphismDomain}
+\Declaration{IsAutomorphismGroup}
+
 \beginexample
 gap> g:=Group((1,2,3,4),(1,3));
-Group( [ (1,2,3,4), (1,3) ], ... )
+Group( [ (1,2,3,4), (1,3) ] )
 gap> au:=AutomorphismGroup(g);
-Group( 
-[ ^(1,2,3,4), ^(1,3), [ (1,2,3,4), (1,3) ] -> [ (1,2,3,4), (1,2)(3,4) ] 
- ], ... )
+<group of size 8 with 3 generators>
+gap> GeneratorsOfGroup(au);
+[ ^(1,2,3,4), ^(1,3), [ (1,2,3,4), (1,3) ] -> [ (1,2,3,4), (1,4)(2,3) ] ]
 gap> NiceObject(au);   
-Group( [ (1,4)(2,6), (2,6)(3,5), (1,2,4,6) ], ... )
+Group( [ (1,4)(2,6), (2,6)(3,5), (1,2,4,6) ] )
 \endexample
 
 \Declaration{InnerAutomorphismsAutomorphismGroup}
 \beginexample
 gap> InnerAutomorphismsAutomorphismGroup(au);
-Group( [ ^(1,2,3,4), ^(1,3) ], ... )
+< group with 2 generators>
 \endexample
 
 \Declaration{InducedAutomorphism}
-\Requirements
 \beginexample
 gap> g:=Group((1,2,3,4),(1,2));
-Group( [ (1,2,3,4), (1,2) ], ... )
+Group( [ (1,2,3,4), (1,2) ] )
 gap> n:=Subgroup(g,[(1,2)(3,4),(1,3)(2,4)]);
-Group( [ (1,2)(3,4), (1,3)(2,4) ], ... )
+Group( [ (1,2)(3,4), (1,3)(2,4) ] )
 gap> epi:=NaturalHomomorphismByNormalSubgroup(g,n);
 [ (3,4), (2,4,3), (1,2)(3,4), (1,3)(2,4) ] -> 
 [ f1, f2, <identity> of ..., <identity> of ... ]
@@ -70,34 +201,32 @@ gap> InducedAutomorphism(epi,aut);
 \endexample
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Searching for homomorphisms}
+\Section{Searching for Homomorphisms}
 
 \Declaration{IsomorphismGroups}
-\Requirements
 \beginexample
 gap> g:=Group((1,2,3,4),(1,3));;
 gap> h:=Group((1,4,6,7)(2,3,5,8), (1,5)(2,6)(3,4)(7,8));;
 gap> IsomorphismGroups(g,h);
-[ (1,2,3,4), (1,3) ] -> [ (1,4,6,7)(2,3,5,8), (1,5)(2,6)(3,4)(7,8) ]
+[(2,4),(1,2,3,4)]->[(1,5)(2,6)(3,4)(7,8),(1,4,6,7)(2,3,5,8)]
 gap> IsomorphismGroups(g,Group((1,2,3,4),(1,2)));
 fail
 \endexample
 
 \Declaration{GQuotients}
-\Requirements
 \beginexample
 gap> g:=Group((1,2,3,4),(1,2));
-Group( [ (1,2,3,4), (1,2) ], ... )
+Group( [ (1,2,3,4), (1,2) ] )
 gap> h:=Group((1,2,3),(1,2));
-Group( [ (1,2,3), (1,2) ], ... )
+Group( [ (1,2,3), (1,2) ] )
 gap> quo:=GQuotients(g,h);
-[ [ (1,3,2,4), (2,4,3) ] -> [ (2,3), (1,2,3) ] ]
+[ [ (1,3), (2,3,4) ] -> [ (2,3), (1,2,3) ] ]
 \endexample
 
 \Declaration{MorClassLoop}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Expressing group elements as words in generators}
+\Section{Expressing Group Elements as Words in Generators}
 
 \index{factorization}
 \index{words!in generators}
@@ -112,9 +241,9 @@ shows how to decompose elements of $S_4$ in the generators `(1,2,3,4)' and
 
 \beginexample
 gap> g:=Group((1,2,3,4),(1,2));
-Group( [ (1,2,3,4), (1,2) ], ... )
+Group( [ (1,2,3,4), (1,2) ] )
 gap> f:=FreeGroup("x","y");
-Group( [ x, y ], ... )
+<free group on the generators [x,y]>
 gap> hom:=GroupHomomorphismByImagesNC(f,g,GeneratorsOfGroup(f),               
 > GeneratorsOfGroup(g));                                                   
 [ x, y ] -> [ (1,2,3,4), (1,2) ]

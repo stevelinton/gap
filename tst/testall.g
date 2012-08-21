@@ -7,7 +7,6 @@
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 ##
 
-
 #############################################################################
 ##
 #F  START_TEST( <id> )  . . . . . . . . . . . . . . . . . . . start test file
@@ -43,7 +42,7 @@ STOP_TEST := function( file, fac )
 
     STONE_FILE  := file;
     STONE_RTIME := Runtime() - START_TIME;
-    if STONE_RTIME <> 0  then
+    if STONE_RTIME > 500  then
         STONE_STONE := QuoInt( fac, STONE_RTIME );
         STONE_SUM   := STONE_SUM + STONE_RTIME;
         STONE_FSUM  := STONE_FSUM + fac;
@@ -85,41 +84,49 @@ end;
 ##
 ##  The list can be produced using:
 ##
-##  grep -h "STOP_TEST" *.tst | 		\
-##    sed -e 's:^gap> STOP_TEST( ":[ ":' | 	\
-##    sed -e 's: );: ],:'
+##  grep -h "STOP_TEST" *.tst | sed -e 's:^gap> STOP_TEST( ":[ ":' | \
+##  sed -e 's: );: ],:'
 ##
 TEST_FILES := [
+[ "alghom.tst", 60470599 ],
 [ "algmat.tst", 2275253357 ],
-[ "algsc.tst", 867313307 ],
-[ "boolean.tst", 10000 ],
+[ "algsc.tst", 668047471 ],
+[ "boolean.tst", 300000 ],
 [ "combinat.tst", 39450000 ],
-[ "ctblmoli.tst", 2250828729 ],
+#[ "compat3.tst", 10000 ],
+[ "ctblmoli.tst", 612923095 ],
+[ "ctblmono.tst", 279346138 ],
+#[ "ctblpope.tst", 612923095 ],
+[ "ctblsolv.tst", 192351369 ],
 [ "cyclotom.tst", 6575144 ],
 [ "ffe.tst", 6757787 ],
 [ "fldabnum.tst", 13810000 ],
 [ "gaussian.tst", 597720 ],
 [ "grpfree.tst", 2390880 ],
-[ "grplatt.tst", 16802570813 ],
-[ "grpmat.tst", 1170544762 ],
-[ "grppc.tst", 17634147 ],
+[ "grplatt.tst", 11344463564 ],
+[ "grpmat.tst", 801375093 ],
+[ "grppc.tst", 210258908 ],
 [ "grppcnrm.tst", 4599810668 ],
-[ "grpperm.tst", 692757480 ],
-[ "listgen.tst", 298860 ],
-[ "mapping.tst", 15840238 ],
-[ "matblock.tst", 10000 ],
+[ "grpperm.tst", 21824892381 ],
+[ "grpprmcs.tst", 25799659528 ],
+[ "listgen.tst", 2988600 ],
+[ "mapping.tst", 17840238 ],
+[ "matblock.tst", 1727800 ],
+[ "mgmring.tst", 10000000 ],
 [ "modfree.tst", 28690858 ],
-[ "morpheus.tst", 611773707 ],
-[ "onecohom.tst", 118948251 ],
+[ "morpheus.tst", 941921521 ],
+[ "onecohom.tst", 148948251 ],
+[ "ratfun.tst", 1 ],
 [ "rwspcgrp.tst", 807548686 ],
 [ "rwspcsng.tst", 1072342703 ],
+[ "set.tst", 30000000 ],
 [ "unknown.tst", 320000 ],
 [ "vspchom.tst", 39749178 ],
 [ "vspcmali.tst", 51405100 ],
 [ "vspcmat.tst", 38554186 ],
-[ "vspcrow.tst", 24208100 ],
-[ "weakptr.tst", 32576255 ],
-[ "zmodnz.tst", 6575053 ],
+[ "vspcrow.tst", 28208100 ],
+[ "weakptr.tst", 25576255 ],
+[ "zmodnz.tst", 13246249 ]
 ];
 
 Sort( TEST_FILES, function(a,b) return a[2] < b[2]; end );
@@ -153,6 +160,7 @@ for i  in [ 1 .. Length(TEST_FILES) ]  do
     else
         next := 0;
     fi;
+    Print("testing: ",name,"\n");
     ReadTest(name);
     SHOW_STONES(next);
 od;

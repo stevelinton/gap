@@ -59,7 +59,7 @@ local eas,r,st,nr,nst,ind,H,sff,f,m,i,j,ao,Npcgs,v,isi,img,
       Hpcgs,Upcgs,prime,dim,one,zero,iso,affsp,kpcgs,
       wgr,sp,lgf,ll,lgw;
 
-  Info(InfoCoset,1,"A(f)fine version");
+  Info(InfoCoset,1,"Affine version");
   # if a is small and b large, compute cosets b\G/a and take inverses of the
   # representatives: Since we compute stabilizers in B and a chain down to
   # A, this is remarkable faster
@@ -105,7 +105,7 @@ local eas,r,st,nr,nst,ind,H,sff,f,m,i,j,ao,Npcgs,v,isi,img,
     f:=GF(prime);
     one:=One(f);
     zero:=Zero(f);
-    v:=IdentityMat(dim,One(f));
+    v:= Immutable( IdentityMat(dim,one) );
 
     # compute complement W
     if Length(sff.intersection)=0 then
@@ -125,7 +125,7 @@ local eas,r,st,nr,nst,ind,H,sff,f,m,i,j,ao,Npcgs,v,isi,img,
 
       wg:=[];
       for i in wbase do
-	Add(wg,PcElementByExponents(Npcgs,i));
+	Add(wg,PcElementByExponentsNC(Npcgs,i));
       od;
 
       W:=false;
@@ -147,6 +147,7 @@ local eas,r,st,nr,nst,ind,H,sff,f,m,i,j,ao,Npcgs,v,isi,img,
 	  od;
 	  Add(m,Concatenation((ExponentsOfPcElement(Npcgs,
 	                         sff.factorization(u).n)*one)*wproj,[one])); 
+	  ConvertToMatrixRep(m);
 	  Add(mats,m);
 	od;
 	# modify later: if U trivial
@@ -156,8 +157,9 @@ local eas,r,st,nr,nst,ind,H,sff,f,m,i,j,ao,Npcgs,v,isi,img,
 	  ao:=ExternalSet(U,affsp,Upcgs,mats);
 	  ao:=ExternalOrbits(ao);
 	  ao:=rec(representatives:=List(ao,i->
-	    PcElementByExponents(Npcgs,(Representative(i){dr})*wbase)),
+	    PcElementByExponentsNC(Npcgs,(Representative(i){dr})*wbase)),
 	          stabilizers:=List(ao,StabilizerOfExternalSet));
+
 	else
 
 	  if W=false then
@@ -178,6 +180,7 @@ local eas,r,st,nr,nst,ind,H,sff,f,m,i,j,ao,Npcgs,v,isi,img,
                   stabilizers:=List(W,i->U)
 	      ); 
 	fi;
+
 	for j in [1..Length(ao.representatives)] do
 	  Add(nr,ao.representatives[j]*x);
 	  # we will finally just need the stabilizers size and not the
@@ -221,12 +224,14 @@ function(G,U,V)
   fi;
 end);
 
+
 #############################################################################
 ##
-#R  IsRightTransversalPcGroup . . . . . . . . . right transversal of pc group
+#R  IsRightTransversalPcGroupRep  . . . . . . . right transversal of pc group
 ##
-DeclareRepresentation( "IsRightTransversalPcGroup", IsRightTransversal,
-      [ "group", "subgroup", "transversal", "canonReps" ] );
+DeclareRepresentation( "IsRightTransversalPcGroupRep", IsRightTransversalRep,
+    [ "transversal", "canonReps" ] );
+
 
 #############################################################################
 ##
@@ -237,7 +242,9 @@ InstallMethod( RightTransversalOp, "PC",IsIdenticalObj,
 function( G, U )
 local elements, g, u, e, i,t,depths,gens,p;
 
-  t := Objectify(NewType(FamilyObj(G),IsRightTransversalPcGroup),
+  t := Objectify( NewType( FamilyObj( G ),
+                               IsList and IsDuplicateFreeList
+                           and IsRightTransversalPcGroupRep ),
           rec( group :=G,
             subgroup :=U,
 	    canonReps:=[]));
@@ -260,19 +267,21 @@ local elements, g, u, e, i,t,depths,gens,p;
   return t;
 end);
 
-InstallMethod(\[\],"for Pc groups",true,[IsRightTransversalPcGroup,
-        IsPosInt ],0,
+InstallMethod(\[\],"for Pc transversals",true,
+    [ IsList and IsRightTransversalPcGroupRep, IsPosInt ],0,
 function(t,num)
   return t!.transversal[num];
 end );
 
-InstallMethod(AsList,"for Pc groups",true,[IsRightTransversalPcGroup],0,
+InstallMethod(AsList,"for Pc transversals",true,
+    [ IsList and IsRightTransversalPcGroupRep ],0,
 function(t)
   return t!.transversal;
 end );
 
-InstallMethod(PositionCanonical,"RT",true,
-  [IsRightTransversalPcGroup,IsObject],0,
+InstallMethod(PositionCanonical,"RT",IsCollsElms,
+    [ IsList and IsRightTransversalPcGroupRep,
+    IsMultiplicativeElementWithInverse ],0,
 function(t,elm)
 local i;
   elm:=CanonicalRightCosetElement(t!.subgroup,elm);
@@ -289,6 +298,7 @@ local i;
   od;
   return fail;
 end);
+
 
 #############################################################################
 ##

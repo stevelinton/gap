@@ -267,7 +267,7 @@ InstallOtherMethod( OutputLogTo,
 
 #############################################################################
 ##
-#M  WriteAll( <output-text-string>, <string> )  . . . . . . . write all bytes
+#M  WriteAll( <output-text-stream>, <string> )  . . . . . . . write all bytes
 ##
 InstallMethod( WriteAll,
     "output text stream",
@@ -955,7 +955,7 @@ end );
 DeclareRepresentation(
     "IsOutputTextFileRep",
     IsPositionalObjectRep,
-    [] );
+    ["fid", "fname" ] );
 
 
 #############################################################################
@@ -997,6 +997,14 @@ function( str, append )
     fi;
 end );
 
+InstallOtherMethod( OutputTextFile,
+        "error catching method, append not given",
+        true,
+        [ IsList ],
+        -SUM_FLAGS,
+        function( str )
+    Error("Usage OutputTextFile( <fname>, <appending> )");
+end );
 
 #############################################################################
 ##
@@ -1056,6 +1064,22 @@ function( stream, byte )
         Error( "<byte> must an integer between 1 and 255" );
     fi;
     return WRITE_BYTE_FILE( stream![1], byte );
+end );
+
+#############################################################################
+##
+#M  WriteAll( <output-text-file>, <string> )
+##
+
+InstallMethod( WriteAll, 
+        "output text file",
+        true,
+        [ IsOutputTextStream and IsOutputTextFileRep,
+          IsString ],
+        0,
+        function (stream, str)
+    ConvertToStringRep(str);
+    return WRITE_STRING_FILE_NC( stream![1], str );
 end );
 
 

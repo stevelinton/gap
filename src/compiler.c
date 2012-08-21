@@ -17,7 +17,6 @@
 const char * Revision_compiler_c =
    "@(#)$Id$";
 
-
 #include        "gasman.h"              /* garbage collector               */
 #include        "objects.h"             /* objects                         */
 #include        "scanner.h"             /* scanner                         */
@@ -97,6 +96,59 @@ Int CompCheckTypes = 1;
 */
 Int CompCheckListElements = 1;
 
+/****************************************************************************
+**
+*V  CompOptNames . .  names for all the compiler options passed by gac
+**
+*/
+
+struct CompOptStruc { Char *extname;
+  Int *variable;
+  Int val;};
+
+struct CompOptStruc CompOptNames[] = {
+  { "FAST_INT_ARITH", &CompFastIntArith, 1 },
+  { "FAST_PLAIN_LISTS", &CompFastPlainLists, 1 },
+  { "FAST_LIST_FUNCS", &CompFastListFuncs, 1 },
+  { "NO_CHECK_TYPES", &CompCheckTypes, 0 },
+  { "NO_CHECK_LIST_ELMS", &CompCheckListElements, 0 }};
+
+#define N_CompOpts  (sizeof(CompOptNames)/sizeof(struct CompOptStruc))
+
+
+/****************************************************************************
+**
+*F  SetCompileOpts( <string> ) . . parse the compiler options from <string>
+**                                 and set the appropriate variables
+**                                 unrecognised options are ignored for now
+*/
+#include <ctype.h>
+
+void SetCompileOpts( Char *opts )
+{
+  Char *s = opts;
+  Int i;
+  while (*s)
+    {
+      while (isspace(*s))
+	s++;
+      for (i = 0; i < N_CompOpts; i++)
+	{
+	  if (0 == SyStrncmp(CompOptNames[i].extname,
+			     s,
+			     SyStrlen(CompOptNames[i].extname)))
+	    {
+	      *(CompOptNames[i].variable) = CompOptNames[i].val;
+	      break;
+	    }
+	}
+      while (*s && *s != ',')
+	s++;
+      if (*s == ',')
+	s++;
+    }
+  return;
+}
 
 /****************************************************************************
 **
@@ -436,7 +488,7 @@ void            FreeTemp (
 
     /* check that deallocations happens in the correct order               */
     if ( temp != CTEMP_INFO( info ) && CompPass == 2 ) {
-        Pr("PROBLEM: freeing t_%d, should be t_%d\n",temp,CTEMP_INFO(info));
+        Pr("PROBLEM: freeing t_%d, should be t_%d\n",(Int)temp,CTEMP_INFO(info));
     }
 
     /* free the temporary                                                  */
@@ -522,10 +574,16 @@ UInt            GetLevlHVar (
     /* walk up                                                             */
     levl = 0;
     info = INFO_FEXP( CURR_FUNC );
-    if ( NHVAR_INFO(info) != 0 ) levl++;
+#if 0
+    if ( NHVAR_INFO(info) != 0 ) 
+#endif
+      levl++;
     for ( i = 1; i <= (hvar >> 16); i++ ) {
         info = NEXT_INFO( info );
-        if ( NHVAR_INFO(info) != 0 ) levl++;
+#if 0
+        if ( NHVAR_INFO(info) != 0 ) 
+#endif
+	  levl++;
     }
 
     /* return level (the number steps to go up)                            */
@@ -3626,6 +3684,7 @@ CVar CompIsbComObjExpr (
     SetInfoCVar( isb, W_BOOL );
 
     /* free the temporaries                                                */
+    if ( IS_TEMP_CVAR( rnam   ) )  FreeTemp( TEMP_CVAR( rnam   ) );
     if ( IS_TEMP_CVAR( record ) )  FreeTemp( TEMP_CVAR( record ) );
 
     /* return the result                                                   */
@@ -4347,6 +4406,7 @@ void CompReturnObj (
     obj = CompExpr( ADDR_STAT(stat)[0] );
 
     /* emit code to remove stack frame                                     */
+    Emit( "RES_BRK_CURR_STAT();\n" );
     Emit( "SWITCH_TO_OLD_FRAME(oldFrame);\n" );
 
     /* emit code to return from function                                   */
@@ -4370,6 +4430,7 @@ void CompReturnVoid (
     }
 
     /* emit code to remove stack frame                                     */
+    Emit( "RES_BRK_CURR_STAT();\n");
     Emit( "SWITCH_TO_OLD_FRAME(oldFrame);\n" );
 
     /* emit code to return from function                                   */
@@ -5140,7 +5201,17 @@ void CompUnbComObjExpr (
     if ( IS_TEMP_CVAR( record ) )  FreeTemp( TEMP_CVAR( record ) );
 }
 
-
+/****************************************************************************
+**
+*F  CompEmpty( <stat> )  . . . . . . . . . . . . . . . . . . . . . . . T_EMPY
+*/
+void CompEmpty (
+    Stat                stat )
+{
+  Emit("\n/* ; */\n");
+  Emit(";");
+}
+  
 /****************************************************************************
 **
 *F  CompInfo( <stat> )  . . . . . . . . . . . . . . . . . . . . . . .  T_INFO
@@ -5345,6 +5416,7 @@ void CompFunc (
 
     /* emit the code for the higher variables                              */
     Emit( "Bag oldFrame;\n" );
+    Emit( "OLD_BRK_CURR_STAT\n");
 
     /* emit the code to get the arguments for xarg functions               */
     if ( 6 < narg ) {
@@ -5355,7 +5427,13 @@ void CompFunc (
     }
 
     /* emit the code to switch to a new frame for outer functions          */
+#if 1
+    /* Try and get better debugging by always doing this */
+    if (1) {
+#else
+      /* this was the old code */
     if ( NHVAR_INFO(info) != 0 ) {
+#endif
         Emit( "\n/* allocate new stack frame */\n" );
         Emit( "SWITCH_TO_NEW_FRAME(self,%d,0,oldFrame);\n",NHVAR_INFO(info));
         for ( i = 1; i <= narg; i++ ) {
@@ -5370,6 +5448,11 @@ void CompFunc (
         Emit( "SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));\n" );
     }
 
+    /* emit the code to save and zero the "current statement" information
+     so that the break loop behaves */
+    Emit( "REM_BRK_CURR_STAT();\n");
+    Emit( "SET_BRK_CURR_STAT(0);\n");
+    
     /* we know all the arguments have values                               */
     for ( i = 1; i <= narg; i++ ) {
         SetInfoCVar( CVAR_LVAR(i), W_BOUND );
@@ -5383,6 +5466,7 @@ void CompFunc (
 
     /* emit the code to switch back to the old frame and return            */
     Emit( "\n/* return; */\n" );
+    Emit( "RES_BRK_CURR_STAT();\n" );
     Emit( "SWITCH_TO_OLD_FRAME(oldFrame);\n" );
     Emit( "return 0;\n" );
     Emit( "}\n" );
@@ -5507,6 +5591,7 @@ Int CompileFunc (
     Emit( "static Int InitLibrary ( StructInitInfo * module )\n" );
     Emit( "{\n" );
     Emit( "Obj func1;\n" );
+    Emit( "Obj body1;\n" );
     Emit( "\n/* Complete Copy/Fopy registration */\n" );
     Emit( "UpdateCopyFopyInfo();\n" );
     Emit( "\n/* global variables used in handlers */\n" );
@@ -5541,6 +5626,9 @@ Int CompileFunc (
     Emit( "func1 = NewFunction(NameFunc[1],NargFunc[1],NamsFunc[1],HdlrFunc1);\n" );
     Emit( "ENVI_FUNC( func1 ) = CurrLVars;\n" );
     Emit( "CHANGED_BAG( CurrLVars );\n" );
+    Emit( "body1 = NewBag( T_BODY, 0);\n" );
+    Emit( "BODY_FUNC( func1 ) = body1;\n" );
+    Emit( "CHANGED_BAG( func1 );\n");
     Emit( "CALL_0ARGS( func1 );\n" );
     Emit( "\n/* return success */\n" );
     Emit( "return 0;\n" );
@@ -5933,6 +6021,7 @@ static Int InitKernel (
     CompStatFuncs[ T_INFO            ] = CompInfo;
     CompStatFuncs[ T_ASSERT_2ARGS    ] = CompAssert2;
     CompStatFuncs[ T_ASSERT_3ARGS    ] = CompAssert3;
+    CompStatFuncs[ T_EMPTY           ] = CompEmpty;
 
     /* return success                                                      */
     return 0;

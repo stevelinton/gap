@@ -1,9 +1,11 @@
 #############################################################################
 ##
-#W  rwspcftl.g                  GAP Library                     Werner Nickel
+#W  rwspcftl.gi                 GAP Library                     Werner Nickel
+##
+#H  @(#)$Id$
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen, Germany
-#Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  (C) 1998 School Math and Comp. Sci., University of St  Andrews, Scotland
 ##
 ##
 Revision.rwspcftl_gi :=
@@ -19,10 +21,10 @@ Revision.rwspcftl_gi :=
 #R  IsFromTheLeftCollectorRep( <obj> )  . . . . . . . . . . . . . . . . . . .
 ##
 DeclareRepresentation( "IsFromTheLeftCollectorRep",
-          IsPowerConjugateCollector and IsMutable, [] );
+    IsPowerConjugateCollector, [] );
           
-FromTheLeftCollectorFamily := NewFamily( "FromTheLeftCollector",
-                                      IsFromTheLeftCollectorRep );
+BindGlobal( "FromTheLeftCollectorFamily",
+    NewFamily( "FromTheLeftCollector", IsFromTheLeftCollectorRep ) );
                                       
 #############################################################################
 ##  
@@ -43,6 +45,7 @@ DeclareOperation( "FromTheLeftCollector", [IsObject] );
 #M  FromTheLeftCollector( <pos int> ) . . . . . . . . . . . . . . . . . . . .
 ##
 InstallMethod( FromTheLeftCollector, 
+    "for positive integer",
         true, 
         [ IsPosInt ], 
         0,
@@ -77,7 +80,7 @@ InstallMethod( FromTheLeftCollector,
     pcp[ PC_STACK_POINTER ]            := 0;
 
     return Objectify( NewType( FromTheLeftCollectorFamily,
-                   IsFromTheLeftCollectorRep ), pcp );
+                   IsFromTheLeftCollectorRep and IsMutable ), pcp );
 end );
 
 #############################################################################
@@ -85,6 +88,7 @@ end );
 #M  ViewObj( <pcc> )  . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 ##
 InstallMethod( ViewObj, 
+    "for from-the-left-collector",
         true,
         [ IsFromTheLeftCollectorRep ],
         0,
@@ -100,6 +104,7 @@ end );
 #M  PrintObj( <pcc> ) . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 ##
 InstallMethod( PrintObj, 
+    "for from-the-left-collector",
         true,
         [ IsFromTheLeftCollectorRep ],
         0,
@@ -116,8 +121,9 @@ end );
 #M  SetPower( <pcc>, <gen>, <word> )  . . . . . . . . . . . . . . . . . . . .
 ##
 InstallMethod( SetPowerNC,
+    "for from-the-left-collector",
         true,
-        [ IsFromTheLeftCollectorRep, IsPosInt, IsList ], 
+        [ IsFromTheLeftCollectorRep and IsMutable, IsPosInt, IsList ], 
         0,
         function( pcp, g, w )
     
@@ -131,8 +137,9 @@ InstallMethod( SetPowerNC,
 end );
 
 InstallMethod( SetPower,
+    "for from-the-left-collector",
         true,
-        [ IsFromTheLeftCollectorRep, IsPosInt, IsList ], 
+        [ IsFromTheLeftCollectorRep and IsMutable, IsPosInt, IsList ], 
         0,
         function( pcp, g, w )
     local   n,  i;
@@ -158,8 +165,9 @@ end );
 #F  SetCommutator . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 ##
 InstallMethod( SetCommutator,
+    "for from-the-left-collector",
         true,
-        [ IsFromTheLeftCollectorRep, IsInt, IsInt, IsList ],
+        [ IsFromTheLeftCollectorRep and IsMutable, IsInt, IsInt, IsList ],
         0,
         function( pcp, h, g, comm )
     local   i,  conj;
@@ -196,8 +204,9 @@ end );
 #M  SetConjugate( <pcc>, <gen>, <gen>, <word> ) . . . . . . . . . . . . . . .
 ##
 InstallMethod( SetConjugateNC,
+    "for from-the-left-collector",
         true,
-        [ IsFromTheLeftCollectorRep, IsInt, IsInt, IsList ],
+        [ IsFromTheLeftCollectorRep and IsMutable, IsInt, IsInt, IsList ],
         0,
         function( pcp, h, g, w )
         
@@ -234,8 +243,9 @@ InstallMethod( SetConjugateNC,
 end );
 
 InstallMethod( SetConjugate,
+    "for from-the-left-collector",
         true,
-        [ IsFromTheLeftCollectorRep, IsInt, IsInt, IsList ],
+        [ IsFromTheLeftCollectorRep and IsMutable, IsInt, IsInt, IsList ],
         0,
         function( pcp, h, g, w )
     local   i;
@@ -269,8 +279,9 @@ end );
 #M  SetRelativeOrder( <pcc>, <gen>, <order> ) . . . . . . . . . . . . . . . .
 ##
 InstallMethod( SetRelativeOrderNC,
+    "for from-the-left-collector",
         true,
-        [ IsFromTheLeftCollectorRep, IsPosInt, IsPosInt ],
+        [ IsFromTheLeftCollectorRep and IsMutable, IsPosInt, IsPosInt ],
         0,
         function( pcp, g, order )
     
@@ -278,8 +289,9 @@ InstallMethod( SetRelativeOrderNC,
 end );
 
 InstallMethod( SetRelativeOrder,
+    "for from-the-left-collector",
         true,
-        [ IsFromTheLeftCollectorRep, IsPosInt, IsPosInt ],
+        [ IsFromTheLeftCollectorRep and IsMutable, IsPosInt, IsPosInt ],
         0,
         function( pcp, g, order )
     
@@ -292,6 +304,7 @@ end );
 
     
 InstallMethod( GeneratorsOfRws,
+    "for from-the-left-collector",
         true,
         [ IsFromTheLeftCollectorRep ],
         0,
@@ -305,7 +318,7 @@ end );
 ##
 #F  FromTheLeftCollector_SetCommute . . . . . . . . . . . . . . . . . . . . .
 ##
-FromTheLeftCollector_SetCommute := function( pcp )
+BindGlobal( "FromTheLeftCollector_SetCommute", function( pcp )
     local   com,  cnj,  n,  g,  again,  h;
     
     n   := pcp![ PC_NUMBER_OF_GENERATORS ];
@@ -344,7 +357,7 @@ FromTheLeftCollector_SetCommute := function( pcp )
     od;
     
     pcp![ PC_COMMUTE ] := com;
-end;
+end );
 
 FromTheLeftCollector_Inverse := "still to come";
 
@@ -352,7 +365,7 @@ FromTheLeftCollector_Inverse := "still to come";
 ##
 #F  FromTheLeftCollector_ExponentSums . . . . . . . . . . . . . . . . . . . .
 ##
-FromTheLeftCollector_ExponentSums := function( u, a, z )
+BindGlobal( "FromTheLeftCollector_ExponentSums", function( u, a, z )
     local   sums,  i,  g;
     
     z := z - a + 1;
@@ -364,14 +377,14 @@ FromTheLeftCollector_ExponentSums := function( u, a, z )
         fi;
     od;
     return sums;
-end;
+end );
 
             
 #############################################################################
 ##
 #F  FromTheLeftCollector_CompleteConjugate  . . . . . . . . . . . . . . . . .
 ##
-FromTheLeftCollector_CompleteConjugate := function( pcp )
+BindGlobal( "FromTheLeftCollector_CompleteConjugate", function( pcp )
     local   n,  i,  j,  cnj,  comm,  ev;
     
     n := pcp![ PC_NUMBER_OF_GENERATORS ];
@@ -406,13 +419,13 @@ FromTheLeftCollector_CompleteConjugate := function( pcp )
             fi;
         od;
     od;
-end;
+end );
 
 #############################################################################
 ##
 #F  FromTheLeftCollector_CompletePowers . . . . . . . . . . . . . . . . . . .
 ##
-FromTheLeftCollector_CompletePowers := function( pcp )
+BindGlobal( "FromTheLeftCollector_CompletePowers", function( pcp )
     local   n,  i;
     
     n := pcp![ PC_NUMBER_OF_GENERATORS ];
@@ -423,7 +436,7 @@ FromTheLeftCollector_CompletePowers := function( pcp )
               FromTheLeftCollector_Inverse( pcp, pcp![ PC_POWERS ][i] );
         fi;
     od;
-end;
+end );
 
 #############################################################################
 ##
@@ -625,7 +638,7 @@ end );
 ##
 #F  FromTheLeftCollector_Solution . . . . .  solve the equation u x = v for x
 ##
-FromTheLeftCollector_Solution := function( pcp, u, v )
+BindGlobal( "FromTheLeftCollector_Solution", function( pcp, u, v )
     local   e,  n,  x,  i,  g;
     
     n := pcp![ PC_NUMBER_OF_GENERATORS ];
@@ -646,22 +659,23 @@ FromTheLeftCollector_Solution := function( pcp, u, v )
     od;
 
     return x;
-end;
+end );
                                 
 #############################################################################
 ##
 #F  FromTheLeftCollector_Inverse  . . inverse of a word wrt a pc presentation
 ##
-FromTheLeftCollector_Inverse := function( pcp, w )
+Unbind( FromTheLeftCollector_Inverse );
+BindGlobal( "FromTheLeftCollector_Inverse", function( pcp, w )
     
     return FromTheLeftCollector_Solution( pcp, w, [] );
-end;
+end );
 
 #############################################################################
 ##
 #F  FromTheLeftCollector_Power  . . . . . . . . . . . . . . . . . . . . . .  
 ##
-FromTheLeftCollector_Power := function( pcp, w, e )
+BindGlobal( "FromTheLeftCollector_Power", function( pcp, w, e )
 
     if e < 0 then
         w := FromTheLeftCollector_Inverse( pcp, w );
@@ -669,13 +683,13 @@ FromTheLeftCollector_Power := function( pcp, w, e )
     fi;
 
     return BinaryPower( pcp, w, e );
-end;
+end );
 
 #############################################################################
 ##
 #F  ProductAutomorphisms  . . . . . . . . . . . . . . . . . . . . . . . . .  
 ##
-ProductAutomorphisms := function( pcp, alpha, beta )
+BindGlobal( "ProductAutomorphisms", function( pcp, alpha, beta )
     local   ngens,  gamma,  i,  w,  ev,  g;
 
     ngens := NumberGeneratorsOfRws( pcp );
@@ -695,13 +709,13 @@ ProductAutomorphisms := function( pcp, alpha, beta )
         fi;
     od;
     return gamma;
-end;
+end );
 
 #############################################################################
 ##
 #F  PowerAutomorphism . . . . . . . . . . . . . . . . . . . . . . . . . . .  
 ##
-PowerAutomorphism := function( pcp, g, e )
+BindGlobal( "PowerAutomorphism", function( pcp, g, e )
     local   n,  a,  power,  h,  ipower;
     
     n := NumberGeneratorsOfRws( pcp );
@@ -751,7 +765,7 @@ PowerAutomorphism := function( pcp, g, e )
         Print( "        ", ipower, "\n" );
     fi;
     return [ power, ipower ];
-end;
+end );
 
 
 
@@ -760,7 +774,7 @@ end;
 #M  IsConfluent . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 ##
 if not IsBound( InfoConsistency ) then
-    InfoConsistency := function( arg ) end;
+    BindGlobal( "InfoConsistency", function( arg ) end );
 fi;
 InstallMethod( IsConfluent,
         "FromTheLeftCollector",
@@ -914,7 +928,7 @@ end );
 ##
 #F  UseDeepThought  . . . . . . . . . . . . . . . . . initialise Deep Thought
 ##
-UseDeepThought := function( pcp, dtbound, max )
+BindGlobal( "UseDeepThought", function( pcp, dtbound, max )
 
     local   reps,  avec,  pr,  i;
     
@@ -949,13 +963,19 @@ UseDeepThought := function( pcp, dtbound, max )
     od;
     pcp![ PC_DEEP_THOUGHT_POLS ] := reps;
     pcp![ PC_DEEP_THOUGHT_BOUND ] := dtbound;
-end;
+end );
 
 #############################################################################
 ##
 #F  SetDeepThoughtBoundary  . . .  set the generator from which on DT is used
 ##
-SetDeepThoughtBound := function( pcp, n )
+BindGlobal( "SetDeepThoughtBound", function( pcp, n )
 
     pcp![ PC_DEEP_THOUGHT_BOUND ] := n;
-end;
+end );
+
+
+#############################################################################
+##
+#E
+

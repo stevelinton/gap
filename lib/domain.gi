@@ -24,7 +24,7 @@ InstallMethod( \=,
     IsIdenticalObj,
     [ IsCollection and IsList, IsDomain ], 0,
     function( C, D )
-    return IsSSortedList( C ) and AsListSorted( D ) = C;
+    return IsSSortedList( C ) and AsSSortedList( D ) = C;
     end );
 
 
@@ -39,7 +39,7 @@ InstallMethod( \=,
     IsIdenticalObj,
     [ IsDomain, IsCollection and IsList ], 0,
     function( D, C )
-    return IsSSortedList( C ) and AsListSorted( D ) = C;
+    return IsSSortedList( C ) and AsSSortedList( D ) = C;
     end );
 
 
@@ -54,7 +54,7 @@ InstallMethod( \=,
     IsIdenticalObj,
     [ IsDomain, IsDomain ], 0,
     function( D1, D2 )
-    return AsListSorted( D1 ) = AsListSorted( D2 );
+    return AsSSortedList( D1 ) = AsSSortedList( D2 );
     end );
 
 
@@ -67,7 +67,7 @@ InstallMethod( \<,
     IsIdenticalObj,
     [ IsCollection and IsList, IsDomain ], 0,
     function( C, D )
-    return C < AsListSorted( D );
+    return C < AsSSortedList( D );
     end );
 
 
@@ -80,7 +80,7 @@ InstallMethod( \<,
     IsIdenticalObj,
     [ IsDomain, IsCollection and IsList ], 0,
     function( D, C )
-    return AsListSorted( D ) < C;
+    return AsSSortedList( D ) < C;
     end );
 
 
@@ -100,9 +100,27 @@ InstallMethod( SetParent,
 
 #############################################################################
 ##
-#M  DomainByGenerators(<F>,<empty>) . . . . . . . . for family and empty list
+#F  Domain( [<Fam>, ]<generators> )
 ##
-InstallOtherMethod( DomainByGenerators,
+InstallGlobalFunction( Domain, function( arg )
+    if   Length( arg ) = 1 and IsHomogeneousList( arg[1] )
+                           and not IsEmpty( arg[1] ) then
+      return DomainByGenerators( FamilyObj( arg[1][1] ), arg[1] );
+    elif     Length( arg ) = 2 and IsFamily( arg[1] )
+         and IsHomogeneousList( arg[2] )
+         and ( IsEmpty( arg[2] ) or arg[2] = CollectionsFamily( arg[1] ) ) then
+      return DomainByGenerators( arg[1], arg[2] );
+    else
+      Error( "usage: Domain( [<Fam>, ]<generators> )" );
+    fi;
+    end );
+
+
+#############################################################################
+##
+#M  DomainByGenerators( <F>, <empty> )  . . . . . . for family and empty list
+##
+InstallMethod( DomainByGenerators,
     "for family and empty list",
     true,
     [ IsFamily, IsList and IsEmpty ], 0,
@@ -118,16 +136,16 @@ InstallOtherMethod( DomainByGenerators,
 
 #############################################################################
 ##
-#M  DomainByGenerators(<F>,<generators>)  . . . . . for family and collection
+#M  DomainByGenerators( <F>, <generators> ) . . . . for family and collection
 ##
 InstallMethod( DomainByGenerators,
-    "for family and collection",
+    "for family and list & collection",
     true,
-    [ IsFamily, IsCollection ], 0,
+    [ IsFamily, IsCollection and IsList ], 0,
     function ( F, generators )
     local   D;
     if IsNotIdenticalObj( CollectionsFamily(F), FamilyObj(generators) ) then
-        Error( "<generators> must lie in <F>" );
+        Error( "each element in <generators> must lie in <F>" );
     fi;
     D := Objectify( NewType( FamilyObj( generators ),
                              IsDomain and IsAttributeStoringRep ),
@@ -157,30 +175,19 @@ InstallOtherMethod( DomainByGenerators,
 
 #############################################################################
 ##
-#M  FinalizeDomain( <D> ) . . . . . . . . . . . . . . . . . .  default method
-##
-InstallMethod( FinalizeDomain,
-    "default method 'Ignore'",
-    true,
-    [ IsDomain ], 0,
-    Ignore );
-
-
-#############################################################################
-##
 #M  AsList( <D> ) . . . . . . . . . . . . . . . . set of elements of a domain
 #M  Enumerator( <D> ) . . . . . . . . . . . . . . set of elements of a domain
 ##
 ##  A domain contains no duplicates, so the sorted list can be taken
 ##  if it is already known.
-##  Note, however, that 'AsListSorted' resp. 'EnumeratorSorted' cannot be the
+##  Note, however, that 'AsSSortedList' resp. 'EnumeratorSorted' cannot be the
 ##  default method of 'AsList' resp. 'Enumerator' for domains,
 ##  since 'EnumeratorSorted' is allowed to call 'Enumerator'.
 ##
 InstallImmediateMethod( AsList,
-    IsDomain and HasAsListSorted,
+    IsDomain and HasAsSSortedList,
     0,
-    AsListSorted );
+    AsSSortedList );
 
 InstallImmediateMethod( Enumerator,
     IsDomain and HasEnumeratorSorted,

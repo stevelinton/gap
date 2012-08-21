@@ -8,29 +8,6 @@
 Revision.randiso2_gi :=
     "@(#)$Id$";
 
-if not IsBound( MyFingerprintFF ) then
-    MyFingerprintFF := false;
-fi;
-
-#############################################################################
-##
-#F FingerprintFF( G ) 
-##
-FingerprintFF := function( G ) 
-    return Flat( Collected( List( Orbits( G , List( G ) ), 
-       y -> [ Order ( y[ 1 ] ), Length( y ) , y[ 1 ] ^ 3 in y , 
-       y[ 1 ] ^ 5 in y , y[ 1 ] ^ 7 in y ] ) ) );
-end;
-
-#############################################################################
-##
-#F Fingerprint2FF( G ) 
-##
-Fingerprint2FF := function( G ) 
-    return rec( fpff := FingerprintFF ( G ),
-                sid  := IdGroup( SylowSubgroup( G, 2 ) ) );
-end;
-
 #############################################################################
 ##
 #F  EvalFpCoc( coc, desc ). . . . . . . . . . . . . . . . . . . . . . . local
@@ -155,7 +132,7 @@ DiffCocList := function( coclist, flagwordtest )
          fpcand, fpqual, orders, finps, sfinps,
          qual, mqual, qualfp, hits, phits, cphits, poses, leading;
 
-   Info( InfoFrattExt, 4, "    DiffCocList starts" );
+   Info( InfoRandIso, 2, "    DiffCocList starts" );
 
    # general informations
    orders := List( coclist[ 1 ], x -> Order( x[ 1 ][ 1 ] ) );
@@ -187,9 +164,9 @@ DiffCocList := function( coclist, flagwordtest )
       sfinps := Set( finps );
       if Length( sfinps ) = Length( coclist ) then
          # fpcand[ i ] will split into lists of length 1
-         return [ fpcand[ i ] ];
-         Info( InfoFrattExt, 4, "    DiffCocList split ", Length( coclist ),
+         Info( InfoRandIso, 2, "    DiffCocList split ", Length( coclist ),
                                 " groups up" );
+         return [ fpcand[ i ] ];
       fi;
       Add( fpqual, [ Length( sfinps ), Length( finps[ 1 ] ) ] );
    od;
@@ -197,7 +174,7 @@ DiffCocList := function( coclist, flagwordtest )
    # find the test best spliting the list of groups
    pos := Position( fpqual, Maximum( fpqual ) );
    if fpqual[ pos ][ 1 ] > 1 then
-      Info( InfoFrattExt, 4, "    DiffCocList split ", Length( coclist ),
+      Info( InfoRandIso, 2, "    DiffCocList split ", Length( coclist ),
                              " groups in ", fpqual[ pos ][ 1 ], " classes" );
       return [ fpcand[ pos ] ];
    fi;
@@ -216,11 +193,11 @@ DiffCocList := function( coclist, flagwordtest )
 
    # the tests concerning the powermap failed all
    if not flagwordtest then
-      Info( InfoFrattExt, 4, "    DiffCocList failed without wordtest" );
+      Info( InfoRandIso, 2, "    DiffCocList failed without wordtest" );
       return [ fail ];
    fi;
 
-   Info( InfoFrattExt, 4, "    DiffCocList starts wordtest" );
+   Info( InfoRandIso, 2, "    DiffCocList starts wordtest" );
    mqual := [ 0, 0 ];
    qualfp := [ ];
    leading := List( coclist, x -> List( Concatenation( x ), y -> y [ 1 ] ) );
@@ -238,7 +215,7 @@ DiffCocList := function( coclist, flagwordtest )
       for j in [ 2 .. lencoc ] do
          for k in [ 2 .. lencoc ] do
 
-            # check up desc's [ 4, x, j, k ], count hits
+            # check up desc's [ 4 or 5, x, j, k ], count hits
             hits := List( coclist, x -> List( leading[ 1 ], x -> 0 ) );
             for i in [ 1 .. Length( coclist ) ] do
                for jj in Concatenation( coclist[ i ][ j ] ) do
@@ -263,9 +240,9 @@ DiffCocList := function( coclist, flagwordtest )
                if qual > mqual then
 
                   # note this test
-                  qualfp := [ 4, i, j, k ];
+                  qualfp := [ word, i, j, k ];
                   if qual[ 1 ] = Length( coclist ) then 
-                     Info( InfoFrattExt, 4, "    DiffCocList split ",
+                     Info( InfoRandIso, 2, "    DiffCocList split ",
                                  Length( coclist ), " groups in ", qual[ 1 ],
                                  " classes" );
                      return [ qualfp ];
@@ -278,12 +255,12 @@ DiffCocList := function( coclist, flagwordtest )
    od;
 
    if mqual = [ 1, 1 ] then
-      Info( InfoFrattExt, 4, "    DiffCocList failed after wordtest" );
+      Info( InfoRandIso, 2, "    DiffCocList failed after wordtest" );
       return  [ fail ];
    fi;
 
    if mqual[ 1 ] > 1 then
-      Info( InfoFrattExt, 4, "    DiffCocList split ", Length( coclist ),
+      Info( InfoRandIso, 2, "    DiffCocList split ", Length( coclist ),
                              " groups in ", mqual[ 1 ], " classes" );
       return [ qualfp ];
    fi;
@@ -298,206 +275,15 @@ DiffCocList := function( coclist, flagwordtest )
    return Concatenation( [ qualfp ], DiffCocList( coclist, true ) );
 
 end;
-               
-#############################################################################
-##
-#F FetchPropertiesFrattiniFreeGroup( <ff> ) . . . . . . . . . . . . . . local
-##
-FetchPropertiesFrattiniFreeGroup := function( ff )
 
-   local fftab, pos;
-
-   # table of properties of the frattinifree groups
-   fftab := [
-      # S3x2
-      [ [ 12, 4 ],     [ 3, 5 ],        [ , 12 ]           ], 
-      # D10x2
-      [ [ 20, 4 ],     [ 3, 5 ],        [ , 20 ]           ], 
-      # S4
-      # first the IdGroup
-      [ [ 24, 12 ],
-      # index of the clusters of conjugacy classes of the chosen generators
-                       [ 4, 3 ],
-      # size of the subgroup generated by the first generators
-                                        [ , 24 ]           ],
-      # A4x2
-      [ [ 24, 13 ],    [ 4, 3 ],        [ , 24 ]           ],
-      # S3x2^2
-      [ [ 24, 14 ],    [ 5, 2, 3 ],     [ , 12, 24 ]       ],
-      # D14x2
-      [ [ 28, 3 ],     [ 3, 5 ],        [ , 28 ]           ], 
-      # S3^2
-      [ [ 36, 10 ],    [ 6, 3 ],        [ , 36 ]           ],
-      # A4x3
-      [ [ 36, 11 ],    [ 4, 5 ],        [ , 36 ]           ],
-      # S3x6
-      [ [ 36, 12 ],    [ 3, 7 ],        [ , 36 ]           ],
-      # 2x3^2:2
-      [ [ 36, 13 ],    [ 4, 5, 3 ],     [ , 18, 36 ]       ],
-      # 2x5:4
-      [ [ 40, 12 ],    [ 4, 6 ],        [ , 40 ]           ],
-      # D10x2^2
-      [ [ 40, 13 ],    [ 3, 5, 2 ],     [ , 20, 40 ]       ],
-      # D22x2
-      [ [ 44, 3 ],     [ 3, 5 ],        [ , 44 ]           ], 
-      # S4x2
-      [ [ 48, 48 ],    [ 4, 7 ],        [ , 48 ]           ],
-      # S3x2^3
-      [ [ 48, 51 ],    [ 3, 5, 2, 2 ],  [ , 12, 24, 48 ]   ],
-      # D26x2
-      [ [ 52, 4 ],     [ 3, 5 ],        [ , 52 ]           ], 
-      # S3x3^2
-      [ [ 54, 12 ],    [ 5, 4 ],        [ , 54 ]           ],
-      # 3x3^2:2
-      [ [ 54, 13 ],    [ 5, 2, 2 ],     [ , 18, 54 ]       ],
-      # D14x2^2
-      [ [ 56, 12 ],    [ 5, 2, 3 ],     [ , 28, 56 ]       ],
-      # S3xD10
-      [ [ 60, 8 ],     [ 8, 7 ],        [ , 60 ]           ], 
-      # D10x6
-      [ [ 60, 10 ],    [ 7, 8 ],        [ , 60 ]           ], 
-      # S3x10
-      [ [ 60, 11 ],    [ 10, 3 ],       [ , 60 ]           ], 
-      # D60
-      [ [ 60, 12 ],    [ 3, 9 ],        [ , 60 ]           ], 
-      [ [ 72, 40 ],    [ 5, 2 ],        [ , 72 ]           ], 
-      # 2x3^2:4
-      [ [ 72, 45 ],    [ 5, 6 ],        [ , 72 ]           ], 
-      # S3^2x2
-      [ [ 72, 46 ],    [ 3, 8, 3 ],     [ , 36, 72 ]       ],
-      # A4x6
-      [ [ 72, 47 ],    [ 5, 7 ],        [ , 72 ]           ], 
-      # S3x2x6
-      [ [ 72, 48 ],    [ 3, 7, 2 ],     [ , 36, 72 ]       ],
-      # 2^2x3^2:2
-      [ [ 72, 49 ],    [ 5, 5, 3 ],     [ , 36, 72 ]       ],
-      # 2^2x5:4
-      [ [ 80, 50 ],    [ 4, 6, 2 ],     [ , 40, 80 ]       ],
-      # D10x2^3
-      [ [ 80, 51 ],    [ 5, 2, 2, 3 ],  [ , 20, 40, 80 ]   ],
-      # S3xD14
-      [ [ 84, 8 ],     [ 8, 6 ],        [ , 84 ]           ], 
-      # D14x6
-      [ [ 84, 12 ],    [ 6, 8 ],        [ , 84 ]           ], 
-      # D84
-      [ [ 84, 14 ],    [ 3, 9 ],        [ , 84 ]           ], 
-      # D22x2^2
-      [ [ 88, 11 ],    [ 5, 2, 3 ],     [ , 44, 88 ]       ],
-      # S4x2^2
-      [ [ 96, 226 ],   [ 7, 4, 2 ],     [ , 48, 96 ]       ],
-      # S3x2^4
-      [ [ 96, 230 ],   [ 3, 5, 2, 2, 2 ], [ , 12, 24, 48, 96 ] ],
-      # S4+S4 
-      [ [ 96, 227 ],   [ 6, 5 ],        [ , 96 ]           ],
-      # D10^2 
-      [ [ 100, 13 ],   [ 6, 3 ],        [ , 100 ]          ],
-      # 2x5^2:2 
-      [ [ 100, 15 ],   [ 4, 5, 3 ],     [ , 50, 100 ]      ],
-      [ [ 104, 12 ],   [ 4, 6 ],        [ , 104 ]          ],
-      [ [ 104, 13 ],   [ 3, 5, 2 ],     [ , 52, 104 ]      ],
-      [ [ 108, 38 ],   [ 3, 8 ],        [ , 108 ]          ],
-      [ [ 108, 39 ],   [ 7, 8, 3 ],     [ , 36, 108 ]      ],
-      [ [ 108, 41 ],   [ 4, 5, 3 ],     [ , 36, 108 ]      ],
-      [ [ 108, 42 ],   [ 8, 7 ],        [ , 108 ]          ],
-      [ [ 108, 43 ],   [ 3, 7, 3 ],     [ , 36, 108 ]      ],
-      # D14x2^3
-      [ [ 112, 42 ],   [ 3, 5, 2, 2 ],  [ , 28, 56, 112 ]  ],
-      [ [ 120, 36 ],   [ 7, 10 ],       [ , 120 ]          ],
-      [ [ 120, 40 ],   [ 10, 9 ],       [ , 120 ]          ],
-      [ [ 120, 41 ],   [ 5, 11 ],       [ , 120 ]          ],
-      [ [ 120, 42 ],   [ 11, 8, 4 ],    [ , 60, 120 ]      ],
-      [ [ 120, 44 ],   [ 10, 2, 3 ],    [ , 60, 120 ]      ],
-      [ [ 120, 45 ],   [ 10, 2, 3 ],    [ , 60, 120 ]      ],
-      [ [ 120, 46 ],   [ 9, 2, 3 ],     [ , 60, 120 ]      ],
-      [ [ 136, 14 ],   [ 5, 2, 3 ],     [ , 68, 136 ]      ],
-      [ [ 144, 183 ],  [ 5, 14 ],       [ , 144 ]          ],
-      [ [ 144, 186 ],  [ 6, 7, 3 ],     [ , 72, 144 ]      ],
-      [ [ 144, 187 ],  [ 5, 3, 5 ],     [ , 72, 144 ]      ],
-      [ [ 144, 188 ],  [ 4, 11 ],       [ , 144 ]          ],
-      [ [ 144, 190 ],  [ 4, 11 ],       [ , 144 ]          ],
-      # (2x3^2:4)x2
-      [ [ 144, 191 ],  [ 5, 6, 2 ],     [ , 72, 144 ]      ], 
-      # S3^2x2^2
-      [ [ 144, 192 ],  [ 3, 8, 3, 2 ],  [ , 36, 72, 144 ]  ],
-      # S3x2^2x6
-      [ [ 144, 195 ],  [ 3, 7, 2, 2 ],  [ , 36, 72, 144 ]  ],
-      # (2^2x3^2:2)x2
-      [ [ 144, 196 ],  [ 5, 5, 3, 2 ],  [ , 36, 72, 144 ]  ],
-      [ [ 152, 11 ],   [ 3, 5, 2 ],     [ , 76, 152 ]      ],
-      [ [ 168, 47 ],   [ 5, 3, 2 ],     [ , 84, 168 ]      ],
-      # S3xD14x2
-      [ [ 168, 50 ],   [ 11, 8, 2 ],    [ , 84, 168 ]      ], 
-      # D14x6x2
-      [ [ 168, 54 ],   [ 6, 8, 2 ],     [ , 84, 168 ]      ], 
-      [ [ 168, 55 ],   [ 7, 5, 3 ],     [ , 84, 168 ]      ],
-      # D84x2
-      [ [ 168, 56 ],   [ 3, 9, 2 ],     [ , 84, 168 ]      ], 
-      # D22x2^3
-      [ [ 176, 41 ],   [ 5, 2, 3, 2 ],  [ , 44, 88, 176 ]  ],
-      [ [ 184, 11 ],   [ 3, 5, 2 ],     [ , 92, 184 ]      ],
-      # S4x2^3
-      [ [ 192, 1537 ], [ 7, 4, 2, 2 ],  [ , 48, 96, 192 ]  ],
-      # S3x2^5
-      [ [ 192, 1542 ], [ 3, 5, 2, 2, 2, 2 ], [ , 12, 24, 48, 96, 192 ] ],
-      # S4+S4x2
-      [ [ 192, 1538 ], [ 7, 8 ],        [ , 192 ]          ],
-      [ [ 200, 49 ],   [ 9, 4, 2 ],     [ , 100, 200 ]     ],
-      [ [ 200, 50 ],   [ 3, 7, 2 ],     [ , 100, 200 ]     ],
-      # (2x5^2:2 )x2
-      [ [ 200, 51 ],   [ 3, 5, 5 ],     [ , 20, 200 ]      ],
-      [ [ 208, 49 ],   [ 4, 6, 2 ],     [ , 104, 208 ]     ],
-      [ [ 208, 50 ],   [ 3, 5, 2, 2 ],  [ , 52, 104, 208 ] ],
-      [ [ 216, 162 ],  [ 8, 9, 2 ],     [ , 108, 216 ]     ],
-      [ [ 216, 170 ],  [ 10, 11, 3 ],   [ , 108, 216 ]     ],
-      [ [ 216, 171 ],  [ 10, 9, 4 ],    [ , 108, 216 ]     ],
-      [ [ 216, 172 ],  [ 8, 8, 2 ],     [ , 108, 216 ]     ],
-      [ [ 216, 174 ],  [ 8, 7, 2 ],     [ , 108, 216 ]     ],
-      [ [ 216, 175 ],  [ 3, 3, 8 ],     [ , 12, 216 ]      ],
-      [ [ 216, 176 ],  [ 5, 4, 3, 5 ],  [ , 18, 36, 216 ]  ],
-      [ [ 232, 13 ],   [ 3, 5, 2 ],     [ , 116, 232 ]     ],
-      [ [ 240, 194 ],  [ 6, 15 ],       [ , 240 ]          ],
-      [ [ 240, 195 ],  [ 14, 12, 3 ],   [ , 120, 240 ]     ],
-      [ [ 240, 197 ],  [ 4, 12 ],       [ , 240 ]          ],
-      [ [ 240, 198 ],  [ 13, 5 ],       [ , 240 ]          ],
-      [ [ 240, 200 ],  [ 10, 9, 2 ],    [ , 120, 240 ]     ],
-      [ [ 240, 201 ],  [ 5, 11, 2 ],    [ , 120, 240 ]     ],
-      [ [ 240, 202 ],  [ 11, 8, 4, 2 ], [ , 60, 120, 240 ] ],
-      [ [ 240, 205 ],  [ 10, 2, 3, 2 ], [ , 60, 120, 240 ] ],
-      [ [ 240, 206 ],  [ 10, 2, 3, 2 ], [ , 60, 120, 240 ] ],
-      [ [ 240, 207 ],  [ 9, 2, 3, 2 ],  [ , 60, 120, 240 ] ],
-      [ [ 248, 11 ],   [ 3, 5, 2 ],     [ , 124, 248 ]     ] ];
-
-   if not IsInt( ff ) then
-       if Size( ff ) > 1000 or Size( ff ) in [ 256, 512, 768 ] then
-           return fail;
-       fi;
-       pos := PositionSorted( fftab{[ 1 .. Length( fftab ) ]}[ 1 ],
-                              IdGroup( ff ) );
-       if pos = fail then
-           return fail;
-       fi;
-   else
-       if ff > Length( fftab ) then
-           return fail;
-       fi;
-       pos := ff;
-   fi;
-   return fftab[ pos ];
-end;
-       
 #############################################################################
 ##
 #F SplitUpSublistsByFpFunc( list ). . . . . . . . . . . . . . . . . . . local
 ##
 SplitUpSublistsByFpFunc := function( list )
 
-   local result, finp, finps, i, g, j, fpfunc;
+   local result, finp, finps, i, g, j;
 
-   if IsFunction( MyFingerprintFF ) then
-       fpfunc := MyFingerprintFF;
-   else
-       fpfunc := FingerprintFF;
-   fi;
    result := [ ];
    finps := [ ];
    for i in [ 1 .. Length( list ) ] do
@@ -506,25 +292,30 @@ SplitUpSublistsByFpFunc := function( list )
          Add( finps, false );
       else
          g    := PcGroupCodeRec( list[i] );
-         finp := fpfunc( g );
+         finp := FingerprintFF( g );
          j    := Position( finps, finp );
          if IsBool( j ) then
             Add( result, [ list[ i ] ] );
             Add( finps, finp );
-            Info( InfoFrattExt, 5, "split into ", Length( finps ),
-                  " classes within ", i, " of ", Length( list ), " tests");
+            Info( InfoRandIso, 3, "split into ", Length( finps ),
+                  " classes within ", i, " of ", Length( list ), " tests" );
          else
             Add( result[ j ], list[ i ] );
+            if i mod 50 = 0 then
+              Info( InfoRandIso, 3, "still ", Length( finps ),
+                    " classes after ", i, " of ", Length( list ), " tests" );
+            fi;
          fi;
       fi;
    od;
    for i in [ 1 .. Length( result ) ] do
       if Length( result[ i ] ) = 1 then
-         result[ i ][ 1 ].isUnique := true;
+         result[ i ] := result[ i ][ 1 ];
+         result[ i ].isUnique := true;
       fi;
    od;
-   Info( InfoFrattExt, 4, "   Iso: found ", Length(result)," classes incl. ",
-          Length( Filtered( result, x -> Length(x) = 1 ) )," unique groups");
+   Info( InfoRandIso, 2, "   Iso: found ", Length(result)," classes incl. ",
+          Length( Filtered( result, IsRecord ) )," unique groups");
    return result;
 end;
 
@@ -537,6 +328,7 @@ CodeGenerators := function( gens, spcgs )
    local  layers, first, one, pcgs, sgrps, dep, lay, 
           numf, pos, e, tpos, found, et, p;
 
+   gens   := ShallowCopy( gens );
    layers := LGLayers( spcgs );
    first  := LGFirst( spcgs );
    one    := OneOfPcgs( spcgs );
@@ -560,7 +352,7 @@ CodeGenerators := function( gens, spcgs )
             tpos := tpos - 1;
             if not IsBound( pcgs[ tpos ] ) then
                pcgs[ tpos ] := e;
-               sgrps[ tpos ] := Group( Concatenation( [ e ],
+               sgrps[ tpos ] := GroupByGenerators( Concatenation( [ e ],
                                 pcgs{[ tpos + 1 .. first[ lay + 1 ] - 1 ]},
                                 spcgs{[ first[lay+1] .. Length(spcgs) ]} ) );
                for p in Set( FactorsInt( Order( e ) ) ) do
@@ -602,283 +394,50 @@ CodeGenerators := function( gens, spcgs )
    od;
    pcgs := PcgsByPcSequenceNC( ElementsFamily( FamilyObj( spcgs ) ), pcgs );
    SetRelativeOrders( pcgs, RelativeOrders( spcgs ) );
-   return CodePcgs( pcgs );
-end;
-      
-#############################################################################
-##
-#F CandidateSystemGenerators( G, coc, prop ). . . . . . . . . . . . . . local
-##
-CandidateSystemGenerators := function( G, coc, prop )
-
-   local k, l, m, n, frattsize, pos, t1p, t1f, t2p, t2f, gensys,
-         fhom, concoc, fcoc, felms, elms, elmsr, felmtyp, felmtyps, cfelmtyp,
-         collfelmtyps, qual, relclu, cfelmtyp2, mcfelmtyp2;
-
-   frattsize := Size( G ) / prop[ 3 ][ Length( prop[ 3 ] ) ];
-   concoc := List( coc, Concatenation );
-   fhom := NaturalHomomorphismByNormalSubgroup( G, FrattiniSubgroup( G ) );
-   fcoc := CocGroup( Range( fhom ) );
-   gensys := rec( origsys := [ ], facsys := [ ] );
-
-   for k in [ 1 .. Length( prop[ 2 ] ) ] do
-      felms := Flat( fcoc[ prop[ 2 ][ k ] ] );
-      # and the corresponding preimages of the group
-      elms := List( felms, x -> AsList( PreImages( fhom, x ) ) );
-      # for each element of the frattinifactor it is tried to restrict the
-      # preimages to a subset which could be recognized
-      elmsr := [ ];
-      # this restriction gives a fingerprint of the elements of the factor
-      felmtyps := [ ];
-      for l in elms do
-         felmtyp := [ ];
-         for m in l do
-            # find the cluster-index of the preimage m
-            pos := 0;
-            n := 2;
-            while pos = 0 do
-               if m in concoc[ n ] then
-                  pos := n;
-               fi;
-               n := n + 1;
-            od;
-            Add( felmtyp, pos );
-         od;
-         # make the fingerprint idenpended of rowing
-         cfelmtyp := Collected( felmtyp );
-         cfelmtyp2 := List( cfelmtyp, x -> x[ 2 ] );
-         # find the minimal number of recognible preimages
-         mcfelmtyp2 := Minimum( cfelmtyp2 );
-         relclu := cfelmtyp[ Position( cfelmtyp2, mcfelmtyp2 ) ][ 1 ];
-         Add( felmtyps, [ cfelmtyp, mcfelmtyp2 ] );
-         # the preimages which should be used
-         Add( elmsr, l{ Filtered( [ 1..frattsize ], x->felmtyp[x]=relclu )});
-      od;
-
-      # priorize the generators of the factor by  their preimages
-      collfelmtyps := Collected( felmtyps );
-      # the number of preimages of a typ of generators of the factor group
-      qual := List( collfelmtyps, x -> x[ 2 ] * x[ 1 ][ 2 ] );
-      collfelmtyps := List( collfelmtyps, x -> x[ 1 ] );
-      SortParallel( qual, collfelmtyps );
-
-      t2f := [ ];
-      t2p := [ ];
-      for l in collfelmtyps do
-         t1f := [ ];
-         t1p := [ ];
-         for m in [ 1 .. Length( felms ) ] do
-            if felmtyps[ m ] = l then
-               Add( t1f, felms[ m ] );
-               Add( t1p, elmsr[ m ] );
-            fi;
-         od;
-         Add( t2f, t1f );
-         Add( t2p, t1p );
-      od;
-      Add( gensys.facsys, t2f );
-      Add( gensys.origsys, t2p );
-   od;
-   return gensys;
+   return rec( pcgs := pcgs, code := CodePcgs( pcgs ) );
 end;
 
 #############################################################################
 ##
-#F RandomGeneratorsFF( candsys, gensize, reclevel )
+#F  PermGensGens( famPcgs, specialPcgs, gens1, gens2 ). . . . . . . . . local
 ##
-RandomGeneratorsFF := function( candsys, gensize, recurlevel )
+PermGensGens := function( fam, spcgs, gens1, gens2 )
+    local i, j, perm, l1, l2, elem1, elem2, indices, rel, g;
 
-   local j, k, prio, flagin, search, leftgens, genlen, t3p, t3f,
-         genso, gensf, gensubgrp;
+    gens1 := CodeGenerators( gens1, spcgs ).pcgs;
+    gens2 := CodeGenerators( gens2, spcgs ).pcgs;
+    l1 := [ gens1[ 1 ] ^ Order( gens1[ 1 ] ) ];
+    l2 := [ l1[ 1 ] ];
+    rel := RelativeOrders( gens1 );
+    for i in Reversed( [ 1 .. Length( gens1 ) ] ) do
+        elem1 := ShallowCopy( l1 );
+        elem2 := ShallowCopy( l2 );
+        for j in [ 1 .. rel[ i ] - 1 ] do
+            Append( elem1, gens1[ i ] ^ j * l1 );
+            Append( elem2, gens2[ i ] ^ j * l2 );
+        od;
+        l1 := elem1;
+        l2 := elem2;
+    od;
+    rel := RelativeOrders( fam );
+    indices := [];
+    indices[ Length( rel ) ] := 1;
+    for i in Reversed( [  2 .. Length( rel ) ] ) do
+        indices[ i - 1 ] := indices[ i ] * rel[ i ];
+    od;
 
-   genlen := Length( gensize );
-   t3p := candsys.origsys;
-   t3f := candsys.facsys;
+    l1 := [ ]; l2 := [ ];
+    for i in [ 1 .. Length( elem1 ) ] do
+        Add( l1, ExponentsOfPcElement( fam, elem1[ i ] ) * indices  + 1 );
+        Add( l2, ExponentsOfPcElement( fam, elem2[ i ] ) * indices  + 1 );
+    od;
 
-   # the first generator is easy to choose
-   j := Random( [ 1 .. Length( t3f[ 1 ][ 1 ] ) ] );
-   # gensf will contain the generators of the Frattini-factorgroup
-   gensf := [ t3f[ 1 ][ 1 ][ j ] ];
-   gensubgrp := Group( gensf );
-   # genso will contain the generators of the group
-   genso := [ Random( t3p[ 1 ][ 1 ][ j ] ) ];
+    perm := [];
+    for i in [ 1 .. Length( l1 ) ] do
+        perm[ l1[ i ] ] := l2[ i ];
+    od;
 
-   # the other generators could just be fetched if they generate a subgroup
-   # of the frattini-faktor of the given size
-   for j in [ 2 .. genlen ] do
-
-      # try the generators the way they were priorised
-      prio := 1;
-      leftgens := [ 1 .. Length( t3f[ j ][ 1 ] ) ];
-      flagin := ( j > 2 ) and ( gensize[ j ] / gensize[ j - 1 ] = 2 );
-      search := true;
-
-      while search do
-         if leftgens = [ ] then
-            prio := prio + 1;
-            if prio > Length( t3f[ j ] ) then
-                # a "wrong class" of generators might be priorised
-                if recurlevel > 5 then 
-                    # kill priorisation
-                    candsys.origsys := List( candsys.origsys,
-                                             x -> [ Concatenation( x ) ] );
-                    candsys.facsys := List( candsys.facsys,
-                                             x -> [ Concatenation( x ) ] );
-                    Info( InfoFrattExt, 2, "   mayor problem in ",
-                                 "RandomGeneratorsFF, use dumb method" );
-                fi;
-                Info( InfoFrattExt, 4, "   minor problem in ",
-                                       "RandomGeneratorsFF, try again" );
-                return RandomGeneratorsFF( candsys,gensize,recurlevel+1);
-            fi;
-            leftgens := [ 1 .. Length( t3f[ j ][ prio ] ) ];
-         fi;
-         k := Random( leftgens );
-         leftgens := Difference( leftgens, [ k ] );
-         if flagin then 
-            search := t3f[ j ][ prio ][k] in gensubgrp;
-         else 
-            search := Size( Group( Concatenation( gensf, 
-                [ t3f[ j ][ prio ][ k ] ] ) ) ) <> gensize[ j ];
-         fi;
-      od;
-
-      Add( gensf, t3f[ j ][ prio ][ k ] );
-      gensubgrp := Group( gensf );
-      Add( genso, Random( t3p[ j ][ prio ][ k ] ) );
-   od;
-   return genso;
-end;
-
-#############################################################################
-##
-#F RandomIsomorphismTestFF( list, prop )
-##
-RandomIsomorphismTestFF := function( list, prop )
-
-   local pcgss, grps, cocs, candsyss, j, k, l, gn, loops, numcand,
-         gens, code, newresult, hits, remaining;
-
-   grps  := List( list, PcGroupCodeRec );
-   pcgss := List( grps, SpecialPcgs );
-   cocs  := List( grps, CocGroup );
-
-   numcand := Length( list );
-
-   candsyss := [ ];
-   for j in [ 1 .. numcand ] do
-      Add( candsyss, CandidateSystemGenerators( grps[j], cocs[j], prop ) );
-   od;
-
-   loops     := 0;
-   hits      := List( grps, x -> 0 );
-   newresult := List( grps, x -> [ ] );
-   remaining := numcand;
-
-   # loop for the guessing of presentations
-   while Minimum( hits ) < 10 and remaining > 1 do
-
-      if loops mod 10 = 0 or loops in [ 1, 2, 4, 7, 15, 25 ] then
-         Info( InfoFrattExt, 5, loops, " loops\n# ", hits{ Filtered(
-                      [ 1 .. numcand ], x -> IsBound( newresult[ x ] ) ) } );
-      fi;
-
-      loops := loops + 1;
-      for gn in [ 1 .. numcand ] do
-         if IsBound( newresult[ gn ] ) then
-            gens := RandomGeneratorsFF( candsyss[ gn ], prop[ 3 ], 0 );
-            code := CodeGenerators( gens, pcgss[ gn ] );
-
-            if code in newresult[ gn ] then
-               hits[ gn ] := hits[ gn ] + 1;
-
-            else
-               Add( newresult[ gn ], code );
-               for j in [ 1 .. numcand ] do
-                  if j <> gn and IsBound( newresult[ j ] ) 
-                                     and code in newresult[ j ] then
-                     # isomophism found
-                     k := Minimum( j, gn );
-                     l := Maximum( j, gn );
-                     newresult[ k ] := Concatenation( newresult[ gn ],
-                                                      newresult[ j ] );
-                     Unbind( newresult[ l ] );
-                     hits[ k ] := 0;
-                     hits[ l ] := 11;
-                     remaining := remaining - 1;
-                  fi;
-               od;
-            fi;
-         fi;
-      od;
-   od;
-
-   return list{ Filtered( [ 1 .. numcand ], x -> IsBound( newresult[x] ) ) };
-end;
-
-#############################################################################
-##
-#F ReducedByIsomorphismsSpecial( list )
-##
-ReducedByIsomorphismsSpecial := function( list )
-
-   local i, j, finps, prop, cocs, result, ff, sortlist;
-
-   # the trivial cases of isomorphism searching
-   if Length( list ) = 0 then
-      return list;
-   fi;
-   if Length( list ) = 1 then 
-      list[1].isUnique := true;
-      return list; 
-   fi;
-   
-   Info( InfoFrattExt, 3, "  reduce ", Length(list), " groups " );
-
-   # split up in sublist
-   Info( InfoFrattExt, 4, "   Iso: split list by invariants ");
-   sortlist := SplitUpSublistsByFpFunc( list );
-   if Set( List( sortlist, Length ) ) = [ 1 ] then 
-      # all groups are unique
-      return Concatenation( sortlist );
-   fi;
-
-   # fetch properties of frattini-factorgroup
-   ff := PcGroupCodeRec( list[ 1 ] );
-   ff := ff / FrattiniSubgroup( ff );
-   prop := FetchPropertiesFrattiniFreeGroup( ff );
-   if prop = fail then
-      Info( InfoFrattExt, 4, " Frattinifactor ",ff, " unknown, use default");
-   else 
-      Info( InfoFrattExt, 5, "  Frattinifactor: ", prop[ 1 ] );
-   fi;
-   
-   result := [ ];
-   # loop over all sublists
-   for i in [ 1 .. Length( sortlist ) ] do
-      if Length( sortlist[ i ] ) > 1 then
-
-         Info( InfoFrattExt, 4, "   Iso: reduce list of length ",
-                               Length( sortlist[i]));
-
-         if prop <> fail then 
-            sortlist[ i ] := RandomIsomorphismTestFF( sortlist[ i ], prop );
-         else 
-            sortlist[ i ] := RandomIsomorphismTest( sortlist[ i ], 10 );
-         fi;
-      fi;
-      # set information to unique groups / groups which are not unique
-      if Length( sortlist[ i ] ) = 1 then
-         sortlist[ i ][ 1 ].isUnique := true;
-         Add( result, sortlist[ i ][ 1 ] );
-         Unbind( sortlist[ i ] );
-      fi;
-   od;
-
-   sortlist := Compacted( sortlist );
-   Sort( sortlist, function( x, y ) return Length(x)<Length(y); end );
-
-   return Concatenation( result, sortlist );
+    return PermList( perm );
 end;
 
 #############################################################################
@@ -902,7 +461,7 @@ local i, j, cocs, finps;
 
             list[ i ] := List( Set( finps ), x -> list[ i ]{Filtered(
                     [ 1 .. Length( list[ i ] ) ], y -> finps[ y ] = x ) } );
-            Info( InfoFrattExt, 3, "   IdentifyGroups splits list  of ", 
+            Info( InfoRandIso, 1, "   IdentifyGroups splits list  of ", 
                   Length( finps ), " groups in ", Length( list[ i ] ),
                   " sublists" );
             for j in [ 1 .. Length( list[ i ] ) ] do
@@ -920,7 +479,7 @@ local i, j, cocs, finps;
             fi;
 
          else 
-            Info( InfoFrattExt, 3, "   IdentifyGroups could not seperate" );
+            Info( InfoRandIso, 1, "   IdentifyGroups could not seperate" );
          fi;
       fi;
       i := i + 1;

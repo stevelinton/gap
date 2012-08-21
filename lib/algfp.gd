@@ -98,7 +98,17 @@ DeclareOperation( "MappedExpression",
 
 #############################################################################
 ##
-#F  FactorFreeAlgebraByRelators(<F>,<rels>) . . . . .  factor of free algebra
+#F  FactorFreeAlgebraByRelators( <F>, <rels> )  . . .  factor of free algebra
+##
+##  is an f.p.~algebra $A$ isomorphic to the factor of the free (associative)
+##  algebra(-with-one) <F> by the two-sided ideasl spanned by the relators
+##  in the list <rels>.
+##
+##  If <F> is an algebra-with-one then the generators in the list
+##  `GeneratorsOfAlgebraWithOne( $A$ )' correspond to the generators in the
+##  list `GeneratorsOfAlgebraWithOne( <F> )'.
+##  Otherwise the generators in the list `GeneratorsOfAlgebra( $A$ )'
+##  correspond to the generators in the list `GeneratorsOfAlgebra( <F> )'.
 ##
 DeclareGlobalFunction( "FactorFreeAlgebraByRelators" );
 
@@ -153,7 +163,7 @@ DeclareAttribute( "NiceNormalFormByExtRepFunction", IsFamily );
 ##
 DeclareAttribute( "NiceAlgebraMonomorphism", IsSubalgebraFpAlgebra );
 
-InstallSubsetMaintainedMethod( NiceAlgebraMonomorphism,
+InstallSubsetMaintenance( NiceAlgebraMonomorphism,
     IsFreeLeftModule and HasNiceAlgebraMonomorphism, IsFreeLeftModule );
 
 
@@ -177,6 +187,6 @@ DeclareGlobalFunction( "FpAlgebraByGeneralizedCartanMatrix" );
 
 #############################################################################
 ##
-#E  algfp.gd  . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 ##
 

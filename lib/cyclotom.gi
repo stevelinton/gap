@@ -15,7 +15,7 @@ Revision.cyclotom_gi :=
 
 #############################################################################
 ##
-#M  Conductor( <list> ) . . . . . . . . . . . . . . . . . . . . . for a list
+#M  Conductor( <list> ) . . . . . . . . . . . . . . . . . . . . .  for a list
 ##
 ##  (This works not only for lists of cyclotomics but also  for lists of
 ##  lists of cyclotomics etc.)
@@ -36,13 +36,14 @@ InstallOtherMethod( Conductor,
 
 #############################################################################
 ##
-#F  RoundCyc( <cyc> ) . . . . . . . . . . cyclotomic integer near to <cyc>
+#M  RoundCyc( <cyc> ) . . . . . . . . . . cyclotomic integer near to <cyc>
 ##
-InstallGlobalFunction( RoundCyc, function ( x )
+InstallMethod( RoundCyc, "general cyclotomic", true, [ IsCyclotomic],
+        0,  function ( x )
     local i, int, n, cfs, e;
     n:= Conductor( x );
     e:= E(n);
-    cfs:= COEFFS_CYC( x );
+    cfs:= ExtRepOfObj( x );
     int:= 0;
     for i in [ 1 .. n ]  do
       if cfs[i] < 0 then
@@ -54,7 +55,9 @@ InstallGlobalFunction( RoundCyc, function ( x )
     od;
     return int;
 end );
+
 #T operation `Round' ?
+#T made RoundCyc an operation at least 7/12/98 SL
 
 
 #############################################################################
@@ -66,6 +69,21 @@ InstallMethod( ComplexConjugate,
     true,
     [ IsCyc ], 0,
     cyc -> GaloisCyc( cyc, -1 ) );
+
+
+#############################################################################
+##
+#M  ExtRepOfObj( <cyc> )
+##
+#+  Let <cyc> be a cyclotomic with conductor <n>.
+#+  The external representation of <cyc> is defined as
+#+  `CoeffsCyc( <cyc>, <n> )'.
+##
+InstallMethod( ExtRepOfObj,
+    "for an internal cyclotomic",
+    true,
+    [ IsCyc and IsInternalRep ], 0,
+    COEFFS_CYC );
 
 
 #############################################################################
@@ -95,8 +113,7 @@ InstallGlobalFunction( CoeffsCyc, function( z, N )
       # `z' is an internal cyclotomic, and therefore it is represented
       # in the smallest possible cyclotomic field.
 
-      coeffs:= COEFFS_CYC( z );  # the internal function,
-                                 # returns `CoeffsCyc( z, Conductor( z ) )'
+      coeffs:= ExtRepOfObj( z ); # returns `CoeffsCyc( z, Conductor( z ) )'
       n:= Length( coeffs );
       quo:= N / n;
       if not IsInt( quo ) then
@@ -240,8 +257,8 @@ end );
 ##  (mainly to read tables produced by the `ctoc' script used to translate
 ##  character tables in CAS format to {\GAP})
 ##
-##  *Note*\: `CycList( COEFFS_CYC( <cyc> ) )' = <cyc>, but
-##          `COEFFS_CYC( CycList( <coeffs> ))' need not be equal to <coeffs>.
+##  *Note*\: `CycList( ExtRepOfObj( <cyc> ) )' = <cyc>, but
+##          `ExtRepOfObj( CycList(<coeffs>) )' need not be equal to <coeffs>.
 ##
 BindGlobal( "CycList", function( coeffs )
     local e, n;
@@ -333,20 +350,13 @@ InstallGlobalFunction( EH, n -> Atlas1( n, 8 ) );
 
 #############################################################################
 ##
-#F  NK( <n>, <k>, <deriv> ) . . . . . . . . utility for ATLAS irrationalities
+#F  NK( <n>, <k>, <d> ) . . . . . . . . . . utility for ATLAS irrationalities
 ##
-##  `NK( <n>, <k>, <deriv> )' is the $(<deriv>+1)$-th number
-##  of multiplicative order exactly <k> modulo <N>, chosen in the order of
-##  preference
-##  \[ 1, -1, 2, -2, 3, -3, 4, -4, \ldots .\]
-##  (see: Conway et al, ATLAS of finite groups, Oxford University Press 1985;
-##        Chapter 7, Section 10)
-##
-BindGlobal( "NK", function( n, k, deriv )
+InstallGlobalFunction( NK, function( n, k, deriv )
     local i, nk;
     if n <= 2 or ( k in [ 2, 3, 5, 6, 7 ] and Phi( n ) mod k <> 0 )
               or k < 2 or k > 8 then
-      Error( "value does not exist" );
+      return fail;
     fi;
     if k mod 4 = 0 then
 
@@ -355,7 +365,7 @@ BindGlobal( "NK", function( n, k, deriv )
       # an automorphism of order 8 exists if 8 divides $p-1$ for an odd
       # prime divisor $p$ of `n', or if 32 divides `n';
       if ForAll(Set(FactorsInt(n)),x->(x-1) mod k<>0) and n mod (4*k)<>0 then
-        Error( "value does not exist" );
+        return fail;
       fi;
     fi;
     nk:= 1;
@@ -563,25 +573,36 @@ end );
 ##
 #F  ER( <n> ) . . . . ATLAS irrationality $r_{<n>}$ (pos. square root of <n>)
 ##
+##  Different from other {\ATLAS} irrationalities,
+##  `ER' (and its synonym `Sqrt') can be applied also to noninteger
+##  rationals.
+##
 InstallGlobalFunction( ER, function( n )
     local factor;
-    if not IsInt( n ) then Error( "argument must be integer valued" ); fi;
-    if n = 0 then
-      return 0;
-    elif n < 0 then
-      factor:= E(4);
-      n:= -n;
+    if IsInt( n ) then
+      if n = 0 then
+        return 0;
+      elif n < 0 then
+        factor:= E(4);
+        n:= -n;
+      else
+        factor:= 1;
+      fi;
+#T split into a product of a square and a squarefree remainder!
+      if   n mod 4 = 1 then
+        return factor * ( 2 * EB(n) + 1 );
+      elif n mod 4 = 2 then
+        return factor * ( E(8) - E(8)^3 ) * ER( n / 2 );
+      elif n mod 4 = 3 then
+        return factor * (-E(4)) * ( 2 * EB(n) + 1 );
+      else
+        return factor * 2 * ER( n / 4 );
+      fi;
+    elif IsRat( n ) then
+      factor:= DenominatorRat( n );
+      return ER( NumeratorRat( n ) * factor ) / factor;
     else
-      factor:= 1;
-    fi;
-    if   n mod 4 = 1 then
-      return factor * ( 2 * EB(n) + 1 );
-    elif n mod 4 = 2 then
-      return factor * ( E(8) - E(8)^3 ) * ER( n / 2 );
-    elif n mod 4 = 3 then
-      return factor * (-E(4)) * ( 2 * EB(n) + 1 );
-    else
-      return factor * 2 * ER( n / 4 );
+      Error( "argument must be rational" );
     fi;
 end );
 
@@ -642,7 +663,7 @@ InstallGlobalFunction( Quadratic, function( cyc )
                  );
     fi;
 
-    coeffs:= COEFFS_CYC( cyc );
+    coeffs:= ExtRepOfObj( cyc );
     facts:= FactorsInt( Length( coeffs ) );
     factsset:= Set( facts );
     two_part:= Number( facts, x -> x = 2 );
@@ -831,73 +852,6 @@ InstallGlobalFunction( Quadratic, function( cyc )
                 d       := d,
                 ATLAS   := ATLAS,
                 display := display
-               );
-end );
-
-
-#############################################################################
-##
-#F  GeneratorsPrimeResidues( <n> ) . . . . . . generators of the Galois group
-##
-InstallGlobalFunction( GeneratorsPrimeResidues, function( n )
-    local factors,     # collected list of prime factors of `n'
-          primes,      # list of prime divisors of `n'
-          exponents,   # exponents of the entries in `primes'
-          generators,  # generator(s) of the prime part `ppart' of residues
-          ppart,       # one prime part of `n'
-          rest,        # `n / ppart'
-          pos,         # 1 if `n' is odd, 2 if `n' is even
-          i,           # loop over the positions in `factors'
-          gcd;         # one coefficient in the output of `Gcdex'
-
-    if n = 1 then
-      return rec(
-                  primes     := [],
-                  exponents  := [],
-                  generators := []
-                 );
-    fi;
-
-    factors:= Collected( FactorsInt( n ) );
-
-    primes     := [];
-    exponents  := [];
-    generators := [];
-
-    # For each prime part `ppart',
-    # the generator must be congruent to a primitive root modulo `ppart',
-    # and congruent 1 modulo the rest `N/ppart'.
-
-    for i in [ 1 .. Length( factors ) ] do
-
-      primes[i]    := factors[i][1];
-      exponents[i] := factors[i][2];
-      ppart        := primes[i] ^ exponents[i];
-      rest         := n / ppart;
-
-      if primes[i] = 2 then
-
-        gcd:= Gcdex( ppart, rest ).coeff2 * rest;
-        if ppart mod 8 = 0 then
-          # Choose the generators `**' and `*5'.
-          generators[i]:= [ ( -2 * gcd + 1 ) mod n,   # generator `**'
-                            (  4 * gcd + 1 ) mod n ]; # generator `*5'
-        else
-          # Choose the generator `**'.
-          generators[i]:= ( -2 * gcd + 1 ) mod n;
-        fi;
-
-      else
-        generators[i] := ( ( PrimitiveRootMod( ppart ) - 1 )
-                           * Gcdex( ppart, rest ).coeff2 * rest + 1 ) mod n;
-      fi;
-
-    od;
-
-    return rec(
-                primes     := primes,
-                exponents  := exponents,
-                generators := generators
                );
 end );
 
@@ -1188,14 +1142,14 @@ InstallMethod( RationalizedMat,
 
 #############################################################################
 ##
-#M  GroupByGenerators( <cycs> ) . . . . . . . for a collection of cyclotomics
-#M  GroupByGenerators( <cycs>, <id> ) . . . . for a collection of cyclotomics
+#M  GroupWithGenerators( <cycs> ) . . . . . . for a collection of cyclotomics
+#M  GroupWithGenerators( <cycs>, <id> ) . . . for a collection of cyclotomics
 ##
 ##  Disallow to create groups of cyclotomics because the `\^' operator has
 ##  a meaning for cyclotomics that makes it not compatible with that for
 ##  groups.
 ##
-InstallMethod( GroupByGenerators,
+InstallMethod( GroupWithGenerators,
     "for a collection of cyclotomics (raise an error)",
     true,
     [ IsCyclotomicCollection ],
@@ -1204,7 +1158,7 @@ InstallMethod( GroupByGenerators,
     Error( "sorry, no groups of cyclotomics are allowed" );
     end );
 
-InstallOtherMethod( GroupByGenerators,
+InstallOtherMethod( GroupWithGenerators,
     "for a collection of cyclotomics (raise an error)",
     IsCollsElms,
     [ IsCyclotomicCollection, IsCyc ],
@@ -1216,7 +1170,5 @@ InstallOtherMethod( GroupByGenerators,
 
 #############################################################################
 ##
-#E  cyclotom.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-
-
+#E
 

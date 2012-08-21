@@ -23,11 +23,11 @@ Revision.ring_gd :=
 ##
 DeclareProperty( "IsLDistributive", IsRingElementCollection );
 
-InstallSubsetMaintainedMethod( IsLDistributive,
+InstallSubsetMaintenance( IsLDistributive,
     IsRingElementCollection and IsLDistributive,
     IsRingElementCollection );
 
-InstallFactorMaintainedMethod( IsLDistributive,
+InstallFactorMaintenance( IsLDistributive,
     IsRingElementCollection and IsLDistributive,
     IsCollection,
     IsRingElementCollection );
@@ -38,16 +38,16 @@ InstallFactorMaintainedMethod( IsLDistributive,
 #P  IsRDistributive( <R> )
 ##
 ##  is `true' if the relation $( a + b ) * c = ( a * c ) + ( b * c )$
-##  holds for all elements $a$, $b$, $c$ in the ring <R>,
+##  holds for all elements $a$, $b$, $c$ in the domain <R>,
 ##  and `false' otherwise.
 ##
 DeclareProperty( "IsRDistributive", IsRingElementCollection );
 
-InstallSubsetMaintainedMethod( IsRDistributive,
+InstallSubsetMaintenance( IsRDistributive,
     IsRingElementCollection and IsRDistributive,
     IsRingElementCollection );
 
-InstallFactorMaintainedMethod( IsRDistributive,
+InstallFactorMaintenance( IsRDistributive,
     IsRingElementCollection and IsRDistributive,
     IsCollection,
     IsRingElementCollection );
@@ -57,7 +57,7 @@ InstallFactorMaintainedMethod( IsRDistributive,
 ##
 #P  IsDistributive( <R> )
 ##
-##  is `true' if the ring <R> is both left and right distributive,
+##  is `true' if the domain <R> is both left and right distributive,
 ##  and `false' otherwise.
 ##
 DeclareSynonymAttr( "IsDistributive", IsLDistributive and IsRDistributive );
@@ -65,11 +65,15 @@ DeclareSynonymAttr( "IsDistributive", IsLDistributive and IsRDistributive );
 
 #############################################################################
 ##
-#C  IsRing( <R> )
+#P  IsRing( <R> )
 ##
-##  A ring in {\GAP} is an additive group that is also a magma,
-##  such that addition and multiplication are distributive.
-##  (The multiplication need *not* be associative.)
+##  A *ring* in {\GAP} is an additive group (see~"IsAdditiveGroup")
+##  that is also a magma (see~"IsMagma"),
+##  such that addition `+' and multiplication `\*' are distributive.
+##
+##  The multiplication need *not* be associative (see~"IsAssociative").
+##  For example, a Lie algebra (see~"Lie Algebras") is regarded as a
+##  ring in {\GAP}.
 ##
 DeclareSynonymAttr( "IsRing",
     IsAdditiveGroup and IsMagma and IsDistributive );
@@ -77,12 +81,13 @@ DeclareSynonymAttr( "IsRing",
 
 #############################################################################
 ##
-#C  IsRingWithOne( <R> )
+#P  IsRingWithOne( <R> )
 ##
-##  A ring-with-one in {\GAP} is an additive group that is also a
-##  magma-with-one,
+##  A *ring-with-one* in {\GAP} is an additive group (see~"IsAdditiveGroup")
+##  that is also a magma-with-one (see~"IsMagmaWithOne"),
 ##  such that addition and multiplication are distributive.
-##  (The multiplication need *not* be associative.)
+##
+##  The multiplication need *not* be associative.
 ##
 ##  Note that the identity and the zero of a ring-with-one need *not* be
 ##  distinct.
@@ -103,12 +108,13 @@ DeclareSynonymAttr( "IsRingWithOne",
 ##
 #C  IsUniqueFactorizationRing( <R> )
 ##
-##  A ring <R> is  called a *unique factorization ring* if it is an integral
-##  ring, and every element has a unique factorization into irreducible
-##  elements, i.e., a  unique representation as product  of irreducibles (see
+##  A ring <R> is called a *unique factorization ring* if it is an integral
+##  ring (see~"IsIntegralRing"),
+##  and every element has a unique factorization into irreducible elements,
+##  i.e., a  unique representation as product  of irreducibles (see
 ##  "IsIrreducibleRingElement").
 ##  Unique in this context means unique up to permutations of the factors and
-##  up to multiplication of the factors by units (see "Units").
+##  up to multiplication of the factors by units (see~"Units").
 ##
 ##  (Note that we cannot install a subset maintained method for this category
 ##  since the factorization of an element needs not exist in a subring.
@@ -126,14 +132,16 @@ DeclareCategory( "IsUniqueFactorizationRing", IsRing );
 ##
 #C  IsEuclideanRing( <R> )
 ##
-##  A ring $R$ is called a Euclidean ring if it is an integral ring and there
-##  exists a function $\delta$, called the Euclidean degree, from $R-\{0_R\}$
-##  to the nonnegative integers, such that for every pair $r \in R$ and
-##  $s \in  R-\{0_R\}$ there exists an element $q$ such that either
-##  $r - q s = 0_R$ or $\delta(r - q s) \< \delta( s )$.
-##  The existence of this division with remainder implies that the Euclidean
-##  algorithm can be applied to compute a greatest common divisor of two
-##  elements, which in turn implies that $R$ is a unique factorization ring.
+##  A ring $R$ is called a Euclidean ring if it is an integral ring and
+##  there exists a function $\delta$, called the Euclidean degree, from
+##  $R-\{0_R\}$ to the nonnegative integers, such that for every pair $r \in
+##  R$ and $s \in  R-\{0_R\}$ there exists an element $q$ such that either
+##  $r - q s = 0_R$ or $\delta(r - q s) \< \delta( s )$. In {\GAP} the
+##  euclidean degree $\delta$ is implicitly built into an ring and cannot be
+##  changed.  The existence of this division with remainder implies that the
+##  Euclidean algorithm can be applied to compute a greatest common divisor
+##  of two elements, which in turn implies that $R$ is a unique
+##  factorization ring.
 ##
 #T more general: new category ``valuated domain''?
 ##
@@ -151,10 +159,10 @@ DeclareCategory( "IsEuclideanRing",
 ##
 DeclareProperty( "IsAnticommutative", IsRing );
 
-InstallSubsetMaintainedMethod( IsAnticommutative,
+InstallSubsetMaintenance( IsAnticommutative,
     IsRing and IsAnticommutative, IsRing );
 
-InstallFactorMaintainedMethod( IsAnticommutative,
+InstallFactorMaintenance( IsAnticommutative,
     IsRing and IsAnticommutative, IsCollection, IsRing );
 
 
@@ -168,7 +176,7 @@ InstallFactorMaintainedMethod( IsAnticommutative,
 ##
 DeclareProperty( "IsIntegralRing", IsRing );
 
-InstallSubsetMaintainedMethod( IsIntegralRing,
+InstallSubsetMaintenance( IsIntegralRing,
     IsRing and IsIntegralRing, IsRing and IsNonTrivial );
 
 InstallTrueMethod( IsIntegralRing,
@@ -182,7 +190,7 @@ InstallTrueMethod( IsIntegralRing,
 #P  IsJacobianRing( <R> )
 ##
 ##  is `true' if the Jacobi identity holds in <R>, and `false' otherwise.
-##  The Jacobi identity means that $x * y * z + z * x * y + y * z * x$
+##  The Jacobi identity means that $x \* y \* z + z \* x \* y + y \* z \* x$
 ##  is the zero element of <R>, for all elements $x$, $y$, $z$ in <R>.
 ##
 DeclareProperty( "IsJacobianRing", IsRing );
@@ -190,10 +198,10 @@ DeclareProperty( "IsJacobianRing", IsRing );
 InstallTrueMethod( IsJacobianRing,
     IsJacobianElementCollection and IsRing );
 
-InstallSubsetMaintainedMethod( IsJacobianRing,
+InstallSubsetMaintenance( IsJacobianRing,
     IsRing and IsJacobianRing, IsRing );
 
-InstallFactorMaintainedMethod( IsJacobianRing,
+InstallFactorMaintenance( IsJacobianRing,
     IsRing and IsJacobianRing, IsCollection, IsRing );
 
 
@@ -211,10 +219,10 @@ InstallTrueMethod( IsAnticommutative, IsRing and IsZeroSquaredRing );
 InstallTrueMethod( IsZeroSquaredRing,
     IsZeroSquaredElementCollection and IsRing );
 
-InstallSubsetMaintainedMethod( IsZeroSquaredRing,
+InstallSubsetMaintenance( IsZeroSquaredRing,
     IsRing and IsZeroSquaredRing, IsRing );
 
-InstallFactorMaintainedMethod( IsZeroSquaredRing,
+InstallFactorMaintenance( IsZeroSquaredRing,
     IsRing and IsZeroSquaredRing, IsCollection, IsRing );
 
 
@@ -794,5 +802,5 @@ DeclareGlobalFunction( "SubringWithOneNC" );
 
 #############################################################################
 ##
-#E  ring.gd . . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

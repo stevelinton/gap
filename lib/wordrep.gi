@@ -335,7 +335,7 @@ InstallMethod( \*,
     [ Is8BitsAssocWord, Is8BitsAssocWord ], 0,
     8Bits_Product );
 
-InstallMethod( One,
+InstallMethod( OneOp,
     "for an 8 bits assoc. word-with-one",
     true,
     [ Is8BitsAssocWord and IsAssocWordWithOne ], 0,
@@ -412,7 +412,7 @@ InstallMethod( \*,
     [ Is16BitsAssocWord, Is16BitsAssocWord ], 0,
     16Bits_Product );
 
-InstallMethod( One,
+InstallMethod( OneOp,
     "for a 16 bits assoc. word-with-one",
     true,
     [ Is16BitsAssocWord and IsAssocWordWithOne ], 0,
@@ -489,7 +489,7 @@ InstallMethod( \*,
     [ Is32BitsAssocWord, Is32BitsAssocWord ], 0,
     32Bits_Product );
 
-InstallMethod( One,
+InstallMethod( OneOp,
     "for a 32 bits assoc. word-with-one",
     true,
     [ Is32BitsAssocWord and IsAssocWordWithOne ], 0,
@@ -639,7 +639,7 @@ InstallMethod( \<,
     InfBits_Less );
 
 InfBits_One := x -> InfBits_AssocWord( FamilyObj(x)!.types[4],[] );
-InstallMethod( One,
+InstallMethod( OneOp,
     "for an inf. bits assoc. word-with-one",
     true,
     [ IsInfBitsAssocWord and IsAssocWordWithOne ], 0,
@@ -878,16 +878,19 @@ end );
 
 #############################################################################
 ##
-#R  IsInfiniteListOfNamesRep( <string> )
+#R  IsInfiniteListOfNamesRep( <list> )
 ##
-##  is a representation of a list containing at position $i$ the string
-##  `<string>$i$'.
+##  is a representation of a list <list> containing at position $i$
+##  either the string `<string>$i$' or the string `<init>[$i$]',
+##  where the latter holds if and only if $i$ does not exceed the
+##  length of the list <init>.
 ##
-##  <string> is stored at position 1 in the list object.
+##  <string> is stored at position 1 in the positional object <list>,
+##  <init> is stored at position 2.
 ##
 DeclareRepresentation( "IsInfiniteListOfNamesRep",
     IsPositionalObjectRep,
-    [ 1 ] );
+    [ 1, 2 ] );
 
 InstallMethod( PrintObj,
     "for an infinite list of names",
@@ -911,8 +914,12 @@ InstallMethod( \[\],
     [ IsList and IsInfiniteListOfNamesRep, IsPosInt ], 0,
     function( list, pos )
     local entry;
-    entry:= Concatenation( list![1], String( pos ) );
-    ConvertToStringRep( entry );
+    if pos <= Length( list![2] ) then
+      entry:= list![2][ pos ];
+    else
+      entry:= Concatenation( list![1], String( pos ) );
+      ConvertToStringRep( entry );
+    fi;
     return entry;
     end );
 
@@ -928,11 +935,19 @@ InstallMethod( Position,
     [ IsList and IsInfiniteListOfNamesRep, IsObject, IsZeroCyc ], 0,
     function( list, obj, zero )
     local digits, pos, i;
-    if    ( not IsString( obj ) )
+
+    # Check whether `obj' is in the initial segment, and if not,
+    # whether `obj' matches the names in the rest of the list..
+    pos:= Position( list![2], obj );
+    if pos <> fail then
+      return pos;
+    elif  ( not IsString( obj ) )
        or Length( obj ) <= Length( list![1] )
        or obj{ [ 1 .. Length( list![1] ) ] } <> list![1] then
       return fail;
     fi;
+
+    # Convert the suffix to a number if possible.
     digits:= "0123456789";
     pos:= 0;
     for i in [ Length( list![1] ) + 1 .. Length( obj ) ] do
@@ -942,6 +957,12 @@ InstallMethod( Position,
         return fail;
       fi;
     od;
+
+    # If the number belongs to a position in the initial segment,
+    # `obj' is not in the list.
+    if pos <= Length( list![2] ) then
+      pos:= fail;
+    fi;
     return pos;
     end );
 
@@ -949,18 +970,29 @@ InstallMethod( Position,
 #############################################################################
 ##
 #F  InfiniteListOfNames( <string> )
+#F  InfiniteListOfNames( <string>, <init> )
 ##
-InstallGlobalFunction( InfiniteListOfNames, function( string )
-    local list;
+InstallGlobalFunction( InfiniteListOfNames, function( arg )
+    local string, init, list;
+
+    if Length( arg ) = 1 and IsString( arg[1] ) then
+      string := Immutable( arg[1] );
+      init   := Immutable( [] );
+    elif Length( arg ) = 2 and IsString( arg[1] ) and IsList( arg[2] ) then
+      string := Immutable( arg[1] );
+      init   := Immutable( arg[2] );
+    fi;
+
     list:= Objectify( NewType( CollectionsFamily( FamilyObj( string ) ),
                                    IsList
                                and IsDenseList
                                and IsConstantTimeAccessList
                                and IsInfiniteListOfNamesRep ),
-                      [ string ] );
+                      [ string, init ] );
     SetIsFinite( list, false );
     SetIsEmpty( list, false );
     SetLength( list, infinity );
+#T meaningless since not attribute storing!
     return list;
 end );
 
@@ -970,13 +1002,14 @@ end );
 #R  IsInfiniteListOfGeneratorsRep( <F> )
 ##
 ##  is a representation of a list containing at position $i$ the $i$-th
-##  generator of the free something family <F>.
+##  generator of the ``free something family'' <F>.
 ##
-##  <F> is stored at position 1 in the list object.
+##  <F> is stored at position 1 in the list object,
+##  at position 2 a list of initial generators is stored.
 ##
 DeclareRepresentation( "IsInfiniteListOfGeneratorsRep",
     IsPositionalObjectRep,
-    [ 1 ] );
+    [ 1, 2 ] );
 
 InstallMethod( ViewObj,
     "for an infinite list of generators",
@@ -1005,7 +1038,11 @@ InstallMethod( \[\],
     true,
     [ IsList and IsInfiniteListOfGeneratorsRep, IsPosInt ], 0,
     function( list, i )
-    return ObjByExtRep( list![1], [ i, 1 ] );
+    if i <= Length( list![2] ) then
+      return list![2][i];
+    else
+      return ObjByExtRep( list![1], [ i, 1 ] );
+    fi;
     end );
 
 InstallMethod( Position,
@@ -1049,18 +1086,28 @@ InstallMethod( Random,
 #############################################################################
 ##
 #F  InfiniteListOfGenerators( <F> )
+#F  InfiniteListOfGenerators( <F>, <init> )
 ##
-InstallGlobalFunction( InfiniteListOfGenerators, function( F )
-    local list;
+InstallGlobalFunction( InfiniteListOfGenerators, function( arg )
+    local F, init, list;
+    if Length( arg ) = 1 and IsFamily( arg[1] ) then
+      F    := arg[1];
+      init := Immutable( [] );
+    elif Length( arg ) = 2 and IsFamily( arg[1] ) and IsList( arg[2] ) then
+      F    := arg[1];
+      init := Immutable( arg[2] );
+    fi;
+
     list:= Objectify( NewType( CollectionsFamily( F ),
                                    IsList
                                and IsDenseList
                                and IsConstantTimeAccessList
                                and IsInfiniteListOfGeneratorsRep ),
-                      [ F ] );
+                      [ F, init ] );
     SetIsFinite( list, false );
     SetIsEmpty( list, false );
     SetLength( list, infinity );
+#T meaningless since not attribute storing!
     return list;
 end );
 

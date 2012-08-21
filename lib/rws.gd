@@ -11,46 +11,46 @@
 ##  implementation of a rewriting system must at least implement methods for
 ##
 ##    constructing such a rewriting system,
-##    'CopyRws',
-##    'IsConfluent',
-##    'ReducedForm', and
-##    'Rules'.
+##    `CopyRws',
+##    `IsConfluent',
+##    `ReducedForm', and
+##    `Rules'.
 ##
-##  An  implementation might  also  want to  implement 'MakeConfluent' and/or
-##  'ConfluentRws'.
+##  An  implementation might  also  want to  implement `MakeConfluent' and/or
+##  `ConfluentRws'.
 ##
 ##  The generic methods, which are defined in "rws.gi", for
 ##
-##    'ReducedAdditiveInverse',
-##    'ReducedComm',
-##    'ReducedConjugate',
-##    'ReducedDifference'
-##    'ReducedInverse',
-##    'ReducedLeftQuotient',
-##    'ReducedOne',
-##    'ReducedPower',
-##    'ReducedProduct'
-##    'ReducedScalarProduct',
-##    'ReducedSum', and
-##    'ReducedZero',
+##    `ReducedAdditiveInverse',
+##    `ReducedComm',
+##    `ReducedConjugate',
+##    `ReducedDifference'
+##    `ReducedInverse',
+##    `ReducedLeftQuotient',
+##    `ReducedOne',
+##    `ReducedPower',
+##    `ReducedProduct'
+##    `ReducedScalarProduct',
+##    `ReducedSum', and
+##    `ReducedZero',
 ##
-##  use 'ReducedForm'. Depending on the underlying  structure not all of them
-##  will  work.  For example, for  a  monoid 'ReducedInverse' will produce an
+##  use `ReducedForm'. Depending on the underlying  structure not all of them
+##  will  work.  For example, for  a  monoid `ReducedInverse' will produce an
 ##  error because  the generic methods  tries to  reduced  the inverse of the
 ##  given element.
 ##
 ##  As in  general  a rewriting system will    be first built   and then used
-##  without   changing   it,  some   functions   (e.   g.  'GroupByRws') call
-##  'ReduceRules'  to give the rewriting  system a chance to optimise itself.
-##  The default method for 'ReduceRules' is "do nothing".
+##  without   changing   it,  some   functions   (e.   g.  `GroupByRws') call
+##  `ReduceRules'  to give the rewriting  system a chance to optimise itself.
+##  The default method for `ReduceRules' is "do nothing".
 ##
-##  The underlying  structure is stored  in the  attribute 'UnderlyingFamily'
+##  The underlying  structure is stored  in the  attribute `UnderlyingFamily'
 ##  and  the  generators  used for  the  rewriting  system   in the attribute
-##  'GeneratorsOfRws'.   The number  of  rws  generators   is stored in   the
-##  attribute 'NumberGeneratorsOfRws'.
+##  `GeneratorsOfRws'.   The number  of  rws  generators   is stored in   the
+##  attribute `NumberGeneratorsOfRws'.
 ##
 ##  The family of a rewriting system also contains the underlying family, the
-##  default    method for 'UnderlyingFamily'    uses  the family  to get  the
+##  default    method for `UnderlyingFamily'    uses  the family  to get  the
 ##  underlying family for a given rewriting system.
 ##
 Revision.rws_gd :=
@@ -184,7 +184,7 @@ DeclareAttribute(
 
 #############################################################################
 ##
-#A  UnderlyingFamily( <rws> )
+#a  UnderlyingFamily( <rws> )
 ##
 #T DeclareAttribute(
 #T     "UnderlyingFamily",
@@ -195,10 +195,12 @@ DeclareAttribute(
 
 #############################################################################
 ##
-
 #P  IsConfluent( <rws> )
+#P  IsConfluent( <G> )
 ##
-##  NOTE:  this  is a  property  *but*  rewriting  system  do not store  this
+##  checks whether the rewriting system <rws> is confluent. In its second
+##  form it checks whether the rewriting system underlying <G> is confluent.
+##  NOTE: this is a property *but* the rewriting system does not store  this
 ##  attribute.
 ##
 DeclareProperty(

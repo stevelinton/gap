@@ -1,0 +1,11 @@
+#############################################################################
+##
+#W  id768.z                GAP library of id's             Hans Ulrich Besche
+##
+Revision.id768_z :=
+    "@(#)$Id$";
+
+ID_GROUP_TREE.next[768]:=
+rec(
+  fp:= [ 1, 2 ],
+  next:= [ ] );

@@ -739,7 +739,7 @@ InstallGlobalFunction( Decreased, function( arg )
 
     # number of columns
     n := Length( solmat[1] );
-    invmat := MutableIdentityMat( n );
+    invmat := IdentityMat( n );
     for i in [1..m] do  
        delline[i] := false;
     od;

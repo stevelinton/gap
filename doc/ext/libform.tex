@@ -1,0 +1,118 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%W  libform.tex              GAP documentation           Alexander Hulpke
+%%
+%H  @(#)$Id$
+%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Chapter{Library Files}
+
+This chapter describes some of the conventions used in the {\GAP}
+library files.
+These conventions are intended as a help on how to read library files and
+how to find information in them.
+So everybody is recommended to obey these conventions,
+although they do not prescribe a compulsory programming style
+--{\GAP} itself will not bother with the formatting of files.
+
+All filenames used by {\GAP} adhere to the 8+3 convention (this permits to
+use the same filenames even on a MS-DOS file system) and are in lower
+case (systems that do not recognize lower case in file names will convert
+them automatically to upper case).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{File Types}
+
+The {\GAP} library consists of the following types of files, distinguished
+by their suffixes:
+
+\beginitems
+`.g': &
+    Files which contain parts of the ``inner workings'' of {\GAP}.
+    These files usually do not contain mathematical functionality,
+    except for providing links to kernel functions.
+
+`.gd': &
+    Declaration files.
+    These files contain declarations of all categories, attributes,
+    operations, and global functions.
+    These files also contain the operation definitions in comments.
+
+`.gi': &
+    Implementation files.
+    These files contain all installations of methods and global functions.
+    Usually declarations of representations are also considered to be
+    part of the implementation and are therefore found in the `gi' files.
+
+    &
+    As a rule of thumb, all `gd' files are read in before the `gi' files
+    are read.
+    Therefore a `gi' file usually may use any operation or global function
+    (it has been declared before),
+    and no care has to be taken towards the order in which the `gi' files
+    are read.
+
+`.co': &
+    Completion files.
+    They are used only to speed up loading
+    (see~"ref:Completion Files" in the Reference Manual).
+\enditems
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{File Structure}
+
+Every file starts with a header that lists the filename, copyright, a short
+description of the file contents and the original authors of this file.
+
+This is followed by a revision entry:
+\begintt
+Revision.file_suf :=
+    "@(#)$Id$";
+\endtt
+where `file.suf' is the file name. The revision control system used for the
+development will automatically append text to the string ``{`Id: '}'' which
+indicates the version number. The reason for these revision entries is to
+give the possibility to check from withing {\GAP} for revision numbers of a
+file. (Do not mistake these revision numbers for the version number of
+{\GAP} itself.)
+
+Global comments usually are indented by two hash marks and two blanks.
+If a section of such a comment is introduced by a line containing
+a hash mark and a number it will be used for the manual
+(stripped of the hash marks and leading two blanks).
+
+Every declaration or method or function installation which is not only of
+local scope is introduced by a function header of the following type.
+\begintt
+#############################################################################
+##
+#X  ExampleFunction(<A>,<B>)
+##
+##  This function does nothing.
+\endtt
+The initial letter (`X' in the example) has the same meaning as at the end
+of a declaration line in the Reference Manual (see~"tut:Manual Conventions"
+in the Tutorial),
+it indicates whether the object declared will be a category, representation
+and so forth.
+Additionally `M' is used in `.gi' files for method installations.
+The line then gives a sample usage of the function.
+This is followed by a comment which describes the identifier.
+This decription will automatically be used by the process to build the
+Reference Manual source.
+
+Indentation in functions and the use of decorative spaces in the code are
+left to the decision of the authors of each file .
+
+The file ends with an 
+\begintt
+#E
+\endtt
+comment section that may be used to store formatting descriptions for an
+editor.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%E
+

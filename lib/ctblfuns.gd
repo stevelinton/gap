@@ -23,12 +23,12 @@ Revision.ctblfuns_gd :=
 ##
 #C  IsClassFunction( <obj> )
 ##
-##  A *class function* in characteristic $p$ of a finite group $G$ is a map
-##  from the set of $p$-regular elements in $G$ to the cyclotomics that is
+##  A *class function* (in characteristic $p$) of a finite group $G$ is a map
+##  from the set of ($p$-regular) elements in $G$ to the cyclotomics that is
 ##  constant on conjugacy classes of $G$.
 ##
 ##  There are (at least) two reasons why class functions in {\GAP} are *not*
-##  implemented as (general) mappings.
+##  implemented as mappings.
 ##  First, we want to distinguish class functions in different
 ##  characteristics, for example to be able to define the Frobenius character
 ##  of a given Brauer character; 
@@ -38,16 +38,13 @@ Revision.ctblfuns_gd :=
 ##  function, whereas the product of general mappings is defined as
 ##  composition.
 ##
-##  Each class function is a ring element.
+##  Each class function is an immutable list,
+##  and also a ring element.
 ##  (Note that we want to form, e.g., groups of linear characters.)
 ##  The product of two class functions of the same group in the same
 ##  characteristic is again a class function;
 ##  in this respect, class functions behave differently from their
 ##  values lists.
-##
-##  Each class function is an immutable list.
-##  Note that the product of class functions is different from the product
-##  of lists, so class functions do not behave exactly as their values lists.
 ##
 ##  Each class function knows its underlying character table.
 ##
@@ -64,7 +61,7 @@ DeclareCategory( "IsClassFunction",
 #C  IsClassFunctionWithGroup( <obj> )
 ##
 ##  A class function that knows about an underlying group can be asked for
-##  its kernel or centre or inertia subgroups or ...
+##  its kernel, centre, inertia subgroups etc.
 ##
 ##  Note that the class function knows the underlying group only via its
 ##  character table.
@@ -95,32 +92,6 @@ DeclareCategoryFamily( "IsClassFunction" );
 
 #############################################################################
 ##
-#R  IsClassFunctionsSpaceRep( <V> )
-##
-##  Free left modules of class functions are handled by associating to a
-##  class function the row vector given by its values.
-##
-##  If the nice free left module has been computed then
-##  free left modules of class functions contain the components
-##
-##  'elementsunderlying' : \\
-##       the underlying character table of the elements,
-##
-DeclareRepresentation( "IsClassFunctionsSpaceRep",
-    IsAttributeStoringRep and IsHandledByNiceBasis,
-    [ "elementsunderlying" ] );
-
-
-#############################################################################
-##
-#M  IsClassFunctionsSpaceRep
-##
-InstallTrueMethod( IsClassFunctionsSpaceRep,
-    IsFreeLeftModule and IsClassFunctionCollection );
-
-
-#############################################################################
-##
 #A  ClassFunctionFamily( <tbl> )
 ##
 ##  is the family of all class functions of the character table <tbl>.
@@ -132,8 +103,8 @@ DeclareAttribute( "ClassFunctionFamily", IsNearlyCharacterTable );
 ##
 #A  UnderlyingCharacterTable( <psi> )
 ##
-##  The family of class functions stores the value in the component
-##  'underlyingCharacterTable'.
+##  The family of class functions stores the value in its component
+##  `underlyingCharacterTable'.
 ##  (This belongs to the defining data of the class function <psi>.)
 ##
 DeclareAttribute( "UnderlyingCharacterTable", IsClassFunction );
@@ -144,8 +115,8 @@ DeclareAttribute( "UnderlyingCharacterTable", IsClassFunction );
 #A  ValuesOfClassFunction( <psi> ) . . . . . . . . . . . . . . list of values
 ##
 ##  is the list of values of the class function <psi>, the $i$-th entry
-##  being the value on the $i$-th conjugacy class of the underlying group
-##  resp. character table.
+##  being the value on the $i$-th conjugacy class of the underlying
+##  character table.
 ##
 ##  This belongs to the defining data of the class function <psi>.
 ##
@@ -180,18 +151,23 @@ DeclareProperty( "IsIrreducibleCharacter", IsClassFunction );
 ##
 #M  IsVirtualCharacter( <chi> ) . . . . . . . . . . . . . . . for a character
 ##
+##  Each character is of course a virtual character.
+##
 InstallTrueMethod( IsVirtualCharacter, IsCharacter );
 
 
 #############################################################################
 ##
 #A  CentreOfCharacter( <psi> )
+#A  CenterOfCharacter( <psi> )
 ##
 ##  is the centre of the character <psi>,
 ##  as a subgroup of the underlying group of <psi>.
 ##
 DeclareAttribute( "CentreOfCharacter",
     IsClassFunctionWithGroup and IsCharacter );
+
+DeclareSynonym( "CenterOfCharacter", CentreOfCharacter );
 
 
 #############################################################################
@@ -200,6 +176,8 @@ DeclareAttribute( "CentreOfCharacter",
 ##
 ##  is the list of positions of classes forming the centre of the character
 ##  <chi> of the ordinary character table <tbl>.
+#T  for one argument?
+#T  then why not attribute
 ##
 DeclareOperation( "CentreChar", [ IsClassFunction and IsCharacter ] );
 
@@ -225,23 +203,16 @@ DeclareAttribute( "DegreeOfCharacter", IsClassFunction and IsCharacter );
 
 #############################################################################
 ##
-#A  InertiaSubgroupInParent( <psi> )
+#O  InertiaSubgroup( <G>, <psi> )
 ##
-##  Let $H$ be the underlying group of the character <chi>, and $G$ the
-##  parent of $H$.
-##  Then 'InertiaSubgroupInParent( <chi> )' is the inertia subgroup of <chi>
-##  in the normalizer of $H$ in $G$.
+##  For a (not necessarily irreducible) character <psi> of the group $H$
+##  and a group <G> that contains $H$ as a normal subgroup,
+##  `InertiaSubgroup' returns the largest subgroup of <G> that leaves <psi>
+##  invariant under conjugation action.
+##  In other words, `InertiaSubgroup' returns the group of all those elements
+##  <g> in <G> that satisfy `<chi>^<g> = <chi>'.
 ##
-DeclareAttribute( "InertiaSubgroupInParent",
-    IsClassFunctionWithGroup and IsCharacter );
-
-
-#############################################################################
-##
-#O  InertiaSubgroup( <H>, <psi> )
-##
-DeclareOperation( "InertiaSubgroup",
-    [ IsGroup, IsClassFunctionWithGroup and IsCharacter ] );
+DeclareOperation( "InertiaSubgroup", [ IsGroup, IsClassFunctionWithGroup ] );
 
 
 #############################################################################
@@ -271,7 +242,7 @@ DeclareAttribute( "KernelChar", IsClassFunction and IsCharacter );
 #A  TrivialCharacter( <tbl> )
 #A  TrivialCharacter( <G> )
 ##
-##  is the trivial character of the group <G> resp. its character table
+##  is the trivial character of the group <G> or its character table
 ##  <tbl>.
 ##
 DeclareAttribute( "TrivialCharacter", IsNearlyCharacterTable );
@@ -281,11 +252,11 @@ DeclareAttribute( "TrivialCharacter", IsNearlyCharacterTable );
 ##
 #A  NaturalCharacter( <G> )
 ##
-##  If <G> is a permutation group then 'NaturalCharacter' returns the
+##  If <G> is a permutation group then `NaturalCharacter' returns the
 ##  character of the natural permutation representation of <G> on the set of
 ##  moved points.
 ##
-##  If <G> is a matrix group in characteristic zero then 'NaturalCharacter'
+##  If <G> is a matrix group in characteristic zero then `NaturalCharacter'
 ##  returns the character of the natural matrix representation of <G>.
 ##
 DeclareAttribute( "NaturalCharacter", IsGroup );
@@ -305,10 +276,14 @@ DeclareAttribute( "NaturalCharacter", IsGroup );
 ##  element of $c$.
 ##
 ##  To compute the permutation character of a *transitive permutation group*
-##  <G> on the cosets of a point stabilizer <U>, 'NaturalCharacter( <G> )'
-##  can be used instead of 'PermutationCharacter( <G>, <U> )'.
+##  <G> on the cosets of a point stabilizer <U>,
+##  the attribute `NaturalCharacter( <G> )' can be used instead of
+##  `PermutationCharacter( <G>, <U> )'.
 ##
 DeclareOperation( "PermutationCharacter", [ IsGroup, IsGroup ] );
+
+
+#T  declare also for other new method !
 
 
 #############################################################################
@@ -316,7 +291,7 @@ DeclareOperation( "PermutationCharacter", [ IsGroup, IsGroup ] );
 #F  CycleStructureClass( <permchar>, <class> )
 ##
 ##  Let <permchar> be a permutation character, and <class> the position of a
-##  conjugacy class.
+##  conjugacy class of the character table of <permchar>.
 ##  `CycleStructureClass' returns the cycle structure of the elements in
 ##  class <class> in the underlying permutation representation.
 ##
@@ -355,7 +330,8 @@ DeclareOperation( "CharacterByValues",
 #F  ClassFunctionSameType( <tbl>, <chi>, <values> )
 ##
 ##  is the class function $\psi$ of the table <tbl>
-##  (esp. of same characteristic as <tbl>) with values list <values>.
+##  (in particular of same characteristic as <tbl>)
+##  with values list <values>.
 ##
 ##  If <chi> is a virtual character then $\psi$ is a virtual character,
 ##  if <chi> is a character then $\psi$ is a character.
@@ -410,11 +386,11 @@ DeclareOperation( "DeterminantChar",
 ##  Let $M$ be a matrix of a representation affording the character <char>,
 ##  for a group element in the <class>-th conjugacy class of <tbl>.
 ##
-##  'EigenvaluesChar( <tbl>, <char>, <class> )' is the list of length
-##  '$n$ = orders[ <class> ]' where at position 'k' the multiplicity
-##  of 'E(n)^k = $e^{\frac{2\pi i k}{n}$' as eigenvalue of $M$ is stored.
+##  `EigenvaluesChar( <tbl>, <char>, <class> )' is the list of length
+##  `$n$ = orders[ <class> ]' where at position `k' the multiplicity
+##  of `E(n)^k = $e^{\frac{2\pi i k}{n}$' as eigenvalue of $M$ is stored.
 ##
-##  We have '<char>[ <class> ] = List( [ 1 .. <n> ], k -> E(n)^k )
+##  We have `<char>[ <class> ] = List( [ 1 .. <n> ], k -> E(n)^k )
 ##                               * EigenvaluesChar( <tbl>, <char>, <class> ).
 ##
 DeclareOperation( "EigenvaluesChar",
@@ -451,7 +427,7 @@ DeclareSynonym( "InflatedClassFunction", RestrictedClassFunction );
 ##  is the list of indirections of <chars> from <tbl> to <subtbl> by a fusion
 ##  map.  This map can either be entered directly as <fusionmap>, or it must
 ##  be stored on the table <subtbl>; in the latter case the value of the
-##  'specification' field may be specified.
+##  `specification' field may be specified.
 ##
 DeclareOperation( "RestrictedClassFunctions",
     [ IsClassFunctionCollection, IsGroup ] );
@@ -485,7 +461,7 @@ DeclareOperation( "InducedClassFunction", [ IsClassFunction, IsGroup ] );
 ##  induces <chars> from <subtbl> to <tbl>.
 ##  The fusion map can either be entered directly as <fusionmap>,
 ##  or it must be stored on the table <subtbl>;
-##  in the latter case the value of the 'specification' field may be
+##  in the latter case the value of the `specification' field may be
 ##  specified.
 ##
 ##  Note that <specification> must not be a list!
@@ -499,22 +475,22 @@ DeclareOperation( "InducedClassFunctions",
 #O  ReducedClassFunctions( <ordtbl>, <constituents>, <reducibles> )
 #O  ReducedClassFunctions( <ordtbl>, <reducibles> )
 ##
-##  is a record with components 'remainders' and 'irreducibles', both lists
+##  is a record with components `remainders' and `irreducibles', both lists
 ##
-##  Let 'rems' be the set of nonzero characters obtained from <reducibles>
+##  Let `rems' be the set of nonzero characters obtained from <reducibles>
 ##  by subtraction of
 ##  $\sum_{j}
 ##   \frac{'ScalarProduct( <ordtbl>, <reducibles>[i], <constituents>[j]}
 ##        {'ScalarProduct( <ordtbl>, <constituents>[j], <constituents>[j]}
 ##            \cdot <constituents>[j]$
-##  from '<reducibles>[i]'.
+##  from `<reducibles>[i]'.
 ##
-##  Let 'irrs' be the list of irreducible characters in 'rems'.
+##  Let `irrs' be the list of irreducible characters in `rems'.
 ##
-##  We reduce 'rems' with 'irrs' and all found irreducibles until no new
+##  We reduce `rems' with `irrs' and all found irreducibles until no new
 ##  irreducibles are found.
-##  Then 'irreducibles' is the set of all found irreducible characters,
-##  'remainders' is the set of all nonzero remainders.
+##  Then `irreducibles' is the set of all found irreducible characters,
+##  `remainders' is the set of all nonzero remainders.
 ##
 ##  The class functions in <constituents> and <reducibles> are assumed to
 ##  be virtual characters.
@@ -533,7 +509,7 @@ DeclareSynonym( "Reduced", ReducedClassFunctions );
 ##
 #O  ReducedCharacters( <ordtbl>, <constituents>, <reducibles> )
 ##
-##  like 'Reduced', but <constituents> and <reducibles> are known to be
+##  like `Reduced', but <constituents> and <reducibles> are known to be
 ##  proper characters of <ordtbl>, so only those scalar products must be
 ##  formed where the degree of the constituent is not bigger than the
 ##  degree of the reducibles character.
@@ -552,13 +528,14 @@ DeclareSynonym( "ReducedOrdinary", ReducedCharacters );
 
 #############################################################################
 ##
-#A  GlobalPartitionOfClasses( <G> )
+#A  GlobalPartitionOfClasses( <tbl> )
 ##
-##  Let <n> be the number of conjugacy classes of the group <G>.
-##  'GlobalPartitionOfClasses( <G> )' is a partition of the set
-##  '[ 1 .. <n> ]' that is respected by every table automorphism of the
-##  character table of <G>.
-##  (*Note* that also fixed points occur)
+##  Let <n> be the number of conjugacy classes of the character table <tbl>.
+##  `GlobalPartitionOfClasses( <tbl> )' is a list of subsets of the range
+##  `[ 1 .. <n> ]' that forms a partition of `[ 1 .. <n> ]'.
+##  This partition is respected by each table automorphism of <tbl>
+##  (see~"AutomorphismsOfTable");
+##  *note* that also fixed points occur.
 ##
 ##  This is useful for the computation of table automorphisms.
 ##
@@ -570,122 +547,127 @@ DeclareSynonym( "ReducedOrdinary", ReducedCharacters );
 ##  form the finest possible global partition.
 ##
 ##  Otherwise the subsets in the partition are the sets of classes with
-##  same centralizer order and same element order, and if the character table
-##  is known the same number of $p$-th root classes for all $p$ for that the
-##  power maps are stored.
+##  same centralizer order and same element order,
+##  and --if more about the character table is known-- also with the same
+##  number of $p$-th root classes, for all $p$ for which the power maps
+##  are stored.
 ##
-DeclareAttribute( "GlobalPartitionOfClasses", IsGroup );
+DeclareAttribute( "GlobalPartitionOfClasses", IsNearlyCharacterTable );
 
 
 #############################################################################
 ##
-#O  CorrespondingPermutation(   <G>, <g> )
-#O  CorrespondingPermutation( <chi>, <g> )
+#O  CorrespondingPermutations( <tbl>, <elms> )
+#O  CorrespondingPermutations( <chi>, <elms> )
 ##
-##  If the first argument is a group then the permutation of conjugacy
-##  classes is returned that is induced by the group element <g>.
+##  If the first argument is a character table <tbl> then the list of
+##  permutations of conjugacy classes of <tbl> is returned
+##  that are induced by the group elements in the list <elms>;
+##  If an element of <elms> does *not* act on the classes of <tbl> then
+##  either `fail' or a (meaningless) permutation is returned.
 ##
 ##  If the first argument is a class function <chi> then the returned
-##  permutation will at least yield the same conjugate class function as
-##  the permutation induced by <g>, that is, the images are not computed
-##  for orbits on that <chi> is constant.
-#T for 'g' in 'H' is the identity or not?
+##  permutations will at least yield the same conjugate class functions as
+##  the permutations induced by <elms>,
+##  that is, the images are not necessarily computed for orbits on which
+##  <chi> is constant.
 ##
-DeclareOperation( "CorrespondingPermutation",
-    [ IsGroup, IsMultiplicativeElementWithInverse ] );
-
-
-#############################################################################
-##
-#A  PermClassesHomomorphism( <G> )
-##
-##  returns the group homomorphism mapping each element of the normalizer of
-##  <G> in its parent to the induced permutation of the conjugacy classes of
-##  <G>.
-##
-DeclareAttribute( "PermClassesHomomorphism", IsGroup );
-#T SetIsParentDependent( PermClassesHomomorphism, true );
+DeclareOperation( "CorrespondingPermutations",
+    [ IsOrdinaryTable, IsHomogeneousList ] );
+DeclareOperation( "CorrespondingPermutations",
+    [ IsClassFunction, IsHomogeneousList ] );
 
 
 ##############################################################################
 ##
-#A  NormalSubgroupClassesInfo( <G> )
+#A  NormalSubgroupClassesInfo( <tbl> )
 ##
-##  Many computations for group characters of a group $G$ involve computations
+##  Let <tbl> be the ordinary character table of the group $G$.
+##  Many computations for group characters of $G$ involve computations
 ##  in normal subgroups or factor groups of $G$.
 ##
-##  In some cases the character table of $G$ is sufficient, a question about a
-##  normal subgroup $N$ can be answered if one knows the conjugacy classes
-##  that form $N$, e.g., the question whether a character of $G$ restricts
-##  irreducibly to $N$.  But other questions require the computation of $N$ or
+##  In some cases the character table <tbl> is sufficient;
+##  for example questions about a normal subgroup $N$ of $G$ can be answered
+##  if one knows the conjugacy classes that form $N$,
+##  e.g., the question whether a character of $G$ restricts
+##  irreducibly to $N$.
+##  But other questions require the computation of $N$ or
 ##  even more information, like the character table of $N$.
 ##
 ##  In order to do these computations only once, one stores in the group a
 ##  record with components to store normal subgroups, the corresponding lists
 ##  of conjugacy classes, and (if necessary) the factor groups, namely
 ##
-##  'nsg': \\        list of normal subgroups of $G$, may be incomplete,
+##  \beginitems
+##  `nsg': &
+##      list of normal subgroups of $G$, may be incomplete,
 ##
-##  'nsgclasses': \\ at position $i$ the list of positions of conjugacy
-##                   classes forming the $i$-th entry of the 'nsg' component,
+##  `nsgclasses': &
+##      at position $i$, the list of positions of conjugacy
+##      classes of <tbl> forming the $i$-th entry of the `nsg' component,
 ##
-##  'nsgfactors': \\ at position $i$ (if bound) the factor group
-##                   modulo the $i$-th entry of the 'nsg' component.
+##  `nsgfactors': &
+##      at position $i$, if bound, the factor group
+##      modulo the $i$-th entry of the `nsg' component.
+##  \enditems
 ##
 ##  The functions
 ##
-##     'NormalSubgroupClasses',
-##     'FactorGroupNormalSubgroupClasses', and
-##     'ClassesOfNormalSubgroup'
+##     `NormalSubgroupClasses',
+##     `FactorGroupNormalSubgroupClasses', and
+##     `ClassesOfNormalSubgroup'
 ##
 ##  use these components, and they are the only functions that do this.
 ##
 ##  So if you need information about a normal subgroup for that you know the
-##  conjugacy classes, you should get it using 'NormalSubgroupClasses'.  If
+##  conjugacy classes, you should get it using `NormalSubgroupClasses'.  If
 ##  the normal subgroup was already used it is just returned, with all the
 ##  knowledge it contains.  Otherwise the normal subgroup is added to the
 ##  lists, and will be available for the next call.
 ##
 ##  For example, if you are dealing with kernels of characters using the
-##  'KernelOfCharacter' function you make use of this feature
-##  because 'KernelOfCharacter' calls 'NormalSubgroupClasses'.
+##  `KernelOfCharacter' function you make use of this feature
+##  because `KernelOfCharacter' calls `NormalSubgroupClasses'.
 ##
-DeclareAttribute( "NormalSubgroupClassesInfo", IsGroup, "mutable" );
+DeclareAttribute( "NormalSubgroupClassesInfo", IsOrdinaryTable, "mutable" );
 
 
 ##############################################################################
 ##
-#F  ClassesOfNormalSubgroup( <G>, <N> )
+#F  ClassesOfNormalSubgroup( <tbl>, <N> )
 ##
-##  is the list of positions of conjugacy classes of the group <G> that
-##  are contained in the normal subgroup <N> of <G>.
+##  is the list of positions of conjugacy classes of the character table
+##  <tbl> that are contained in the normal subgroup <N>
+##  of the underlying group of <tbl>.
 ##
 DeclareGlobalFunction( "ClassesOfNormalSubgroup" );
 
 
 ##############################################################################
 ##
-#F  NormalSubgroupClasses( <G>, <classes> )
+#F  NormalSubgroupClasses( <tbl>, <classes> )
 ##
-##  returns the normal subgroup of the group <G> that consists of the
-##  conjugacy classes whose positions are in the list <classes>.
+##  returns the normal subgroup of the underlying group $G$ of the ordinary
+##  character table <tbl>
+##  that consists of those conjugacy classes of <tbl> whose positions are in
+##  the list <classes>.
 ##
-##  If 'NormalSubgroupClassesInfo( <G> ).nsg' does not yet contain
+##  If `NormalSubgroupClassesInfo( <tbl> ).nsg' does not yet contain
 ##  the required normal subgroup,
-##  and if 'NormalSubgroupClassesInfo( <G> ).normalSubgroups' is bound then
+##  and if `NormalSubgroupClassesInfo( <tbl> ).normalSubgroups' is bound then
 ##  the result will be identical to the group in
-##  'NormalSubgroupClassesInfo( <G> ).normalSubgroups'.
+##  `NormalSubgroupClassesInfo( <tbl> ).normalSubgroups'.
 ##
 DeclareGlobalFunction( "NormalSubgroupClasses" );
 
 
 ##############################################################################
 ##
-#F  FactorGroupNormalSubgroupClasses( <G>, <classes> )
+#F  FactorGroupNormalSubgroupClasses( <tbl>, <classes> )
 ##
-##  is the factor group of the group <G> modulo the normal subgroup of
-##  <G> that consists of the conjugacy classes whose positions are in the
-##  list <classes>.
+##  is the factor group of the underlying group $G$ of the ordinary character
+##  table <tbl> modulo the normal subgroup of $G$ that consists of those
+##  conjugacy classes of <tbl> whose positions are in the list <classes>.
 ##
 DeclareGlobalFunction( "FactorGroupNormalSubgroupClasses" );
 
@@ -698,12 +680,12 @@ DeclareGlobalFunction( "FactorGroupNormalSubgroupClasses" );
 ##  The first form returns the matrix of scalar products:
 ##
 ##  $'MatScalarProducts( <tbl>, <characters1>, <characters2> )[i][j]' =
-##  'ScalarProduct( <tbl>, <characters1>[j], <characters2>[i] )'$,
+##  `ScalarProduct( <tbl>, <characters1>[j], <characters2>[i] )'$,
 ##
 ##  the second form returns a lower triangular matrix of scalar products:
 ##
 ##  $'MatScalarProducts( <tbl>, <characters> )[i][j]' =
-##  'ScalarProduct( <tbl>, <characters>[j], <characters>[i] )'$ for
+##  `ScalarProduct( <tbl>, <characters>[j], <characters>[i] )'$ for
 ##  $ j \leq i $.
 ##  
 DeclareGlobalFunction( "MatScalarProducts" );
@@ -748,5 +730,15 @@ DeclareGlobalFunction( "OrbitRepresentativesCharacters" );
 
 #############################################################################
 ##
-#E  ctblfuns.gd . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#M  IsFiniteDimensional( <classfuns> )
+##
+##  Spaces of class functions are always finite dimensional.
+##
+InstallTrueMethod( IsFiniteDimensional,
+    IsFreeLeftModule and IsClassFunctionCollection );
+
+
+#############################################################################
+##
+#E
 

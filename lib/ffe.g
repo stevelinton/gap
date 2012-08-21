@@ -28,6 +28,7 @@ MAXSIZE_GF_INTERNAL := 2^16;
 ##
 #T TYPES_FFE := WeakPointerObj( [] );
 TYPES_FFE := [];
+TYPES_FFE0 := [];
 
 
 #############################################################################
@@ -56,11 +57,34 @@ TYPE_FFE := function ( p )
     return type;
 end;
 
+#############################################################################
+##
+#F  TYPE_FFE0( <p> ) . . . . . . . . .type of zero ffe in characteristic <p>
+##
+##  see also "ffe.gi"
+##
+TYPE_FFE0 := function ( p )
+    local type, fam;
+    if IsBound( TYPES_FFE0[p] ) then
+      return TYPES_FFE0[p];
+    fi;
+#T     if IsBoundElmWPObj( TYPES_FFE, p ) then
+#T       type:= ElmWPObj( TYPES_FFE, p );
+#T       if type <> fail then
+#T         return type;
+#T       fi;
+#T     fi;
+    fam:= FamilyType(TYPE_FFE(p));
+    type:= NewType( fam, IS_FFE and IsInternalRep and IsZero and HasIsZero );
+    TYPES_FFE0[p]:= type;
+#T     SetElmWPObj( TYPES_FFE, p, type );
+    return type;
+end;
+
 
 #############################################################################
 ##
-
-#M  DegreeFEE( <ffe> )  . . . . . . . . . . . . . . . . . .  for internal ffe
+#m  DegreeFEE( <ffe> )  . . . . . . . . . . . . . . . . . .  for internal ffe
 ##
 InstallMethod( DegreeFFE,
     "for internal FFE",
@@ -93,7 +117,7 @@ InstallMethod( IntFFE,
 
 #############################################################################
 ##
-#M  \*( <ffe>, <int> )  . . . . . . . . . . . . . for ffe and (large) integer
+#m  \*( <ffe>, <int> )  . . . . . . . . . . . . . for ffe and (large) integer
 ##
 ##  Note that the multiplication with a small integer is handled by the
 ##  kernel.

@@ -16,16 +16,6 @@ Revision.rwsgrp_gi :=
 
 #############################################################################
 ##
-
-#R  IsElementByRwsDefaultRep
-##
-DeclareRepresentation(
-    "IsElementByRwsDefaultRep",
-    IsPositionalObjectRep, [1] );
-
-
-#############################################################################
-##
 #M  ElementByRws( <fam>, <elm> )
 ##
 InstallMethod( ElementByRws,
@@ -45,7 +35,7 @@ end );
 ##
 InstallMethod( PrintObj,
     true,
-    [ IsElementByRwsDefaultRep ],
+    [ IsMultiplicativeElementWithInverseByRws and IsPackedElementDefaultRep ],
     0,
 
 function( obj )
@@ -59,7 +49,7 @@ end );
 ##
 InstallMethod( UnderlyingElement,
     true,
-    [ IsMultiplicativeElementWithInverseByRws and IsElementByRwsDefaultRep ],
+    [ IsMultiplicativeElementWithInverseByRws and IsPackedElementDefaultRep ],
     0,
 
 function( obj )
@@ -73,7 +63,7 @@ end );
 ##
 InstallMethod( ExtRepOfObj,
     true,
-    [ IsMultiplicativeElementWithInverseByRws and IsElementByRwsDefaultRep ],
+    [ IsMultiplicativeElementWithInverseByRws ],
     0,
 
 function( obj )
@@ -104,9 +94,9 @@ end );
 
 #############################################################################
 ##
-#M  Inverse( <elm-by-rws> )
+#M  InverseOp( <elm-by-rws> )
 ##
-InstallMethod( Inverse,
+InstallMethod( InverseOp,
     "rws-element",
     true,
     [ IsMultiplicativeElementWithInverseByRws ],
@@ -143,9 +133,9 @@ end );
 
 #############################################################################
 ##
-#M  One( <elm-by-rws> )
+#M  OneOp( <elm-by-rws> )
 ##
-InstallMethod( One,
+InstallMethod( OneOp,
     "rws-element",
     true,
     [ IsMultiplicativeElementWithInverseByRws ],
@@ -293,7 +283,7 @@ function( rws )
     fam!.rewritingSystem := Immutable(rws);
 
     # create the default type for the elements
-    fam!.defaultType := NewType( fam, IsElementByRwsDefaultRep );
+    fam!.defaultType := NewType( fam, IsPackedElementDefaultRep );
 
     # that's it
     return fam;
@@ -350,14 +340,20 @@ function( rws )
     id := ElementByRws( fam, ReducedOne(rws) );
 
     # and a group
-    grp := Group( gens, id );
+    grp := GroupByGenerators( gens, id );
 
     # it is the whole family
     SetIsWholeFamily( grp, true );
 
     # check the true methods
-    RunGroupByRwsMethods( rws, grp );
-    
+    if HasIsFinite( rws ) then
+      SetIsFinite( grp, IsFinite( rws ) );
+    fi;
+    if IsPolycyclicCollector( rws ) then
+      SetFamilyPcgs( grp, DefiningPcgs( ElementsFamily(FamilyObj(grp)) ) );
+      SetHomePcgs( grp, DefiningPcgs( ElementsFamily(FamilyObj(grp)) ) );
+    fi;
+
     # that's it
     return grp;
 
@@ -367,5 +363,5 @@ end );
 #############################################################################
 ##
 
-#E  rwsgrp.gi . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-##
+#E
+

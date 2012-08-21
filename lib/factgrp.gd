@@ -22,38 +22,38 @@ DeclareInfoClass("InfoFactor");
 ##
 #A  NaturalHomomorphismsPool(<G>)
 ##
-## The 'NaturalHomomorphismsPool' is a record which contains the following
+## The `NaturalHomomorphismsPool' is a record which contains the following
 ## components:
-##    'group' is the corresponding group.
-##    'ker' is a list of normal subgroups, which defines the arrangements.
+##    `group' is the corresponding group.
+##    `ker' is a list of normal subgroups, which defines the arrangements.
 ##          It is sorted.
-##    'ops' is a list which gives the best know operations for each normal 
+##    `ops' is a list which gives the best know operations for each normal 
 ##          subgroup. Its entries are either Homomorphisms from G or
 ## 	 generator lists (G.generators images) or lists of integers. In the
 ## 	 latter case the factor is subdirect product of the factors with
 ## 	 the given numbers.
-##    'cost' gives the difficulty for each operation (degree of permgroup). It
+##    `cost' gives the difficulty for each operation (degree of permgroup). It
 ##           is used to check whether a new operation is better.
-##    'lock' is a bitlist, which indicates whether certain operations are
+##    `lock' is a bitlist, which indicates whether certain operations are
 ## 	  locked. If this happens, a better new operation is not entered.
 ## 	  This allows a computation to access the pool several times and to
 ## 	  be guaranteed to be returned the same object. Usually a routine
 ## 	  initially locks and finally unlocks.
 ## 	  #AH probably one even would like to have a lock counter ?
-##    'GopDone' indicates whether all 'obvious' operations have been tried
+##    `GopDone' indicates whether all `obvious' operations have been tried
 ##              already
-##    'intersects' is a list of all intersections that have already been
+##    `intersects' is a list of all intersections that have already been
 ##              formed.
-##    'blocksdone' indicates if the operation already has been improved
+##    `blocksdone' indicates if the operation already has been improved
 ##         using blocks
-##    'in_code' can be set by the code to avoid addition of new actions
+##    `in_code' can be set by the code to avoid addition of new actions
 ##              (and thus resorting)
 DeclareAttribute("NaturalHomomorphismsPool",IsGroup,
                                          "mutable");
 
 #############################################################################
 ##
-#F  FactorCosetOperation( <G>, <U>, [<N>] )  operation on the right cosets Ug
+#O  FactorCosetOperation( <G>, <U>, [<N>] )  operation on the right cosets Ug
 ##
 ##  This command computes the operation of <G> on the right cosets of the
 ##  subgroup <U>. If the normal subgroup <N> is given, it is stored as kernel
@@ -92,7 +92,7 @@ DeclareGlobalFunction("SmallerDegreePermutationRepresentation");
 
 #############################################################################
 ##
-#F  FindOperationKernel( <G>, <N> )  . . . . . . . . . . . . . . . . local
+#O  FindOperationKernel( <G>, <N> )  . . . . . . . . . . . . . . . . local
 ##
 ##  This operation tries to find a suitable operation for the group <G> such
 ##  that its kernel is <N>. This is used to construct faithful permutation
@@ -103,7 +103,7 @@ DeclareOperation( "FindOperationKernel",[IsGroup,IsGroup]);
 
 #############################################################################
 ##
-#O  AddNaturalHomomorphismsPool(G,N,op[,cost[,blocksdone]]) . Store operation
+#F  AddNaturalHomomorphismsPool(G,N,op[,cost[,blocksdone]]) . Store operation
 ##
 ##  This function stores a computed operation of <G> with kernel <N> in the
 ##  `NaturalHomomorphismsPool' of <G>, unless a ``better'' operation is already
@@ -129,7 +129,7 @@ DeclareGlobalFunction("AddNaturalHomomorphismsPool");
 
 #############################################################################
 ##
-#O  LockNaturalHomomorphismsPool(<G>,<N>)  . .  store flag to prohibit changes 
+#F  LockNaturalHomomorphismsPool(<G>,<N>)  . .  store flag to prohibit changes 
 ##
 ##  Calling this function stores a flag in the `NaturalHomomorphismsPool' of
 ##  <G> to prohibit it to store new (even better) faithful actions for $G/N$.
@@ -144,7 +144,7 @@ DeclareGlobalFunction("LockNaturalHomomorphismsPool");
 
 #############################################################################
 ##
-#O  UnlockNaturalHomomorphismsPool(<G>,<N>) .  clear flag to allow changes of
+#F  UnlockNaturalHomomorphismsPool(<G>,<N>) .  clear flag to allow changes of
 ##
 ##  clears the flag set by `LockNaturalHomomorphismsPool(<G>,<N>)'.
 ##
@@ -152,7 +152,7 @@ DeclareGlobalFunction("UnlockNaturalHomomorphismsPool");
 
 #############################################################################
 ##
-#O  KnownNaturalHomomorphismsPool(<G>,<N>) . . .  check whether Hom is stored
+#F  KnownNaturalHomomorphismsPool(<G>,<N>) . . .  check whether Hom is stored
 ##
 ##  This function tests whether an homomorphism for
 ##  `NaturalHomomorphismByNormalSubgroup(<G>,<N>)' is already known (or
@@ -162,7 +162,7 @@ DeclareGlobalFunction("KnownNaturalHomomorphismsPool");
 
 #############################################################################
 ##
-#O  GetNaturalHomomorphismsPool(<G>,<N>) . . . get operation for G/N if known
+#F  GetNaturalHomomorphismsPool(<G>,<N>) . . . get operation for G/N if known
 ##
 ##  returns a `NaturalHomomorphismByNormalSubgroup(<G>,<N>)' if one is
 ##  stored already in the `NaturalHomomorphismsPool' of <G>.
@@ -173,7 +173,7 @@ DeclareGlobalFunction("GetNaturalHomomorphismsPool");
 
 #############################################################################
 ##
-#O  DegreeNaturalHomomorphismsPool(<G>,<N>) degree for operation for G/N 
+#F  DegreeNaturalHomomorphismsPool(<G>,<N>) degree for operation for G/N 
 ##
 ##  returns the cost (see "AddNaturalHomomorphismsPool") of a stored action
 ##  for $G/N$ and fail if no such action is stored.
@@ -183,7 +183,7 @@ DeclareGlobalFunction("DegreeNaturalHomomorphismsPool");
 
 #############################################################################
 ##
-#O  CloseNaturalHomomorphismsPool(<G>[,<N>]) . . calc intersections of known
+#F  CloseNaturalHomomorphismsPool(<G>[,<N>]) . . calc intersections of known
 ##
 ##  This command tries to build actions for (new) factor groups from the
 ##  already known actions in the `NaturalHomomorphismsPool(<G>)' by considering

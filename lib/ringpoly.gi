@@ -5,7 +5,7 @@
 #H  @(#)$Id$
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
-#Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  (C) 1999 School Math and Comp. Sci., University of St.  Andrews, Scotland
 ##
 ##  This file contains the methods  for attributes, properties and operations
 ##  for polynomial rings.
@@ -17,9 +17,9 @@ Revision.ringpoly_gi :=
 #############################################################################
 ##
 #M  GiveNumbersNIndeterminates(<ratfunfam>,<count>,<names>,<avoid>)
-GiveNumbersNIndeterminates := function(rfam,cnt,nam,avoid)
+BindGlobal("GiveNumbersNIndeterminates",function(rfam,cnt,nam,avoid)
 local idn,i,nbound;
-  avoid:=List(avoid,IndeterminateNumberOfUnivariateLaurentPolynomial);
+  avoid:=List(avoid,IndeterminateNumberOfLaurentPolynomial);
   idn:=[];
   i:=1;
   while Length(idn)<cnt do
@@ -35,7 +35,7 @@ local idn,i,nbound;
     i:=i+1;
   od;
   return idn;
-end;
+end);
 
 #############################################################################
 ##
@@ -312,12 +312,12 @@ function( p, R )
     fi;
 
     # get the external representation
-    ext := ExtRepOfObj(NumeratorOfRationalFunction(p))[2];
+    ext := ExtRepPolynomialRatFun(p);
 
     # and the indeterminates and coefficients ring of <R>
     crng := CoefficientsRing(R);
     inds := Set( List( IndeterminatesOfPolynomialRing(R),
-                       x -> ExtRepOfObj(x)[2][1][1] ) );
+                       x -> ExtRepPolynomialRatFun(x)[1][1] ) );
 
     # first check the indeterminates
     for exp  in ext{[ 1, 3 .. Length(ext)-1 ]}  do
@@ -354,10 +354,10 @@ function( gens )
     if not ForAll( gens, IsPolynomial )  then
         TryNextMethod();
     fi;
-    ind := [];
-    cfs := [];
+    ind := []; # indeterminates set
+    cfs := []; # coefficients set
     for g  in gens  do
-        ext := ExtRepOfObj(NumeratorOfRationalFunction(g))[2];
+        ext := ExtRepPolynomialRatFun(g);
         for exp  in ext{[ 1, 3 .. Length(ext)-1 ]}  do
             for i  in exp{[ 1, 3 .. Length(exp)-1 ]}  do
                 AddSet( ind, i );
@@ -374,12 +374,11 @@ function( gens )
     fi;
 
     if Length(ind)=0 then
-      # this can only happen if the polynomials are univariate
-      ind:=[IndeterminateNumberOfUnivariateLaurentPolynomial(gens[1])];
+      # this can only happen if the polynomials are constant
+			return DefaultField(cfs);
+		else
+			 return PolynomialRing( DefaultField(cfs), ind );
     fi;
-
-    return PolynomialRing( DefaultField(cfs), ind );
-    
 end );
 
 #############################################################################
@@ -397,6 +396,18 @@ InstallOtherMethod( CharacteristicPolynomial,"supply indeterminate 1",true,
     [ IsRing, IsMultiplicativeElement and IsAdditiveElement],0,
 function(r,e)
   return CharacteristicPolynomial(r,e,1);
+end);
+
+#############################################################################
+##
+#M  StandardAssociate( <pring>, <upol> )
+##
+InstallMethod(StandardAssociate,"normalize leading coefficient",IsCollsElms,
+  [IsPolynomialRing, IsPolynomial],0,
+function(R,f)
+local c;
+  c:=LeadingCoefficient(f);
+  return f*StandardAssociate(CoefficientsRing(R),c)/c;
 end);
 
 #############################################################################

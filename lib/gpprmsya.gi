@@ -281,6 +281,124 @@ function ( G )
     return classes;
 end);
 
+InstallMethod(IsomorphismFpGroup,"alternating group",true,
+  [IsNaturalAlternatingGroup],
+  # override `IsSimpleGroup' method
+  10,
+function(G)
+  return IsomorphismFpGroup(G,
+           Concatenation("A_",String(Length(MovedPoints(G))),".") );
+end);
+
+InstallOtherMethod(IsomorphismFpGroup,"alternating group,name",true,
+  [IsNaturalAlternatingGroup,IsString],
+  # override `IsSimpleGroup' method
+  10,
+function ( G,str )
+local   F,      # free group
+	gens,	#generators of F
+	imgs,
+	hom,	# bijection
+	mov,deg,# moved pts, degree
+	m,	#[n/2]
+	relators,
+	r,s,	# generators
+	d,	# subset of pts
+	p,	# permutation
+	j;      # loop variables
+
+    mov:=MovedPoints(G);
+    deg:=Length(mov);
+
+    # create the finitely presented group with <G>.degree-1 generators
+    F := FreeGroup( 2, str);
+    gens:=GeneratorsOfGroup(F);
+
+    # add the relations according to the presentation by Coxeter
+    # (see Coxeter/Moser)
+    r:=F.1;
+    s:=F.2;
+    if IsOddInt(deg) then
+      m:=(deg-1)/2;
+      relators:=[r^deg/s^deg,r^deg/(r*s)^m];
+      for j in [2..m] do
+	Add(relators,(r^-j*s^j)^2);
+      od;
+      #(1,2,3,..deg) and (1,3,2,4,5,..deg)
+      p:=MappingPermListList(mov,Concatenation(mov{[2..deg]},[mov[1]]));
+      imgs:=[p,p^(mov[2],mov[3])];
+    else
+      m:=deg/2;
+      relators:=[r^(deg-1)/s^(deg-1),r^(deg-1)/(r*s)^m];
+      for j in [1..m-1] do
+	Add(relators,(r^-j*s^-1*r*s^j)^2);
+      od;
+      # (1,2,3,4..,deg-2,deg),(1,2,3,4,deg-3,deg-1,deg);
+      d:=Concatenation(mov{[1..deg-2]},[mov[deg]]);
+      p:=MappingPermListList(d,Concatenation(d{[2..deg-1]},[d[1]]));
+      imgs:=[p];
+      d:=Concatenation(mov{[1..deg-3]},mov{[deg-1,deg]});
+      p:=MappingPermListList(d,Concatenation(d{[2..deg-1]},[d[1]]));
+      Add(imgs,p);
+    fi;
+
+    F:=F/relators;
+
+    SetSize(F,Size(G));
+    UseIsomorphismRelation( G, F );
+
+    # return the isomorphism to the finitely presented group
+    hom:= GroupHomomorphismByImagesNC(G,F,imgs,GeneratorsOfGroup(F));
+    SetIsBijective( hom, true );
+    return hom;
+end);
+
+# alternative, which has nicer (but more) generators
+#function ( G )
+#local   F,      # free group
+#	gens,	#generators of F
+#	imgs,
+#	hom,	# bijection
+#	mov,deg,
+#	relators,
+#	i, k;       # loop variables
+#
+#    mov:=MovedPoints(G);
+#    deg:=Length(mov);
+#
+#    # create the finitely presented group with <G>.degree-1 generators
+#    F := FreeGroup( deg-2, Concatenation("A_",String(deg),".") );
+#    gens:=GeneratorsOfGroup(F);
+#
+#    # add the relations according to the presentation by Carmichael
+#    # (see Coxeter/Moser)
+#    relators := [];
+#    for i  in [1..deg-2]  do
+#        Add( relators, gens[i]^3 );
+#    od;
+#    for i  in [1..deg-3]  do
+#        for k  in [i+1..deg-2]  do
+#            Add( relators, (gens[i] * gens[k])^2 );
+#        od;
+#    od;
+#
+#    F:=F/relators;
+#
+#    SetSize(F,Size(G));
+#    UseIsomorphismRelation( G, F );
+#
+#    # compute the bijection
+#    imgs:=[];
+#    for i in [1..deg-2] do
+#      Add(imgs,(mov[1],mov[i+1],mov[deg]));
+#    od;
+#
+#    # return the isomorphism to the finitely presented group
+#    hom:= GroupHomomorphismByImagesNC(G,F,imgs,GeneratorsOfGroup(F));
+#    SetIsBijective( hom, true );
+#    return hom;
+#end);
+
 
 #############################################################################
 ##
@@ -645,8 +763,59 @@ function(alt)
     Print( "AlternatingGroup( ", alt, " )" );
 end );
 
+#############################################################################
+##
+#M  SymmetricParentGroup( <grp> )
+##
+InstallMethod(SymmetricParentGroup,"symm(moved pts)",true,[IsPermGroup],0,
+function(G)
+  return SymmetricGroup(MovedPoints(G));
+end);
+
+InstallMethod(SymmetricParentGroup,"natural symmetric group",
+  true,[IsNaturalSymmetricGroup],0,
+function(G)
+  return G;
+end);
+
 
 #############################################################################
 ##
-#E  gpprmsya.gd  . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#M  OrbitStabilizingParentGroup( <grp> )
 ##
+InstallMethod( OrbitStabilizingParentGroup, "direct product of S_n's",
+    true, [ IsPermGroup ], 0,
+function(G)
+local o,d,i,j,l,s;
+  o:=ShallowCopy(Orbits(G,MovedPoints(G)));
+  Sort(o,function(a,b) return Length(a)<Length(b);end);
+  d:=false;
+  i:=1;
+  while i<=Length(o) do
+    l:=Length(o[i]);
+    j:=i+1;
+    while j<=Length(o) and Length(o[j])=l do
+      j:=j+1;
+    od;
+    s:=SymmetricGroup(l);
+    if j-1>i then
+      s:=WreathProduct(s,SymmetricGroup(j-i));
+    fi;
+    if d=false then 
+      d:=s;
+    else
+      d:=DirectProduct(d,s);
+    fi;
+    Assert(1,HasSize(d));
+    i:=j;
+  od;
+  d:=ConjugateGroup(d,MappingPermListList(Set(MovedPoints(d)),
+                                          Concatenation(o)));
+  Assert(1,IsSubset(d,G));
+  return d;
+end);
+
+
+#############################################################################
+##
+#E

@@ -29,8 +29,9 @@ DeclareCategoryCollections(
 
 #############################################################################
 ##
-#C  IsPcGroup
+#C  IsPcGroup( <G> )
 ##
+##  tests whether <G> is a pc group.
 DeclareSynonym( "IsPcGroup",
     IsMultiplicativeElementWithInverseByPolycyclicCollectorCollection
     and IsGroup );

@@ -66,7 +66,7 @@ Group
 Group
 
 # that's all, folks
-gap> STOP_TEST( "morpheus.tst", 1835321121 );
+gap> STOP_TEST( "morpheus.tst", 941921521 );
 
 #############################################################################
 ##

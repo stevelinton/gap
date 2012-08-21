@@ -597,8 +597,8 @@ end );
 ##  then 'j' must be the image for all 'i' with 'j' in 'initfusion[i]'
 ##  (local function 'takealliffits').
 ##
-##  'CheckPermChar' returns 'true' if no inconsistency occured, and 'false'
-##  otherwise.
+##  'CheckPermChar' returns 'true' if no inconsistency occurred,
+##  and 'false' otherwise.
 ##
 ##  ('CheckPermChar' is used as subroutine of 'PossibleClassFusions'.)
 ##
@@ -2491,7 +2491,7 @@ InstallGlobalFunction( RepresentativesFusions,
 #T       elif IsBound( subtblautomorphisms.galomorphisms ) then
 #T         subtblautomorphisms:= subtblautomorphisms.galomorphisms;
       else
-        subtblautomorphisms:= Group( () );
+        subtblautomorphisms:= GroupByGenerators( [], () );
         Info( InfoCharacterTable, 2,
               "RepresentativesFusions: no subtable automorphisms stored" );
       fi;
@@ -2505,7 +2505,7 @@ InstallGlobalFunction( RepresentativesFusions,
 #T       elif IsBound( tblautomorphisms.galomorphisms ) then
 #T         tblautomorphisms:= tblautomorphisms.galomorphisms;
       else
-        tblautomorphisms:= Group( () );
+        tblautomorphisms:= GroupByGenerators( [], () );
         Info( InfoCharacterTable, 2,
               "RepresentativesFusions: no table automorphisms stored" );
       fi;
@@ -3199,7 +3199,7 @@ InstallMethod( PossibleClassFusions,
                                           y->permchar[y]=permchar[y^x]) );
       fi;
       subgroupfusions:= Set( Concatenation( List( subgroupfusions,
-                                x->OrbitFusions( Group(()), x, grp ) ) ) );
+          x -> OrbitFusions( GroupByGenerators( [], () ), x, grp ) ) ) );
     fi;
 
     if not IsEmpty( approxfus ) then
@@ -3224,10 +3224,10 @@ InstallMethod( PossibleClassFusions,
 #T      elif IsBound( subtbl.galomorphisms ) then
 #T        subtaut:= subtbl.galomorphisms;
         else
-          subtaut:= Group( () );
+          subtaut:= GroupByGenerators( [], () );
         fi;
         if taut = false then
-          taut:= Group( () );
+          taut:= GroupByGenerators( [], () );
         fi;
         RepresentativesFusions( subtaut, subgroupfusions, taut );
 
@@ -3630,7 +3630,5 @@ end );
 
 #############################################################################
 ##
-#E  ctblmaps.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-
-
+#E
 

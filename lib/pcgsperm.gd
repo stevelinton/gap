@@ -16,9 +16,11 @@ Revision.pcgsperm_gd :=
 ##
 ##  The `RelativeOrders' are a defining attribute of a  perm group pcgs. They
 ##  cannot be calculcated via `PcSeries' and `Size'.
+##  Every Pcgs for a permutation group is automatically
+##  `IsFiniteOrdersPcgs'.
 ##
 DeclareRepresentation( "IsPcgsPermGroupRep",
-    IsPcgsDefaultRep, [ "group", "stabChain" ] );
+    IsPcgsDefaultRep and IsFiniteOrdersPcgs, [ "group", "stabChain" ] );
 
 #############################################################################
 ##

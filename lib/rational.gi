@@ -29,6 +29,7 @@ SetConductor( Rationals, 1 );
 SetDimension( Rationals, 1 );
 SetGaloisStabilizer( Rationals, [ 1 ] );
 SetGeneratorsOfLeftModule( Rationals, [ 1 ] );
+SetIsWholeFamily( Rationals, false );
 #T necessary?
 #T     automorphisms               := [ e -> e ],
 
@@ -50,6 +51,7 @@ SetDimension( GaussianRationals, 2 );
 SetDegreeOverPrimeField( GaussianRationals, 2 );
 SetGaloisStabilizer( GaussianRationals, [ 1 ] );
 SetGeneratorsOfLeftModule( GaussianRationals, [ 1, E(4) ] );
+SetIsWholeFamily( GaussianRationals, false );
 
 
 #############################################################################
@@ -133,11 +135,10 @@ InstallMethod( Coefficients,
 
 ############################################################################
 ##
-#R  IsRationalsIterator
+#R  IsRationalsIteratorRep
 ##
-DeclareRepresentation( "IsRationalsIterator",
-    IsIterator,
-    [ "structure", "actualn", "up", "sign", "pos", "coprime" ] );
+DeclareRepresentation( "IsRationalsIteratorRep", IsComponentObjectRep,
+    [ "structure", "actualn", "up", "sign", "pos", "coprime", "len" ] );
 
 
 ############################################################################
@@ -157,22 +158,49 @@ DeclareRepresentation( "IsRationalsIterator",
 ##  elements in each $B_n$ for positive $n$, and the reverse of this
 ##  ordering for negative $n$.
 ##
-InstallMethod( Iterator, true, [ IsRationals ], 0,
+InstallMethod( Iterator,
+    "for `Rationals'",
+    true,
+    [ IsRationals ], 0,
     function( Rationals )
-    return Objectify( NewType( IteratorsFamily, IsRationalsIterator ),
+    return Objectify( NewType( IteratorsFamily,
+                                   IsIterator
+                               and IsMutable
+                               and IsRationalsIteratorRep ),
                       rec(
                            structure := Rationals,
                            actualn   := 0,
                            up        := false,
                            sign      := -1,
                            pos       := 1,
-                           coprime   := [ 1 ]       ) );
+                           coprime   := [ 1 ],
+                           len       := 1       ) );
     end );
 
-InstallMethod( IsDoneIterator, true, [ IsRationalsIterator ], 0,
+InstallMethod( IsDoneIterator,
+    "for iterator of `Rationals'",
+    true,
+    [ IsIterator and IsRationalsIteratorRep ], 0,
     ReturnFalse );
 
-InstallMethod( NextIterator, true, [ IsRationalsIterator ], 0,
+InstallMethod( ShallowCopy,
+    "for iterator of `Rationals'",
+    true,
+    [ IsIterator and IsRationalsIteratorRep ], 0,
+    iter -> Objectify( Subtype( TypeObj( iter ), IsMutable ),
+                       rec(
+                            structure := Rationals,
+                            actualn   := iter!.actualn,
+                            up        := iter!.up,
+                            sign      := iter!.sign,
+                            pos       := iter!.pos,
+                            coprime   := ShallowCopy( iter!.coprime ),
+                            len       := Length( iter!.coprime ) ) ) );
+
+InstallMethod( NextIterator,
+    "for mutable iterator of `Rationals'",
+    true,
+    [ IsIterator and IsMutable and IsRationalsIteratorRep ], 0,
     function( iter )
 
     local value;
@@ -357,7 +385,7 @@ InstallMethod( \[\], true, [ IsRationalsEnumerator, IsPosInt ], 0,
 ##
 #F  EvalF(<number>) . . . . . .  floating point evaluation of rational number
 ##
-EvalF := function(arg)
+BindGlobal( "EvalF", function(arg)
 local r,f,i,s;
   r:=arg[1];
   if r<0 then
@@ -384,12 +412,25 @@ local r,f,i,s;
   fi;
   IsString(s);
   return s;
-end; 
+end );
 
 
 #############################################################################
 ##
-#E  rational.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#M  RoundCyc( <cyc> ) . . . . . . . . . . cyclotomic integer near to <cyc>
+##
+InstallMethod( RoundCyc, "Rational", true, [ IsRat],
+        0,  function ( r )
 
+    if r < 0  then
+        return Int( r - 1 / 2 );
+    else
+        return Int( r + 1 / 2 );
+    fi;
 
+end );
+
+#############################################################################
+##
+#E
 

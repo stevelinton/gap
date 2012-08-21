@@ -238,9 +238,9 @@ InstallMethod( ExtRepOfObj,
 
 #############################################################################
 ##
-#M  One( <w> )  . . . . . . . . . . . . . . . . . for a nonass. word-with-one
+#M  OneOp( <w> )  . . . . . . . . . . . . . . . . for a nonass. word-with-one
 ##
-InstallMethod( One,
+InstallMethod( OneOp,
     "for a nonassoc. word-with-one",
     true,
     [ IsNonassocWordWithOne ], 0,
@@ -249,6 +249,6 @@ InstallMethod( One,
 
 #############################################################################
 ##
-#E  word.gi . . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 ##
 

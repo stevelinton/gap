@@ -13,10 +13,25 @@ Revision.grpperm_gi :=
 
 #############################################################################
 ##
+#M  CanEasilyTestMembership( <permgroup> )
+##
+InstallTrueMethod(CanEasilyTestMembership,IsPermGroup);
+InstallTrueMethod( CanComputeSize, IsPermGroup );
+
+#############################################################################
+##
+#M  CanEasilyComputePcgs( <permgroup> )
+##
+##  solvable permgroups can compute a pcgs. (The group may have been told it
+##  is solvable without actually doing a solvability test, so we need the
+##  implication.)
+InstallTrueMethod(CanEasilyComputePcgs,IsPermGroup and IsSolvableGroup);
+
+#############################################################################
+##
 #M  AsSubgroup( <G>, <U> )  . . . . . . . . . . . .  with stab chain transfer
 ##
-InstallMethod( AsSubgroup,
-    "perm groups",
+InstallMethod( AsSubgroup,"perm groups",
     IsIdenticalObj, [ IsPermGroup, IsPermGroup ], 0,
     function( G, U )
     local S;
@@ -153,7 +168,8 @@ InstallMethod( IndependentGeneratorsOfAbelianGroup, "for perm group", true,
 
         # append the independent generators for the <p>-Sylowsubgroup
         Append( inds,
-                IndependentGeneratorsAbelianPPermGroup(Group(gens,()),p) );
+                IndependentGeneratorsAbelianPPermGroup(
+                    GroupByGenerators( gens, () ), p ) );
 
       fi;
     od;
@@ -366,33 +382,54 @@ InstallMethod( NrMovedPoints, true, [ IsPermGroup ], 0,
 ##
 #M  BaseOfGroup( <G> )
 ##
-InstallMethod( BaseOfGroup, true, [ IsPermGroup ], 0,
+InstallMethod( BaseOfGroup,
+    "for a permutation group",
+    true,
+    [ IsPermGroup ], 0,
     G -> BaseStabChain( StabChainMutable( G ) ) );
+
 
 #############################################################################
 ##
 #M  Size( <G> ) . . . . . . . . . . . . . . . . . . size of permutation group
 ##
 InstallMethod( Size,
-    "method for a permutation group",
+    "for a permutation group",
     true,
     [ IsPermGroup ], 0,
     G -> SizeStabChain( StabChainMutable( G ) ) );
+
+
+#############################################################################
+##
+#R  IsPermGroupEnumeratorRep  . . . . . . . . . . . enumerator for perm group
+##
+DeclareRepresentation( "IsPermGroupEnumeratorRep",
+    IsAttributeStoringRep, [ "stabChain" ] );
+
 
 #############################################################################
 ##
 #M  Enumerator( <G> ) . . . . . . . . . . . . enumerator of permutation group
 ##
-InstallMethod( Enumerator, true, [ IsPermGroup ], 0,
-    function( G )
-    return Objectify( NewType( FamilyObj( G ), IsPermGroupEnumerator ),
-                   rec( stabChain := StabChainMutable( G ) ) );
-end );
+InstallMethod( Enumerator,
+    "for a permutation group",
+    true,
+    [ IsPermGroup ], 0,
+    G -> Objectify( NewType( FamilyObj( G ),
+                             IsList and IsPermGroupEnumeratorRep ),
+                    rec( stabChain := StabChainMutable( G ) ) ) );
 
-InstallMethod( Length, true, [ IsPermGroupEnumerator ], 0,
+InstallMethod( Length,
+    "for enumerator of a permutation group",
+    true,
+    [ IsList and IsPermGroupEnumeratorRep ], 0,
     G -> SizeStabChain( G!.stabChain ) );
 
-InstallMethod( \[\], true, [ IsPermGroupEnumerator, IsPosInt ], 0,
+InstallMethod( \[\],
+    "for enumerator of a permutation group, and pos. integer",
+    true,
+    [ IsList and IsPermGroupEnumeratorRep, IsPosInt ], 0,
     function( G, pos )
     local   elm,  S,  len;
     
@@ -409,8 +446,10 @@ InstallMethod( \[\], true, [ IsPermGroupEnumerator, IsPosInt ], 0,
     return elm;
 end );
 
-InstallMethod( Position, true, [ IsPermGroupEnumerator, IsPerm,
-        IsZeroCyc ], 0,
+InstallMethod( Position,
+    "for enumerator of a permutation group, permutation, and zero",
+    true,
+    [ IsList and IsPermGroupEnumeratorRep, IsPerm, IsZeroCyc ], 0,
     function( G, elm, zero )
     local   pos,  val,  S,  img;
     
@@ -430,15 +469,22 @@ InstallMethod( Position, true, [ IsPermGroupEnumerator, IsPerm,
     return pos;
 end );
 
+#############################################################################
+##
+#M  PositionCanonical
+##
+InstallMethod(PositionCanonical,"perm grp enumerator",true,
+  [IsList and IsPermGroupEnumeratorRep,IsObject],0, Position);
+
 
 #############################################################################
 ##
 #M  ViewObj( <enum> ) . . . . . . . . . . . . . . . . .  enum. of perm. group
 ##
 InstallMethod( ViewObj,
-    "for enumerator of perm. group",
+    "for enumerator of a permutation group",
     true,
-    [ IsPermGroupEnumerator ], 0,
+    [ IsList and IsPermGroupEnumeratorRep ], 0,
     function( G )
     Print( "<enumerator of perm group>" );
 end );
@@ -449,9 +495,9 @@ end );
 #M  PrintObj( <enum> )  . . . . . . . . . . . . . . . .  enum. of perm. group
 ##
 InstallMethod( PrintObj,
-    "for enumerator of perm. group",
+    "for enumerator of a permutation group",
     true,
-    [ IsPermGroupEnumerator ], 0,
+    [ IsList and IsPermGroupEnumeratorRep ], 0,
     function( G )
     Print( "<enumerator of perm group>" );
 end );
@@ -462,7 +508,10 @@ end );
 ##
 #M  Random( <G> ) . . . . . . . . . . . . . . . . . . . . . .  random element
 ##
-InstallMethod( Random, true, [ IsPermGroup ], 10,
+InstallMethod( Random,
+    "for a permutation group",
+    true,
+    [ IsPermGroup ], 10,
     function( G )
     local   S,  rnd;
 
@@ -479,11 +528,15 @@ InstallMethod( Random, true, [ IsPermGroup ], 10,
     return rnd;
 end );
 
+
 #############################################################################
 ##
 #M  <g> in <G>  . . . . . . . . . . . . . . . . . . . . . . . membership test
 ##
-InstallMethod( \in, true, [ IsPerm, IsPermGroup ], 0,
+InstallMethod( \in,
+    "for a permutation, and a permutation group",
+    true,
+    [ IsPerm, IsPermGroup ], 0,
     function( g, G )
     if g = One( G )  or  g in GeneratorsOfGroup( G )  then
         return true;
@@ -493,18 +546,14 @@ InstallMethod( \in, true, [ IsPerm, IsPermGroup ], 0,
     fi;
 end );
 
-#############################################################################
-##
-#M  Order( <g> )  . . . . . . . . . . . . . . . . . .  order of a permutation
-##
-InstallMethod( Order, true, [ IsPerm ], 0, OrderPerm );
 
 #############################################################################
 ##
 #M  ClosureGroup( <G>, <gens>, <options> )  . . . . . .  closure with options
 ##
-InstallOtherMethod( ClosureGroup, true, [ IsPermGroup,
-        IsList and IsPermCollection, IsRecord ], 0,
+InstallOtherMethod( ClosureGroup,
+    true,
+    [ IsPermGroup, IsList and IsPermCollection, IsRecord ], 0,
     function( G, gens, options )
     local   C,          # closure of < <G>, <obj> >, result
             P, inpar,   # parent of the closure
@@ -598,9 +647,10 @@ end );
 
 #############################################################################
 ##
-#M  NormalClosure( <G>, <U> ) . . . . . . . . . . . . . . . . . in perm group
+#M  NormalClosureOp( <G>, <U> ) . . . . . . . . . . . . . . . . in perm group
 ##
-InstallMethod( NormalClosureOp, true, [ IsPermGroup, IsPermGroup ], 0,
+InstallMethod( NormalClosureOp, "subgroup of perm group",
+  IsIdenticalObj, [ IsPermGroup, IsPermGroup ], 0,
     function ( G, U )
     local   N,          # normal closure of <U> in <G>, result
             chain,      # stabilizer chain for the result
@@ -613,6 +663,11 @@ InstallMethod( NormalClosureOp, true, [ IsPermGroup, IsPermGroup ], 0,
             cnj,        # conjugated of a generator of <U>
             random,  k, # values measuring randomness of <chain>
             param,  missing,  correct,  result,  i;
+
+    # test applicability
+    if not IsSubset(G,U) then
+      TryNextMethod();
+    fi;
 
     # get a set of monoid generators of <G>
     gensG := GeneratorsOfGroup( G );
@@ -1159,14 +1214,19 @@ end);
 ##
 #M  SylowSubgroup( <G>, <p> ) . . . . . . . . . . . . . .  Sylow $p$-subgroup
 ##
-InstallMethod( SylowSubgroupOp, true, [ IsPermGroup, IsPosInt ], 0,
-    function( G, p )
-    local   S;
-    
-    S := SylowSubgroupPermGroup( G, p );
-    S := GroupStabChain( G, StabChainMutable( S ) );
-    SetIsNilpotentGroup( S, true );
-    return S;
+InstallMethod( SylowSubgroupOp,"permutation groups", true,
+  [ IsPermGroup, IsPosInt ], 0,
+function( G, p )
+local   S;
+  if not HasIsSolvableGroup(G) and IsSolvableGroup(G) then
+    # enforce solvable methods if we detected anew that the group is
+    # solvable.
+    return SylowSubgroupOp(G,p);
+  fi;
+  S := SylowSubgroupPermGroup( G, p );
+  S := GroupStabChain( G, StabChainMutable( S ) );
+  SetIsNilpotentGroup( S, true );
+  return S;
 end );
 
 InstallGlobalFunction( SylowSubgroupPermGroup, function( G, p )
@@ -1336,7 +1396,7 @@ InstallMethod( FrattiniSubgroup, true, [ IsPermGroup ], 0,
     function( G )
     local   fac,  p,  l,  k,  i,  j;
 
-    fac := ListSortedList( FactorsInt( Size( G ) ) );
+    fac := Set( FactorsInt( Size( G ) ) );
     if Length( fac ) > 1  then
         TryNextMethod();
     fi;
@@ -1408,10 +1468,12 @@ end );
 ##
 #F  RightTransversalPermGroupConstructor( <filter>, <G>, <U> )  . constructor
 ##
-RightTransversalPermGroupConstructor := function( filter, G, U )
+BindGlobal( "RightTransversalPermGroupConstructor", function( filter, G, U )
     local   enum,  orbs,  domain,  bpt;
     
-    enum := Objectify( NewType( FamilyObj( G ), filter ),
+    enum := Objectify( NewType( FamilyObj( G ),
+                           filter and IsList and IsDuplicateFreeList
+                           and IsAttributeStoringRep ),
           rec( group := G,
             subgroup := U,
       stabChainGroup := CopyStabChain( StabChainMutable( G ) ),
@@ -1435,65 +1497,92 @@ RightTransversalPermGroupConstructor := function( filter, G, U )
     MinimizeExplicitTransversal( enum!.stabChainSubgroup,
             LargestMovedPoint( enum!.group ) );
     return enum;
-end;
+end );
+
 
 #############################################################################
 ##
-#F  RightTransversalByBaseImages( <G>, <U> )  . . . . . . . .  by base images
+#R  IsRightTransversalPermGroupRep( <obj> ) . right transversal of perm group
 ##
-DeclareRepresentation( "IsRightTransversalByBaseImages",
-    IsRightTransversalPermGroup, [  ] );
+DeclareRepresentation( "IsRightTransversalPermGroupRep",
+    IsRightTransversalRep,
+    [ "stabChainGroup", "stabChainSubgroup" ] );
 
-RightTransversalByBaseImages := function( G, U )
-    return RightTransversalPermGroupConstructor
-           ( IsRightTransversalByBaseImages, G, U );
-end;
+InstallMethod( \[\],
+    "for right transversal of perm. group, and pos. integer",
+    true,
+    [ IsList and IsRightTransversalPermGroupRep, IsPosInt ], 0,
+    function( cs, num )
+    return CosetNumber( cs!.stabChainGroup, cs!.stabChainSubgroup, num );
+end );
 
-InstallMethod( \[\], true, [ IsRightTransversalByBaseImages,
-        IsPosInt ], 0,
+InstallMethod( PositionCanonical,
+    "for right transversal of perm. group, and permutation",
+    IsCollsElms,
+    [ IsList and IsRightTransversalPermGroupRep, IsPerm ], 0,
+    function( cs, elm )
+    return NumberCoset( cs!.stabChainGroup,
+                        cs!.stabChainSubgroup,
+                        elm );
+end );
+
+
+#############################################################################
+##
+#M  RightTransversalOp( <G>, <U> )  . . . . . . . . . . . . . for perm groups
+##
+InstallMethod( RightTransversalOp,
+    "for two perm. groups",
+    IsIdenticalObj,
+    [ IsPermGroup, IsPermGroup ], 0,
+    function( G, U )
+    return RightTransversalPermGroupConstructor(
+               IsRightTransversalPermGroupRep, G, U );
+end );
+
+
+#############################################################################
+##
+#R  IsRightTransversalByBaseImagesRep( <obj> )
+##
+DeclareRepresentation( "IsRightTransversalByBaseImagesRep",
+    IsRightTransversalPermGroupRep, [] );
+
+InstallMethod( \[\],
+    "for right transversal by base images, and pos. integer",
+    true,
+    [ IsList and IsRightTransversalByBaseImagesRep, IsPosInt ], 0,
     function( cs, num )
     return CosetNumber( cs!.stabChainGroup, cs!.stabChainSubgroup, num,
                    BaseStabChain( cs!.stabChainGroup ) );
 end );
 
-InstallMethod( PositionCanonical, true,
-        [ IsRightTransversalByBaseImages, IsObject ], 0,
+InstallMethod( PositionCanonical,
+    "for right transversal by base images, and object",
+    IsCollsElms,
+    [ IsList and IsRightTransversalByBaseImagesRep, IsPerm ], 0,
     function( cs, elm )
     local   S,  rep,  i;
     
     S := cs!.stabChainGroup;
     rep := S.identity;
     for i  in [ 1 .. Length( elm ) ]  do
-        rep := LeftQuotient( InverseRepresentative( S, elm[ i ] / rep ), rep );
-        S := S.stabilizer;
+      rep:= LeftQuotient( InverseRepresentative( S, elm[ i ] / rep ), rep );
+      S:= S.stabilizer;
     od;
     return NumberCoset( cs!.stabChainGroup, cs!.stabChainSubgroup, rep );
 end );
 
+
 #############################################################################
 ##
-#M  RightTransversal( <G>, <U> )  . . . . . . . . . . . . . . for perm groups
+#F  RightTransversalByBaseImages( <G>, <U> )  . . . . . . . .  by base images
 ##
-InstallMethod( RightTransversalOp, IsIdenticalObj,
-        [ IsPermGroup, IsPermGroup ], 0,
-    function( G, U )
-    return RightTransversalPermGroupConstructor( IsRightTransversalPermGroup,
-                   G, U );
+BindGlobal( "RightTransversalByBaseImages", function( G, U )
+    return RightTransversalPermGroupConstructor
+           ( IsRightTransversalByBaseImagesRep, G, U );
 end );
 
-InstallMethod( \[\], true, [ IsRightTransversalPermGroup,
-        IsPosInt ], 0,
-    function( cs, num )
-    return CosetNumber( cs!.stabChainGroup, cs!.stabChainSubgroup, num );
-end );
-
-InstallMethod( PositionCanonical, true,
-        [ IsRightTransversalPermGroup, IsPerm ], 0,
-    function( cs, elm )
-    return NumberCoset( cs!.stabChainGroup,
-                        cs!.stabChainSubgroup,
-                        elm );
-end );
 
 #############################################################################
 ##
@@ -1773,45 +1862,6 @@ end );
 
 #############################################################################
 ##
-#F  AutomorphismByConjugation( <Omega>, <d>, <e> )  .  do auto by conjugation
-##
-AutomorphismByConjugation := function( Omega, d, e )
-    local   G,  bpt,  aut,  D1,  E1,  fix,  Imega,  sliced,  pnt;
-    
-    G := SymmetricGroup( Omega[ Length( Omega ) ] );
-    aut := GroupGeneralMappingByImages( G, G, d, e );
-    if not IsTransitive( PreImagesRange( aut ), Omega )  then
-        Error( "<d> and <e> must generate transitive subgroups of <G>" );
-    elif not IsTransitive( ImagesSource( aut ), Omega )  then
-        return fail;
-    fi;
-    
-    bpt := Omega[ 1 ];
-    D1 := Stabilizer( PreImagesRange( aut ), bpt );
-    E1 := ImagesSet( aut, D1 );
-    if NrMovedPoints( E1 ) = Length( Omega )  then
-        return fail;
-    fi;
-    fix := First( Omega, p -> ForAll( GeneratorsOfGroup( E1 ),
-                   gen -> p ^ gen = p ) );
-    
-    # The automorphism <aut> maps <d>_bpt to <e>_fix, so permutes the points.
-    # Find an element in <G> with the same action.
-    Imega := [  ];
-    for pnt  in Omega  do
-        sliced := [  ];
-        while pnt <> bpt  do
-            Add( sliced, StabChainMutable( aut ).transimages[ pnt ] );
-            pnt := pnt ^ StabChainMutable( aut ).transversal[ pnt ];
-        od;
-        Add( Imega, PreImageWord( fix, sliced ) );
-    od;
-    
-    return MappingPermListList( Omega, Imega );
-end;
-
-#############################################################################
-##
 #M  ApproximateSuborbitsStabilizerPermGroup(<G>,<pnt>) . . . approximation of
 ##  the orbits of Stab_G(pnt) on all points of the orbit pnt^G. (As not
 ##  all schreier generators are used, the results may be the orbits of a
@@ -2015,11 +2065,9 @@ function (G)
 local  i, j, U, gens;
 
   # try pc methods first
-  if IsSolvableGroup(G) then
-    i:=IsomorphismPcGroup(G);
-    U:=Image(i,G);
-    gens:=MinimalGeneratingSet(U);
-    return List(gens,j->PreImagesRepresentative(i,j));
+  if Length(MovedPoints(G))<1000 and HasIsSolvableGroup(G) 
+     and IsSolvableGroup(G) then
+    return MinimalGeneratingSet(G);
   fi;
 
   gens := Set(GeneratorsOfGroup(G));
@@ -2053,6 +2101,23 @@ local  i, j, U, gens;
     fi;
   od;
   return gens;
+end);
+
+#############################################################################
+##
+#M  MinimalGeneratingSet(<G>) . . . . . . . . . . . . . for permutation groups
+##
+InstallMethod(MinimalGeneratingSet,"solvable perm group via pc",true,
+  [IsPermGroup],0,
+function(G)
+local i;
+  if not IsSolvableGroup(G) then
+    TryNextMethod();
+  fi;
+  i:=IsomorphismPcGroup(G);
+  G:=Image(i,G);
+  G:=MinimalGeneratingSet(G);
+  return List(G,j->PreImagesRepresentative(i,j));
 end);
 
 #############################################################################
@@ -2100,7 +2165,8 @@ GeneratorsSmallestStab := function ( S )
 
         # add this generator to the generators list and reduce orbit
         Add( gens, gen );
-        SubtractSet( orb, Orbit( Group( gens, () ), S.orbit[1] ) );
+        SubtractSet( orb,
+                     Orbit( GroupByGenerators( gens, () ), S.orbit[1] ) );
 
     od;
 
@@ -2111,37 +2177,74 @@ end;
 InstallMethod(GeneratorsSmallest,"perm group via minimal stab chain",true,
   [IsPermGroup],0,
 function(G)
-local gens;
   # call the recursive function to do the work
   return GeneratorsSmallestStab(MinimalStabChain(G));
 end);
 
-InstallMethod(KnowsHowToDecompose,"perm group: always true",IsIdenticalObj,
-  [IsPermGroup,IsList],0,ReturnTrue);
+InstallMethod(LargestElementGroup,"perm group via minimal stab chain",true,
+  [IsPermGroup],0,
+function(G)
+  # call the recursive function to do the work
+  return LargestElementStabChain(MinimalStabChain(G),());
+end);
 
-InstallOtherMethod(KnowsHowToDecompose,"perm group: always true",true,
-  [IsPermGroup],0,ReturnTrue);
 
 #############################################################################
 ##
-#M  ViewObj(<G>)
+#M  KnowsHowToDecompose( <G>, <gens> )
 ##
-InstallMethod(ViewObj,"permutation group",true,[IsPermGroup],0,
+InstallMethod(KnowsHowToDecompose,
+    "perm group and generators: always true",
+    IsIdenticalObj,
+    [ IsPermGroup, IsList ], 0,
+    ReturnTrue);
+
+
+#############################################################################
+##
+#M  ViewObj( <G> )
+##
+InstallMethod( ViewObj,
+    "for a permutation group",
+    true,
+    [ IsPermGroup ], 0,
 function(G)
-  if Length(GeneratorsOfGroup(G))*LargestMovedPoint(G)/VIEWLEN>30 then
+  local gens;
+  gens:= GeneratorsOfGroup( G );
+  if 30 < Length( gens ) * LargestMovedPoint( G ) / VIEWLEN then
     Print("<permutation group");
     if HasSize(G) then
       Print(" of size ",Size(G));
     fi;
-    Print(" with ",Length(GeneratorsOfGroup(G))," generators>");
+    Print( " with ", Length( gens ), " generators>" );
   else
     Print("Group(");
-    ViewObj(GeneratorsOfGroup(G));
+    if IsEmpty( gens ) or ForAll(gens,i->Order(i)=1) then
+      ViewObj( One( G ) );
+    else
+      ViewObj( gens );
+    fi;
     Print(")");
   fi;
 end);
 
+
 #############################################################################
 ##
-#E  grpperm.gi  . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#M  AsList( <G> ) elements of perm group
+##
+InstallMethod( AsList, true, [ IsPermGroup ], 0, AsSSortedList );
+
+#############################################################################
+##
+#M  AsSSortedList( <G> ) elements of perm group
+##
+InstallMethod( AsSSortedList, true, [ IsPermGroup ], 0,
+function( G )
+  return ElementsStabChain( StabChainMutable(G));
+end );
+
+#############################################################################
+##
+#E
 

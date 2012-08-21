@@ -91,19 +91,19 @@ InstallMethod( AsSemigroup,
     function ( D )
     local   S,  L;
 
-    D := AsListSorted( D );
+    D := AsSSortedList( D );
     L := ShallowCopy( D );
     S := Submagma( SemigroupByGenerators( D ), [] );
-    SubtractSet( L, AsListSorted( S ) );
+    SubtractSet( L, AsSSortedList( S ) );
     while not IsEmpty(L)  do
         S := ClosureMagmaDefault( S, L[1] );
-        SubtractSet( L, AsListSorted( S ) );
+        SubtractSet( L, AsSSortedList( S ) );
     od;
-    if Length( AsListSorted( S ) ) <> Length( D )  then
+    if Length( AsSSortedList( S ) ) <> Length( D )  then
         return fail;
     fi;
     S := SemigroupByGenerators( GeneratorsOfSemigroup( S ) );
-    SetAsListSorted( S, D );
+    SetAsSSortedList( S, D );
     SetIsFinite( S, true );
     SetSize( S, Length( D ) );
 
@@ -139,6 +139,36 @@ end );
 
 
 #############################################################################
+##                                                        
+#M  AsSubsemigroup( <G>, <U> )    
+##     
+InstallMethod( AsSubsemigroup,
+    "generic method for a domain and a collection",                             
+    IsIdenticalObj,               
+    [ IsDomain, IsCollection ], 0,                                   
+    function( G, U )
+    local S;
+    if not IsSubset( G, U ) then
+      return fail;
+    fi;
+    if IsMagma( U ) then
+      if not IsAssociative( U ) then
+        return fail;
+      fi;
+      S:= SubsemigroupNC( G, GeneratorsOfMagma( U ) );
+    else
+      S:= SubmagmaNC( G, AsList( U ) );
+      if not IsAssociative( S ) then
+        return fail;
+      fi;
+    fi;
+    UseIsomorphismRelation( U, S );
+    UseSubsetRelation( U, S );
+    return S;
+    end );
+
+
+#############################################################################
 ##
-#E  semigrp.gi  . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

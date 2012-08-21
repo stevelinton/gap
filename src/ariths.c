@@ -56,13 +56,13 @@ ArithMethod1 ZeroFuncs [LAST_VIRTUAL_TNUM+1];
 **
 *F  ZeroObject( <obj> ) . . . . . . . . . . . . . . . . . . . .  call methsel
 */
-Obj ZeroAttr;
+Obj ZeroOp;
 
 Obj ZeroObject (
     Obj                 obj )
 
 {
-    return DoAttribute( ZeroAttr, obj );
+    return DoOperation1Args( ZeroOp, obj );
 }
 
 
@@ -74,7 +74,7 @@ Obj VerboseZeroObject (
     Obj                 obj )
 
 {
-    return DoVerboseAttribute( ZeroAttr, obj );
+    return DoVerboseOperation1Args( ZeroOp, obj );
 }
 
 
@@ -121,12 +121,12 @@ ArithMethod1 AInvFuncs [LAST_VIRTUAL_TNUM+1];
 **
 *F  AInvObj( <obj> )  . . . . . . . . . . . . . . . . . . . . .  call methsel
 */
-Obj AInvAttr;
+Obj AInvOp;
 
 Obj AInvObject (
     Obj                 obj )
 {
-    return DoAttribute( AInvAttr, obj );
+    return DoOperation1Args( AInvOp, obj );
 }
 
 
@@ -137,7 +137,7 @@ Obj AInvObject (
 Obj VerboseAInvObject (
     Obj                 obj )
 {
-    return DoVerboseAttribute( AInvAttr, obj );
+    return DoVerboseOperation1Args( AInvOp, obj );
 }
 
 
@@ -184,12 +184,12 @@ ArithMethod1 OneFuncs [LAST_VIRTUAL_TNUM+1];
 **
 *F  OneObject( <obj> )  . . . . . . . . . . . . . . . . . . . .  call methsel
 */
-Obj OneAttr;
+Obj OneOp;
 
 Obj OneObject (
     Obj                 obj )
 {
-    return DoAttribute( OneAttr, obj );
+    return DoOperation1Args( OneOp, obj );
 }
 
 
@@ -200,7 +200,7 @@ Obj OneObject (
 Obj VerboseOneObject (
     Obj                 obj )
 {
-    return DoVerboseAttribute( OneAttr, obj );
+    return DoVerboseOperation1Args( OneOp, obj );
 }
 
 
@@ -247,12 +247,12 @@ ArithMethod1 InvFuncs [LAST_VIRTUAL_TNUM+1];
 **
 *F  InvObject( <obj> )  . . . . . . . . . . . . . . . . . . . .  call methsel
 */
-Obj InvAttr;
+Obj InvOp;
 
 Obj InvObject (
     Obj                 obj )
 {
-    return DoAttribute( InvAttr, obj );
+    return DoOperation1Args( InvOp, obj );
 }
 
 
@@ -263,7 +263,7 @@ Obj InvObject (
 Obj VerboseInvObject (
     Obj                 obj )
 {
-    return DoVerboseAttribute( InvAttr, obj );
+    return DoVerboseOperation1Args( InvOp, obj );
 }
 
 
@@ -1334,17 +1334,6 @@ Obj FuncMOD (
 */
 static StructGVarAttr GVarAttrs [] = {
 
-    { "ZERO", "op", &ZeroAttr,
-      FuncZERO, "src/ariths.c:ZERO" },
-
-    { "AINV", "op", &AInvAttr,
-      FuncAINV, "src/ariths.c:AINV" },
-
-    { "ONE", "op", &OneAttr,
-      FuncONE, "src/ariths.c:ONE" },
-
-    { "INV", "op", &InvAttr,
-      FuncINV, "src/ariths.c:INV" },
 
     { 0 }
 
@@ -1390,6 +1379,17 @@ static StructGVarOper GVarOpers [] = {
     { "MOD", 2, "opL, opR", &ModOper,
       FuncMOD, "src/ariths.c:MOD" },
 
+    { "ZERO", 1, "op", &ZeroOp,
+      FuncZERO, "src/ariths.c:ZERO" },
+
+    { "AINV", 1, "op", &AInvOp,
+      FuncAINV, "src/ariths.c:AINV" },
+
+    { "ONE", 1, "op", &OneOp,
+      FuncONE, "src/ariths.c:ONE" },
+
+    { "INV", 1, "op", &InvOp,
+      FuncINV, "src/ariths.c:INV" },
     { 0 }
 
 };

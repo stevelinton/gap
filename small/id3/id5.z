@@ -1,0 +1,55 @@
+#############################################################################
+##
+#W  id5.z                  GAP library of id's             Hans Ulrich Besche
+##
+Revision.id5_z :=
+    "@(#)$Id$";
+
+ID_GROUP_TREE.next[5]:=
+rec(
+  fp:= [ 1, 2 ],
+  next:= [ rec(
+    fp:= [ 23, 28, 29, 30, 32 ],
+    next:= [ rec(
+      fp:= [ 10 ],
+      next:= [ rec(
+        desc:= [ 104003 ],
+        fp:= [ 4, 14 ],
+        next:= [ 100, 101 ] ) ] ), rec(
+      fp:= [ 11 ],
+      next:= [ rec(
+        fp:= [ 90347, 98950 ],
+        level:= 5,
+        next:= [ 118, 117 ] ) ] ), rec(
+      fp:= [ 4 ],
+      next:= [ rec(
+        desc:= [ 105003 ],
+        fp:= [ 2, 12 ],
+        next:= [ 124, 126 ] ) ] ), rec(
+      fp:= [ 3 ],
+      next:= [ rec(
+        fp:= [ 60053, 87109 ],
+        level:= 5,
+        next:= [ 130, 128 ] ) ] ), rec(
+      fp:= [ 4 ],
+      next:= [ rec(
+        desc:= [ 104003 ],
+        fp:= [ 2, 12 ],
+        next:= [ 136, 137 ] ) ] ) ] ), rec(
+    fp:= [ 12, 15, 37 ],
+    next:= [ rec(
+      fp:= [ 2 ],
+      next:= [ rec(
+        desc:= [ 103003 ],
+        fp:= [ 2, 12 ],
+        next:= [ 213, 212 ] ) ] ), rec(
+      fp:= [ 1 ],
+      next:= [ rec(
+        desc:= [ 107003 ],
+        fp:= [ 2, 12 ],
+        next:= [ 217, 216 ] ) ] ), rec(
+      fp:= [ 2 ],
+      next:= [ rec(
+        fp:= [ 40820, 61828 ],
+        level:= 5,
+        next:= [ 231, 232 ] ) ] ) ] ) ] );

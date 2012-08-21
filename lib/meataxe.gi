@@ -33,7 +33,7 @@ local l,f,dim,m;
     Error("if no generators are given the dimension must be given explicitly");
   else
     dim:=arg[2];
-    l:=[IdentityMat(dim,f)];
+    l:=[ Immutable( IdentityMat(dim,f) ) ];
     m.smashMeataxe:=rec(isZeroGens:=true);
   fi;
   m.dimension:=dim;
@@ -104,7 +104,11 @@ SMTX.HasIsIrreducible:=function(module)
   return IsBound(module.IsIrreducible);
 end;
 
+
 SMTX.IsAbsolutelyIrreducible:=function(module)
+  if not IsBound(module.IsAbsolutelyIrreducible) then
+    module.IsAbsolutelyIrreducible:=SMTX.AbsoluteIrreducibilityTest(module);
+  fi;
   return module.IsAbsolutelyIrreducible;
 end;
 
@@ -119,16 +123,16 @@ end;
 SMTX.SetSmashRecord:=SMTX.Setter("dummy");
 SMTX.Subbasis:=SMTX.Getter("subbasis");
 SMTX.SetSubbasis:=SMTX.Setter("subbasis");
-SMTX.AlgEl:=SMTX.Getter("algel");
-SMTX.SetAlgEl:=SMTX.Setter("algel");
-SMTX.AlgElMat:=SMTX.Getter("algelmat");
-SMTX.SetAlgElMat:=SMTX.Setter("algelmat");
-SMTX.AlgElCharPol:=SMTX.Getter("charpol");
-SMTX.SetAlgElCharPol:=SMTX.Setter("charpol");
-SMTX.AlgElCharPolFac:=SMTX.Getter("charpolFac");
-SMTX.SetAlgElCharPolFac:=SMTX.Setter("charpolFac");
-SMTX.AlgElNullspaceVec:=SMTX.Getter("nullspVec");
-SMTX.SetAlgElNullspaceVec:=SMTX.Setter("nullspVec");
+SMTX.AlgEl:=SMTX.Getter("algebraElement");
+SMTX.SetAlgEl:=SMTX.Setter("algebraElement");
+SMTX.AlgElMat:=SMTX.Getter("algebraElementMatrix");
+SMTX.SetAlgElMat:=SMTX.Setter("algebraElementMatrix");
+SMTX.AlgElCharPol:=SMTX.Getter("characteristicPolynomial");
+SMTX.SetAlgElCharPol:=SMTX.Setter("characteristicPolynomial");
+SMTX.AlgElCharPolFac:=SMTX.Getter("charpolFactors");
+SMTX.SetAlgElCharPolFac:=SMTX.Setter("charpolFactors");
+SMTX.AlgElNullspaceVec:=SMTX.Getter("nullspaceVector");
+SMTX.SetAlgElNullspaceVec:=SMTX.Setter("nullspaceVector");
 SMTX.AlgElNullspaceDimension:=SMTX.Getter("ndimFlag");
 SMTX.SetAlgElNullspaceDimension:=SMTX.Setter("ndimFlag");
 
@@ -241,6 +245,7 @@ SMTX.SpinnedBasis := function ( arg  )
    subdim := 1;
    leadpos[1] := j;
    w := (v[j]^-1) * v;
+   ConvertToVectorRep(w);
    Add ( ans, w );
 
    i := 1;
@@ -267,6 +272,7 @@ SMTX.SpinnedBasis := function ( arg  )
             w := (w[j]^-1) * w;
             Add ( ans, w );
             if subdim = dim then
+	       ConvertToMatrixRep(ans);
                return ans;
             fi;
          fi;
@@ -274,6 +280,7 @@ SMTX.SpinnedBasis := function ( arg  )
       i := i + 1;
    od;
 
+   ConvertToMatrixRep(ans);
    return ans;
 end;
 
@@ -341,6 +348,7 @@ local c,q,i,j,k,w,zero,leadpos,cfleadpos, m, ct, erg,
 	fi;
      od;
    fi;
+   ConvertToMatrixRep(sub);
 
    erg:=rec();
 
@@ -372,6 +380,8 @@ local c,q,i,j,k,w,zero,leadpos,cfleadpos, m, ct, erg,
 	   fi;
 
 	od;
+	ConvertToMatrixRep(newg);
+	ConvertToMatrixRep(newgn);
 	Add (smatrices, newg);
 	Add (nmatrices, newgn);
      od;
@@ -403,6 +413,7 @@ local c,q,i,j,k,w,zero,leadpos,cfleadpos, m, ct, erg,
 	   Add (newg, newim);   
 	   Add (newgn, newimn);
 	od;
+	ConvertToMatrixRep(newg);
 	Add (qmatrices, newg);
      od;
      erg.qmatrices:=qmatrices;
@@ -426,7 +437,7 @@ end;
 SMTX.NormedBasisAndBaseChange := function(sub)
 local l,m;
   l:=Length(sub);
-  m:=MutableIdentityMat(l,One(sub[1][1]));
+  m:= IdentityMat(l,One(sub[1][1]));
   sub:=List([1..l],i->Concatenation(List(sub[i],ShallowCopy),m[i]));
   TriangulizeMat(sub);
   m:=Length(sub[1]);
@@ -674,7 +685,7 @@ local g1,g2,coefflist,M,pol;
   # Take a random linear sum of the existing generators as new generator.
   # Record the sum in coefflist
   coefflist := [];
-  M := NullMat (dim, dim, F);
+  M := Immutable( NullMat(dim, dim, F) );
   for g1 in [1..ngens] do
      g2 := Random (F);
      M := M + g2 * matrices[g1];
@@ -774,11 +785,11 @@ SMTX.IrreducibilityTest := function ( module )
    #Main loop starts - choose a random element of group algebra on each pass
    while trying  do
       count := count + 1;
-      if count > 50 then
-         Error ("Have generated 50 random elements and failed to prove\n",
+      if count > 300 then
+         Error ("Have generated 300 random elements and failed to prove\n",
 	        "or disprove irreducibility.");
       fi;
-      maxdeg := maxdeg * 2;
+      maxdeg := Minimum(maxdeg * 2,dim);
       # On this pass, we only consider irreducible factors up to degree maxdeg.
       # Using higher degree factors is very time consuming, so we prefer to try
       # another element.
@@ -803,21 +814,21 @@ SMTX.IrreducibilityTest := function ( module )
       deg := 0;
       fac := [];
       #The next loop is through the degrees of irreducible factors
-      while DOULP (pol) > 0 and deg < maxdeg and trying do
+      while DegreeOfLaurentPolynomial (pol) > 0 and deg < maxdeg and trying do
          repeat
             deg := deg + 1;
-            if deg > Int (DOULP (pol) / 2) then
+            if deg > Int (DegreeOfLaurentPolynomial (pol) / 2) then
                fac := [pol];
             else
                fac := Factors(R, pol, rec(onlydegs:=[deg]));
-	       fac:=Filtered(fac,i->DOULP(i)<=deg);
+	       fac:=Filtered(fac,i->DegreeOfLaurentPolynomial(i)=deg);
                Info(InfoMeatAxe,2,Length (fac)," factors of degree ",deg,
 	            ", Time = ",Runtime()-rt0,".");
             fi;
          until fac <> [] or deg = maxdeg;
 
          if fac <> [] then
-            if DOULP (fac[1]) = dim then 
+            if DegreeOfLaurentPolynomial (fac[1]) = dim then 
                # In this case the char poly is irreducible, so the 
                # module is irreducible.
                ans := true;
@@ -844,16 +855,17 @@ SMTX.IrreducibilityTest := function ( module )
             # Now we can delete repetitions from the list fac
             sfac := Set (fac);
 
-            if DOULP (fac[1]) <> dim then
+            if DegreeOfLaurentPolynomial (fac[1]) <> dim then
                # Now go through the factors and attempt to find a submodule
                facno := 1; l := Length (sfac);
                while facno <= l and trying do
-                  mat := Value (sfac[facno], M);
+                  mat := Value (sfac[facno], M,M^0);
                   Info(InfoMeatAxe,2,"Evaluated matrix on factor. Time = ",
 		       Runtime()-rt0,".");
                   N := NullspaceMat (mat);
                   v := N[1];
                   ndim := Length (N);
+
                   Info(InfoMeatAxe,2,"Evaluated nullspace. Dimension = ",
 		       ndim,". Time = ",Runtime()-rt0,".");
                   subbasis := SMTX.SpinnedBasis (v, matrices, orig_ngens);
@@ -907,7 +919,7 @@ SMTX.IrreducibilityTest := function ( module )
                      pol := Quotient (R, pol, q);
                   od;
                fi; 
-            fi;           #DOULP (fac[1]) <> dim
+            fi;           #DegreeOfLaurentPolynomial (fac[1]) <> dim
          fi;             #fac <> []
       od; #loop through degrees of irreducible factors
 
@@ -1035,10 +1047,10 @@ SMTX.RandomIrreducibleSubGModule := function ( module )
          ngens := ngens + 1;
          matrices[ngens] := matrices[genpair[1]] * matrices[genpair[2]];
       od;
-      M:=NullMat(dim,dim,Zero(F));
+      M:= Immutable( NullMat(dim,dim,Zero(F)) );
       for i in [1..ngens] do M := M + el[2][i] * matrices[i]; od;
       SMTX.SetAlgElMat(submodule2,M);
-      N := NullspaceMat(Value(fac,M));
+      N := NullspaceMat(Value(fac,M,M^0));
       SMTX.SetAlgElNullspaceVec(submodule2,N[1]);
       return [subbasis2, submodule2];
    fi;
@@ -1095,8 +1107,8 @@ SMTX.GoodElementGModule := function ( module )
    newgenlist := [];
    while trying do
       count := count + 1;
-      if count > 50 then
-         Error ("Have generated 50 random elements and failed ",
+      if count > 300 then
+         Error ("Have generated 300 random elements and failed ",
 	        "to find a good one.");
       fi;
       Info(InfoMeatAxe,2,"Choosing random element number ",count,".");
@@ -1123,7 +1135,7 @@ SMTX.GoodElementGModule := function ( module )
                fac := [pol];
             else
                fac := Factors(R, pol, rec(onlydegs:=[deg]));
-	       fac:=Filtered(fac,i->DOULP(i)<=deg);
+	       fac:=Filtered(fac,i->DegreeOfLaurentPolynomial(i)<=deg);
                Info(InfoMeatAxe,2,Length(fac)," factors of degree ",deg,
 	            ", Time = ",Runtime()-rt0,".");
                sfac := Set (fac);
@@ -1133,7 +1145,7 @@ SMTX.GoodElementGModule := function ( module )
          if trying and deg <= mindim then
             i := 1;
             while i <= l and trying do
-               mat := Value (fac[i], M);
+               mat := Value (fac[i], M,M^0);
                Info(InfoMeatAxe,2,"Evaluated matrix on factor. Time = ",
 	            Runtime()-rt0,".");
                N := NullspaceMat(mat);
@@ -1362,7 +1374,7 @@ end;
 
 #############################################################################
 ##
-#F AbsoluteIrreducibilityTest( module ) . . decide if an irreducible
+#F SMTX.AbsoluteIrreducibilityTest( module ) . . decide if an irreducible
 ##                    module over a  finite field is absolutely irreducible
 ##
 ## this function does the work for an absolute irreducibility test but does
@@ -1377,7 +1389,7 @@ end;
 ## The function shouldn't be called if the module has not already been
 ## shown to be irreducible, using IsIrreducible. 
 ## 
-AbsoluteIrreducibilityTest := function ( module )
+SMTX.AbsoluteIrreducibilityTest := function ( module )
 
    local dim, ndim, gcd, div, e, ct, F, q, ok, 
          M, v, M0, v0, C, C0, centmat, one, zero, 
@@ -1405,6 +1417,7 @@ AbsoluteIrreducibilityTest := function ( module )
    M:=SMTX.AlgElMat(module);
    ndim:=SMTX.AlgElNullspaceDimension(module);
    v:=SMTX.AlgElNullspaceVec(module);
+
    # e will have to divide both dim and ndim, and hence their gcd.
    gcd := GcdInt (dim, ndim);
    Info(InfoMeatAxe,2,"GCD of module and nullspace dimensions = ", gcd, ".");
@@ -1496,7 +1509,7 @@ AbsoluteIrreducibilityTest := function ( module )
             newmatrices[i] := P * matrices[i] * Pinv;
          od;
          # Make the sum of copies of C0 as centmat
-         centmat := MutableNullMat (dim, dim, F);
+         centmat := NullMat (dim, dim, F);
          nblocks := dim/e;
          for i in [1..nblocks] do
             for j in [1..e] do
@@ -1538,13 +1551,9 @@ AbsoluteIrreducibilityTest := function ( module )
    return true;
 end;
 
-SMTX.IsAbsolutelyIrreducible:=function(module)
-  return AbsoluteIrreducibilityTest(module);
-end;
-
 SMTX.DegreeFieldExt:=function(module)
   if not IsBound(module.smashMeataxe.degreeFieldExt) then
-    AbsoluteIrreducibilityTest( module );
+    SMTX.AbsoluteIrreducibilityTest( module );
   fi;
   return module.smashMeataxe.degreeFieldExt;
 end;
@@ -1616,7 +1625,7 @@ end;
 #    od;
 #    # Finally recalculate centmat and its minimal polynomial.
 #    centmat := CentMat (module);
-#    newcentmat := Value (genpol, centmat);
+#    newcentmat := Value (genpol, centmat,centmat^0);
 #    SetCentMat (module, newcentmat);
 #    SetCentMatMinPoly (module, MinimalPolynomial (newcentmat));
 #    # Ugh! That was very inefficient - should work out the min poly using
@@ -1758,12 +1767,12 @@ SMTX.Distinguish := function ( cf, i )
             ngens := ngens + 1;
             mats[ngens] := mats[genpair[1]] * mats[genpair[2]];
          od;
-         M := NullMat (dim, dim, F);
+         M := Immutable( NullMat (dim, dim, F) );
          for k in [1..ngens] do
             M := M + el[2][k] * mats[k];
          od;
          ngens := orig_ngens;
-         mat := Value (fact, M);
+         mat := Value (fact, M,M^0);
          if RankMat (mat) < dim then
             found := false;
             Info(InfoMeatAxe,2,"Current element failed on factor ", j);
@@ -1797,7 +1806,7 @@ SMTX.Distinguish := function ( cf, i )
       el[2] := [];
       for j in [1..ngens] do el[2][j] := Random (F); od;
       #First evaluate on cf[i][1].
-      M := NullMat (dimi, dimi, F);
+      M := Immutable( NullMat (dimi, dimi, F) );
       for k in [1..ngens] do
          M := M + el[2][k] * matsi[k];
       od;
@@ -1815,7 +1824,7 @@ SMTX.Distinguish := function ( cf, i )
                fac := [p];
             else
                fac := Factors(R, p, rec(onlydegs:=[deg]));
-	       fac:=Filtered(fac,i->DOULP(i)<=deg);
+	       fac:=Filtered(fac,i->DegreeOfLaurentPolynomial(i)<=deg);
                sfac := Set (fac);
             fi;
          until fac <> [];
@@ -1823,7 +1832,7 @@ SMTX.Distinguish := function ( cf, i )
          if trying and deg <= extdeg then
             j := 1;
             while j <= lf and trying do
-               mat := Value (fac[j], M);
+               mat := Value (fac[j], M,M^0);
                N := NullspaceMat (mat);
                if Length (N) = extdeg then
                   trying := false;
@@ -1860,11 +1869,11 @@ SMTX.Distinguish := function ( cf, i )
                   ngens := ngens + 1;
                   mats[ngens] := mats[genpair[1]] * mats[genpair[2]];
                od;
-               M := NullMat (dim, dim, F);
+               M := Immutable( NullMat (dim, dim, F) );
                for k in [1..ngens] do
                   M := M + el[2][k] * mats[k];
                od;
-               mat := Value (fact, M);
+               mat := Value (fact, M,M^0);
                if RankMat (mat) < dim then
                   found := false;
                   Info(InfoMeatAxe,2,"Failed on factor ", j);
@@ -1910,7 +1919,7 @@ SMTX.MinimalSubGModule := function ( module, cf, i )
       ngens := ngens + 1;
       mats[ngens] := mats[genpair[1]] * mats[genpair[2]];
    od;
-   M := NullMat (dim, dim, F);
+   M := Immutable( NullMat (dim, dim, F) );
    for k in [1..ngens] do
       M := M + el[2][k] * mats[k];
    od;
@@ -1920,7 +1929,7 @@ SMTX.MinimalSubGModule := function ( module, cf, i )
    od;
    ngens := orig_ngens;
    fact := SMTX.AlgElCharPolFac(cf[i][1]);
-   mat := Value (fact, M);
+   mat := Value (fact, M,M^0);
    N := NullspaceMat (mat);
    return (SMTX.SpinnedBasis (N[1], mats, ngens));
 
@@ -1943,6 +1952,11 @@ SMTX.IsomorphismComp := function (module1, module2, action)
    local matrices, matrices1, matrices2, F, R, dim, swapmodule, genpair,
          swapped, orig_ngens, i, j, el, p, fac, ngens, M, mat, v1, v2, v, 
          N, basis, basis1, basis2;
+
+  #CCC:=[ShallowCopy(module1),ShallowCopy(module2),ShallowCopy(action)];
+  #CCC[1].smashMeataxe:=ShallowCopy(CCC[1].smashMeataxe);
+  #CCC[2].smashMeataxe:=ShallowCopy(CCC[2].smashMeataxe);
+  #Print(CCC,"\n");
 
    if SMTX.IsMTXModule (module1) = false then 
       Error ("Argument is not a module.");
@@ -1999,7 +2013,7 @@ SMTX.IsomorphismComp := function (module1, module2, action)
       ngens := ngens + 1;
       matrices2[ngens] := matrices2[genpair[1]] * matrices2[genpair[2]];
    od;
-   M := NullMat (dim, dim, F);
+   M := Immutable( NullMat(dim, dim, F) );
    for i in [1..ngens] do
       M := M + el[2][i] * matrices2[i];
    od;
@@ -2017,7 +2031,7 @@ SMTX.IsomorphismComp := function (module1, module2, action)
       return fail;
    fi;
    fac := SMTX.AlgElCharPolFac (module1);
-   mat := Value (fac, M);
+   mat := Value (fac, M,M^0);
    Info(InfoMeatAxe,2,"Calculating nullspace for second module.");
    N := NullspaceMat (mat);
    if Length (N) <> SMTX.AlgElNullspaceDimension(module1) then
@@ -2075,7 +2089,7 @@ SMTX.MatrixSum := function (matrices1, matrices2)
    matrices := [];
    nmats := Length (matrices1);
    for i in [1..nmats] do
-      matrices[i] := MutableNullMat (dim, dim, zero);
+      matrices[i] := NullMat (dim, dim, zero);
       for j in [1..dim1] do for k in [1..dim1] do
          matrices[i][j][k] := matrices1[i][j][k];
       od; od;
@@ -2145,7 +2159,7 @@ SMTX.Homomorphisms := function (m1, m2)
       ngens := ngens + 1;
       mats2[ngens] := mats2[genpair[1]] * mats2[genpair[2]];
    od;
-   mat := NullMat (dim2, dim2, F);
+   mat := Immutable( NullMat(dim2, dim2, F) );
    for i in [1..ngens] do
       mat := mat + el[2][i] * mats2[i];
    od;
@@ -2157,7 +2171,7 @@ SMTX.Homomorphisms := function (m1, m2)
    ngens := orig_ngens;
 
    fac := SMTX.AlgElCharPolFac (m1);
-   mat := Value (fac, mat);
+   mat := Value (fac, mat,mat^0);
    Info(InfoMeatAxe,2,"Calculating nullspace for second module.");
    N := NullspaceMat (mat);
    imlen := Length (N);
@@ -2319,7 +2333,7 @@ SMTX.Homomorphisms := function (m1, m2)
    ans := [];
    for k in [1..Length (N)] do
       vec := N[k];
-      mat := NullMat (dim1, dim2, F);
+      mat := Immutable( NullMat (dim1, dim2, F) );
       for i in [1..imlen] do
          mat := mat + vec[i] * imbases[i];
       od;
@@ -2544,7 +2558,7 @@ end;
 SMTX.BasesCompositionSeries := function(m)
 local q,b,s,ser,queue;
   SMTX.SetSmashRecord(m,0);
-  b:=IdentityMat(SMTX.Dimension(m),One(SMTX.Field(m)));
+  b:= Immutable( IdentityMat(SMTX.Dimension(m),One(SMTX.Field(m))) );
   # denombasis: Basis des Kerns
   m.smashMeataxe.denombasis:=[];
   # csbasis: Basis des Moduls
@@ -2565,6 +2579,7 @@ local q,b,s,ser,queue;
 		      i->LinearCombinationVecs(m.smashMeataxe.fakbasis,i)));
       TriangulizeMat(m);
       m:=Filtered(m,i->i<>Zero(i));
+      ConvertToMatrixRep(m);
       Add(ser,m);
     else
       b:=SMTX.Subbasis(m);
@@ -2578,14 +2593,15 @@ local q,b,s,ser,queue;
            SMTX.Dimension(q));
       s.smashMeataxe.denombasis:=m.smashMeataxe.denombasis;
       #s.csbasis:=b{[1..s.dim]};
-      s.smashMeataxe.csbasis:=IdentityMat(SMTX.Dimension(s),One(SMTX.Field(s)));
+      s.smashMeataxe.csbasis:= Immutable( IdentityMat(SMTX.Dimension(s),
+          One(SMTX.Field(s))) );
       s.smashMeataxe.fakbasis:=
         List(b,i->LinearCombinationVecs(m.smashMeataxe.fakbasis,i));
       q.smashMeataxe.denombasis:=Concatenation(
         List(m.smashMeataxe.denombasis,ShallowCopy),
         List(s.smashMeataxe.fakbasis{[1..s.dimension]},ShallowCopy));
-      q.smashMeataxe.csbasis:=IdentityMat(SMTX.Dimension(q),
-      					  One(SMTX.Field(q)));
+      q.smashMeataxe.csbasis:= Immutable( IdentityMat(SMTX.Dimension(q),
+      					  One(SMTX.Field(q))) );
       q.smashMeataxe.fakbasis:=List(b{[SMTX.Dimension(s)+1..Length(b)]},
                        i->LinearCombinationVecs(m.smashMeataxe.fakbasis,i));
       Add(queue,s);
@@ -2623,6 +2639,7 @@ local cf,u,i,j,f,cl,min,neu,sq,sb,fb,k,nmin;
         sq:=Concatenation(List(sb,ShallowCopy), # don't destroy old basis
 	                  List(k,i->LinearCombinationVecs(fb,i)));
 	TriangulizeMat(sq);
+	ConvertToMatrixRep(sq);
 	Assert(2,SMTX.InducedAction(m,sq)<>fail);
 	if not sq in neu then
           Info(InfoMeatAxe,2,"submodule dimension ",Length(sq));
@@ -2633,7 +2650,7 @@ local cf,u,i,j,f,cl,min,neu,sq,sb,fb,k,nmin;
     u:=Concatenation(u,neu);
     min:=neu;
   od;
-  Add(u,IdentityMat(SMTX.Dimension(m),SMTX.Field(m)));
+  Add(u, Immutable( IdentityMat(SMTX.Dimension(m),SMTX.Field(m)) ));
   return u;
 end;
 

@@ -70,7 +70,7 @@ end;
 ##
 #F  STRING_INT( <int> ) . . . . . . . . . . . . . . . .  string of an integer
 ##
-STRING_INT := function ( n )
+STRING_INT_DEFAULT := function ( n )
     local  str,  num,  digits;
 
     # construct the string without sign
@@ -101,7 +101,7 @@ end;
 Ordinal := function ( n )
     local   str;
 
-    str := STRING_INT(n);
+    str := SHALLOW_COPY_OBJ(STRING_INT(n));
     if   n mod 10 = 1  and n mod 100 <> 11  then
         APPEND_LIST_INTR( str, "st" );
     elif n mod 10 = 2  and n mod 100 <> 12  then
@@ -210,6 +210,13 @@ POSITION_NOT := function( arg )
     fi;
 
 end;
+
+
+#############################################################################
+##
+#F  NamesOfComponents( <comobj> )
+##
+NamesOfComponents := REC_NAMES_COMOBJ;
 
 
 #############################################################################

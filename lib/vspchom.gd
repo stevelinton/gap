@@ -102,6 +102,17 @@ DeclareOperation( "NaturalHomomorphismBySubspace",
 
 #############################################################################
 ##
+#F  NaturalHomomorphismBySubspaceOntoFullRowSpace( <V>, <W> )
+##                                            
+##  returns a vector space homomorphism from the vector space <V> onto a full
+##  row space, with kernel exactly the vector space <W>,
+##  which must be contained in <V>.
+##
+DeclareGlobalFunction( "NaturalHomomorphismBySubspaceOntoFullRowSpace" );
+
+
+#############################################################################
+##
 #P  IsFullHomModule( <M> )
 ##
 ##  A *full hom module* is a module $Hom_R(V,W)$, for a ring $R$ and two

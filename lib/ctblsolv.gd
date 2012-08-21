@@ -91,7 +91,7 @@ DeclareAttribute( "BaumClausenInfo", IsGroup );
 
 #############################################################################
 ##
-#F  IrreducibleRepresentations( <G>)
+#A  IrreducibleRepresentations( <G>)
 ##
 ##  This function returns a record with components
 ##  `representations'
@@ -103,13 +103,12 @@ DeclareAttribute( "BaumClausenInfo", IsGroup );
 ##       component contains exactly the different absolutely irreducible
 ##       representations of `G' whose kernel contains $N$.
 ##  
-DeclareAttribute( "IrreducibleRepresentations",
-    IsGroup );
+DeclareAttribute( "IrreducibleRepresentations", IsGroup );
 
 
 #############################################################################
 ##
-#F  IrrBaumClausen( <G> ) . . . .  irred. characters of a supersolvable group
+#A  IrrBaumClausen( <G> ) . . . .  irred. characters of a supersolvable group
 ##
 ##  `IrrBaumClausen' returns a record with components
 ##
@@ -138,8 +137,7 @@ DeclareAttribute( "IrrBaumClausen", IsGroup );
 ##  `InducedRepresentationImagesRepresentative' returns the image of the
 ##  element <g> of $G$ under $\phi$.
 ##
-DeclareGlobalFunction(
-    "InducedRepresentationImagesRepresentative" );
+DeclareGlobalFunction( "InducedRepresentationImagesRepresentative" );
 
 
 #############################################################################
@@ -162,7 +160,5 @@ DeclareGlobalFunction( "InducedRepresentation" );
 
 #############################################################################
 ##              
-#E  ctblsolv.gd . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-
-
+#E
 

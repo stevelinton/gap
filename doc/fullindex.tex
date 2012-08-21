@@ -1,0 +1,73 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%W  manual.tex                GAP documentation             Thomas Breuer
+%W                                                         & Frank Celler
+%W                                                     & Martin Schoenert
+%W                                                       & Heiko Theissen
+%%
+%H  @(#)$Id$
+%%
+%Y  Copyright 1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,   Germany
+%%
+%
+%
+\input gapmacro.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%F  BeginningOfBook . . . . . . . . . . . . . . . . . . .  start the book
+%%
+\BeginningOfBook{ind}
+\UseReferences{ref}
+\UseReferences{tut}
+\UseReferences{prg}
+\UseReferences{ext}
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%F  TitlePage . . . . . . . . . . . . . . . . . . . . . . nice title page
+%%
+\TitlePage{
+  \centerline{\titlefont GAP 4}\medskip
+%  \centerline{\titlefont ---}\medskip
+  \centerline{\titlefont Index}\vfill
+%  \centerline{\secfont by}\vfill
+  \centerline{\secfont The GAP Group}\bigskip
+  \centerline{\secfont Lehrstuhl D f\accent127ur Mathematik}\medskip
+  \centerline{\secfont RWTH, 52056 Aachen, Germany}\bigskip
+  \centerline{\secfont and}\bigskip
+  \centerline{\secfont School of Mathematical and Computational Sciences}
+    \medskip
+  \centerline{\secfont University of St.~Andrews, North Haugh, St.~Andrews,
+              Fife KY16 9SS, Scotland}
+}
+%\Colophon{
+%\input tut/authors
+%}
+
+% changed explanation at the beginning of the index
+\def\IndexMatter{%
+This index covers the four main books of the {\GAP} manual.
+Page numbers are given in the form <book><chapter>--<page_within_chapter>.
+A page
+number in {\it italics} refers to a whole section which is devoted to the
+indexed subject. Some index entries refer to exercises, whose answers in
+appendix~A should then also be read. Keywords are sorted with case and
+spaces ignored, e.g., ```PermutationCharacter''' comes before ``permutation
+group''.%
+}
+\def\IndexHeader{Full Index}
+
+\Index
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%F  EndOfBook . . . . . . . . . . . . . . . . . . . . . . . . . that's it
+%%
+\EndOfBook
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%E  manual.tex	. . . . . . . . . . . . . . . . . . . . . . . . ends here

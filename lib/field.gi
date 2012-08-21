@@ -22,12 +22,12 @@ InstallOtherMethod( DivisionRingByGenerators,
     "for a collection",
     true,
     [ IsCollection ], 0,
-    coll -> FieldByGenerators(
+    coll -> DivisionRingByGenerators(
         FieldOverItselfByGenerators( [ One( Representative( coll ) ) ] ),
         coll ) );
 
 InstallMethod( DivisionRingByGenerators,
-    "for a field and a collection",
+    "for a division ring, and a collection",
     IsIdenticalObj,
     [ IsDivisionRing, IsCollection ] , 0,
     function( F, gens )
@@ -144,7 +144,7 @@ InstallGlobalFunction( Subfield, function( F, gens )
     if IsEmpty( gens ) then
       return PrimeField( F );
     elif     IsHomogeneousList( gens )
-         and IsIdenticalObj( ElementsFamily( FamilyObj(F) ), FamilyObj( gens ) )
+         and IsIdenticalObj( FamilyObj( F ), FamilyObj( gens ) )
          and ForAll( gens, g -> g in F ) then
       S:= FieldByGenerators( LeftActingDomain( F ), gens );
       SetParent( S, F );
@@ -167,6 +167,55 @@ InstallGlobalFunction( SubfieldNC, function( F, gens )
     SetParent( S, F );
     return S;
 end );
+
+
+#############################################################################
+##
+#M  ClosureDivisionRing( <D>, <d> ) . . . . . . . . . closure with an element
+##
+InstallMethod( ClosureDivisionRing,
+    "for a division ring and a scalar",
+    IsCollsElms,
+    [ IsDivisionRing, IsScalar ], 0,
+    function( D, d )
+
+    # if possible test if the element lies in the division ring already,
+    if     HasGeneratorsOfDivisionRing( D )
+       and d in GeneratorsOfDivisionRing( D ) then
+      return D;
+
+    # otherwise make a new division ring
+    else
+      return DivisionRingByGenerators(
+                 Concatenation( GeneratorsOfDivisionRing( D ), [ d ] ) );
+    fi;
+    end );
+
+
+InstallMethod( ClosureRing,
+    "for a division ring containing the whole family, and a scalar",
+    IsCollsElms,
+    [ IsDivisionRing and IsWholeFamily, IsScalar ], SUM_FLAGS,
+    function( D, d )
+    return D;
+    end );
+
+
+#############################################################################
+##
+#M  ClosureDivisionRing( <D>, <C> ) . . . . . . . .  closure of division ring
+##
+InstallMethod( ClosureRing,
+    "for division ring and collection of elements",
+    IsIdenticalObj,
+    [ IsDivisionRing, IsCollection ], 0,
+    function( D, C )
+    local   d;          # one generator
+    for d in C do
+      D:= ClosureDivisionRing( D, d );
+    od;
+    return D;
+    end );
 
 
 #############################################################################
@@ -417,7 +466,7 @@ EnumeratorOfPrimeField := function( F )
       Error( "sorry, cannot compute elements list of infinite field <F>" );
     fi;
     one:= One( F );
-    return AsListSortedList( List( [ 0 .. Size( F ) - 1 ], i -> i * one ) );
+    return AsSSortedListList( List( [ 0 .. Size( F ) - 1 ], i -> i * one ) );
 end;
 
 InstallMethod( Enumerator,
@@ -436,7 +485,7 @@ InstallMethod( AsList,
 #T InstallMethod( EnumeratorSorted, true, [ IsField and IsPrimeField ], 0,
 #T     EnumeratorOfPrimeField );
 #T 
-#T InstallMethod( AsListSorted, true, [ IsField and IsPrimeField ], 0,
+#T InstallMethod( AsSSortedList, true, [ IsField and IsPrimeField ], 0,
 #T     EnumeratorOfPrimeField );
 
 
@@ -485,6 +534,60 @@ InstallMethod( IsSubset,
     [ IsDivisionRing, IsDivisionRing ], 0,
     function( D, F )
     return IsSubset( D, GeneratorsOfDivisionRing( F ) );
+    end );
+
+
+#############################################################################
+##
+#M  AsDivisionRing( <C> ) . . . . . . . . . . . . . . . . .  for a collection
+##
+InstallMethod( AsDivisionRing,
+    "for a collection",
+    true,
+    [ IsCollection ], 0,
+    function( C )
+
+    local one, F;
+
+    # A division ring contains at least two elements.
+    if IsEmpty( C ) or IsTrivial( C ) then
+      return fail;
+    fi;
+
+    # Construct the prime field.
+    one:= One( Representative( C ) );
+    if one = fail then
+      return fail;
+    fi;
+    F:= FieldOverItselfByGenerators( [ one ] );
+
+    # Delegate to the two-argument version.
+    return AsDivisionRing( F, C );
+    end );
+
+
+#############################################################################
+##
+#M  AsDivisionRing( <F>, <C> )  . . . . for a division ring, and a collection
+##
+InstallMethod( AsDivisionRing,
+    "for a division ring, and a collection",
+    IsIdenticalObj,
+    [ IsDivisionRing, IsCollection ], 0,
+    function( F, C )
+
+    local D;
+
+    if not IsSubset( C, F ) then
+      return fail;
+    fi;
+
+    D:= DivisionRingByGenerators( F, C );
+    if D <> C then
+      return fail;
+    fi;
+
+    return D;
     end );
 
 

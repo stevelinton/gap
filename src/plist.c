@@ -51,6 +51,7 @@ const char * Revision_plist_c =
 #include        "opers.h"               /* generic operations              */
 
 #include        "ariths.h"              /* basic arithmetic                */
+#include        "finfield.h"            /* fintie fields                   */
 
 #include        "bool.h"                /* booleans                        */
 
@@ -67,7 +68,7 @@ const char * Revision_plist_c =
 
 #include        "saveload.h"            /* saving and loading              */
 
-
+#include        <assert.h>
 /****************************************************************************
 **
 
@@ -104,20 +105,23 @@ Int             GrowPlist (
 **
 **  'TypePlist' is the function in 'TypeObjFuncs' for plain lists.
 **
-**  TypePlist works with KTnumPlist to determine the type of a plain list
-**  Considerable care is needed to deal with self-referential lists. This is
-**  basically achieved with the TESTING flag in the Tnum. This must be set in the
-**  "current" list before triggering determination of the Type (or KTnum) of
-**  any sublist.
+**  TypePlist works with KTnumPlist to determine the type of a plain
+**  list Considerable care is needed to deal with self-referential
+**  lists. This is basically achieved with the TESTING flag in the
+**  Tnum. This must be set in the "current" list before triggering
+**  determination of the Type (or KTnum) of any sublist.
 **
 **  KTnumPlist determined the "true" Tnum of the list, taking account
-**  of such factors as denseness, homogeneity and so on. It modifies the stored
-**  Tnum of the list to the most informative "safe" value, allowing for the
-**  mutability of the list entries (and preserving TESTING).
+**  of such factors as denseness, homogeneity and so on. It modifies
+**  the stored Tnum of the list to the most informative "safe" value,
+**  allowing for the mutability of the list entries (and preserving
+**  TESTING).
 **
-**  These functions could be made more efficient for nested mutable lists,
-** 
+**  These functions could be made more efficient for nested mutable
+**  lists,
+**
 */
+
 Obj TYPE_LIST_NDENSE_MUTABLE;
 Obj TYPE_LIST_NDENSE_IMMUTABLE;
 Obj TYPE_LIST_DENSE_NHOM_MUTABLE;
@@ -131,8 +135,12 @@ Obj TYPE_LIST_HOM;
   && TNUM_OBJ(list) <= LAST_TESTING_TNUM)
 
 
+extern Obj TypePlistWithKTnum( Obj list,
+			       UInt *ktnum );
+
 Int KTNumPlist (
-    Obj                 list )
+    Obj                 list,
+    Obj                 *famfirst)
 {
     Int                 isHom   = 1;    /* is <list> homogeneous           */
     Int                 isDense = 1;    /* is <list> dense                 */
@@ -146,9 +154,19 @@ Int KTNumPlist (
     Int                 i;              /* loop variable                   */
     Int                 testing;        /* to test or not to test type     */
     Int                 res;            /* result                          */
+    Int                 knownDense;     /* set true if the list is already
+					   known to be dense */
+    Int                 knownNDense;    /* set true if the list is already
+					   known not to be dense */
+    UInt                ktnumFirst;
 
     /* if list has `TESTING' keep that                                     */
     testing = IS_TESTING_PLIST(list) ? TESTING : 0;
+
+    UNMARK_LIST(list, testing);
+    knownDense = HAS_FILT_LIST( list, FN_IS_DENSE );
+    knownNDense = HAS_FILT_LIST( list, FN_IS_NDENSE );
+    MARK_LIST(list, testing);
 
     /* get the length of the list                                          */
     lenList = LEN_PLIST(list);
@@ -159,6 +177,8 @@ Int KTNumPlist (
         SET_FILT_LIST( list, FN_IS_EMPTY );
         res = TNUM_OBJ(list);
         MARK_LIST( list, testing );
+	if (famfirst != (Obj *) 0)
+	  *famfirst = (Obj) 0;
         return res;
     }
 
@@ -174,10 +194,18 @@ Int KTNumPlist (
     }
     else {
 	if (!testing) MARK_LIST(list, TESTING);
-        family  = FAMILY_TYPE( TYPE_OBJ(elm) );
+
+	if (IS_PLIST(elm))
+	  family = FAMILY_TYPE( TypePlistWithKTnum(elm, &ktnumFirst));
+	else
+	  {
+	    family  = FAMILY_TYPE( TYPE_OBJ(elm) );
+	    ktnumFirst = 0;
+	  }
         isHom   = 1;
         areMut  = IS_MUTABLE_OBJ(elm);
-        if ( IS_HOMOG_LIST(elm) ) {
+        if ( ktnumFirst >= T_PLIST_HOM ||
+	     ( ktnumFirst == 0 && IS_HOMOG_LIST( elm) )) {
             isTable = 1;
             len     = LEN_LIST(elm);
         }
@@ -201,24 +229,33 @@ Int KTNumPlist (
             isTable = (isTable && IS_LIST(elm) && LEN_LIST(elm) == len);
         }
     }
-    for ( ;  isDense && i <= lenList;  i++ ) {
+    /* if we know it is not dense */
+    if (knownNDense)
+      isDense = 0;
+    /* otherwise if we don't know that it IS dense */
+    else if (!knownDense)
+      for ( ;  isDense && i <= lenList;  i++ ) {
         elm = ELM_PLIST( list, i );
         if ( elm == 0 ) {
-            isDense = 0;
+	  isDense = 0;
         }
-    }
+      }
 
     /* set the appropriate flags (not the hom. flag if elms are mutable)   */
     UNMARK_LIST( list, testing );
     if      ( ! isDense ) {
         SET_FILT_LIST( list, FN_IS_NDENSE );
         res = T_PLIST_NDENSE;
+	if (famfirst != (Obj *) 0)
+	  *famfirst = (Obj) 0;
     }
     else if ( isDense && ! isHom ) {
         SET_FILT_LIST( list, FN_IS_DENSE );
         if ( ! areMut )
             SET_FILT_LIST( list, FN_IS_NHOMOG );
         res = T_PLIST_DENSE_NHOM;
+	if (famfirst != (Obj *) 0)
+	  *famfirst = (Obj) 0;
     }
     else if ( isDense &&   isHom && ! isTable ) {
         SET_FILT_LIST( list, areMut ? FN_IS_DENSE : FN_IS_HOMOG );
@@ -230,18 +267,113 @@ Int KTNumPlist (
 	  }
 	else
 	  res = T_PLIST_HOM;
+	if (famfirst != (Obj *) 0)
+	  *famfirst = (Obj) family;
+
     }
     else /* if ( isDense &&   isHom &&   isTable ) */ {
         SET_FILT_LIST( list, areMut ? FN_IS_DENSE : FN_IS_TABLE );
         res = T_PLIST_TAB;
+	if (famfirst != (Obj *) 0)
+	  *famfirst = (Obj) family;
     }
     res = res + ( IS_MUTABLE_OBJ(list) ? 0 : IMMUTABLE );
     MARK_LIST( list, testing );
     return res;
 }
 
-Obj TypePlist (
-    Obj                 list )
+
+Int KTNumHomPlist (
+    Obj                 list)
+{
+    Int                 isTable = 0;    /* are <list>s elms equal length   */
+    Int                 isCyc   = 0;    /* are <list> elms all cyclotomic  */
+    Int                 len     = 0;    /* if so, this is the length       */
+    Int                 lenList;        /* length of list                  */
+    Obj                 elm;            /* one element of <list>           */
+    Int                 i;              /* loop variable                   */
+    Int                 testing;        /* to test or not to test type     */
+    Int                 res;            /* result                          */
+    Int                 isSSort;        /* list is (known to be) SSorted   */
+    Int                 isNSort;        /* list is (known to be) non-sorted*/
+
+    /* if list has `TESTING' keep that                                     */
+    testing = IS_TESTING_PLIST(list) ? TESTING : 0;
+
+    /* get the length of the list                                          */
+    lenList = LEN_PLIST(list);
+
+    /* special case for empty list                                         */
+    assert(lenList);
+
+    /* look at the first element                                           */
+    elm = ELM_PLIST( list, 1 );
+    assert(elm);
+    assert(!IS_TESTING_PLIST(elm));
+
+    isSSort = HAS_FILT_LIST(list, FN_IS_SSORT );
+    isNSort = HAS_FILT_LIST(list, FN_IS_NSORT );
+
+    /* if it's a kernel cyclotomic then we know where we are*/
+    if (TNUM_OBJ(elm) <= T_CYC)
+      {
+	if (lenList == 1 || isSSort)
+	  res = T_PLIST_CYC_SSORT;
+	else if (isNSort)
+	  res = T_PLIST_CYC_NSORT;
+        else
+	  res = T_PLIST_CYC;
+	
+	/* This is a hack */
+	RetypeBag(list, res + ( IS_MUTABLE_OBJ(list) ? 0 : IMMUTABLE ));
+	goto finish;
+      }
+
+    /* Unless we already know it is, then check if the list is a table */
+    if (!HAS_FILT_LIST(list, FN_IS_TABLE ))
+      {
+	if ( IS_HOMOG_LIST(elm) ) {
+	  isTable = 1;
+	  len     = LEN_LIST(elm);
+	}
+
+	/* loop over the list */
+	for ( i = 2; isTable && i <= lenList; i++ ) {
+	  elm = ELM_PLIST( list, i );
+	  assert(elm);
+	  assert(!IS_TESTING_PLIST(elm));
+	  isTable = (isTable && IS_LIST(elm) && LEN_LIST(elm) == len);
+	}
+      }
+    else
+      isTable = 1;
+    
+    if (isTable)
+      {
+        SET_FILT_LIST( list, FN_IS_TABLE );
+        res = T_PLIST_TAB;
+      }
+    else if (isSSort)
+      res = T_PLIST_HOM_SSORT;
+    else if (isNSort)
+      res = T_PLIST_HOM_NSORT;
+    else
+      res = T_PLIST_HOM;
+    
+ finish:
+    res = res + ( IS_MUTABLE_OBJ(list) ? 0 : IMMUTABLE );
+    MARK_LIST( list, testing );
+    return res;
+}
+
+Obj TypePlist( Obj list)
+{
+  return TypePlistWithKTnum( list, (UInt *) 0);
+}
+
+Obj TypePlistWithKTnum (
+    Obj                 list,
+    UInt                *ktnum )
 {
     Obj                 kind;           /* kind, result                    */
     Int                 ktype;          /* kind type of <list>             */
@@ -251,8 +383,10 @@ Obj TypePlist (
 
     /* recursion is possible for this type of list                         */
     MARK_LIST( list, TESTING );
-    ktype = KTNumPlist( list );
+    ktype = KTNumPlist( list, &family);
     UNMARK_LIST( list, TESTING );
+    if (ktnum != (UInt *) 0)
+      *ktnum = ktype;
 
     /* handle special cases                                                */
     if      ( ktype == T_PLIST_NDENSE ) {
@@ -277,13 +411,8 @@ Obj TypePlist (
     /* handle homogeneous list                                             */
     else if ( HasFiltListTNums[ktype][FN_IS_HOMOG] ) {
 
-        /* get the family of the elements                                  */
 
-      MARK_LIST(list, TESTING);
-      family = FAMILY_TYPE( TYPE_OBJ( ELM_PLIST(list,1) ) );
-      UNMARK_LIST(list, TESTING);
-
-        /* get the list kinds of that family                               */
+        /* get the list kinds of the elements family */
         kinds  = TYPES_LIST_FAM( family );
 
         /* if the kind is not yet known, compute it                        */
@@ -357,7 +486,7 @@ Obj TypePlistHom (
     Obj                 kinds;          /* kinds list of <family>          */
 
     /* get the kind type and the family of the elements                    */
-    ktype  = TNUM_OBJ( list );
+    ktype  = KTNumHomPlist( list );
     family = FAMILY_TYPE( TYPE_OBJ( ELM_PLIST( list, 1 ) ) );
 
     /* get the list kinds of that family                                   */
@@ -396,6 +525,33 @@ Obj TypePlistCyc (
         kind = CALL_2ARGS( TYPE_LIST_HOM,
             family, INTOBJ_INT(ktype-T_PLIST_CYC+1) );
         ASS_LIST( kinds, ktype-T_PLIST_CYC+1, kind );
+    }
+
+    /* return the kind                                                     */
+    return kind;
+}
+
+Obj TypePlistFfe (
+    Obj                 list )
+{
+    Obj                 kind;           /* kind, result                    */
+    Int                 ktype;          /* kind type of <list>             */
+    Obj                 family;         /* family of elements              */
+    Obj                 kinds;          /* kinds list of <family>          */
+
+    /* get the kind type and the family of the elements                    */
+    ktype  = TNUM_OBJ( list );
+    family = FAMILY_TYPE( TYPE_OBJ( ELM_PLIST( list, 1 ) ) );
+
+    /* get the list kinds of that family                                   */
+    kinds  = TYPES_LIST_FAM( family );
+
+    /* if the kind is not yet known, compute it                            */
+    kind = ELM0_LIST( kinds, ktype-T_PLIST_FFE+1 );
+    if ( kind == 0 ) {
+        kind = CALL_2ARGS( TYPE_LIST_HOM,
+            family, INTOBJ_INT(ktype-T_PLIST_FFE+1) );
+        ASS_LIST( kinds, ktype-T_PLIST_FFE+1, kind );
     }
 
     /* return the kind                                                     */
@@ -1298,6 +1454,43 @@ void AssPlistCyc   (
 	
 }
 
+void AssPlistFfe   (
+    Obj                 list,
+    Int                 pos,
+    Obj                 val )
+{
+    Int len;
+  
+    /* resize the list if necessary                                        */
+    len = LEN_PLIST( list );
+    if ( len < pos ) {
+        GROW_PLIST( list, pos );
+        SET_LEN_PLIST( list, pos );
+    }
+
+    /* now perform the assignment                                          */
+    SET_ELM_PLIST( list, pos, val );
+    CHANGED_BAG( list );
+
+    /* try and maintain maximum information about the list                 */
+    if( pos > len + 1 ) {
+	CLEAR_FILTS_LIST(list);
+	SET_FILT_LIST( list, FN_IS_NDENSE );
+    }
+    else if( TNUM_OBJ(val) != T_FFE ) {
+	CLEAR_FILTS_LIST(list);
+	SET_FILT_LIST( list, FN_IS_DENSE );
+    }
+    else if( FLD_FFE(val) != FLD_FFE( ELM_PLIST( list, 1 ) ) ) {
+	CLEAR_FILTS_LIST(list);
+	SET_FILT_LIST( list, FN_IS_HOMOG );
+	SET_FILT_LIST( list, FN_IS_DENSE );
+    }
+    else {
+      	RESET_FILT_LIST( list, FN_IS_NSORT );
+	RESET_FILT_LIST( list, FN_IS_SSORT );
+    }
+}
 
 void AssPlistDense (
     Obj                 list,
@@ -1305,6 +1498,7 @@ void AssPlistDense (
     Obj                 val )
 {
   Int len;
+  Obj fam;
   
   /* the list will probably loose its flags/properties                   */
   CLEAR_FILTS_LIST(list);
@@ -1325,6 +1519,67 @@ void AssPlistDense (
       SET_FILT_LIST( list, FN_IS_DENSE );
     else
       SET_FILT_LIST( list, FN_IS_NDENSE );
+}
+
+void AssPlistHomog (
+    Obj                 list,
+    Int                 pos,
+    Obj                 val )
+{
+  Int len;
+  Obj fam;
+  
+  /* the list may loose its flags/properties                   */
+  CLEAR_FILTS_LIST(list);
+  
+  /* resize the list if necessary                                        */
+  len = LEN_PLIST( list );
+  if ( len < pos ) {
+    GROW_PLIST( list, pos );
+    SET_LEN_PLIST( list, pos );
+  }
+
+    /* now perform the assignment                                          */
+    SET_ELM_PLIST( list, pos, val );
+    CHANGED_BAG( list );
+
+    /* restore denseness if we can */
+    if (pos <= len+1)
+      {
+	SET_FILT_LIST( list, FN_IS_DENSE );
+
+	/* In this case, we may be able to restore homogeneity */
+	if (len == 1 && pos == 1)
+	  {
+
+	    /* case of replacing the only list element */
+	    if (TNUM_OBJ( val ) <= T_CYC)
+	      {
+		RetypeBag( list, T_PLIST_CYC_SSORT );
+	      }
+	    else
+	      {
+		SET_FILT_LIST( list, FN_IS_HOMOG );
+	      }
+	  }
+	else if (!SyInitializing && !IS_MUTABLE_OBJ(val))
+	  {
+	    /* find the family of an original list element */
+	    if (pos != 1)
+	      fam = FAMILY_OBJ(ELM_PLIST(list, 1));
+	    else
+	      fam = FAMILY_OBJ(ELM_PLIST(list, 2));
+
+	    /* restore homogeneity if we can */
+	    if (fam == FAMILY_OBJ( val ))
+	      SET_FILT_LIST(list, FN_IS_HOMOG);
+	    else
+	      SET_FILT_LIST(list, FN_IS_NHOMOG);
+	  }
+      }
+    else
+      SET_FILT_LIST( list, FN_IS_NDENSE );
+
 }
 
 
@@ -1362,18 +1617,39 @@ void AssPlistEmpty (
 
     /* catch FFE                                                           */
     else if ( IS_FFE(val) ) {
+
+      /* early in initialization, the type of the empty list may not be
+	 available, in which case we must NOT call method selection */
+      if (TYPE_LIST_EMPTY_MUTABLE != 0)
         AssListObject( list, pos, val );
+      else
+	AssPlistXXX( list, pos, val );
     }
 
     /* catch constants                                                     */
     else if ( TNUM_OBJ(val) < FIRST_EXTERNAL_TNUM ) {
         AssPlistXXX( list, pos, val );
+	/* fix up type */
+	SET_FILT_LIST(list, FN_IS_DENSE);
+	if ( !IS_MUTABLE_OBJ( val) )
+	  {
+	    SET_FILT_LIST(list, FN_IS_HOMOG);
+	    if ( TNUM_OBJ(val) <= T_CYC ) 
+	      RetypeBag( list, T_PLIST_CYC);
+	  }
     }
+
     
     /* use method selection                                                */
     else {
+      /* early in initialization, the type of the empty list may not be
+	 available, in which case we must NOT call method selection */
+      if (TYPE_LIST_EMPTY_MUTABLE != 0)
         AssListObject( list, pos, val );
+      else
+	AssPlistXXX( list, pos, val );
     }
+
 }
 
 
@@ -1564,7 +1840,7 @@ Int             IsHomogPlist (
     Obj                 list )
 {
     Int                 ktype;
-    ktype = KTNumPlist( list );
+    ktype = KTNumPlist( list, (Obj *)0 );
     return (T_PLIST_HOM <= ktype);
 }
 
@@ -1594,7 +1870,7 @@ Int             IsTablePlist (
     Obj                 list )
 {
     Int                 ktype;
-    ktype = KTNumPlist( list );
+    ktype = KTNumPlist( list, (Obj *)0 );
     return (T_PLIST_TAB <= ktype && ktype <= T_PLIST_TAB_SSORT);
 }
 
@@ -1627,6 +1903,11 @@ Int             IsSSortPlist (
     Obj                 list )
 {
     Int                 lenList;
+    Obj elm1;
+    Obj elm2;
+    Int                 areMut;
+    Int                 i;
+    
 
     /* get the length                                                      */
     lenList = LEN_PLIST( list );
@@ -1637,9 +1918,27 @@ Int             IsSSortPlist (
         return 2L;
     }
 
-    /* a list must be homogeneous to be strictly sorted                    */
+    /* a list must be homogeneous to be strictly sorted
+       sadly this is no longer true */
     if ( ! IS_HOMOG_LIST(list) ) {
-        return 0L;
+      /* get the first element                                               */
+      elm1    = ELM_PLIST( list, 1 );
+      areMut   = IS_MUTABLE_OBJ( elm1 );
+      
+      /* loop over the other elements                                        */
+      for ( i = 2; i <= lenList; i++ ) {
+        elm2 = ELM_PLIST( list, i );
+        if ( ! LT( elm1, elm2 ) )
+	  break;
+        areMut = (areMut || IS_MUTABLE_OBJ( elm2 ));
+        elm1 = elm2;
+      }
+      if (lenList < i) /* we broke out */
+	return 1;
+      else
+	return 0;		/* don't store in the non-homogenous case
+				 (yet)*/
+      
     }
 
     /* delegate                                                            */
@@ -1810,6 +2109,10 @@ Int             PosPlistHomSort (
     UInt                lenList;        /* logical length of the set       */
     UInt                i, j, k;        /* loop variables                  */
 
+    /* deal with the case which can be decided by the family relationship  */
+    if (FAMILY_OBJ(val) != FAMILY_OBJ(ELM_PLIST(list,1)))
+      return 0;
+    
     /* get a pointer to the set and the logical length of the set          */
     lenList = LEN_PLIST( list );
 
@@ -1915,10 +2218,47 @@ Obj FuncASS_PLIST_DEFAULT (
     return 0;
 }
 
+/****************************************************************************
+**
+*F  MakeImmutablePlistInHom( <plist> )
+**
+**  This is the function for Plists that might have mutable subobjects
+**  which is currently exactly those that are not known to be homogenous
+**  (or immutable, but MakeImmutable will have caught that case before we get h**  ere)
+*/
+
+void MakeImmutablePlistInHom( Obj list )
+{
+  UInt i;
+  Obj elm;
+  for (i = 1; i <= LEN_PLIST(list); i++)
+    {
+      elm = ELM_PLIST( list, i);
+      if (elm != 0)
+	{
+	  MakeImmutable( elm );
+	  CHANGED_BAG(list);
+	}
+    }
+  RetypeBag( list, IMMUTABLE_TNUM(TNUM_OBJ(list)));
+}
 
 /****************************************************************************
 **
+*F  MakeImmutablePlistHom( <plist> )
+**
+**  This is the function for Plists that cannot have mutable subobjects
+**  which is currently exactly those that are  known to be homogenous
+**  (or immutable, but MakeImmutable will have caught that case before we get h**  ere)
+*/
 
+void MakeImmutablePlistHom( Obj list )
+{
+  RetypeBag( list, IMMUTABLE_TNUM(TNUM_OBJ(list)));
+}
+
+/****************************************************************************
+**
 *F * * * * * * * * * * * * * initialize package * * * * * * * * * * * * * * *
 */
 
@@ -1999,6 +2339,11 @@ static StructBagNames BagNames[] = {
   { T_PLIST_CYC_SSORT            +COPYING,  "list (plain,cyc,ssort,copied)" },
   { T_PLIST_CYC_SSORT +IMMUTABLE +COPYING,  "list (plain,cyc,ssort,imm,copied)" },
 
+  { T_PLIST_FFE,                     "list (sml fin fld elms)" },
+  { T_PLIST_FFE +IMMUTABLE,          "list (sml fin fld elms,imm)" },
+  { T_PLIST_FFE            +COPYING, "list (sml fin fld elms,copied)" },
+  { T_PLIST_FFE +IMMUTABLE +COPYING, "list (sml fin fld elms,imm,copied)" },
+
   { -1,                                     "" }
 };
 
@@ -2036,6 +2381,8 @@ static Int ClearFiltsTab [] = {
     T_PLIST_CYC_NSORT +IMMUTABLE,     T_PLIST +IMMUTABLE,
     T_PLIST_CYC_SSORT,                T_PLIST,
     T_PLIST_CYC_SSORT +IMMUTABLE,     T_PLIST +IMMUTABLE,
+    T_PLIST_FFE,                      T_PLIST,
+    T_PLIST_FFE       +IMMUTABLE,     T_PLIST +IMMUTABLE,
 
     -1,                               -1
 };
@@ -2354,6 +2701,28 @@ static Int HasFiltTab [] = {
     T_PLIST_CYC_NSORT +IMMUTABLE, FN_IS_TABLE,    0,
     T_PLIST_CYC_NSORT +IMMUTABLE, FN_IS_SSORT,    0,
     T_PLIST_CYC_NSORT +IMMUTABLE, FN_IS_NSORT,    1,
+
+    /* mutable dense list, which only contains objects of type T_FFE       */
+    T_PLIST_FFE,            FN_IS_MUTABLE,  1,
+    T_PLIST_FFE,            FN_IS_EMPTY,    0,
+    T_PLIST_FFE,            FN_IS_DENSE,    1,
+    T_PLIST_FFE,            FN_IS_NDENSE,   0,
+    T_PLIST_FFE,            FN_IS_HOMOG,    1,
+    T_PLIST_FFE,            FN_IS_NHOMOG,   0,
+    T_PLIST_FFE,            FN_IS_TABLE,    0,
+    T_PLIST_FFE,            FN_IS_SSORT,    0,
+    T_PLIST_FFE,            FN_IS_NSORT,    0,
+
+    /* immutable dense list, which only contains objects of type T_FFE     */
+    T_PLIST_FFE +IMMUTABLE, FN_IS_MUTABLE,  0,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_EMPTY,    0,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_DENSE,    1,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_NDENSE,   0,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_HOMOG,    1,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_NHOMOG,   0,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_TABLE,    0,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_SSORT,    0,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_NSORT,    0,
 
     -1,                         -1,             -1
 };
@@ -2683,6 +3052,28 @@ static Int SetFiltTab [] = {
     T_PLIST_CYC_NSORT +IMMUTABLE, FN_IS_TABLE,   -1,
     T_PLIST_CYC_NSORT +IMMUTABLE, FN_IS_SSORT,   -1,
     T_PLIST_CYC_NSORT +IMMUTABLE, FN_IS_NSORT,   T_PLIST_CYC_NSORT +IMMUTABLE,
+
+    /* mutable dense list, which only contains objects of type T_FFE       */
+    T_PLIST_FFE,            FN_IS_MUTABLE, T_PLIST_FFE,
+    T_PLIST_FFE,            FN_IS_EMPTY,   T_PLIST_FFE,
+    T_PLIST_FFE,            FN_IS_DENSE,   T_PLIST_FFE,
+    T_PLIST_FFE,            FN_IS_NDENSE,  -1,
+    T_PLIST_FFE,            FN_IS_HOMOG,   T_PLIST_FFE,
+    T_PLIST_FFE,            FN_IS_NHOMOG,  -1,
+    T_PLIST_FFE,            FN_IS_TABLE,   -1,
+    T_PLIST_FFE,            FN_IS_SSORT,   T_PLIST_FFE,
+    T_PLIST_FFE,            FN_IS_NSORT,   T_PLIST_FFE,
+
+    /* immutable dense list, which only contains objects of type T_FFE     */
+    T_PLIST_FFE +IMMUTABLE, FN_IS_MUTABLE, T_PLIST_FFE,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_EMPTY,   T_PLIST_FFE +IMMUTABLE,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_DENSE,   T_PLIST_FFE +IMMUTABLE,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_NDENSE,  -1,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_HOMOG,   T_PLIST_FFE +IMMUTABLE,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_NHOMOG,  -1,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_TABLE,   -1,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_SSORT,   T_PLIST_FFE +IMMUTABLE,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_NSORT,   T_PLIST_FFE +IMMUTABLE,
 
     -1,                           -1,            -1
 
@@ -3014,6 +3405,28 @@ static Int ResetFiltTab [] = {
     T_PLIST_CYC_NSORT +IMMUTABLE, FN_IS_SSORT,   T_PLIST_CYC_NSORT +IMMUTABLE,
     T_PLIST_CYC_NSORT +IMMUTABLE, FN_IS_NSORT,   T_PLIST_CYC       +IMMUTABLE,
 
+    /* mutable dense list, which only contains objects of type T_FFE       */
+    T_PLIST_FFE,            FN_IS_MUTABLE, T_PLIST_FFE +IMMUTABLE,
+    T_PLIST_FFE,            FN_IS_EMPTY,   T_PLIST_FFE,
+    T_PLIST_FFE,            FN_IS_DENSE,   T_PLIST,
+    T_PLIST_FFE,            FN_IS_NDENSE,  T_PLIST_FFE,
+    T_PLIST_FFE,            FN_IS_HOMOG,   T_PLIST,
+    T_PLIST_FFE,            FN_IS_NHOMOG,  T_PLIST_FFE,
+    T_PLIST_FFE,            FN_IS_TABLE,   T_PLIST_FFE,
+    T_PLIST_FFE,            FN_IS_SSORT,   T_PLIST_FFE,
+    T_PLIST_FFE,            FN_IS_NSORT,   T_PLIST_FFE,
+
+    /* immutable dense list, which only contains objects of type T_FFE     */
+    T_PLIST_FFE +IMMUTABLE, FN_IS_MUTABLE, T_PLIST_FFE +IMMUTABLE,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_EMPTY,   T_PLIST_FFE +IMMUTABLE,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_DENSE,   T_PLIST     +IMMUTABLE,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_NDENSE,  T_PLIST_FFE +IMMUTABLE,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_HOMOG,   T_PLIST     +IMMUTABLE,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_NHOMOG,  T_PLIST_FFE +IMMUTABLE,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_TABLE,   T_PLIST_FFE +IMMUTABLE,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_SSORT,   T_PLIST_FFE +IMMUTABLE,
+    T_PLIST_FFE +IMMUTABLE, FN_IS_NSORT,   T_PLIST_FFE +IMMUTABLE,
+
     -1,                         -1,             -1
 
 };
@@ -3063,14 +3476,22 @@ static Int InitKernel (
     /* GASMAN marking functions and GASMAN names                           */
     InitBagNamesFromTable( BagNames );
 
-    for ( t1 = T_PLIST;  t1 <= T_PLIST_CYC_SSORT;  t1 += 2 ) {
+    for ( t1 = T_PLIST;  t1 < T_PLIST_FFE ;  t1 += 2 ) {
         InitMarkFuncBags( t1                     , MarkAllSubBags );
         InitMarkFuncBags( t1 +IMMUTABLE          , MarkAllSubBags );
         InitMarkFuncBags( t1            +COPYING , MarkAllSubBags );
         InitMarkFuncBags( t1 +IMMUTABLE +COPYING , MarkAllSubBags );
     }
 
-    for ( t1 = T_PLIST;  t1 <= T_PLIST_CYC_SSORT;  t1 += 2 ) {
+    InitMarkFuncBags( T_PLIST_FFE                     , MarkNoSubBags );
+    InitMarkFuncBags( T_PLIST_FFE +IMMUTABLE          , MarkNoSubBags );
+    InitMarkFuncBags( T_PLIST_FFE            +COPYING , MarkNoSubBags );
+    InitMarkFuncBags( T_PLIST_FFE +IMMUTABLE +COPYING , MarkNoSubBags );
+
+    /* If T_PLIST_FFE is not the last PLIST type then some more
+       work needs to be done here */
+
+    for ( t1 = T_PLIST;  t1 <= LAST_PLIST_TNUM;  t1 += 2 ) {
         SaveObjFuncs[ t1 ]             = SavePlist;
         SaveObjFuncs[ t1 + IMMUTABLE ] = SavePlist; 
         LoadObjFuncs[ t1 ]             = LoadPlist;
@@ -3119,6 +3540,9 @@ static Int InitKernel (
         TypeObjFuncs[ t1 +IMMUTABLE ] = TypePlistCyc;
     }
 
+    TypeObjFuncs[ T_PLIST_FFE            ] = TypePlistFfe;
+    TypeObjFuncs[ T_PLIST_FFE +IMMUTABLE ] = TypePlistFfe;
+
     /* init filters and functions                                          */
     InitHdlrFiltsFromTable( GVarFilts );
     InitHdlrFuncsFromTable( GVarFuncs );
@@ -3131,14 +3555,14 @@ static Int InitKernel (
 
 
     /* install the shallow copy methods                                    */
-    for ( t1 = T_PLIST; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         ShallowCopyObjFuncs[ t1            ] = ShallowCopyPlist;
         ShallowCopyObjFuncs[ t1 +IMMUTABLE ] = ShallowCopyPlist;
     }
 
 
     /* install the copy list methods                                       */
-    for ( t1 = T_PLIST; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         CopyObjFuncs [ t1                     ] = CopyPlist;
         CopyObjFuncs [ t1 +IMMUTABLE          ] = CopyPlist;
         CopyObjFuncs [ t1            +COPYING ] = CopyPlistCopy;
@@ -3151,8 +3575,8 @@ static Int InitKernel (
 
 
     /* install the comparison methods                                      */
-    for ( t1 = T_PLIST; t1 <= T_PLIST_CYC_SSORT+IMMUTABLE; t1++ ) {
-        for ( t2 = T_PLIST; t2 <= T_PLIST_CYC_SSORT+IMMUTABLE; t2++ ) {
+    for ( t1 = T_PLIST; t1 <= LAST_PLIST_TNUM+IMMUTABLE; t1++ ) {
+        for ( t2 = T_PLIST; t2 <= LAST_PLIST_TNUM+IMMUTABLE; t2++ ) {
             EqFuncs[ t1 ][ t2 ] = EqPlist;
             LtFuncs[ t1 ][ t2 ] = LtPlist;
         }
@@ -3160,7 +3584,7 @@ static Int InitKernel (
 
 
     /* install the list length methods                                     */
-    for ( t1 = T_PLIST; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         LenListFuncs[ t1            ] = LenPlist;
         LenListFuncs[ t1 +IMMUTABLE ] = LenPlist;
     }
@@ -3169,30 +3593,30 @@ static Int InitKernel (
 
 
     /* install the list element test methods                               */
-    for ( t1 = T_PLIST; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         IsbListFuncs  [ t1            ] = IsbPlist;
         IsbListFuncs  [ t1 +IMMUTABLE ] = IsbPlist;
     }
-    for ( t1 = T_PLIST_DENSE; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST_DENSE; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         IsbListFuncs  [ t1            ] = IsbPlistDense;
         IsbListFuncs  [ t1 +IMMUTABLE ] = IsbPlistDense;
     }
-    for ( t1 = T_PLIST; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         IsbvListFuncs [ t1            ] = IsbvPlist;
         IsbvListFuncs [ t1 +IMMUTABLE ] = IsbvPlist;
     }
-    for ( t1 = T_PLIST_DENSE; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST_DENSE; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         IsbvListFuncs [ t1            ] = IsbvPlistDense;
         IsbvListFuncs [ t1 +IMMUTABLE ] = IsbvPlistDense;
     }
 
 
     /* install the list element methods                                    */
-    for ( t1 = T_PLIST; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         Elm0ListFuncs [ t1            ] = Elm0Plist;
         Elm0ListFuncs [ t1 +IMMUTABLE ] = Elm0Plist;
     }
-    for ( t1 = T_PLIST; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         Elm0vListFuncs[ t1            ] = Elm0vPlist;
         Elm0vListFuncs[ t1 +IMMUTABLE ] = Elm0vPlist;
     }
@@ -3200,23 +3624,23 @@ static Int InitKernel (
         ElmListFuncs  [ t1            ] = ElmPlist;
         ElmListFuncs  [ t1 +IMMUTABLE ] = ElmPlist;
     }
-    for ( t1 = T_PLIST_DENSE; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST_DENSE; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         ElmListFuncs  [ t1            ] = ElmPlistDense;
         ElmListFuncs  [ t1 +IMMUTABLE ] = ElmPlistDense;
     }
-    for ( t1 = T_PLIST; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         ElmvListFuncs [ t1            ] = ElmvPlist;
         ElmvListFuncs [ t1 +IMMUTABLE ] = ElmvPlist;
     }
-    for ( t1 = T_PLIST_DENSE; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST_DENSE; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         ElmvListFuncs [ t1            ] = ElmvPlistDense;
         ElmvListFuncs [ t1 +IMMUTABLE ] = ElmvPlistDense;
     }
-    for ( t1 = T_PLIST; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         ElmwListFuncs [ t1            ] = ElmvPlistDense;
         ElmwListFuncs [ t1 +IMMUTABLE ] = ElmvPlistDense;
     }
-    for ( t1 = T_PLIST_DENSE; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST_DENSE; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         ElmwListFuncs [ t1            ] = ElmvPlistDense;
         ElmwListFuncs [ t1 +IMMUTABLE ] = ElmvPlistDense;
     }
@@ -3227,14 +3651,14 @@ static Int InitKernel (
         ElmsListFuncs   [ t1            ] = ElmsPlist;
         ElmsListFuncs   [ t1 +IMMUTABLE ] = ElmsPlist;
     }
-    for ( t1 = T_PLIST_DENSE; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST_DENSE; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         ElmsListFuncs   [ t1            ] = ElmsPlistDense;
         ElmsListFuncs   [ t1 +IMMUTABLE ] = ElmsPlistDense;
     }
 
 
     /* install the list unbind methods                                     */
-    for ( t1 = T_PLIST; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         UnbListFuncs    [ t1            ] = UnbPlist;
         UnbListFuncs    [ t1+IMMUTABLE  ] = UnbPlistImm;
     }
@@ -3245,10 +3669,18 @@ static Int InitKernel (
     AssListFuncs    [ T_PLIST+IMMUTABLE ] = AssPlistImm;
     AssListFuncs    [ T_PLIST_NDENSE    ] = AssPlistXXX;
     AssListFuncs    [ T_PLIST_NDENSE+IMMUTABLE ] = AssPlistImm;
+    AssListFuncs    [ T_PLIST_DENSE    ] = AssPlistDense;
+    AssListFuncs    [ T_PLIST_DENSE+IMMUTABLE ] = AssPlistImm;
+    AssListFuncs    [ T_PLIST_DENSE_NHOM    ] = AssPlistDense;
+    AssListFuncs    [ T_PLIST_DENSE_NHOM+IMMUTABLE ] = AssPlistImm;
+    AssListFuncs    [ T_PLIST_EMPTY    ] = AssPlistEmpty;
+    AssListFuncs    [ T_PLIST_EMPTY+IMMUTABLE ] = AssPlistImm;
     
-    for ( t1 = T_PLIST_DENSE; t1 < T_PLIST_CYC; t1 += 2 ) {
+    
+    
+    for ( t1 = T_PLIST_HOM; t1 < T_PLIST_CYC; t1 += 2 ) {
       AssListFuncs[ t1+IMMUTABLE      ] = AssPlistImm;
-      AssListFuncs[ t1                ] = AssPlistDense;
+      AssListFuncs[ t1                ] = AssPlistHomog;
     }
 
     for ( t1 = T_PLIST_CYC; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
@@ -3256,13 +3688,13 @@ static Int InitKernel (
       AssListFuncs[ t1                ] = AssPlistCyc;
     }
 
-    AssListFuncs    [ T_PLIST_EMPTY     ] = AssPlistEmpty;
-
+    AssListFuncs[ T_PLIST_FFE+IMMUTABLE ] = AssPlistImm;
+    AssListFuncs[ T_PLIST_FFE           ] = AssPlistFfe;
 
     /* install the list assignments methods                                */
     AsssListFuncs   [ T_PLIST            ] = AsssPlist;
     AsssListFuncs   [ T_PLIST +IMMUTABLE ] = AsssPlistImm;
-    for ( t1 = T_PLIST_NDENSE; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST_NDENSE; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         AsssListFuncs   [ t1             ] = AsssPlistXXX;
         AsssListFuncs   [ t1 +IMMUTABLE  ] = AsssPlistImm;
     }
@@ -3273,7 +3705,7 @@ static Int InitKernel (
     IsDenseListFuncs[ T_PLIST        +IMMUTABLE ] = IsDensePlist;
     IsDenseListFuncs[ T_PLIST_NDENSE            ] = IsDensePlistNot;
     IsDenseListFuncs[ T_PLIST_NDENSE +IMMUTABLE ] = IsDensePlistNot;
-    for ( t1 = T_PLIST_DENSE; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST_DENSE; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         IsDenseListFuncs[ t1            ] = IsDensePlistYes;
         IsDenseListFuncs[ t1 +IMMUTABLE ] = IsDensePlistYes;
     }
@@ -3290,7 +3722,7 @@ static Int InitKernel (
     IsHomogListFuncs[ T_PLIST_DENSE_NHOM +IMMUTABLE ] = IsHomogPlistNot;
     IsHomogListFuncs[ T_PLIST_EMPTY                 ] = IsHomogPlistYes;
     IsHomogListFuncs[ T_PLIST_EMPTY      +IMMUTABLE ] = IsHomogPlistYes;
-    for ( t1 = T_PLIST_HOM; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST_HOM; t1 <= LAST_PLIST_TNUM; t1 += 2 ) {
         IsHomogListFuncs[ t1            ] = IsHomogPlistYes;
         IsHomogListFuncs[ t1 +IMMUTABLE ] = IsHomogPlistYes;
     }
@@ -3319,12 +3751,14 @@ static Int InitKernel (
     IsTableListFuncs[ T_PLIST_TAB_NSORT  +IMMUTABLE ] = IsTablePlistYes;
     IsTableListFuncs[ T_PLIST_TAB_SSORT             ] = IsTablePlistYes;
     IsTableListFuncs[ T_PLIST_TAB_SSORT  +IMMUTABLE ] = IsTablePlistYes;
-    IsTableListFuncs[ T_PLIST_CYC                   ] = IsTablePlist;
-    IsTableListFuncs[ T_PLIST_CYC        +IMMUTABLE ] = IsTablePlist;
-    IsTableListFuncs[ T_PLIST_CYC_NSORT             ] = IsTablePlist;
-    IsTableListFuncs[ T_PLIST_CYC_NSORT  +IMMUTABLE ] = IsTablePlist;
-    IsTableListFuncs[ T_PLIST_CYC_SSORT             ] = IsTablePlist;
-    IsTableListFuncs[ T_PLIST_CYC_SSORT  +IMMUTABLE ] = IsTablePlist;
+    IsTableListFuncs[ T_PLIST_CYC                   ] = IsTablePlistNot;
+    IsTableListFuncs[ T_PLIST_CYC        +IMMUTABLE ] = IsTablePlistNot;
+    IsTableListFuncs[ T_PLIST_CYC_NSORT             ] = IsTablePlistNot;
+    IsTableListFuncs[ T_PLIST_CYC_NSORT  +IMMUTABLE ] = IsTablePlistNot;
+    IsTableListFuncs[ T_PLIST_CYC_SSORT             ] = IsTablePlistNot;
+    IsTableListFuncs[ T_PLIST_CYC_SSORT  +IMMUTABLE ] = IsTablePlistNot;
+    IsTableListFuncs[ T_PLIST_FFE                   ] = IsTablePlistNot;
+    IsTableListFuncs[ T_PLIST_FFE        +IMMUTABLE ] = IsTablePlistNot;
 
 
     /* install the strictly sorted list test methods                       */
@@ -3334,8 +3768,8 @@ static Int InitKernel (
     IsSSortListFuncs[ T_PLIST_NDENSE    +IMMUTABLE ] = IsSSortPlistNot;
     IsSSortListFuncs[ T_PLIST_DENSE                ] = IsSSortPlist;
     IsSSortListFuncs[ T_PLIST_DENSE     +IMMUTABLE ] = IsSSortPlist;
-    IsSSortListFuncs[ T_PLIST_DENSE_NHOM           ] = IsSSortPlistNot;
-    IsSSortListFuncs[ T_PLIST_DENSE_NHOM+IMMUTABLE ] = IsSSortPlistNot;
+    IsSSortListFuncs[ T_PLIST_DENSE_NHOM           ] = IsSSortPlist;
+    IsSSortListFuncs[ T_PLIST_DENSE_NHOM+IMMUTABLE ] = IsSSortPlist;
     IsSSortListFuncs[ T_PLIST_EMPTY                ] = IsSSortPlistYes;
     IsSSortListFuncs[ T_PLIST_EMPTY     +IMMUTABLE ] = IsSSortPlistYes;
     IsSSortListFuncs[ T_PLIST_HOM                  ] = IsSSortPlist;
@@ -3356,10 +3790,12 @@ static Int InitKernel (
     IsSSortListFuncs[ T_PLIST_CYC_NSORT +IMMUTABLE ] = IsSSortPlistNot;
     IsSSortListFuncs[ T_PLIST_CYC_SSORT            ] = IsSSortPlistYes;
     IsSSortListFuncs[ T_PLIST_CYC_SSORT +IMMUTABLE ] = IsSSortPlistYes;
+    IsSSortListFuncs[ T_PLIST_FFE                  ] = IsSSortPlist;
+    IsSSortListFuncs[ T_PLIST_FFE       +IMMUTABLE ] = IsSSortPlist;
 
 
     /* install the position list test methods                              */
-    for ( t1 = T_PLIST; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST; t1 <= T_PLIST_FFE; t1 += 2 ) {
         IsPossListFuncs[ t1            ] = IsPossPlist;
         IsPossListFuncs[ t1 +IMMUTABLE ] = IsPossPlist;
     }
@@ -3370,7 +3806,7 @@ static Int InitKernel (
         PosListFuncs[ t1            ] = PosPlist;
         PosListFuncs[ t1 +IMMUTABLE ] = PosPlist;
     }
-    for ( t1 = T_PLIST_DENSE; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST_DENSE; t1 <= T_PLIST_FFE; t1 += 2 ) {
         PosListFuncs[ t1            ] = PosPlistDense;
         PosListFuncs[ t1 +IMMUTABLE ] = PosPlistDense;
     }
@@ -3383,11 +3819,19 @@ static Int InitKernel (
 
 
     /* install the plain list methods                                      */
-    for ( t1 = T_PLIST; t1 <= T_PLIST_CYC_SSORT; t1 += 2 ) {
+    for ( t1 = T_PLIST; t1 <= T_PLIST_FFE; t1 += 2 ) {
         PlainListFuncs[ t1            ] = PlainPlist;
         PlainListFuncs[ t1 +IMMUTABLE ] = PlainPlist;
     }
 
+    for (t1 = T_PLIST; t1 < T_PLIST_HOM; t1 += 2 ) 
+      MakeImmutableObjFuncs[ t1 ] = MakeImmutablePlistInHom;
+    
+    for (t1 = T_PLIST_HOM; t1 <= T_PLIST_FFE; t1 += 2 ) 
+      MakeImmutableObjFuncs[ t1 ] = MakeImmutablePlistHom;
+    
+      
+    
     /* return success                                                      */
     return 0;
 }

@@ -135,7 +135,7 @@ function( rws )
       IsElementsFamilyByRws );
 
     # create the default type for the elements
-    fam!.defaultType := NewType( fam, IsElementByRwsDefaultRep );
+    fam!.defaultType := NewType( fam, IsPackedElementDefaultRep );
 
     # store the identity
     SetOne( fam, ElementByRws( fam, ReducedOne(rws) ) );
@@ -202,9 +202,9 @@ end );
 
 #############################################################################
 ##
-#M  Inverse( <IsNBitsPcWordRep> )
+#M  InverseOp( <IsNBitsPcWordRep> )
 ##
-InstallMethod( Inverse,
+InstallMethod( InverseOp,
     "generic method for n bits pc word rep",
     true,
     [ IsMultiplicativeElementWithInverseByPolycyclicCollector
@@ -343,7 +343,7 @@ function( sc )
     fam!.rewritingSystem := Immutable(sc);
 
     # create the default type for the elements
-    fam!.defaultType := NewType( fam, IsElementByRwsDefaultRep );
+    fam!.defaultType := NewType( fam, IsPackedElementDefaultRep );
 
     # create the special 8 bits type
     fam!.8BitsType := NewType( fam, Is8BitsPcWordRep );
@@ -410,7 +410,6 @@ function( obj )
     return ObjByExtRep( fam, 8Bits_ExtRepOfObj(obj) );
 end );
 
-
 #############################################################################
 ##
 #M  ExtRepOfObj( <Is8BitsPcWordRep> )
@@ -471,7 +470,6 @@ InstallMethod( \<,
 
 #############################################################################
 ##
-
 #R  Is16BitsPcWordRep
 ##
 DeclareRepresentation(
@@ -506,7 +504,7 @@ function( sc )
     fam!.rewritingSystem := Immutable(sc);
 
     # create the default type for the elements
-    fam!.defaultType := NewType( fam, IsElementByRwsDefaultRep );
+    fam!.defaultType := NewType( fam, IsPackedElementDefaultRep );
 
     # create the special 8 bits type
     fam!.16BitsType := NewType( fam, Is16BitsPcWordRep );
@@ -573,7 +571,6 @@ function( obj )
     return ObjByExtRep( fam, 16Bits_ExtRepOfObj(obj) );
 end );
 
-
 #############################################################################
 ##
 #M  ExtRepOfObj( <Is16BitsPcWordRep> )
@@ -622,7 +619,7 @@ InstallMethod( \=,
 #M  <Is16BitsPcWordRep> < <Is16BitsPcWordRep>
 ##
 InstallMethod( \<,
-    "for 8 bits pc word rep",
+    "for 16 bits pc word rep",
     IsIdenticalObj,
     [ IsMultiplicativeElementWithInverseByPolycyclicCollector
         and Is16BitsPcWordRep, 
@@ -634,7 +631,6 @@ InstallMethod( \<,
 
 #############################################################################
 ##
-
 #R  Is32BitsPcWordRep
 ##
 DeclareRepresentation(
@@ -669,7 +665,7 @@ function( sc )
     fam!.rewritingSystem := Immutable(sc);
 
     # create the default type for the elements
-    fam!.defaultType := NewType( fam, IsElementByRwsDefaultRep );
+    fam!.defaultType := NewType( fam, IsPackedElementDefaultRep );
 
     # create the special 8 bits type
     fam!.32BitsType := NewType( fam, Is32BitsPcWordRep );
@@ -735,7 +731,6 @@ function( obj )
     fam := UnderlyingFamily( FamilyObj(obj)!.rewritingSystem );
     return ObjByExtRep( fam, 32Bits_ExtRepOfObj(obj) );
 end );
-
 
 #############################################################################
 ##
@@ -1133,5 +1128,5 @@ end );
 #############################################################################
 ##
 
-#E  rwspcgrp.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-##
+#E
+

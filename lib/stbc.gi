@@ -1,6 +1,7 @@
 #############################################################################
 ##
 #W  stbc.gi                     GAP library                    Heiko Thei"sen
+#W                                                               'Akos Seress
 ##
 #H  @(#)$Id$
 ##
@@ -1300,11 +1301,14 @@ InstallOtherMethod( MembershipTestKnownBase, true, [ IsRecord,
     return SiftedPermutation( S, t ) = S.identity;
 end );
 
-InstallOtherMethod( MembershipTestKnownBase, true, [ IsRecord,
-        IsGroup and HasBaseOfGroup, IsPerm ], 0,
-    function( S, G, t )
-    return MembershipTestKnownBase( S, BaseOfGroup( G ), [ t ] );
-end );
+# the base `BaseOfGroup' does not need to confirm to the stabilizer chain
+# `S'. therefore the following method is invalid. AH
+#InstallOtherMethod( MembershipTestKnownBase, true, [ IsRecord,
+#        IsGroup and HasBaseOfGroup, IsPerm ], 0,
+#    function( S, G, t )
+#    Error("this method may not be used!");
+#    return MembershipTestKnownBase( S, BaseOfGroup( G ), [ t ] );
+#end );
 
 #############################################################################
 ##
@@ -1411,6 +1415,212 @@ InstallMethod( MinimalStabChain, "Perm", true, [ IsPermGroup] , 0,
     return StabChainOp( G, rec( base := [ 1 .. LargestMovedPoint( G ) ] ) );
 end );
 
+
+#############################################################################
+##
+#F  SCMinSmaGens(<G>,<S>,<emptyset>,<identity element>,<flag>)
+##
+##  This function computes a stabilizer chain for a minimal base image and 
+##  a smallest generating set wrt. this base for a permutation
+##  group.
+##
+##  <G> must be a permutation group and <S> a mutable stabilizer chain for
+##  <G> that defines a base <bas>. Let <mbas> the smallest image (OnTuples)
+##  of <G>. Then this operation changes <S> to a stabilizer chain wrt.
+##  <mbas>.
+##  The arguments <emptyset> and <identity element> are needed
+##  only for the recursion.
+##
+##  The function returns a record whose component `gens' is a list whose
+##  first element is the smallest element wrt. <bas>. (i.e. an element which
+##  maps <bas> to <mbas>. If <flag> is `true', `gens' is  the smallest
+##  generating set wrt. <bas>. (If <flag> is `false' this will not be
+##  computed.)
+InstallGlobalFunction(SCMinSmaGens,function (G,S,bas,pre,flag)
+local   Sgens,      # smallest generating system of <S>, result
+        gens,       # smallest generating system of <S>, result
+	span,	    # <gens>
+	stb,	    # Stab_span(bas{1..n-1})
+	min,        # minimum in orbit
+	nbas,	    # bas+[min]
+	rep,        # representative mapping minimal
+	gen,        # one generator in <gens>
+	orb,        # basic orbit of <S>
+	pnt,        # one point in <orb>
+	T;          # stabilizer in <S>
+
+  Sgens:=S.generators;
+  # handle the anchor case
+  if Length(Sgens) = 0  then
+      return rec(gens:=[pre],span:=Subgroup(G,[pre]));
+  fi;
+
+  # the new ``base'' point is the point to which the current level base
+  # point is mapped under pre.
+  pnt:=S.orbit[1];
+
+  # find a representative that moves the point as small as possible
+  rep:=S.identity;
+  min:=Minimum(S.orbit);
+  nbas:=Concatenation(bas,[min]);
+  while pnt<>min do
+    gen:=S.transversal[min];
+    rep:=LeftQuotient(gen,rep);
+    min:=min^gen;
+  od;
+
+  # now we want orbit and stabilizer wrt. this point.
+  ConjugateStabChain(S,S,rep,rep);
+
+  # this element will have to be pre-multiplied to all generators
+  # generated on this or lower level
+  pre:=pre*rep;
+
+  # recursive call to change base below and compute smallest mapping
+  # generators there
+  gens:=SCMinSmaGens(G,S.stabilizer,nbas,pre,flag);
+
+  # do we want to compute the minimal generating set?
+  if flag=false then
+    return rec(gens:=[pre]);
+  fi;
+
+  span:=gens.span;
+  gens:=gens.gens;
+  pre:=gens[1]; # the smallest generators is the premul. element
+
+  # get the sorted orbit (the basepoint will be the first point)
+  orb := Set( S.orbit );
+
+  # compute the stabilizer in `span' of the first base points (that's the
+  # group we're extending at this level)
+  stb:=Stabilizer(span,bas,OnTuples);
+
+  # this stabilizer will cover already some points
+  SubtractSet( orb, Orbit( stb, S.orbit[1]));
+
+  # handle the points in the orbit
+  while Length(orb) > 0  do
+
+    # take the smallest remaining point (coset) and get one representative
+    # for it
+    pnt := orb[1];
+    gen := S.identity;
+    while S.orbit[1] ^ gen <> pnt  do
+	gen := LeftQuotient( S.transversal[ pnt / gen ], gen );
+    od;
+
+    # now change gen by elements in the lower stabilizers  to
+    # find the minimal element in its coset.
+    T := S.stabilizer;
+    while Length(T.generators) <> 0  do
+      pnt := Minimum( OnTuples( T.orbit, gen ) );
+      while T.orbit[1] ^ gen <> pnt  do
+	gen := LeftQuotient( T.transversal[ pnt / gen ], gen );
+      od;
+      T := T.stabilizer;
+    od;
+
+    # pre-multiply with the element mapping the base to the smallest base
+    gen:=pre*gen;
+
+    # add this generator to the generators list 
+    Add( gens, gen );
+    span:=ClosureSubgroup(span,gen);
+    stb:=Stabilizer(span,bas,OnTuples);
+
+    # test which cosets we can now cover: reduce orbit
+    SubtractSet( orb, Orbit( stb, S.orbit[1]));
+
+  od;
+
+  # return the smallest generating system
+  return rec(gens:=gens,span:=span);
+end);
+
+
+#############################################################################
+##
+#F  LargestElementStabChain(<S>,<id>)
+##
+InstallGlobalFunction(LargestElementStabChain,function(S,rep)
+local   min,    # minimum in orbit
+	pnt,    # one point in <orb>
+	i,	# loop
+	val,	# point image
+	gen;    # gen. in transversal
+
+  # handle the anchor case
+  if Length(S.generators) = 0  then
+      return rep;
+  fi;
+
+  # the new ``base'' point is the point to which the current level base
+  # point is mapped under pre.
+  pnt:=S.orbit[1];
+
+  # find a representative that moves the point as large as possible
+  min:=0;
+  val:=0;
+  for i in S.orbit do
+    if i^rep>val then
+      min:=i;
+      val:=i^rep;
+    fi;
+  od;
+
+  while pnt<>min do
+    gen:=S.transversal[min];
+    rep:=LeftQuotient(gen,rep);
+    min:=min^gen;
+  od;
+
+  # recursive call to change base below and compute smallest mapping
+  # generators there
+  return LargestElementStabChain(S.stabilizer,rep);
+
+end);
+
+#############################################################################
+##
+#F  ElementsStabChain(<S>)
+##
+InstallGlobalFunction(ElementsStabChain,function ( S )
+    local   elms,               # element list, result
+            stb,                # elements of the stabilizer
+            pnt,                # point in the orbit of <S>
+            rep;                # inverse representative for that point
+
+    # if <S> is trivial then it is easy
+    if Length(S.generators) = 0  then
+        elms := [ S.identity ];
+
+    # otherwise
+    else
+
+        # start with the empty list
+        elms := [];
+
+        # compute the elements of the stabilizer
+        stb := ElementsStabChain( S.stabilizer );
+
+        # loop over all points in the orbit
+        for pnt  in S.orbit  do
+
+           # add the corresponding coset to the set of elements
+           rep := S.identity;
+           while S.orbit[1] ^ rep <> pnt  do
+                rep := LeftQuotient( S.transversal[pnt/rep], rep );
+           od;
+           UniteSet( elms, stb * rep );
+
+        od;
+
+   fi;
+
+   # return the result
+   return elms;
+end);
 
 #############################################################################
 ##

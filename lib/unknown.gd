@@ -24,8 +24,8 @@ DeclareCategory( "IsUnknown", IsCyclotomic );
 ##
 #V  LargestUnknown  . . . . . . . . . . . . largest used index for an unknown
 ##
-##  'LargestUnknown' is the largest <n> that is used in any 'Unknown(<n>)'.
-##  This is used in 'Unknown' which increments this value when asked to
+##  `LargestUnknown' is the largest <n> that is used in any `Unknown(<n>)'.
+##  This is used in `Unknown' which increments this value when asked to
 ##  make a new unknown.
 ##
 LargestUnknown := 0;
@@ -36,13 +36,13 @@ LargestUnknown := 0;
 #O  Unknown()
 #O  Unknown( <n> )
 ##
-##  In the first form 'Unknown' returns a new unknown 'Unknown(<n>)' with a
+##  In the first form `Unknown' returns a new unknown `Unknown(<n>)' with a
 ##  <n> that was not previously used.
 ##
-##  In the second form 'Unknown' returns the unknown 'Unknown(<n>)'.
+##  In the second form `Unknown' returns the unknown `Unknown(<n>)'.
 ##
 DeclareOperation( "Unknown", [ IsPosInt ] );
-#T 1997/01/16 fceller was old 'NewConstructor'
+#T 1997/01/16 fceller was old `NewConstructor'
 
 
 #############################################################################

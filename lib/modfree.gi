@@ -7,7 +7,7 @@
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 ##
-##  This file contains generic methods for free modules.
+##  This file contains generic methods for free left modules.
 ##
 Revision.modfree_gi :=
     "@(#)$Id$";
@@ -18,7 +18,7 @@ Revision.modfree_gi :=
 #M  \=( <V>, <W> )  . . . . . . . . . test if two free left modules are equal
 ##
 InstallMethod( \=,
-    "method for two free left modules (at least one fin. dim.)",
+    "for two free left modules (at least one fin. dim.)",
     IsIdenticalObj,
     [ IsFreeLeftModule, IsFreeLeftModule ], 0,
     function( V, W )
@@ -56,25 +56,19 @@ InstallMethod( \=,
 ##  so we are not allowed to compare first w.r.t. the left acting domains.)
 ##
 InstallMethod( \<,
-    "method for two free left modules",
+    "for two free left modules",
     IsIdenticalObj,
     [ IsFreeLeftModule, IsFreeLeftModule ], 0,
     function( V, W )
-    local inters, BV, BW, i;
+    local inters;
     if LeftActingDomain( V ) <> LeftActingDomain( W ) then
       inters:= Intersection( LeftActingDomain( V ), LeftActingDomain( W ) );
       return AsLeftModule( inters, V ) < AsLeftModule( inters, W );
     elif Dimension( V ) <> Dimension( W ) then
       return Dimension( V ) < Dimension( W );
     else
-      BV:= Reversed( BasisVectors( CanonicalBasis( V ) ) );
-      BW:= Reversed( BasisVectors( CanonicalBasis( W ) ) );
-      for i in [ 1 .. Length( BV ) ] do
-        if BV[i] < BW[i] then
-          return true;
-        fi;
-      od;
-      return false;
+      return   Reversed( BasisVectors( CanonicalBasis( V ) ) )
+             < Reversed( BasisVectors( CanonicalBasis( W ) ) );
     fi;
     end );
 
@@ -86,7 +80,7 @@ InstallMethod( \<,
 ##  We delegate this task to a basis.
 ##
 InstallMethod( \in,
-    "method for vector and fin. dim. free left module",
+    "for vector and fin. dim. free left module",
     IsElmsColls,
     [ IsVector, IsFreeLeftModule and IsFiniteDimensional ], 0,
     function( v, V )
@@ -113,8 +107,9 @@ InstallImmediateMethod( IsFinite,
     end );
 
 InstallMethod( IsFinite,
-    "method for a free left module",
-    true, [ IsFreeLeftModule ], 0,
+    "for a free left module",
+    true,
+    [ IsFreeLeftModule ], 0,
     V -> IsFiniteDimensional( V )
          and ( IsFinite( LeftActingDomain( V ) ) or IsTrivial( V ) ) );
 
@@ -127,8 +122,9 @@ InstallImmediateMethod( IsTrivial, IsFreeLeftModule and HasDimension, 0,
     V -> Dimension( V ) = 0 );
 
 InstallMethod( IsTrivial,
-    "method for a free left module",
-    true, [ IsFreeLeftModule ], 0,
+    "for a free left module",
+    true,
+    [ IsFreeLeftModule ], 0,
     V -> Dimension( V ) = 0 );
 
 
@@ -137,8 +133,9 @@ InstallMethod( IsTrivial,
 #M  Size( <V> ) . . . . . . . . . . . . . . . . .  size of a free left module
 ##
 InstallMethod( Size,
-    "method for a free left module",
-    true, [ IsFreeLeftModule ], 0,
+    "for a free left module",
+    true,
+    [ IsFreeLeftModule ], 0,
     function( V )
     if IsFiniteDimensional( V ) then
       if   IsFinite( LeftActingDomain( V ) ) then
@@ -154,7 +151,7 @@ InstallMethod( Size,
 #############################################################################
 ##
 #M  AsList( <V> ) . . . . . . . . . . . . . .  elements of a free left module
-#M  AsListSorted( <V> ) . . . . . . . . . . .  elements of a free left module
+#M  AsSSortedList( <V> ) . . . . . . . . . . .  elements of a free left module
 ##
 ##  is the set of elements of the free left module <V>,
 ##  computed from a basis of <V>.
@@ -191,16 +188,18 @@ AsListOfFreeLeftModule := function( V )
 end;
 
 InstallMethod( AsList,
-    "method for a free left module",
-    true, [ IsFreeLeftModule ], 0,
+    "for a free left module",
+    true,
+    [ IsFreeLeftModule ], 0,
     AsListOfFreeLeftModule );
 
-InstallMethod( AsListSorted,
-    "method for a free left module",
-    true, [ IsFreeLeftModule ], 0,
+InstallMethod( AsSSortedList,
+    "for a free left module",
+    true,
+    [ IsFreeLeftModule ], 0,
     AsListOfFreeLeftModule );
 #T problem: may be called twice, but does the same job ...
-#T Note that 'AsList' is not allowed to call 'AsListSorted'!
+#T Note that 'AsList' is not allowed to call 'AsSSortedList'!
 
 
 #############################################################################
@@ -208,8 +207,9 @@ InstallMethod( AsListSorted,
 #M  Random( <V> ) . . . . . . . . . . . . random vector of a free left module
 ##
 InstallMethod( Random,
-    "method for a free left module",
-    true, [ IsFreeLeftModule ], 0,
+    "for a free left module",
+    true,
+    [ IsFreeLeftModule ], 0,
     function( V )
 
     local F;    # coefficient field of <V>
@@ -230,7 +230,7 @@ InstallMethod( Random,
 #M  IsSubset( <V>, <U> )
 ##
 InstallMethod( IsSubset,
-    "method for two free left modules",
+    "for two free left modules",
     IsIdenticalObj,
     [ IsFreeLeftModule, IsFreeLeftModule ], 0,
     function( V, U )
@@ -257,7 +257,7 @@ InstallMethod( IsSubset,
 #M  Dimension( <V> )
 ##
 InstallMethod( Dimension,
-    "method for a free left module",
+    "for a free left module",
     true,
     [ IsFreeLeftModule ], 0,
     function( V )
@@ -274,7 +274,7 @@ InstallMethod( Dimension,
 #M  IsFiniteDimensional( <M> )  . for a free left module with known dimension
 ##
 InstallMethod( IsFiniteDimensional,
-    "method for a free left module with known dimension",
+    "for a free left module with known dimension",
     true,
     [ IsFreeLeftModule and HasDimension ], 0,
     M -> IsInt( Dimension( M ) ) );
@@ -305,7 +305,7 @@ InstallImmediateMethod( GeneratorsOfLeftModule,
 ##  a prescribed basis.
 ##
 InstallMethod( Enumerator,
-    "method for free left module (delegate to 'EnumeratorByBasis')",
+    "for free left module (delegate to 'EnumeratorByBasis')",
     true,
     [ IsFreeLeftModule ], 0,
     V -> EnumeratorByBasis( BasisOfDomain( V ) ) );
@@ -320,7 +320,7 @@ InstallMethod( Enumerator,
 ##  a prescribed basis.
 ##
 InstallMethod( Iterator,
-    "method for free left module (delegate to 'IteratorByBasis')",
+    "for free left module (delegate to 'IteratorByBasis')",
     true,
     [ IsFreeLeftModule ], 0,
     V -> IteratorByBasis( BasisOfDomain( V ) ) );
@@ -331,7 +331,7 @@ InstallMethod( Iterator,
 #M  ClosureLeftModule( <V>, <a> ) . . . . . . . closure of a free left module
 ##
 InstallMethod( ClosureLeftModule,
-    "method for free left module and vector",
+    "for free left module and vector",
     IsCollsElms,
     [ IsFreeLeftModule and HasBasisOfDomain, IsVector ], 0,
     function( V, w )
@@ -418,7 +418,7 @@ end);
 #T decide here that we want to forget about it ?
 ##
 InstallMethod( UseBasis,
-    "method for a free left module and a homog. list",
+    "for a free left module and a homog. list",
     true,
     [ IsFreeLeftModule, IsHomogeneousList ], 0,
     function( V, gens )
@@ -502,5 +502,5 @@ InstallMethod( PrintObj,
 
 #############################################################################
 ##
-#E  modfree.gi  . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

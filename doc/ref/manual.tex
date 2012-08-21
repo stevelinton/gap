@@ -12,6 +12,7 @@
 %
 %
 \input ../gapmacro.tex
+%\draft
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 %F  BeginningOfBook . . . . . . . . . . . . . . . . . . .  start the book
@@ -37,7 +38,7 @@
   \centerline{\secfont and}\bigskip
   \centerline{\secfont School of Mathematical and Computational Sciences}
     \medskip
-  \centerline{\secfont University of St.~Andrews, North Haugh, St.~Andrews,
+  \centerline{\secfont University of St~Andrews, North Haugh, St~Andrews,
               Fife KY16 9SS, Scotland}
 }
 %
@@ -59,61 +60,96 @@
 %F  FrontMatter . . . . . . . . . . . . . . . . . . . . .  GAP 4 Tutorial
 %%
 \FrontMatter
-\immediate\write\citeout{\bs bibdata{mrabbrev,algebra,../manual}}
-\input ../tut/copyrigh
+\immediate\write\citeout{\bs bibdata{mrabbrev,../manual}}
+\input ../ref/copyrigh
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-%F  Chapters  . . . . . . . . . . . . . . . . . . . . . .  GAP 4 Tutorial
+%F  Chapters  . . . . . . . . . . . . . . . . . .  GAP 4 Reference Manual
 %%
 \Chapters
-\Input{environm}
+\Input{about}
+\Input{help}
+\Input{run}
 \Input{language}
+%
+\Input{mloop}
+\Input{debug}
+\Input{options}
 \Input{files}
 \Input{streams}
 \Input{process}
-\Input{debug}
-\Input{speedup}
+%
+\Input{objects}
+\Input{types}
+%
 \Input{integers}
+\Input{numtheor}
 \Input{rational}
+\Input{combinat}
 \Input{cyclotom}
+%
 \Input{boolean}
-\Input{coll}
+%
 \Input{lists}
+\Input{blist}
 \Input{vector}
 \Input{matrix}
 \Input{matint}
 \Input{string}
+%
 \Input{record}
-\Input{combinat}
+%
+\Input{coll}
 \Input{domain}
-\Input{rings}
-\Input{module}
-\Input{fields}
-\Input{fieldfin}
-\Input{vspc}
-\Input{numtheor}
+\Input{mapping}
+\Input{magma}
+\Input{semigrp}
+\Input{monoid}
+%
 \Input{groups}
+\Input{grphomom}
 \Input{grpoper}
 \Input{permutat}
 \Input{grpperm}
+\Input{grpmat}
 \Input{pcgs}
 \Input{grppc}
 \Input{wordass}
 \Input{grpfp}
 \Input{pres}
-\Input{mapping}
-\Input{grphomom}
 \Input{grpprod}
 \Input{grplib}
-\Input{ratfun}
-\Input{numfield}
+%
+\Input{addmagma}
+\Input{rings}
+\Input{module}
+\Input{fields}
+\Input{fieldfin}
+\Input{fldabnum}
+\Input{vspc}
 \Input{algebra}
 \Input{alglie}
+%
+\Input{ratfun}
+\Input{algfld}
 \Input{padics}
 \Input{meataxe}
+%
+% \Input{ctbl}
+% \Input{ctblmono}
+% \Input{ctbllibr}
+%
 \Input{install}
+\Input{sharepkg}
+
+% fill doublepage before appendix
+\ifodd\pageno\else\null\vfill\eject\headlinefalse\fi
+% create chapter index entry for copyright
+\advance\chapno by1\secno=0\subsecno=0
+\immediate\write\secindout{C copyrigh.tex \thechapter. Copyright}
+
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -42,8 +42,7 @@ Revision.ctblchar_gd :=
 ##
 DeclareGlobalFunction( "DecompositionMatrix" );
 
-DeclareAttribute( "DecompositionMatrixAttr",
-    IsBrauerTable );
+DeclareAttribute( "DecompositionMatrixAttr", IsBrauerTable );
 
 
 #############################################################################
@@ -52,7 +51,7 @@ DeclareAttribute( "DecompositionMatrixAttr",
 #F  LaTeXStringDecompositionMatrix( <modtbl>, <blocknr> )
 ##
 ##  is a string that contains {\LaTeX} code to print a decomposition matrix
-##  (see "DecompositionMatrix") nicely.
+##  (see~"DecompositionMatrix") nicely.
 ##
 DeclareGlobalFunction(
     "LaTeXStringDecompositionMatrix" );
@@ -109,7 +108,7 @@ DeclareOperation( "Tensored",
 ##
 DeclareGlobalFunction( "Symmetrisations" );
 
-Symmetrizations := Symmetrisations;
+DeclareSynonym( "Symmetrizations", Symmetrisations );
 
 
 #############################################################################
@@ -132,7 +131,7 @@ DeclareGlobalFunction( "AntiSymmetricParts" );
 ##
 ##  is the (parametrized) character values list of $<character>^{<prime>-}$,
 ##  which is defined by
-##  $\chi^{p-}(g):= ( \chi(g)^p - \chi(g^p) ) / p$.
+##  $\chi^{p-}(g) = ( \chi(g)^p - \chi(g^p) ) / p$.
 ##
 DeclareGlobalFunction( "MinusCharacter" );
 
@@ -142,8 +141,8 @@ DeclareGlobalFunction( "MinusCharacter" );
 #F  RefinedSymmetrisations( <tbl>, <chars>, <m>, <func> )
 ##
 ##  is the list of Murnaghan components for orthogonal
-##  ('<func>(x,y)=x', see "OrthogonalComponents")
-##  or symplectic ('<func>(x,y)=x-y', see "SymplecticComponents")
+##  ('<func>(x,y)=x', see~"OrthogonalComponents")
+##  or symplectic ('<func>(x,y)=x-y', see~"SymplecticComponents")
 ##  symmetrisations.
 ##
 ##  <m> must be an integer in `[ 1 .. 6 ]' in the orthogonal case,
@@ -200,7 +199,7 @@ DeclareGlobalFunction( "RefinedSymmetrisations" );
 ##  Comm. Dublin Inst. Adv. Studies, Series A No. 13 (1958)).
 ##  These components in general have fewer irreducible constituents
 ##  than the symmetrizations with the symmetric group of degree <m>
-##  (see "Symmetrizations").
+##  (see~"Symmetrizations").
 ##
 ##  `OrthogonalComponents' returns the Murnaghan components of the
 ##  characters <chars> of the character table <tbl> up to the power <m>,
@@ -208,7 +207,7 @@ DeclareGlobalFunction( "RefinedSymmetrisations" );
 ##
 ##  The Murnaghan functions are implemented as in J. S. Frame,
 ##  Recursive computation of tensor power components, Bayreuther
-##  Mathematische Schriften 10, 153--159, see "RefinedSymmetrisations".
+##  Mathematische Schriften 10, 153--159, see~"RefinedSymmetrisations".
 ##
 DeclareGlobalFunction( "OrthogonalComponents" );
 
@@ -223,7 +222,7 @@ DeclareGlobalFunction( "OrthogonalComponents" );
 ##  Comm. Dublin Inst. Adv. Studies, Series A No. 13 (1958)).
 ##  These components in general have fewer irreducible constituents
 ##  than the symmetrizations with the symmetric group of degree <m>
-##  (see "Symmetrizations").
+##  (see~"Symmetrizations").
 ##
 ##  `SymplecticComponents' returns the symplectic symmetrisations of the
 ##  characters <chars> of the character table <tbl> up to the power <m>,
@@ -302,7 +301,5 @@ DeclareGlobalFunction( "IrreducibleDifferences" );
 
 #############################################################################
 ##
-#E  ctblchar.gd . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-
-
+#E
 

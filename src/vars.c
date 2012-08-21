@@ -777,7 +777,7 @@ void            PrintUnbLVar (
 {
     Pr( "Unbind( ", 0L, 0L );
     Pr( "%I", (Int)NAME_LVAR( (UInt)(ADDR_STAT(stat)[0]) ), 0L );
-    Pr( ")", 0L, 0L );
+    Pr( " );", 0L, 0L );
 }
 
 
@@ -977,7 +977,7 @@ void            PrintUnbHVar (
 {
     Pr( "Unbind( ", 0L, 0L );
     Pr( "%I", (Int)NAME_HVAR( (UInt)(ADDR_STAT(stat)[0]) ), 0L );
-    Pr( ")", 0L, 0L );
+    Pr( " );", 0L, 0L );
 }
 
 
@@ -1068,7 +1068,7 @@ Obj             EvalIsbGVar (
     Obj                 val;            /* value, result                   */
 
     /* get the value of the global variable                                */
-    val = ValAutoGVar( (UInt)(ADDR_EXPR(expr)[0]) );
+    val = VAL_GVAR( (UInt)(ADDR_EXPR(expr)[0]) );
 
     /* return the value                                                    */
     return (val != (Obj)0 ? True : False);
@@ -1096,7 +1096,7 @@ void            PrintUnbGVar (
 {
     Pr( "Unbind( ", 0L, 0L );
     Pr( "%I", (Int)NameGVar( (UInt)(ADDR_STAT(stat)[0]) ), 0L );
-    Pr( ")", 0L, 0L );
+    Pr( " );", 0L, 0L );
 }
 
 
@@ -1378,6 +1378,7 @@ Obj             EvalElmList (
     Obj                 list;           /* list, left operand              */
     Obj                 pos;            /* position, right operand         */
     Int                 p;              /* position, as C integer          */
+    UInt                tnum;
 
     /* evaluate the list (checking is done by 'ELM_LIST')                  */
     list = EVAL_EXPR( ADDR_EXPR(expr)[0] );
@@ -1393,7 +1394,8 @@ Obj             EvalElmList (
     p = INT_INTOBJ( pos );
 
     /* special case for plain lists (use generic code to signal errors)    */
-    if ( TNUM_OBJ(list) == T_PLIST ) {
+    tnum = TNUM_OBJ(list);
+    if ( FIRST_PLIST_TNUM <= tnum && tnum <= LAST_PLIST_TNUM ) {
         if ( LEN_PLIST(list) < p ) {
             return ELM_LIST( list, p );
         }
@@ -1601,7 +1603,7 @@ void            PrintUnbList (
     Pr("%<[",0L,0L);
     PrintExpr( ADDR_STAT(stat)[1] );
     Pr("%<]",0L,0L);
-    Pr( ")", 0L, 0L );
+    Pr( " );", 0L, 0L );
 }
 
 
@@ -1933,7 +1935,7 @@ void            PrintUnbRecName (
     Pr("%<.",0L,0L);
     Pr("%I",(Int)NAME_RNAM((UInt)(ADDR_STAT(stat)[1])),0L);
     Pr("%<",0L,0L);
-    Pr( " )", 0L, 0L );
+    Pr( " );", 0L, 0L );
 }
 
 
@@ -1966,7 +1968,7 @@ void            PrintUnbRecExpr (
     Pr("%<.(",0L,0L);
     PrintExpr( ADDR_STAT(stat)[1] );
     Pr(")%<",0L,0L);
-    Pr( " )", 0L, 0L );
+    Pr( " );", 0L, 0L );
 }
 
 
@@ -2252,7 +2254,7 @@ void            PrintUnbPosObj (
     Pr("%<![",0L,0L);
     PrintExpr( ADDR_STAT(stat)[1] );
     Pr("%<]",0L,0L);
-    Pr( ")", 0L, 0L );
+    Pr( " );", 0L, 0L );
 }
 
 
@@ -2589,7 +2591,7 @@ void            PrintUnbComObjName (
     Pr("%<!.",0L,0L);
     Pr("%I",(Int)NAME_RNAM((UInt)(ADDR_STAT(stat)[1])),0L);
     Pr("%<",0L,0L);
-    Pr( " )", 0L, 0L );
+    Pr( " );", 0L, 0L );
 }
 
 
@@ -2622,7 +2624,7 @@ void            PrintUnbComObjExpr (
     Pr("%<!.(",0L,0L);
     PrintExpr( ADDR_STAT(stat)[1] );
     Pr(")%<",0L,0L);
-    Pr( " )", 0L, 0L );
+    Pr( " );", 0L, 0L );
 }
 
 

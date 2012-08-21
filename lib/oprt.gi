@@ -15,7 +15,7 @@ Revision.oprt_gi :=
 #R  IsSubsetEnumerator  . . . . . . . . . . . . . . .  enumerator for subsets
 ##
 DeclareRepresentation( "IsSubsetEnumerator",
-    IsEnumerator and IsAttributeStoringRep,
+    IsList and IsAttributeStoringRep,
     [ "homeEnumerator", "sublist" ] );
 
 #############################################################################
@@ -63,7 +63,7 @@ InstallMethod( AsList, true, [ IsSubsetEnumerator ], 0,
 #############################################################################
 ##
 
-#F  ExternalSet( <arg> )  . . . . . . . . . . . . .  external set constructor
+#F  ExternalSetOp( <arg> )  . . . . . . . . . . . .  external set constructor
 ##
 InstallMethod( ExternalSetOp,
         "G, D, gens, oprs, opr", true,
@@ -73,6 +73,11 @@ InstallMethod( ExternalSetOp,
                    G, D, gens, oprs, opr );
 end );
 
+
+#############################################################################
+##
+#F  ExternalSetByFilterConstructor(<filter>,<G>,<D>,<gens>,<oprs>,<opr>)
+##
 InstallGlobalFunction( ExternalSetByFilterConstructor,
     function( filter, G, D, gens, oprs, opr )
     local   xset;
@@ -89,6 +94,13 @@ InstallGlobalFunction( ExternalSetByFilterConstructor,
     else
         filter := filter and IsExternalSetDefaultRep;
     fi;
+
+    # Catch the case that 'D' is an empty list.
+    # (Note that an external set shall be a collection and not a list.)
+    if IsList( D ) and IsEmpty( D ) then
+      D:= EmptyRowVector( CyclotomicsFamily );
+    fi;
+
     Objectify( NewType( FamilyObj( D ), filter ), xset );
     SetActingDomain  ( xset, G );
     SetHomeEnumerator( xset, D );
@@ -98,6 +110,11 @@ InstallGlobalFunction( ExternalSetByFilterConstructor,
     return xset;
 end );
 
+
+#############################################################################
+##
+#F  ExternalSetByTypeConstructor(<type>,<G>,<D>,<gens>,<oprs>,<opr>)
+##
 # The following function expects the type as first argument,  to avoid a call
 # of `NewType'. It is called by `ExternalSubsetOp' and `ExternalOrbitOp' when
 # they are called with an external set (which has already stored this type).
@@ -119,6 +136,7 @@ InstallGlobalFunction( ExternalSetByTypeConstructor,
     fi;
     return xset;
 end );
+
 
 #############################################################################
 ##
@@ -222,7 +240,7 @@ InstallMethod( ViewObj,
     true,
     [ IsExternalSubset ], 0,
     function( xset )
-    Print( xset!.start, "^G < ", HomeEnumerator( xset ) );
+    Print( xset!.start, "^G");
 end );
 
 
@@ -337,7 +355,7 @@ InstallMethod( ViewObj,
     true,
     [ IsExternalOrbit ], 0,
     function( xorb )
-    Print( Representative( xorb ), "^G < ", HomeEnumerator( xorb ) );
+    Print( Representative( xorb ), "^G");
 end );
 
 
@@ -490,6 +508,11 @@ InstallGlobalFunction( OperationHomomorphism, function( arg )
     return attr( xset );
 end );
 
+
+#############################################################################
+##
+#M  OperationHomomorphismConstructor( <xset>, <surj> )
+##
 InstallGlobalFunction( OperationHomomorphismConstructor,
     function( xset, surj )
     local   G,  D,  opr,  fam,  filter,  hom,  i;
@@ -511,7 +534,7 @@ InstallGlobalFunction( OperationHomomorphismConstructor,
     if IsExternalSetByOperatorsRep( xset )  then
         filter := filter and IsOperationHomomorphismByOperators;
     elif     IsMatrixGroup( G )
-         and not IsOneDimSubspacesTransversal( D )
+         and not IsOneDimSubspacesTransversalRep( D )
          and IsScalarList( D[ 1 ] )
          and opr in [ OnPoints, OnRight ]  then
         if     not IsExternalSubset( xset )
@@ -540,15 +563,26 @@ InstallGlobalFunction( OperationHomomorphismConstructor,
          and IsPermGroup( G )
          and IsList( D )
          and ForAll( D, IsList and IsSSortedList )
+         and opr = OnSets 
          and Sum( D, Length ) = Length( Union( D ) )
-         and opr = OnSets  then
+	 then
         filter := IsBlocksHomomorphism;
         hom.reps := [  ];
         for i  in [ 1 .. Length( D ) ]  do
             hom.reps{ D[ i ] } := i + 0 * D[ i ];
         od;
-    elif not ( IsPermGroup( G )  or  IsPcGroup( G ) )  then
-        filter := filter and IsOperationHomomorphismDirectly;
+
+    # try to find under which circumstances we want to avoid computing
+    # images by the operation but always use the AsGHBI
+    elif 
+     # we can decompose into generators 
+     (IsPermGroup( G )  or  IsPcGroup( G )) and
+     # the action is not harmless
+     not (opr=OnPoints or opr=OnSets or opr=OnTuples)
+
+     then
+        filter := filter and
+	  IsGroupGeneralMappingByAsGroupGeneralMappingByImages;
     fi;
     if HasBaseOfGroup( xset )  then
         filter := filter and IsOperationHomomorphismByBase;
@@ -611,16 +645,17 @@ InstallMethod( Source, true, [ IsOperationHomomorphism ], 0,
 InstallMethod( Range, true, [ IsOperationHomomorphism ], 0, hom ->
     SymmetricGroup( Length( HomeEnumerator(UnderlyingExternalSet(hom)) ) ) );
 
-InstallMethod( Range, true, [ IsOperationHomomorphism and IsSurjective ], 0,
+InstallMethod( Range, "surjective operation homomorphism",true,
+  [ IsOperationHomomorphism and IsSurjective ], 0,
     hom -> GroupByGenerators( List( GeneratorsOfGroup( Source( hom ) ),
-            gen -> ImagesRepresentative( hom, gen ) ) ) );
+            gen -> ImageElmOperationHomomorphism( hom, gen ) ), () ) );
 
 #############################################################################
 ##
 #M  AsGroupGeneralMappingByImages( <hom> )  . . .  for operation homomorphism
 ##
-InstallMethod( AsGroupGeneralMappingByImages, true,
-        [ IsOperationHomomorphism ], 0,
+InstallMethod( AsGroupGeneralMappingByImages, "IsOperationHomomorphism",
+  true, [ IsOperationHomomorphism ], 0,
     function( hom )
     local   xset,  G,  D,  opr,  gens,  imgs;
     
@@ -630,15 +665,15 @@ InstallMethod( AsGroupGeneralMappingByImages, true,
     opr := FunctionOperation( xset );
     gens := GeneratorsOfGroup( G );
     imgs := List( gens, o -> Permutation( o, D, opr ) );
-    return GroupHomomorphismByImagesNC( G,
-                   SymmetricGroup( Length( D ) ), gens, imgs );
+    return GroupHomomorphismByImagesNC( G, Range(hom), gens, imgs );
 end );
 
 #############################################################################
 ##
 #M  AsGroupGeneralMappingByImages( <hom> )  . . . . . . if given by operators
 ##
-InstallMethod( AsGroupGeneralMappingByImages, true,
+InstallMethod( AsGroupGeneralMappingByImages,
+  "IsOperationHomomorphismByOperators",true,
         [ IsOperationHomomorphismByOperators ], 0,
     function( hom )
     local   xset,  G,  D,  opr,  gens,  oprs,  imgs;
@@ -651,76 +686,80 @@ InstallMethod( AsGroupGeneralMappingByImages, true,
     opr  := xset!.funcOperation;
     imgs := List( oprs, o -> Permutation( o, D, opr ) );
     return GroupHomomorphismByImagesNC( G,
-                   SymmetricGroup( Length( D ) ), gens, imgs );
+                   Range(hom), gens, imgs );
 end );
+
+##############################################################################
+###
+##F  OperationHomomorphismSubsetAsGroupGeneralMappingByImages( ... ) . . local
+###
+#InstallGlobalFunction( OperationHomomorphismSubsetAsGroupGeneralMappingByImages,
+#    function
+#    ( G, D, start, gens, oprs, opr )
+#    local   list,  ps,  poss,  blist,  p,  i,  gen,  img,  pos,  imgs,  hom;
+#    
+#    list := [ 1 .. Length( D ) ];
+#    poss := BlistList( list, List( start, b -> PositionCanonical( D, b ) ) );
+#    blist := StructuralCopy( poss );
+#    list := List( gens, gen -> ShallowCopy( list ) );
+#    ps := Position( poss, true );
+#    while ps <> fail  do
+#        poss[ ps ] := false;
+#        p := D[ ps ];
+#        for i  in [ 1 .. Length( gens ) ]  do
+#            gen := oprs[ i ];
+#            img := opr( p, gen );
+#            pos := PositionCanonical( D, img );
+#            list[ i ][ ps ] := pos;
+#            if not blist[ pos ]  then
+#                poss[ pos ] := true;
+#                blist[ pos ] := true;
+#            fi;
+#        od;
+#        ps := Position( poss, true );
+#    od;
+#    imgs := List( list, PermList );
+#    hom := GroupHomomorphismByImagesNC( G, Group( imgs,()),
+#                   gens, imgs );
+#    return hom;
+#end );
+#
+##############################################################################
+###
+##M  AsGroupGeneralMappingByImages( <hom> )  . . . . . . . . . . . . . as GHBI
+###
+#InstallMethod(AsGroupGeneralMappingByImages,"IsOperationHomomorphismSubset",
+#  true,[ IsOperationHomomorphismSubset ], 0,
+#function( hom )
+#local   xset,  G,  gens,ah;
+#    
+#    xset := UnderlyingExternalSet( hom );
+#    G := ActingDomain( xset );
+#    gens := GeneratorsOfGroup( G );
+#    ah:=OperationHomomorphismSubsetAsGroupGeneralMappingByImages( G,
+#           HomeEnumerator( xset ), xset!.start,
+#           gens, gens, FunctionOperation( xset ) );
+#if Range(hom)<>Range(ah) or Source(hom)<>Source(ah) then
+#  Error("ranges");
+#fi;
+#    return ah;
+#end );
+#
+#InstallMethod( AsGroupGeneralMappingByImages,
+#  "IsOperationHomomorphismSubset and ByOperators",true,
+#        [ IsOperationHomomorphismSubset
+#      and IsOperationHomomorphismByOperators ], 0,
+#    function( hom )
+#    local   xset;
+#
+#    xset := UnderlyingExternalSet( hom );
+#    return OperationHomomorphismSubsetAsGroupGeneralMappingByImages(
+#           ActingDomain( xset ), HomeEnumerator( xset ), xset!.start,
+#           xset!.generators, xset!.operators, xset!.funcOperation );
+#end );
 
 #############################################################################
 ##
-#F  OperationHomomorphismSubsetAsGroupGeneralMappingByImages( ... ) . . local
-##
-InstallGlobalFunction( OperationHomomorphismSubsetAsGroupGeneralMappingByImages,
-    function
-    ( G, D, start, gens, oprs, opr )
-    local   list,  ps,  poss,  blist,  p,  i,  gen,  img,  pos,  imgs,  hom;
-    
-    list := [ 1 .. Length( D ) ];
-    poss := BlistList( list, List( start, b -> PositionCanonical( D, b ) ) );
-    blist := StructuralCopy( poss );
-    list := List( gens, gen -> ShallowCopy( list ) );
-    ps := Position( poss, true );
-    while ps <> fail  do
-        poss[ ps ] := false;
-        p := D[ ps ];
-        for i  in [ 1 .. Length( gens ) ]  do
-            gen := oprs[ i ];
-            img := opr( p, gen );
-            pos := PositionCanonical( D, img );
-            list[ i ][ ps ] := pos;
-            if not blist[ pos ]  then
-                poss[ pos ] := true;
-                blist[ pos ] := true;
-            fi;
-        od;
-        ps := Position( poss, true );
-    od;
-    imgs := List( list, PermList );
-    hom := GroupHomomorphismByImagesNC( G, SymmetricGroup( Length( D ) ),
-                   gens, imgs );
-    return hom;
-end );
-
-#############################################################################
-##
-#M  AsGroupGeneralMappingByImages( <hom> )  . . . . . . . . . . . . . as GHBI
-##
-InstallMethod( AsGroupGeneralMappingByImages, true,
-        [ IsOperationHomomorphismSubset ], 0,
-    function( hom )
-    local   xset,  G,  gens;
-    
-    xset := UnderlyingExternalSet( hom );
-    G := ActingDomain( xset );
-    gens := GeneratorsOfGroup( G );
-    return OperationHomomorphismSubsetAsGroupGeneralMappingByImages( G,
-           HomeEnumerator( xset ), xset!.start,
-           gens, gens, FunctionOperation( xset ) );
-end );
-
-InstallMethod( AsGroupGeneralMappingByImages, true,
-        [ IsOperationHomomorphismSubset
-      and IsOperationHomomorphismByOperators ], 0,
-    function( hom )
-    local   xset;
-
-    xset := UnderlyingExternalSet( hom );
-    return OperationHomomorphismSubsetAsGroupGeneralMappingByImages(
-           ActingDomain( xset ), HomeEnumerator( xset ), xset!.start,
-           xset!.generators, xset!.operators, xset!.funcOperation );
-end );
-
-#############################################################################
-##
-
 #F  Operation( <arg> )  . . . . . . . . . . . . . . . . . . . operation group
 ##
 InstallGlobalFunction( Operation, function( arg )
@@ -953,10 +992,7 @@ end );
 ##
 InstallMethod( SparseOperationHomomorphismOp,
         "G, D, start, gens, oprs, opr", true,
-        [ IsGroup, IsList, IsList,
-          IsList,
-          IsList,
-          IsFunction ], 0,
+        [ IsGroup, IsList, IsList, IsList, IsList, IsFunction ], 0,
     function( G, D, start, gens, oprs, opr )
     local   list,  ps,  p,  i,  gen,  img,  pos,  imgs,  hom;
 
@@ -978,19 +1014,16 @@ InstallMethod( SparseOperationHomomorphismOp,
         ps := ps + 1;
     od;
     imgs := List( list, PermList );
-    hom := OperationHomomorphism( G, start, gens, oprs, opr );
+    hom := OperationHomomorphism( G, start, gens, oprs, opr,"surjective" );
     SetAsGroupGeneralMappingByImages( hom, GroupHomomorphismByImagesNC
             ( G, SymmetricGroup( Length( start ) ), gens, imgs ) );
     return hom;
 end );
 
 InstallOtherMethod( SparseOperationHomomorphismOp,
-        "G, start, gens, oprs, opr", true,
-        [ IsGroup, IsList,
-          IsList,
-          IsList,
-          IsFunction ], 0,
-    function( G, start, gens, oprs, opr )
+  "G, start, gens, oprs, opr", true,
+  [ IsGroup, IsList, IsList, IsList, IsFunction ], 0,
+function( G, start, gens, oprs, opr )
     local   list,  ps,  p,  i,  gen,  img,  pos,  imgs,  hom;
 
     start := ShallowCopy( start );
@@ -1011,7 +1044,45 @@ InstallOtherMethod( SparseOperationHomomorphismOp,
         ps := ps + 1;
     od;
     imgs := List( list, PermList );
-    hom := OperationHomomorphism( G, start, gens, oprs, opr );
+    hom := OperationHomomorphism( G, start, gens, oprs, opr,"surjective" );
+    SetAsGroupGeneralMappingByImages( hom, GroupHomomorphismByImagesNC
+            ( G, SymmetricGroup( Length( start ) ), gens, imgs ) );
+    return hom;
+end );
+
+#############################################################################
+##
+#F  SortedSparseOperationHomomorphism( <arg> )
+##
+InstallOtherMethod( SortedSparseOperationHomomorphismOp,
+  "G, start, gens, oprs, opr", true,
+  [ IsGroup, IsList, IsList, IsList, IsFunction ], 0,
+function( G, start, gens, oprs, opr )
+local ptset,p,i,img,imgs,hom;
+
+    start := List(start,Immutable);
+    ptset := SSortedList( start);
+
+    # do a simple orbit algorithm that keeps sets of the images.
+    for p in start do
+      for i in [1..Length(gens)] do
+	img := opr(p,oprs[i]);
+	if not img in ptset then
+	  Add(start,img);
+	  AddSet(ptset,img);
+	fi;
+      od;
+    od;
+
+    # asymptotically the cost of resorting permutations will be higher that
+    # the cost of doing the operation a second time. So we create it anew.
+    # (note that ptset is sorted, so `Position' used (for
+    # `PositionCanonical') in `Permutation' will actually call
+    # `POSITION_SORTED_LIST'.
+
+    imgs:=List(oprs,i->Permutation(i,ptset,opr));
+
+    hom := OperationHomomorphism( G, ptset, gens, oprs, opr,"surjective" );
     SetAsGroupGeneralMappingByImages( hom, GroupHomomorphismByImagesNC
             ( G, SymmetricGroup( Length( start ) ), gens, imgs ) );
     return hom;
@@ -1174,6 +1245,7 @@ InstallMethod( PermutationOp, true, [ IsObject, IsList, IsFunction ], 0,
     function( g, D, opr )
     local   list,  blist,  fst,  old,  new,  pnt;
     
+    IsSSortedList(D);
     list := [  ];
     blist := BlistList( [ 1 .. Length( D ) ], [  ] );
     fst := Position( blist, false );
@@ -1410,6 +1482,7 @@ InstallMethod( CyclesOp, true, [ IsObject, IsList, IsFunction ], 1,
     function( g, D, opr )
     local   blist,  orbs,  next,  pnt,  pos,  orb;
     
+    IsSSortedList(D);
     blist := BlistList( [ 1 .. Length( D ) ], [  ] );
     orbs := [  ];
     next := 1;
@@ -1544,6 +1617,11 @@ end );
 InstallGlobalFunction( CycleLength, function( arg )
     local   g,  D,  pnt,  gens,  oprs,  opr,  xset,  hom,  p;
     
+    # test arguments
+    if Length(arg)<2 or not IsMultiplicativeElementWithInverse(arg[1]) then
+      Error("usage: CycleLength(<g>,<D>,<pnt>[,<opr>])");
+    fi;
+
     # Get the arguments.
     g := arg[ 1 ];
     if IsExternalSet( arg[ 2 ] )  then
@@ -1611,6 +1689,11 @@ end );
 InstallGlobalFunction( CycleLengths, function( arg )
     local   g,  D,  gens,  oprs,  opr,  xset,  hom;
     
+    # test arguments
+    if Length(arg)<2 or not IsMultiplicativeElementWithInverse(arg[1]) then
+      Error("usage: CycleLengths(<g>,<D>[,<opr>])");
+    fi;
+    
     # Get the arguments.
     g := arg[ 1 ];
     if IsExternalSet( arg[ 2 ] )  then
@@ -1657,9 +1740,10 @@ end );
 
 #F  IsTransitive( <G>, <D>, <gens>, <oprs>, <opr> ) . . . . transitivity test
 ##
-InstallMethod( IsTransitiveOp, true, OrbitsishReq, 0,
-    function( G, D, gens, oprs, opr )
-    return IsSubset( OrbitOp( G, D[ 1 ], gens, oprs, opr ), D );
+InstallMethod( IsTransitiveOp, "compare with orbit of element",true,
+  OrbitsishReq, 0,
+function( G, D, gens, oprs, opr )
+    return Length(D)=0 or IsSubset( OrbitOp( G, D[ 1 ], gens, oprs, opr ), D );
 end );
 
 #############################################################################
@@ -2000,6 +2084,43 @@ end );
 
 #############################################################################
 ##
+#F  RankOperation( <arg> ) . . . . . . . . . . . . . . . number of suborbits
+##
+InstallMethod( RankOperationOp, true, OrbitsishReq, 0,
+    function( G, D, gens, oprs, opr )
+    local   hom;
+
+    hom := OperationHomomorphism( G, D, gens, oprs, opr );
+    return RankOperation( Image( hom ), [ 1 .. Length( D ) ] );
+end );
+
+InstallMethod( RankOperationOp,
+        "G, ints, gens, perms, opr", true,
+        [ IsGroup, IsList and IsCyclotomicCollection,
+          IsList,
+          IsList,
+          IsFunction ], 0,
+    function( G, D, gens, oprs, opr )
+    if    opr <> OnPoints
+       or not IsIdenticalObj( gens, oprs )  then
+        TryNextMethod();
+    fi;
+    return Length( Orbits( Stabilizer( G, D, D[ 1 ], opr ),
+                   D, opr ) );
+end );
+
+InstallMethod( RankOperationOp,
+        "G, [  ], gens, perms, opr", true,
+        [ IsGroup, IsList and IsEmpty,
+          IsList,
+          IsList,
+          IsFunction ], SUM_FLAGS,
+    function( G, D, gens, oprs, opr )
+    return 0;
+end );
+
+#############################################################################
+##
 #M  CanonicalRepresentativeOfExternalSet( <xset> )  . . . . . . . . . . . . .
 ##
 InstallMethod( CanonicalRepresentativeOfExternalSet, true,
@@ -2051,27 +2172,47 @@ InstallMethod( StabilizerOfExternalSet, true, [ IsExternalSet ], 0,
 
 #############################################################################
 ##
+#M  ImageElmOperationHomomorphism( <hom>, <elm> )
+##
+InstallGlobalFunction(ImageElmOperationHomomorphism,function( hom, elm )
+    local   xset;
+    xset := UnderlyingExternalSet( hom );
+    return Permutation(elm,HomeEnumerator(xset),FunctionOperation(xset));
+end );
 
+#############################################################################
+##
 #M  ImagesRepresentative( <hom>, <elm> )  . . . . . . . . . for operation hom
 ##
-InstallMethod( ImagesRepresentative, FamSourceEqFamElm,
-        [ IsOperationHomomorphismDirectly,
-          IsMultiplicativeElementWithInverse ], 0,
-    function( hom, elm )
-    local   xset;
-    
-    xset := UnderlyingExternalSet( hom );
-    return Permutation( elm, HomeEnumerator( xset ),
-                   FunctionOperation( xset ) );
+InstallMethod( ImagesRepresentative,"for operation hom", FamSourceEqFamElm,
+        [ IsOperationHomomorphism, IsMultiplicativeElementWithInverse ], 0,
+  ImageElmOperationHomomorphism);
+
+InstallMethod( ImagesRepresentative, "for operation hom that is `ByAsGroup'",
+  FamSourceEqFamElm,
+  [ IsGroupGeneralMappingByAsGroupGeneralMappingByImages 
+    and IsOperationHomomorphism, IsMultiplicativeElementWithInverse ], 0,
+function( hom, elm )
+  return ImagesRepresentative( AsGroupGeneralMappingByImages( hom ), elm );
+end );
+
+#############################################################################
+##
+#M  KernelOfMultiplicativeGeneralMapping( <ophom>, <elm> )
+##
+InstallMethod( KernelOfMultiplicativeGeneralMapping,
+  "for operation homomorphism", true, [ IsOperationHomomorphism ], 0,
+function( hom )
+  return KernelOfMultiplicativeGeneralMapping(
+           AsGroupGeneralMappingByImages( hom ) );
 end );
 
 #############################################################################
 ##
 #M  ImagesRepresentative( <hom>, <elm> )  . . . . . . . .  if a base is known
 ##
-InstallMethod( ImagesRepresentative, FamSourceEqFamElm,
-        [ IsOperationHomomorphismDirectly and
-          IsOperationHomomorphismByBase and HasImagesSource,
+InstallMethod( ImagesRepresentative, "using `RepresentativeOperation'",
+  FamSourceEqFamElm, [ IsOperationHomomorphismByBase and HasImagesSource,
           IsMultiplicativeElementWithInverse ], 0,
     function( hom, elm )
     local   xset,  D,  opr,  imgs;
@@ -2114,8 +2255,8 @@ end );
 ##
 #M  ImagesRepresentative( <hom>, <elm> )  . . . . .  restricted `Permutation'
 ##
-InstallMethod( ImagesRepresentative, FamSourceEqFamElm,
-        [ IsOperationHomomorphismSubset and IsOperationHomomorphismDirectly,
+InstallMethod( ImagesRepresentative,"restricted perm", FamSourceEqFamElm,
+        [ IsOperationHomomorphismSubset,
           IsMultiplicativeElementWithInverse ], 0,
     function( hom, elm )
     local   xset;
@@ -2130,7 +2271,7 @@ end );
 ##
 #M  PreImagesRepresentative( <hom>, <elm> ) . . . . . . . . . .  build matrix
 ##
-InstallMethod( PreImagesRepresentative, true,
+InstallMethod( PreImagesRepresentative,"IsLinearOperationHomomorphism", true,
         [ IsLinearOperationHomomorphism, IsPerm ], 0,
     function( hom, elm )
     local   V,  base,  mat,  b;
@@ -2146,5 +2287,3 @@ InstallMethod( PreImagesRepresentative, true,
     od;
     return mat;
 end );
-
-#############################################################################

@@ -633,9 +633,9 @@ InstallMethod( \*,
 
 #############################################################################
 ##
-#M  AdditiveInverse( <map> )  . . . . . . . . . . . . .  for algebra g.m.b.i.
+#M  AdditiveInverseOp( <map> )  . . . . . . . . . . . .  for algebra g.m.b.i.
 ##
-InstallMethod( AdditiveInverse,
+InstallMethod( AdditiveInverseOp,
     "for algebra g.m.b.i.",
     true,
     [ IsGeneralMapping and IsAlgebraGeneralMappingByImagesDefaultRep ], 0,
@@ -867,7 +867,7 @@ InstallMethod( MakePreImagesInfoOperationAlgebraHomomorphism,
           a -> InducedLinearAction( ophom!.basis, a, ophom!.operation ) );
       if IsEmpty( origgenimages ) then
         I:= FLMLORWithOneByGenerators( F, origgenimages,
-                                       NullMat( F, dim, dim ) );
+                                       Immutable( NullMat( F, dim, dim ) ) );
       else
         I:= FLMLORWithOneByGenerators( F, origgenimages );
       fi;
@@ -877,7 +877,7 @@ InstallMethod( MakePreImagesInfoOperationAlgebraHomomorphism,
           a -> InducedLinearAction( ophom!.basis, a, ophom!.operation ) );
       if IsEmpty( origgenimages ) then
         I:= FLMLORByGenerators( F, origgenimages,
-                                   NullMat( F, dim, dim ) );
+                                   Immutable( NullMat( F, dim, dim ) ) );
       else
         I:= FLMLORByGenerators( F, origgenimages );
       fi;
@@ -1152,7 +1152,7 @@ InstallMethod( OperationAlgebraHomomorphism,
 
       image                      := NullAlgebra( LeftActingDomain( A ) );
       ophom!.basisImage          := BasisOfDomain( image );
-      ophom!.preimagesBasisImage := [ Zero( A ) ];
+      ophom!.preimagesBasisImage := Immutable( [ Zero( A ) ] );
 
       SetRange( ophom, image );
       SetKernelOfAdditiveGeneralMapping( ophom, A );
@@ -1162,6 +1162,21 @@ InstallMethod( OperationAlgebraHomomorphism,
 
     # Return the operation homomorphism.
     return ophom;
+    end );
+
+
+#############################################################################
+##
+#M  OperationAlgebraHomomorphism( <A>, <C> )
+##
+##  Add the default argument `OnRight'.
+##
+InstallOtherMethod( OperationAlgebraHomomorphism,
+    "for a FLMLOR and a collection (add `OnRight' argument)",
+    true,
+    [ IsFLMLOR, IsCollection ], 0,
+    function( A, C )
+    return OperationAlgebraHomomorphism( A, C, OnRight );
     end );
 
 
@@ -1181,21 +1196,6 @@ InstallOtherMethod( OperationAlgebraHomomorphism,
     0,
     function( A, V, opr )
     return OperationAlgebraHomomorphism( A, BasisOfDomain( V ), opr );
-    end );
-
-
-#############################################################################
-##
-#M  OperationAlgebraHomomorphism( <A>, <C> )
-##
-##  Add the default argument `OnRight'.
-##
-InstallOtherMethod( OperationAlgebraHomomorphism,
-    "for a FLMLOR and a collection (add `OnRight' argument)",
-    true,
-    [ IsFLMLOR, IsCollection ], 0,
-    function( A, C )
-    return OperationAlgebraHomomorphism( A, C, OnRight );
     end );
 
 
@@ -1469,7 +1469,7 @@ InstallMethod( NaturalHomomorphismByIdeal,
     canbas:= CanonicalBasis( img );
     zero:= zero * [ 1 .. n ];
     Bimgs:= Concatenation( List( [ 1 .. k ], v -> zero ),
-                           IdentityMat( n, F ) );
+                           Immutable( IdentityMat( n, F ) ) );
 
     nathom:= LeftModuleHomomorphismByMatrix( B, Bimgs, canbas );
 #T take a special representation for nat. hom.s,
@@ -1521,7 +1521,9 @@ InstallMethod( IsomorphismMatrixFLMLOR,
           imgs,  # images of `gens' under the action from the right
           dim;   # dimension of `A'
 
-    if    not IsFiniteDimensional( A )
+    if    IsSubalgebraFpAlgebra( A )   # avoid to call `IsFiniteDimensional'
+                                       # in this case
+       or not IsFiniteDimensional( A )
        or not IsAssociative( A )
        or MultiplicativeNeutralElement( A ) = fail then
       TryNextMethod();
@@ -1547,7 +1549,7 @@ InstallMethod( IsomorphismMatrixFLMLOR,
       imgs:= List( gens, a -> InducedLinearAction( B, a, OnRight ) );
       if IsEmpty( imgs ) then
         dim:= Dimension( A );
-        imgs[1]:= NullMat( F, dim, dim );
+        imgs[1]:= Immutable( NullMat( F, dim, dim ) );
       fi;
       I:= FLMLORByGenerators( F, imgs );
       UseIsomorphismRelation( A, I );
@@ -1602,7 +1604,7 @@ InstallMethod( IsomorphismMatrixFLMLOR,
 ##  algebra.
 ##
 InstallMethod( IsomorphismFpFLMLOR,
-    "for a finite dimensional associative FLMLOR-with-one",
+    "for a finite dimensional FLMLOR-with-one",
     true,
     [ IsFLMLORWithOne ], 0,
     function( A )
@@ -1778,5 +1780,5 @@ InstallMethod( IsomorphismFpFLMLOR,
 
 #############################################################################
 ##
-#E  alghom.gi . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

@@ -45,7 +45,11 @@ InstallMethod( Directory,
     0,
         
 function( str )
-    if '\\' in str or ':' in str  then
+    #
+    # ':' or '\\' probably are untranslated MSDOS or MaxOS path
+    # separators, but ':' in position 2 may be OK
+    #
+    if '\\' in str or (':' in str and str[2] <> ':') then
         Error( "<str> must not contain '\\' or ':'" );
     fi;
     if str[Length(str)] = '/'  then

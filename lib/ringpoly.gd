@@ -5,7 +5,7 @@
 #H  @(#)$Id$
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
-#Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  (C) 1999 School Math and Comp. Sci., University of St.  Andrews, Scotland
 ##
 ##  This file contains  the categories, attributes, properties and operations
 ##  for polynomial rings.
@@ -73,7 +73,7 @@ DeclareAttribute( "CoefficientsRing", IsPolynomialRing );
 ##  yet named, name these accordingly and return them. Thus when asking for
 ##  named indeterminates, no relation between names and indeterminate
 ##  numbers can be guaranteed. The attribute
-##  `IndeterminateNumberOfUnivariateLaurentPolynomial(<indet>)' will return
+##  `IndeterminateNumberOfLaurentPolynomial(<indet>)' will return
 ##  the number of the indeterminate <indet>.
 
 

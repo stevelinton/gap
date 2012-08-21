@@ -110,10 +110,9 @@ gap> Z(3) * map3 = - map3;
 true
 
 gap> comp1:= CompositionMapping( map3, map2 );
-CompositionMapping( CanonicalBasis( GF(3^3) ) -> 
-[ [ Z(3)^0, 0*Z(3) ], [ Z(3)^0, Z(3)^0 ], [ 0*Z(3), Z(3)^0 ] ], 
-[ [ Z(3)^0, 0*Z(3) ], [ Z(3)^0, Z(3)^0 ], [ 0*Z(3), Z(3)^0 ] 
- ] -> CanonicalBasis( GF(3^3) ) )
+CompositionMapping( [ [ Z(3)^0, 0*Z(3) ], [ Z(3)^0, Z(3)^0 ],
+  [ 0*Z(3), Z(3)^0 ] ] -> CanonicalBasis( GF(3^3) ), CanonicalBasis( GF(3^
+3) ) -> [ [ Z(3)^0, 0*Z(3) ], [ Z(3)^0, Z(3)^0 ], [ 0*Z(3), Z(3)^0 ] ] )
 gap> IsInjective( comp1 );
 false
 gap> IsSingleValued( comp1 );
@@ -122,9 +121,10 @@ gap> IsSurjective( comp1 );
 true
 
 gap> comp2:= CompositionMapping( map2, map3 );
-CompositionMapping( [ [ Z(3)^0, 0*Z(3) ], [ Z(3)^0, Z(3)^0 ], 
-  [ 0*Z(3), Z(3)^0 ] ] -> CanonicalBasis( GF(3^3) ), CanonicalBasis( GF(3^
-3) ) -> [ [ Z(3)^0, 0*Z(3) ], [ Z(3)^0, Z(3)^0 ], [ 0*Z(3), Z(3)^0 ] ] )
+CompositionMapping( CanonicalBasis( GF(3^3) ) ->
+[ [ Z(3)^0, 0*Z(3) ], [ Z(3)^0, Z(3)^0 ], [ 0*Z(3), Z(3)^0 ] ],
+[ [ Z(3)^0, 0*Z(3) ], [ Z(3)^0, Z(3)^0 ], [ 0*Z(3), Z(3)^0 ]
+ ] -> CanonicalBasis( GF(3^3) ) )
 gap> IsInjective( comp2 );
 true
 gap> IsSingleValued( comp2 );

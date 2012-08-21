@@ -1,0 +1,34 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%A  semigrp.msk                GAP documentation                Thomas Breuer
+%%
+%A  @(#)$Id$
+%%
+%Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+%%
+\PreliminaryChapter{Semigroups}
+
+This chapter describes functions for semigroups.
+Currently there are only few of them.
+More general functions for magmas can be found in Chapter~"Magmas".
+
+
+\Declaration{IsSemigroup}
+
+\Declaration{Semigroup}
+\Declaration{Subsemigroup}
+\Declaration{SemigroupByGenerators}
+
+\Declaration{AsSemigroup}
+\Declaration{AsSubsemigroup}
+\Declaration{GeneratorsOfSemigroup}
+
+\Declaration{FreeSemigroup}
+
+\Declaration{SemigroupByMultiplicationTable}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%E
+

@@ -1,5 +1,5 @@
 @msfiles = ("rings","module","fields","fieldfin");
 @gdfiles = ("integer","numtheor","ring","field","module","magma","domain",
-            "arith","ffe");
+            "arith","ffe","vspc");
 $DIR = "../ref";
 $LIB = "../../lib"; 

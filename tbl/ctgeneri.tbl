@@ -109,13 +109,13 @@ isGenericTable:=true
 ##
 #V  Generic character tables of Weyl groups.
 ##
-LIBTABLE.ctgeneri.("Symmetric"):= CharTableSymmetric;
+LIBTABLE.ctgeneri.("Symmetric"):= ShallowCopy( CharTableSymmetric );
 
-LIBTABLE.ctgeneri.("Alternating"):= CharTableAlternating;
+LIBTABLE.ctgeneri.("Alternating"):= ShallowCopy( CharTableAlternating );
 
-LIBTABLE.ctgeneri.("WeylB"):= CharTableWeylB;
+LIBTABLE.ctgeneri.("WeylB"):= ShallowCopy( CharTableWeylB );
 
-LIBTABLE.ctgeneri.("WeylD"):= CharTableWeylD;
+LIBTABLE.ctgeneri.("WeylD"):= ShallowCopy( CharTableWeylD );
 
 
 #############################################################################

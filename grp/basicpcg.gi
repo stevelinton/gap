@@ -156,11 +156,12 @@ InstallMethod( ElementaryAbelianGroupCons,
 function( filter, n )
     if n = 1  then
         return CyclicGroupCons( IsPcGroup, 1 );
-    fi;
-    if not IsPrimePowerInt(n)  then
+    elif not IsPrimePowerInt(n)  then
         Error( "<n> must be a prime power" );
     fi;
-    return AbelianGroupCons( IsPcGroup, Factors(n) );
+    n:= AbelianGroupCons( IsPcGroup, Factors(n) );
+    SetIsElementaryAbelian( n, true );
+    return n;
 end );
 
 
@@ -254,7 +255,7 @@ function( filters, order, exp )
         Add( r, Comm( e[2*i], e[2*i-1] ) * z );
     od;
 
-    # return the Ag group
+    # return the pc group
     return PolycyclicFactorGroup( f, r );
 
 end );
@@ -282,5 +283,6 @@ end );
 #############################################################################
 ##
 
-#E  basicpc.gd . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 ##
+

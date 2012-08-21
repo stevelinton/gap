@@ -1,0 +1,21 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%A  options.msk                    GAP documentation           Steve Linton
+%%
+%A  @(#)$Id$
+%%
+%Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+%%
+\Chapter{Options Stack}
+
+\FileHeader{options}[1]
+
+\Declaration{PushOptions}
+
+\Declaration{PopOptions}
+
+\Declaration{ValueOption}
+
+\Declaration{DisplayOptionsStack}
+
+\Declaration{InfoOptions}

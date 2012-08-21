@@ -1,15 +1,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-%A  grplib.msk                  GAP documentation            Heiko Theissen
-%A                                                           Volkmar Felsch
-%A                                                           Bettina Eick
-%A                                                           Alexander Hulpke
+%A  grplib.msk                  GAP documentation          Heiko Theissen
+%A                                                         Volkmar Felsch
+%A                                                         Bettina Eick
+%A                                                         Alexander Hulpke
+%A                                                         Hans Ulrich Besche
 %%
 %A  @(#)$Id$
 %%
 %Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 %%
-\Chapter{Group Libraries}
+\PreliminaryChapter{Group Libraries}
 
 When you start {\GAP}, it  already knows several groups. Currently {\GAP}
 initially knows the following groups:
@@ -23,8 +24,7 @@ initially knows the following groups:
     $n>1$ and $p^n \< 256$ (also in "Primitive permutation groups"),
   \item{$\bullet$} the transitive permutation groups of degree at most 23
     (see "Transitive permutation groups"),
-  \item{$\bullet$} the small groups of size at most 1000, excluding sizes
-    512 and 768 (see "Small groups"),
+  \item{$\bullet$} the groups of small size (see "Small groups"),
   \item{$\bullet$}  the  finite perfect  groups of   size  at most $10^6$
     (excluding 11 sizes) (see "Finite perfect groups").
 %\item{$\bullet$} the irreducible maximal finite integral matrix groups 
@@ -47,38 +47,38 @@ mentioned below may not be available on your installation.
 
 There are several infinite families of groups which are parametrized by
 numbers. {\GAP} provides various functions to construct these groups. The
-functions always permit (but do not require) to indicate the category (for
+functions always permit (but do not require) one to indicate the category (for
 example `IsPermGroup', `IsMatrixGroup' or `IsPcGroup') in which the group
 should be constructed, there always is a default category corresponding to
 a ``natural'' way to describe the groups. Note that not every group can be
-constructed in every category, there may be principle restrictions
+constructed in every category, there may be theoretical restrictions
 (`IsPcGroup' only works for solvable groups) or methods may be available
 only for a few categories.
 
 \Declaration{CyclicGroup}
 \beginexample
 gap> CyclicGroup(12);
-Group( [ f1, f2, f3 ], ... )
+<pc group of size 12 with 3 generators>
 gap> CyclicGroup(IsPermGroup,12);
-Group( [ ( 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12) ], ... )
+Group( [ ( 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12) ] )
 \endexample
 
 \Declaration{AbelianGroup}
 \beginexample
 gap> AbelianGroup([1,2,3]);
-Group( [ f1, f2 ], ... )
+<pc group of size 6 with 2 generators>
 \endexample
 
 \Declaration{ElementaryAbelianGroup}
 \beginexample
 gap> ElementaryAbelianGroup(8192); 
-Group( [ f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13 ], ... )
+<pc group of size 8192 with 13 generators>
 \endexample
 
 \Declaration{DihedralGroup}
 \beginexample
 gap> DihedralGroup(10);
-Group( [ f1, f2 ], ... )
+<pc group of size 10 with 2 generators>
 \endexample
 
 \Declaration{ExtraspecialGroup}
@@ -86,13 +86,13 @@ Group( [ f1, f2 ], ... )
 \Declaration{AlternatingGroup}
 \beginexample
 gap> AlternatingGroup(5);
-Alt[ 1 .. 5 ]
+Alt([1..5])
 \endexample
 
 \Declaration{SymmetricGroup}
 \beginexample
 gap> SymmetricGroup(10); 
-Sym[ 1 .. 10 ]
+Sym([1..10])
 \endexample
 
 Note that permutation groups provide special treatment of symmetric and
@@ -122,7 +122,7 @@ gap> Size(pgl);
 \endexample
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Constructors for basic groups}
+\Section{Constructors for Basic Groups}
 
 All functions described in the last section call constructor operations to
 do the work. The constructors are called as the functions with an appended
@@ -143,13 +143,13 @@ function( filter, n )
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Selection functions}
+\Section{Selection Functions}
 
 \)\fmark All<Library>Groups( $<fun>_1$, $<val>_1$, \dots\ )
 
-For each  group library there  is a  *selection function*.  This function
-permits to select all groups from the library that have a given set of
-properties.
+For each of the following group library there  is a  *selection function*.
+This function permits one to select all groups from the library that have a
+given set of properties.
 
 The name of the selection  functions always begins  with `All' and always
 ends with `Groups'. Inbetween is a  name that hints at  the nature of the
@@ -163,9 +163,9 @@ groups in the library,  and the second  argument is either a single value
 that this  function must return in  order  to have this group included in
 the selection, or a list of such values. For example,
 \begintt
-    AllPrimitiveGroups( DegreeOperation,  [10..15],
-                        Size,             [1..100],
-                        IsAbelian,        false    );
+AllPrimitiveGroups( DegreeOperation,  [10..15],
+		    Size,             [1..100],
+		    IsAbelian,        false    );
 \endtt
 returns a list of all primitive  groups with  degree between 10 and
 15 and size less than 100 that are not abelian.
@@ -184,7 +184,7 @@ local    groups, g, i;
   for i  in [ 1 .. Length( PrimitiveGroupsList ) ] do
     g := PrimitiveGroupsList[i];
     if      fun1(g) = val1  or IsList(val1) and fun1(g) in val1
-	and fun2(g) = val2  or IsList(val2) and fun2(g) in val2
+        and fun2(g) = val2  or IsList(val2) and fun2(g) in val2
      then
       Add( groups, g );
     fi;
@@ -208,7 +208,7 @@ library that has the prescribed properties.
 It returns `fail' if no such group exists in the library.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Primitive permutation groups}
+\Section{Primitive Permutation Groups}
 
 {\GAP} contains a library of primitive permutation groups which includes the
 following permutation groups up to permutation isomorphism (i.e., up to
@@ -222,7 +222,7 @@ conjugacy  in the corresponding symmetric group)
     \itemitem{$\circ$} the primitive permutation groups up to degree~50,
       calculated by C.~Sims,
     \itemitem{$\circ$}  the solvable (hence affine) primitive permutation
-      groups of degree $\<256$, calculated by M.~Short \cite{Short92},
+      groups of degree $\<256$, calculated by M.~Short \cite{Sho92},
     \itemitem{$\circ$} the insolvable affine primitive permutation groups
       of degree $\<256$, calculated in \cite{Theissen97}.
 \endlist
@@ -230,9 +230,9 @@ Note that the affine primitive permutation groups of degrees 256--999 are
 not included.
 
 \Declaration{PrimitiveGroup}
-\Declaration{NrPrimitiveGroup}
-\Declaration{NrAffinePrimitiveGroup}
-\Declaration{NrSolvableAffinePrimitiveGroup}
+\Declaration{NrPrimitiveGroups}
+\Declaration{NrAffinePrimitiveGroups}
+\Declaration{NrSolvableAffinePrimitiveGroups}
 
 \beginexample
 gap> NrPrimitiveGroups(25);
@@ -242,15 +242,7 @@ gap> NrAffinePrimitiveGroups(25);
 gap> NrSolvableAffinePrimitiveGroups(25);
 19
 gap> PrimitiveGroup(25,19);               
-Group( 
-[ ( 2,19, 3,25, 4, 7, 5,13)( 6, 9,11,15,16,17,21,23)(
-8,18,14,24,20,10,22,12),
-  ( 2,22,15)( 3, 8,17)( 4,14,23)( 5,20, 9)( 6,24, 7)(10,13,11)(12,19,16)
-    (18,25,21), ( 2,11, 4,21)( 3,16, 5, 6)( 7,13,19,25)( 8,18,20,10)
-    ( 9,23,17,15)(12,14,24,22), ( 2, 5, 4, 3)( 6,11,16,21)( 7,15,19,23)
-    ( 8,12,20,24)( 9,13,17,25)(10,14,18,22), ( 1, 6,11,21,16)( 2,
-7,12,22,17)
-    ( 3, 8,13,23,18)( 4, 9,14,24,19)( 5,10,15,25,20) ], ... )
+<permutation group of size 2400 with 5 generators>
 gap> PrimitiveGroup(25,20);
 5^2:GL(2,5)_1
 gap> PrimitiveGroup(25,22);
@@ -287,7 +279,7 @@ gap> g:=PrimitiveGroup(25,2);
 Group( [ ( 2,19)( 3,25)( 4, 7)( 5,13)( 8,20)( 9,12)(10,23)(14,22)(15,18)
     (17,24), ( 2,20, 7)( 3,22,13)( 4, 8,19)( 5,14,25)( 6,10,23)( 9,11,12)
     (15,16,18)(17,21,24), ( 1, 6,11,21,16)( 2, 7,12,22,17)( 3, 8,13,23,18)
-    ( 4, 9,14,24,19)( 5,10,15,25,20) ], ... )
+    ( 4, 9,14,24,19)( 5,10,15,25,20) ] )
 gap> SimsNo(g);
 3
 gap> SimsName(g);
@@ -310,7 +302,7 @@ database without having to compute them anew:
 `Size', `IsLinearlyPrimitive' and `MinimalBlockDimension'.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Transitive permutation groups}
+\Section{Transitive Permutation Groups}
 
 The transitive groups library contains representatives for all transitive
 permutation groups of degree at most  23.  Two permutations groups of the
@@ -328,10 +320,10 @@ obtain the following properties from the database without having to compute
 them anew:
 `NrMovedPoints', `Size',   `Transitivity', and `IsPrimitive'. 
 
-This library was computed by Gregory Butler, John McKay, Gordon Royle and
-Alexander  Hulpke. The list  of transitive  groups  up to  degree  11 was
-published in \cite{ButlerMcKay83}, the list of degree 12 was published in
-\cite{Royle87}, degree 14 and   15 were published in \cite{Butler93}  and
+This library was computed by  Gregory Butler, John McKay, Gordon Royle
+and Alexander Hulpke.  The list of transitive  groups up  to degree 11
+was published in \cite{BM83},  the list of degree  12 was published in
+\cite{Roy87}, degree 14 and  15 were published in  \cite{Butler93} and
 degrees 16--22 in \cite{Hulpke96}.
 
 The arrangement and the names of the groups of degree up to 15 is the same
@@ -341,8 +333,6 @@ and alternating group (which are represented as `SymmetricGroup' and
 paper with the only difference that 0 (which is not permitted in {\GAP} for
 permutations to act on) is always replaced by the degree.
 
-The library was  brought into {\GAP} format by  Alexander Hulpke, who is
-responsible for all mistakes.
 \beginexample
 gap> TransitiveGroup(10,22);
 S(5)[x]2
@@ -354,54 +344,102 @@ gap> List(l,IsSolvable);
 
 \Declaration{TransitiveIdentification}
 \beginexample
-    gap> TransitiveIdentification(Group((1,2),(1,2,3)));
-    2
+gap> TransitiveIdentification(Group((1,2),(1,2,3)));
+2
 \endexample
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Small groups}
+\Section{Small Groups}
 
+This library contains listings of all groups of certain orders up
+to isomorphism. Currently, the groups of order at most 1000 except 512, 
+the groups whose order is a product of at most 3 primes and the groups 
+of order $2^n \cdot p$ for $n \leq 8$ and $p$ an odd prime are included 
+in the catalogue.
 
-This library contains all groups of order at most 1000 except for
-512 and 768 up to isomorphism.  There are a total of 174366 such groups.
+The nilpotent groups have been computed by E. A. O'Brien, see 
+\cite{NO89}, while the non-nilpotent groups have been determined 
+by Hans Ulrich Besche and Bettina Eick, see \cite{BescheEick98}, 
+\cite{BescheEick1000} and \cite{BescheEick768}. For a description
+of the groups whose order has at most 3 prime factors, see
+\cite{Neu67}.
 
-The  groups are  from lists  computed by  M.~Hall and J.~K.~Senior
-(size  64, see  \cite{HS64}),  R.~Laue (size 96,  see  \cite{Lau82}),
-J.~Neub{\accent127u}ser (other sizes up to 100, see \cite{Neu67})
-M.F.~Newman  and  E.A.~O\'Brien (sizes 128 and 256, see \cite{NO89}) and
-Bettina Eick and Hans-Ulrich Besche (other sizes, see \cite{BescheEick98})
+Additionally to the catalogue of groups there exists an identification
+routine for groups of small order; that is, a function that returns the
+catalogue number of any given group of suitable order.
+
+Note that the small groups library contains the GAP 3 libraries
+`TwoGroups' and `ThreeGroups' without any changes. Moreover, the 
+small groups library is a substitute for the GAP 3 library of 
+solvable groups of order at most 100. However, these catalogues
+are sorted differently.
+
+The complete catalogue together with the identification routine
+needs about 25 MB of space on a hard disk. Thus we have split the 
+library in three layers. The first layer is always installed, since
+it does not need much space. The second and third layers may be
+ommitted in the installation, if necessary.  Moreover, the catalogue
+and the identification routine can be installed independent of each
+other.
+\beginlist
+   \item{$\bullet$} the groups of a size which is the product of at most 3
+     primes,
+   \item{$\bullet$} the remaining groups of size a most 1000 excluding 512,
+     768,
+   \item{$\bullet$} the groups of a size = $2^n * p$ with $n \leq 8$ and $p$
+     an odd prime.
+\endlist
 
 \Declaration{SmallGroup}
-
 \Declaration{NumberSmallGroups}
-
-The function 'NumberSmallGroups( <size> )' returns the  number of groups of
-the order $size$.
-
-The selection function (see "Selection functions") for the small
-groups library is `AllSmallGroups'.
-
-At the first call of one  of the  functions  described above, the groups of 
-order <size> are loaded  and  stored in a compact description. GAP will not 
-unload them itsself again. Thus if one calls one of the above functions for
-a lot of different orders,  then all the groups of these orders are stored. 
-Even though the  description of the groups  is space efficient,  this might
-use a lot  of space.  For example,  if one uses the above functions to load 
-the complete catalogue, then GAP will grow to about 12 MB of workspace.
-
-It  is possible to  work with the  catalogue of  groups of small order just
-using the functions described above. However, the catalogue is rather large
-even though  the groups are stored in a very compact  description.  Thus it
-might be helpful  for a space efficient  usage of the catalogue,  to know a 
-little bit about unloading parts of the catalogue by hand.
-
-\Declaration{UnloadSmallGroups}
-
+\Declaration{AllGroups}
+\Declaration{IdsOfAllGroups}
+\Declaration{OneGroup}
+\Declaration{Gap3CatalogueGroup}
 \Declaration{IdGroup}
+\Declaration{Gap3CatalogueIdGroup}
+\Declaration{UnloadSmallGroupsData}
+
+\beginexample
+gap> G := SmallGroup( 768, 1000000 );
+<pc group with 9 generators>
+gap> NumberSmallGroups( 512 );
+10494213
+gap> NumberSmallGroups( 768 );
+1090235
+gap> NumberSmallGroups( 2^8 * 5 );
+1116461
+gap> AllGroups( Size, 120, IsSolvableGroup, false );
+[ Group([ ( 1, 2, 4, 8)( 3, 6, 9, 5)( 7,12,13,17)(10,14,11,15)(16,20,21,24)
+        (18,22,19,23), ( 1, 3, 7)( 2, 5,10)( 4, 9,13)( 6,11, 8)(12,16,20)
+        (14,18,22)(15,19,23)(17,21,24) ]), Group([ (1,2,3,4,5), (1,2) ]), 
+  Group([ (1,2,3,5,4), (1,3)(2,4)(6,7) ]) ]
+gap> IdsOfAllGroups( Size, 60, IsSupersolvableGroup, true );
+[ [ 60, 1 ], [ 60, 2 ], [ 60, 3 ], [ 60, 4 ], [ 60, 6 ], [ 60, 7 ], 
+  [ 60, 8 ], [ 60, 10 ], [ 60, 11 ], [ 60, 12 ], [ 60, 13 ] ]
+gap> OneGroup( Size, [1..1000], IsSolvableGroup, false );
+Group([ (1,2,3,4,5), (1,2,3) ])
+gap> List( DerivedSeries( Gap3CatalogueGroup( 24, 15 ) ), Size );      
+[ 24, 12, 4, 1 ]
+gap> IdGroup( GL( 2,3 ) );
+[ 48, 29 ]
+gap> Gap3CatalogueIdGroup( GL( 2,3 ) );
+[ 48, 49 ]
+gap> UnloadSmallGroupsData();
+\endexample
+
+Note that for the groups of order 512 `NumberSmallGroups' is the
+only catalogue function which will return a result. These groups
+have been enumerated, but not determined yet.
+
+
+%Authors of the GAP 3 catalogue of solvable groups:
+%M. Hall and J. K. Senior, see \cite{HS64}, J. Neub{\accent127u}ser, 
+%see \cite{Neu67}, and R. Laue, see \cite{Lau82})
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Finite perfect groups}
+\Section{Finite Perfect Groups}
 \index{perfect groups}%
 
 The {\GAP} library of finite  perfect groups provides, up to isomorphism,
@@ -420,12 +458,12 @@ the following sizes:
 \endlist
 
 Except for these eleven sizes, the list of altogether 1096 perfect groups
-in the library  is complete. It relies   on results of  Derek~F. Holt and
-Wilhelm  Plesken which are published  in their book  {\it Perfect Groups}
-\cite{HoltPlesken89}. Moreover,   they have supplied  us  with files with
-presentations of 488 of the groups. In terms  of these, the remaining 607
+in the  library is complete. It  relies  on results  of Derek~F. Holt and
+Wilhelm Plesken which  are published in their  book  {\it Perfect Groups}
+\cite{HP89}. Moreover,   they     have  supplied us    with    files with
+presentations of 488 of the groups. In terms of  these, the remaining 607
 nontrivial groups in the library can be described as 276 direct products,
-107 central  products, and 224  subdirect   products. They  are  computed
+107  central   products, and 224  subdirect  products.  They are computed
 automatically by suitable {\GAP} functions whenever they are needed.
 
 We are grateful to Derek Holt and Wilhelm Plesken for making their groups
@@ -435,6 +473,8 @@ of the library groups.  So we would like  to recommend  it to any  {\GAP}
 user who is interested in the groups.
 
 The library has been brought into {\GAP} format by Volkmar Felsch.
+
+\Declaration{SizesPerfectGroups}
 
 \Declaration{PerfectGroup}
 \beginexample
@@ -464,31 +504,29 @@ gap> NrMovedPoints(G);
 
 \beginexample
 gap> DisplayInformationPerfectGroups( 30720, 3 );
-|#I Perfect group 30720:  A5 ( 2^4 E N 2^1 E 2^4 ) A
-|#I   size = 2^11*3*5  orbit size = 240
-|#I   Holt-Plesken class 1 (9,3)
-|_
+#I Perfect group 30720:  A5 ( 2^4 E N 2^1 E 2^4 ) A
+#I   size = 2^11*3*5  orbit size = 240
+#I   Holt-Plesken class 1 (9,3)
 gap> DisplayInformationPerfectGroups( 30720, 6 );
-|#I Perfect group 30720:  A5 ( 2^4 x 2^4 ) C N 2^1
-|#I   centre = 2  size = 2^11*3*5  orbit size = 384
-|#I   Holt-Plesken class 1 (9,6)
-|_
+#I Perfect group 30720:  A5 ( 2^4 x 2^4 ) C N 2^1
+#I   centre = 2  size = 2^11*3*5  orbit size = 384
+#I   Holt-Plesken class 1 (9,6)
 gap> DisplayInformationPerfectGroups( Factorial( 8 ) / 2 );
-|#I Perfect group 20160.1:  A5 x L3(2) 2^1
-|#I   centre = 2  size = 2^6*3^2*5*7  orbit sizes = 5 + 16
-|#I   Holt-Plesken class 31 (1,1) (occurs also in class 32)
-|#I Perfect group 20160.2:  A5 2^1 x L3(2)
-|#I   centre = 2  size = 2^6*3^2*5*7  orbit sizes = 7 + 24
-|#I   Holt-Plesken class 31 (1,2) (occurs also in class 32)
-|#I Perfect group 20160.3:  ( A5 x L3(2) ) 2^1
-|#I   centre = 2  size = 2^6*3^2*5*7  orbit size = 192
-|#I   Holt-Plesken class 31 (1,3)
-|#I Perfect group 20160.4:  simple group  A8
-|#I   size = 2^6*3^2*5*7  orbit size = 8
-|#I   Holt-Plesken class 26 (0,1)
-|#I Perfect group 20160.5:  simple group  L3(4)
-|#I   size = 2^6*3^2*5*7  orbit size = 21
-|#I   Holt-Plesken class 27 (0,1)
+#I Perfect group 20160.1:  A5 x L3(2) 2^1
+#I   centre = 2  size = 2^6*3^2*5*7  orbit sizes = 5 + 16
+#I   Holt-Plesken class 31 (1,1) (occurs also in class 32)
+#I Perfect group 20160.2:  A5 2^1 x L3(2)
+#I   centre = 2  size = 2^6*3^2*5*7  orbit sizes = 7 + 24
+#I   Holt-Plesken class 31 (1,2) (occurs also in class 32)
+#I Perfect group 20160.3:  ( A5 x L3(2) ) 2^1
+#I   centre = 2  size = 2^6*3^2*5*7  orbit size = 192
+#I   Holt-Plesken class 31 (1,3)
+#I Perfect group 20160.4:  simple group  A8
+#I   size = 2^6*3^2*5*7  orbit size = 8
+#I   Holt-Plesken class 26 (0,1)
+#I Perfect group 20160.5:  simple group  L3(4)
+#I   size = 2^6*3^2*5*7  orbit size = 21
+#I   Holt-Plesken class 27 (0,1)
 \endexample
 
 For any library  group  $G$, the library    files do not  only provide  a
@@ -496,7 +534,7 @@ presentation, but, in  addition, a list  of  one or more subgroups  $S_1,
 \ldots,  S_r$  of   $G$ such   that   there is  a   faithful  permutation
 representation  of $G$ of degree  $\sum_{i=1}^{r} [G:S_i]$ on the set $\{
 S_i g \mid 1 \leq i \leq  r, \, g \in  G \}$ of  the cosets of the $S_i$.
-This allows to construct the groups as permutation groups. The
+This allows one to construct the groups as permutation groups. The
 `DisplayInformationPerfectGroups'  function  displays  only the available
 degree. The message
 \begintt
@@ -511,9 +549,8 @@ is transitive and of degree 8, whereas the message
 means that a nontransitive  permutation representation is available which
 acts on two orbits of size 5 and 16 respectively.
 
-The notation   used in the  ``description'' of  a  group  is explained in
-section 5.1.2 of \cite{HoltPlesken89}. We  quote the respective page from
-there:
+The  notation used in  the ``description''  of  a  group is explained  in
+section 5.1.2 of \cite{HP89}. We quote the respective page from there:
 
 {\advance\leftskip by\manindent \advance\rightskip by\manindent
 Within a class $Q\,\#\,p$, an isomorphism type  of groups will be denoted

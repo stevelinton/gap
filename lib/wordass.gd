@@ -33,6 +33,7 @@ Revision.wordass_gd :=
 ##  and words of the same length are compared lexicographically.
 ##  If $g$ is an invertible generators of the family then we have
 ##  $g^{-1} \< g$.
+##
 
 
 #############################################################################
@@ -40,7 +41,9 @@ Revision.wordass_gd :=
 #C  IsAssocWord( <obj> )
 ##
 ##  is the category of associative words in free semigroups.
-IsAssocWord            := IsWord and IsAssociativeElement;
+##
+DeclareSynonym( "IsAssocWord", IsWord and IsAssociativeElement );
+
 
 #############################################################################
 ##
@@ -48,7 +51,9 @@ IsAssocWord            := IsWord and IsAssociativeElement;
 ##
 ##  is the category of associative words in free monoids (which have an
 ##  identity).
-IsAssocWordWithOne     := IsAssocWord and IsWordWithOne;
+##
+DeclareSynonym( "IsAssocWordWithOne", IsAssocWord and IsWordWithOne );
+
 
 #############################################################################
 ##
@@ -56,7 +61,10 @@ IsAssocWordWithOne     := IsAssocWord and IsWordWithOne;
 ##
 ##  is the category of associative words in free groups (which have
 ##  inverse).
-IsAssocWordWithInverse := IsAssocWord and IsWordWithInverse;
+##
+DeclareSynonym( "IsAssocWordWithInverse",
+    IsAssocWord and IsWordWithInverse );
+
 
 #############################################################################
 ##
@@ -143,8 +151,7 @@ DeclareOperation( "ExponentSumWord", [ IsAssocWord, IsAssocWord ] );
 ##  <from> and <to> must be positive integers.
 ##  Indexing is done with origin 1.
 ##
-DeclareOperation( "Subword",
-    [ IsAssocWord, IsPosInt, IsPosInt ] );
+DeclareOperation( "Subword", [ IsAssocWord, IsPosInt, IsPosInt ] );
 
 
 #############################################################################
@@ -157,6 +164,7 @@ DeclareOperation( "Subword",
 ##  Indexing is done with origin 1.
 ##
 DeclareOperation( "SubSyllables", [ IsAssocWord, IsPosInt, IsPosInt ] );
+
 
 #############################################################################
 ##
@@ -172,8 +180,7 @@ DeclareOperation( "SubSyllables", [ IsAssocWord, IsPosInt, IsPosInt ] );
 ##  integer <i> larger than or equal to <from> such that
 ##  `Subword( <w>, <i>, <i>+Length(<sub>)-1 ) = <sub>' (see "Subword").
 ##
-DeclareOperation( "PositionWord",
-    [ IsAssocWord, IsAssocWord, IsPosInt ] );
+DeclareOperation( "PositionWord", [ IsAssocWord, IsAssocWord, IsPosInt ] );
 
 
 #############################################################################
@@ -203,6 +210,20 @@ DeclareOperation( "SubstitutedWord",
 ##
 DeclareOperation( "EliminatedWord",
     [ IsAssocWord, IsAssocWord, IsAssocWord ] );
+
+
+#############################################################################
+##
+#O  RenumberedWord( <word>, <renumber> )  . . . renumber generators of a word
+##
+##  accepts an associative word <word> and a list <renumber> of positive
+##  integers.  The result is a new word obtained from <word> by replacing
+##  each occurrence of generator number $g$ by <renumber>[g].  The list
+##  <renumber> need not be dense, but it must have a positive integer for
+##  each  generator number occurring in <word>.  That integer must not exceed
+##  the number of generators in the elements family of <word>.
+##
+DeclareOperation( "RenumberedWord", [IsAssocWord, IsList] );
 
 
 #############################################################################
@@ -269,6 +290,7 @@ DeclareGlobalFunction( "StoreInfoFreeMagma" );
 #############################################################################
 ##
 #F  InfiniteListOfNames( <string> )
+#F  InfiniteListOfNames( <string>, <initnames> )
 ##
 DeclareGlobalFunction( "InfiniteListOfNames" );
 
@@ -283,6 +305,6 @@ DeclareGlobalFunction( "InfiniteListOfGenerators" );
 #############################################################################
 ##
 
-#E  wordass.gd  . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 ##
 

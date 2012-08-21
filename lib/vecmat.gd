@@ -16,21 +16,21 @@ Revision.vecmat_gd :=
 
 #############################################################################
 ##
-#V  GF2One  . . . . . . . . . . . . . . . . . . . . . . . . . .  one of GF(2)
+#v  GF2One  . . . . . . . . . . . . . . . . . . . . . . . . . .  one of GF(2)
 ##
-GF2One := Z(2);
+BIND_GLOBAL( "GF2One", Z(2) );
 
 
 #############################################################################
 ##
-#V  GF2Zero . . . . . . . . . . . . . . . . . . . . . . . . . . zero of GF(2)
+#v  GF2Zero . . . . . . . . . . . . . . . . . . . . . . . . . . zero of GF(2)
 ##
-GF2Zero := 0*Z(2);
+BIND_GLOBAL( "GF2Zero", 0*Z(2) );
 
 
 #############################################################################
 ##
-#R  IsGF2VectorRep  . . . . . . . . . . . . . . . . . . . . . vector over GF2
+#R  IsGF2VectorRep( <obj> ) . . . . . . . . . . . . . . . . . vector over GF2
 ##
 DeclareRepresentation(
     "IsGF2VectorRep",
@@ -60,14 +60,27 @@ DeclareGlobalVariable(
 ##
 #F  ConvertToGF2VectorRep( <vector> ) . . . . . . . .  convert representation
 ##
-ConvertToGF2VectorRep := CONV_GF2VEC;
+DeclareSynonym( "ConvertToGF2VectorRep", CONV_GF2VEC );
 
+#############################################################################
+##
+#F  ConvertToVectorRep( <list> )
+##
+##  converts <list> to an internal vector representation if possible.
+DeclareGlobalFunction( "ConvertToVectorRep");
+
+#############################################################################
+##
+#F  ConvertToMatrixRep( <list> )
+##
+##  converts <list> to an internal matrix representation if possible.
+DeclareGlobalFunction( "ConvertToMatrixRep");
 
 #############################################################################
 ##
 #F  ImmutableGF2VectorRep( <vector> ) . . . . . . . .  convert representation
 ##
-ImmutableGF2VectorRep := function( vector )
+BIND_GLOBAL( "ImmutableGF2VectorRep", function( vector )
     if ForAny( vector, x -> x <> GF2Zero and x <> GF2One )  then
         return fail;
     fi;
@@ -75,13 +88,13 @@ ImmutableGF2VectorRep := function( vector )
     CONV_GF2VEC(vector);
     SET_TYPE_DATOBJ( vector, TYPE_LIST_GF2VEC_IMM );
     return vector;
-end;
+end );
 
 
 #############################################################################
 ##
 
-#R  IsGF2MatrixRep  . . . . . . . . . . . . . . . . . . . . . matrix over GF2
+#R  IsGF2MatrixRep( <obj> ) . . . . . . . . . . . . . . . . . matrix over GF2
 ##
 DeclareRepresentation(
     "IsGF2MatrixRep",
@@ -91,9 +104,9 @@ DeclareRepresentation(
 
 #############################################################################
 ##
-#M  IsOrdinaryMatrix
-#M  IsConstantTimeAccessList
-#M  IsSmallList
+#M  IsOrdinaryMatrix( <obj> )
+#M  IsConstantTimeAccessList( <obj> )
+#M  IsSmallList( <obj> )
 ##
 ##  Lists in `IsGF2VectorRep' and `IsGF2MatrixRep' are (at least) as good
 ##  as lists in `IsInternalRep' w.r.t.~the above filters.
@@ -128,16 +141,16 @@ DeclareGlobalVariable(
 ##
 #F  SET_LEN_GF2MAT( <list>, <len> ) . . . . .  set the length of a GF2 matrix
 ##
-SET_LEN_GF2MAT := function( list, len )
+BIND_GLOBAL( "SET_LEN_GF2MAT", function( list, len )
     list![1] := len;
-end;
+end );
 
 
 #############################################################################
 ##
 #F  ConvertToGF2MatrixRep( <matrix> ) . . . . . . . .  convert representation
 ##
-ConvertToGF2MatrixRep := function(matrix)
+BIND_GLOBAL( "ConvertToGF2MatrixRep", function(matrix)
     local   i;
 
     if not IsMutable(matrix)  then
@@ -151,8 +164,11 @@ ConvertToGF2MatrixRep := function(matrix)
 
     # check that we can convert the entries
     for i  in [ 1 .. Length(matrix) ]  do
-        if IsMutable(matrix[i]) or not IsGF2VectorRep(matrix[i])  then
-            return;
+	if not IsGF2VectorRep(matrix[i])  then
+	  ConvertToGF2VectorRep(matrix[i]);
+        fi;
+        if IsMutable(matrix[i]) then
+	  matrix[i]:=Immutable(matrix[i]);
         fi;
     od;
 
@@ -165,14 +181,14 @@ ConvertToGF2MatrixRep := function(matrix)
     # and convert
     Objectify( TYPE_LIST_GF2MAT, matrix );
 
-end;
+end );
 
 
 #############################################################################
 ##
 #F  ImmutableGF2MatrixRep( <matrix> ) . . . . . . . .  convert representation
 ##
-ImmutableGF2MatrixRep := function(matrix)
+BIND_GLOBAL( "ImmutableGF2MatrixRep", function(matrix)
     local   new,  i,  row;
 
     # put length at position 1
@@ -191,15 +207,14 @@ ImmutableGF2MatrixRep := function(matrix)
     # and return new matrix
     return new;
 
-end;
+end );
 
 
 #############################################################################
 ##
-
 #F  ImmutableMatrix( <field>, <matrix> ) . convert into "best" representation
 ##
-ImmutableMatrix := function( field, matrix )
+BIND_GLOBAL( "ImmutableMatrix", function( field, matrix )
 
     # matrix over GF2
     if IsFinite(field) and Size(field) = 2  then
@@ -209,11 +224,17 @@ ImmutableMatrix := function( field, matrix )
     else
         return Immutable(matrix);
     fi;
-end;
-
+end );
 
 #############################################################################
 ##
+#F  PositionNonZero( <vec> ) . . . . . . . . Position of first non-zero entry
+##
 
-#E  vecmat.gd . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+DeclareOperation("PositionNonZero", [IsRowVector]);
+  
+
+#############################################################################
+##
+#E
 ##

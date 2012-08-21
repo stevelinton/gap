@@ -91,11 +91,16 @@ void            AddPlist (
         AssPlistEmpty( list, pos, obj );
     }
     else {
-        RetypeBag( list, T_PLIST );
-        GROW_PLIST( list, pos );
-        SET_LEN_PLIST( list, pos );
-        SET_ELM_PLIST( list, pos, obj );
-        CHANGED_BAG( list );
+      ASS_LIST( list, pos, obj);
+      /*  The code below is commented out and replaced by the line above, so
+	  as, at the cost of one extra dispatch, to take advantage of the
+	  special code in AssPlist<things> which maintain as much information
+	  about denseness homogeneity, etc as possible */
+      /*        RetypeBag( list, T_PLIST );
+		GROW_PLIST( list, pos );
+		SET_LEN_PLIST( list, pos );
+		SET_ELM_PLIST( list, pos, obj );
+		CHANGED_BAG( list ); */
     }
 }
 
@@ -148,6 +153,14 @@ Obj             FuncAPPEND_LIST_INTR (
     Obj                 elm;            /* one element of the second list  */
     Int                 i;              /* loop variable                   */
 
+    /* check the mutability of the first argument */
+    while ( !IS_MUTABLE_OBJ( list1) )
+      list1 = ErrorReturnObj (
+		"Append: <list1> must be mutable",
+		0L, 0L,
+		"you can return a mutable list for <list1>");
+    
+    
     /* check the type of the first argument                                */
     if ( TNUM_OBJ( list1 ) != T_PLIST ) {
         while ( ! IS_LIST( list1 ) ) {
@@ -787,6 +800,16 @@ Obj             FuncOnTuples (
             "you can return a list for <tuple>" );
     }
 
+    /* special case for the empty list */
+    if ( HAS_FILT_LIST( tuple, FN_IS_EMPTY )) {
+      if (IS_MUTABLE_OBJ(tuple)) {
+	img = NEW_PLIST(T_PLIST_EMPTY, 0);
+	SET_LEN_PLIST(img,0);
+	return img;
+      } else {
+	return tuple;
+      }
+    }
     /* special case for permutations                                       */
     if ( TNUM_OBJ(elm) == T_PERM2 || TNUM_OBJ(elm) == T_PERM4 ) {
         PLAIN_LIST( tuple );
@@ -835,6 +858,19 @@ Obj             FuncOnSets (
             (Int)TNAM_OBJ(set), 0L,
             "you can return a set for <set>" );
     }
+
+    /* special case for the empty list */
+    if ( HAS_FILT_LIST( set, FN_IS_EMPTY )) {
+      if (IS_MUTABLE_OBJ(set)) {
+	img = NEW_PLIST(T_PLIST_EMPTY, 0);
+	SET_LEN_PLIST(img,0);
+	return img;
+      } else {
+	return set;
+      }
+    }
+	
+	 
 
     /* special case for permutations                                       */
     if ( TNUM_OBJ(elm) == T_PERM2 || TNUM_OBJ(elm) == T_PERM4 ) {

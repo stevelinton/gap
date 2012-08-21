@@ -55,16 +55,15 @@ DeclareGlobalFunction( "ClassComparison");
 
 #############################################################################
 ##
-#F  DxIncludeIrreducibles(<D>,<new>,[<newmod>]) . . . . handle (newly?) found
-##                                                               irreducibles
+#F  DxIncludeIrreducibles(<D>,<new>,[<newmod>])
 ##
 ##  This function takes a list of irreducible characters (each given as a
 ##  list of values, corresponding to the class arrangement in <D>) <new> and
-##  adds these to a partial computed list of
-##  irreducibles as maintained by the dixon record <D>. This permits to add
-##  characters in interactive use obtained from other sources and to contain the
-##  D-S calculation afterwards. If the optional argument <newmod> is given, it
-##  must be a list of reduced characters, corresponding to <new>. (Otherwise the
+##  adds these to a partial computed list of irreducibles as maintained by
+##  the dixon record <D>. This permits one to add characters in interactive
+##  use obtained from other sources and to contain the D-S calculation
+##  afterwards. If the optional argument <newmod> is given, it must be a
+##  list of reduced characters, corresponding to <new>. (Otherwise the
 ##  function has to reduce the characters itself.
 ##
 DeclareGlobalFunction("DxIncludeIrreducibles");
@@ -73,9 +72,12 @@ DeclareGlobalFunction("DxIncludeIrreducibles");
 ##
 #F  SplitCharacters(<D>,<list>)   split characters according to the spaces
 ##
-##  this function can be applied to a list of ordinary characters. It splits
-##  these according to the character spaces yet known. This can be used
-##  interactively to utilize partially computed spaces.
+##  This routine decomposes the characters, given in <list> according to the
+##  character spaces found up to this point. By applying this routine to
+##  tensor products etc., it may result in characters with smaller norm,
+##  even irreducible ones. Since the recalculation of characters is only
+##  possible, if the degree is small enough, the splitting process is
+##  applied only to characters of sufficiently small degree.
 ##
 DeclareGlobalFunction("SplitCharacters");
 
@@ -90,6 +92,7 @@ DeclareGlobalFunction("OrbitSplit");
 #############################################################################
 ##
 #F  DxSplitDegree(<D>,<space>,<r>)                                    local
+##
 ##  estimates the number of parts obtained when splitting the character space
 ##  <space> with matrix number <r>. This estimate is obtained using charcter
 ##  morphisms.
@@ -98,8 +101,8 @@ DeclareGlobalFunction("DxSplitDegree");
 
 #############################################################################
 ##
-#F  BestSplittingMatrix(<D>) . number of the matrix,that will yield the best
-#F                                                                      split
+#F  BestSplittingMatrix(<D>)
+##
 ##  returns the number of the class sum matrix that is assumed to yield the 
 ##  best (cost/earning ration) split. This matrix then will be the next one
 ##  computed and used.
@@ -112,8 +115,9 @@ DeclareGlobalFunction("BestSplittingMatrix");
 ##
 ##  This function does all the initializations for the Dixon-Schneider
 ##  algorithm. This includes calculation of conjugacy classes, power maps,
-##  linear characters and character morphisms. It returns a dixon record of
-##  <G>, that can be used when calculating the character table interactively.
+##  linear characters and character morphisms. It returns a record
+##  (see~"Components of a Dixon Record") that can be used when calculating
+##  the character table of <G> interactively.
 ##
 DeclareGlobalFunction("DixonInit");
 
@@ -122,9 +126,9 @@ DeclareGlobalFunction("DixonInit");
 #F  DixonSplit(<D>) . .  calculate matrix,split spaces and obtain characters
 ##
 ##  This function performs one splitting step in the Dixon-Schneider
-##  algorithm. It selects a class, computes the (partial) class sum matrix, uses
-##  it to split character spaces and stores all the irreducible characters
-##  obtained that way.
+##  algorithm. It selects a class, computes the (partial) class sum matrix,
+##  uses it to split character spaces and stores all the irreducible
+##  characters obtained that way.
 ##
 DeclareGlobalFunction("DixonSplit");
 
@@ -132,11 +136,10 @@ DeclareGlobalFunction("DixonSplit");
 ##
 #F  DixontinI(<D>)  . . . . . . . . . . . . . . . .  reverse initialisation
 ##
-##  This function ends a Dixon-Schneider calculation and reverses
-##  the old group is returned, characters are sorted according to the
-##  class arrangement in the group and components only used internally are
-##  unbound from the dixon record. It returns a list of irreducible
-##  characters.
+##  This function ends a Dixon-Schneider calculation.
+##  It sorts the characters according to the degree and
+##  unbinds components in the dixon record that are not of use any longer.
+##  It returns a list of irreducible characters.
 ##
 DeclareGlobalFunction("DixontinI");
 

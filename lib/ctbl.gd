@@ -10,6 +10,140 @@
 ##
 ##  This file contains the definition of categories of character table like
 ##  objects, and their properties, attributes, operations, and functions.
+
+#1
+##  It seems to be necessary to state some basic facts --and maybe warnings--
+##  at the beginning of the character theory  package.  This holds for people
+##  who  are  familiar  with  character theory  because there  is  no  global
+##  reference on  computational  character  theory,  although  there are many
+##  papers  on  this  topic,  like~\cite{NPP84}  or~\cite{LP91}.   It  holds,
+##  however, also for people who are familiar with {\GAP} because the general
+##  concept of domains (see Chapter~"Domains") plays no  important  role here
+##  --we  will justify this later in this section.
+##
+##  Intuitively, *characters* (or more generally, *class functions*) of a
+##  finite group $G$ can be thought of as certain mappings defined on $G$,
+##  with values in the complex number field;
+##  the set of all characters of $G$ forms a semiring, with both addition
+##  and multiplication defined pointwise, which is naturally embedded into
+##  the ring of *generalized* (or *virtual*) *characters* in the natural way.
+##  A {\Z}--basis of this ring, and also a vector space basis of the complex
+##  vector space of class functions, is given by the irreducible characters.
+##
+##  At this stage one could ask where there is a problem, since all these
+##  algebraic structures are supported by {\GAP}.
+##  But in practice, these structures are of minor importance,
+##  compared to individual characters and the *character tables* themselves
+##  (which are not domains in the sense of {\GAP}).
+##
+##  For computations with characters of a finite group $G$ with $n$ conjugacy
+##  classes, say, we fix an ordering of the classes, and then identify each
+##  class with its position according to this ordering.
+##  Each character of $G$ can be represented by a list of length $n$ where at
+##  the $i$--th position the character value for elements of the $i$--th
+##  class is stored.
+##  Note that we do not need to know the conjugacy classes of $G$ physically,
+##  even our knowledge of $G$ may be implicit in the sense that, e.g.,
+##  we know how many classes of involutions $G$ has, and which length these
+##  classes have, but we never have seen an element of $G$, or a presentation
+##  or representation of $G$.
+##  This allows us to work with the character tables of very large groups,
+##  e.g., of the so--called monster, where {\GAP} has (currently) no chance
+##  to deal with the group.
+##
+##  As a consequence, also other information involving characters is given
+##  implicitly.  For example, we can talk about the kernel of a character not
+##  as a group but as a list of classes (more exactly: a list of their
+##  positions according to the chosen ordering of classes) forming this
+##  kernel; we can deduce the group order, the contained cyclic subgroups
+##  and so on, but we do not get the group itself.
+##
+##  So typical calculations with characters and character tables involve
+##  loops over the lists of character values.
+##  For  example, the scalar product of two characters $\chi$, $\psi$ of $G$
+##  given by
+##  $$
+##     [\chi,\psi] = \frac{1}{|G|} \sum_{g\in G} \chi(g) \psi(g^{-1})
+##  $$
+##  can be written as
+##  \begintt
+##      Sum( [ 1 .. n ], i -> SizesConjugacyClasses( t )[i] * chi[i]
+##                                * ComplexConjugate( psi[i] ) );
+##  \endtt
+##  where `t' is the character table of $G$, and `chi', `psi' are the lists
+##  of values of $\chi$, $\psi$, respectively.
+##
+##  It is one of the advantages of character theory that after one has
+##  translated a problem concerning groups into a problem concerning
+##  only characters, the necessary calculations are mostly simple.
+##  For example, one can often prove that a group is a Galois group over the
+##  rationals using calculations with structure constants that can be
+##  computed from the character table,
+##  and informations on (the character tables of) maximal subgroups.
+##  When one deals with such questions,
+##  the translation back to groups is just an interpretation by the user,
+##  it does not take place in {\GAP}.
+##
+##  {\GAP} uses character tables to store information such as class
+##  lengths, element orders, the irreducible characters of $G$ etc.~in a
+##  consistent way; note that the values of these attributes rely on the
+##  chosen ordering of conjugacy classes.
+##
+##  Two more important instances of such information are *power maps* and
+##  *fusion maps*, both are represented as lists of integers in {\GAP}.
+##  The $k$--th power map maps each class to the class of $k$--th powers
+##  of its elements, the corresponding list contains at each position the
+##  position of the image.
+##  A subgroup fusion map between the classes of a subgroup $H$ of $G$ and
+##  the classes of $G$ maps each class $c$ of $H$ to that class of $G$ that
+##  contains $c$, the corresponding list contains again the positions of
+##  image classes.
+##  (If we know only the character tables of the two groups then
+##  in general the class fusion depends on the embedding of $H$ into $G$.)
+##
+##  So class functions, power maps, and fusion maps are represented by lists
+##  in {\GAP}, they are regarded as class functions etc.~of an appropriate
+##  character table when they are passed to {\GAP} functions that expect
+##  class functions etc.
+##  For example, a list with all entries equal to 1 is regarded as the
+##  trivial character if it is passed to a function that expects a character.
+##  Note that class functions need not be plain lists,
+##  for the sake of elegance and efficiency one can construct class functions
+##  that store their underlying character table and other attribute values
+##  (see~"Class Functions").
+##
+##
+
+#2
+##  (about incomplete tables!)
+##
+##  For character tables that do *not* store an underlying group,
+##  there is no notion of generation, contrary to all {\GAP} domains.
+##  Consequently, the correctness or even the consistency of such a character
+##  table is hard to decide.
+##  Nevertheless, one may want to work with incomplete character tables or
+##  hypothetical tables which are, strictly speaking, not character tables
+##  but shall be handled like character tables.
+##  In such cases, one often has to set attribute values by hand;
+##  no need to say that one must be very careful then.
+
+#3
+##  For a character table with underlying group,
+##  the interface between table and group consists of two parts,
+##  namely the *conjugacy classes* stored in the table
+##  and the *identification* of the conjugacy classes of table and group.
+##
+##  The former is the value of the attribute `ConjugacyClasses' for the
+##  character table,
+##  the ordering of all those lists stored in the table that are related to
+##  the orderering of conjugacy classes (such as sizes of centralizers and
+##  conjugacy classes, orders of representatives, power maps,
+##  and all class functions)
+##  refer to the ordering of this list, *not* to the ordering of conjugacy
+##  classes in the underlying group.
+##
+##  The latter is a list ...
+##  
 ##
 Revision.ctbl_gd :=
     "@(#)$Id$";
@@ -47,7 +181,7 @@ DeclareInfoClass( "InfoCharacterTable" );
 #C  IsBrauerTable( <obj> )
 #C  IsCharacterTableInProgress( <obj> )
 ##
-##  Every ``character table like object'' lies in the category
+##  Every ``character table like object'' in {\GAP} lies in the category
 ##  `IsNearlyCharacterTable'.
 ##  There are four important subcategories,
 ##  namely the *ordinary* tables in `IsOrdinaryTable',
@@ -77,8 +211,8 @@ DeclareInfoClass( "InfoCharacterTable" );
 ##  other tables, for example a power map may be a multi-valued mapping.
 ##
 ##  Several attributes for groups are valid also for their character tables.
-##  These are on one hand those that have the same meaning and can be
-##  read off resp.~computed from the character table (think of tables or
+##  These are on one hand those that have the same meaning and can be read
+##  off respectively computed from the character table (think of tables or
 ##  incomplete tables that have no access to a group), such as `Size',
 ##  `Irr', `IsAbelian'.
 ##
@@ -86,6 +220,54 @@ DeclareInfoClass( "InfoCharacterTable" );
 ##  tables is different from the meaning for groups, such as
 ##  `SizesCentralizers', `SizesConjugacyClasses', and
 ##  `OrdersClassRepresentatives'.
+
+##  @change here!@
+
+# Let us discuss the example `OrdersClassRepresentatives',
+# although there are a few other instances of the problem.
+# 
+# This attribute is useful for character tables,
+# since library tables need not know the conjugacy classes themselves.
+# Introducing the attribute for groups seemed natural.
+# Moreover, this fits into the method selection process in the sense that
+# a known `OrdersClassRepresentatives' value for a group
+# (which might be caused by the fact that the user has stored the
+# library table of the group, and the `OrdersClassRepresentatives' value
+# of the table has been transferred to the group)
+# may be used in a call of `ConjugacyClasses'.
+# It does *not* fit into the method selection process in the sense
+# that the values of `OrdersClassRepresentatives' and `ConjugacyClasses'
+# *must* be compatible.
+# 
+# Solution 1 would be possible for groups but not for character tables,
+# since for example the columns of ATLAS tables of central extensions
+# and automorphism groups are not ordered w.r.t. increasing element order.
+# Solution 2 would indeed make `OrdersClassRepresentatives' useless,
+# at least using it for `ConjugacyClasses' would not be possible.
+# 
+# Solution 3 would be clean, but probably not easy to understand;
+# I suppose we would need to make `ConjugacyClasses' a plain function
+# that does the necessary consistency manipulations, to add an
+# attribute for the final value, and to have an operation whose methods
+# are allowed to return the classes in any ordering -- is this desirable?
+# And do we really want to force/guarantee `ConjugacyClasses' to obey
+# certain consistency rules?
+# 
+# One way out would be to define `OrdersClassRepresentatives' only for
+# character tables,
+# and to declare the attribute `ConjugacyClasses' for character tables
+# in such a way that the value is consistent with other attribute values
+# of the tables.
+# When `ConjugacyClasses' for a group wants to take advantage from
+# information in the known character table, only `HasCharacterTable'
+# can be used by some method, and this method has to return if no
+# useful information is stored there.
+# 
+# This would leave the situation for groups as flexible as it is now;
+# for example, currently it may happen that the identity element does
+# not lie in the first class of the `ConjugacyClasses' list,
+# which is explicitly forbidden for character tables.
+
 ##  In the case of ordinary character tables, these attributes mean
 ##  information relative to the *conjugacy classes stored in the table*,
 ##  in the case of Brauer tables in characteristic $p$ they refer to the
@@ -108,6 +290,9 @@ DeclareInfoClass( "InfoCharacterTable" );
 ##  priority over the table, i.e., if the table is asked for `Irr( <tbl> )',
 ##  say, it may delegate this task to the group, but if the group is asked
 ##  for `Irr( <G> )', it must not ask its table.
+
+#T no!!
+
 ##  Only if a group knows its ordinary table and if this table knows the
 ##  value of an attribute then the group may fetch this value from its
 ##  ordinary character table.
@@ -132,15 +317,11 @@ DeclareInfoClass( "InfoCharacterTable" );
 ##  The same holds also for operations, e.g., `InducedClassFunction'.
 ##
 DeclareCategory( "IsNearlyCharacterTable", IsObject );
-
 DeclareCategory( "IsCharacterTable", IsNearlyCharacterTable );
-
 DeclareCategory( "IsOrdinaryTable", IsCharacterTable );
-
 DeclareCategory( "IsBrauerTable", IsCharacterTable );
-
-DeclareCategory( "IsCharacterTableInProgress",
-    IsNearlyCharacterTable and IsMutable );
+DeclareCategory( "IsCharacterTableInProgress", IsNearlyCharacterTable );
+#T was: and IsMutable !!
 
 
 #############################################################################
@@ -175,6 +356,16 @@ DeclareProperty( "IsSolvableCharacterTable", IsNearlyCharacterTable );
 
 #############################################################################
 ##
+#F  IsPSolvableCharacterTable( <tbl>, <p> )
+#o  IsPSolvableCharacterTableOp( <tbl>, <p> )
+#a  ComputedIsPSolvableCharacterTables( <tbl> )
+##
+KeyDependentFOA( "IsPSolvableCharacterTable",
+    IsNearlyCharacterTable, IsPosInt, "prime" );
+
+
+#############################################################################
+##
 #V  SupportedOrdinaryTableInfo
 #V  SupportedBrauerTableInfo
 ##
@@ -186,20 +377,18 @@ DeclareProperty( "IsSolvableCharacterTable", IsNearlyCharacterTable );
 ##  `SupportedOrdinaryTableInfo' is a list that contains at position $2i-1$
 ##  an attribute getter function, and at position $2i$ the name of this
 ##  attribute.
-##  This allows to set components with these names as attribute values.
+##  This allows one to set components with these names as attribute values.
 ##
 ##  Supported attributes that are not contained in the list as initialized
 ##  below must be created using `DeclareAttributeSuppCT'.
 ##
-SupportedOrdinaryTableInfo := [
-    IsSimpleCharacterTable,       "IsSimpleCharacterTable",
-    OrdersClassRepresentatives,   "OrdersClassRepresentatives",
-    SizesCentralizers,            "SizesCentralizers",
-    SizesConjugacyClasses,        "SizesConjugacyClasses",
-    ];
+BindGlobal( "SupportedOrdinaryTableInfo", [
+    IsSimpleCharacterTable,       "IsSimpleCharacterTable", # is a property
+    ] );
 #T what about classtext?
 
-SupportedBrauerTableInfo := ShallowCopy( SupportedOrdinaryTableInfo );
+BindGlobal( "SupportedBrauerTableInfo",
+    ShallowCopy( SupportedOrdinaryTableInfo ) );
 
 
 #############################################################################
@@ -212,11 +401,11 @@ BindGlobal( "DeclareAttributeSuppCT", function( arg )
 
     # Make the attribute as `DeclareAttribute' does.
     attr:= CallFuncList( NewAttribute, arg );
-    name:= arg[1];               
+    name:= arg[1];
     BIND_GLOBAL( name, attr );
     nname:= "Set"; APPEND_LIST_INTR( nname, name );
     BIND_GLOBAL( nname, SETTER_FILTER( attr ) );
-    nname:= "Has"; APPEND_LIST_INTR( nname, name );                          
+    nname:= "Has"; APPEND_LIST_INTR( nname, name );
     BIND_GLOBAL( nname, TESTER_FILTER( attr ) );
 
     # Do the additional magic.
@@ -238,11 +427,16 @@ end );
 ##
 ##  In the first two forms, `CharacterDegrees' returns a collected list of
 ##  the degrees of the absolutely irreducible characters of the group <G>,
-##  in characteristic <p> resp. zero.
+##  in characteristic <p> respectively zero.
 ##
 ##  In the third form, `CharacterDegrees' returns a collected list of the
 ##  degrees of the absolutely irreducible characters of the (ordinary or
 ##  Brauer) character table <tbl>.
+##
+DeclareGlobalFunction( "CharacterDegrees" );
+
+
+#############################################################################
 ##
 #A  CharacterDegreesAttr( <G> )
 #A  CharacterDegreesAttr( <tbl> )
@@ -254,13 +448,11 @@ end );
 ##
 ##  is the operation called by `CharacterDegrees' for that methods can be
 ##  installed.
-##  (For the tables, one can call the attribute directly.)
 ##
-DeclareGlobalFunction( "CharacterDegrees" );
 
 DeclareAttribute( "CharacterDegreesAttr", IsGroup );
 
-InstallIsomorphismMaintainedMethod( CharacterDegreesAttr,
+InstallIsomorphismMaintenance( CharacterDegreesAttr,
     IsGroup and HasCharacterDegreesAttr, IsGroup );
 
 DeclareOperation( "CharacterDegreesOp", [ IsGroup, IsInt ] );
@@ -268,13 +460,18 @@ DeclareOperation( "CharacterDegreesOp", [ IsGroup, IsInt ] );
 
 #############################################################################
 ##
+#O  CharacterTable( <G> ) . . . . . . . . . . ordinary char. table of a group
 #O  CharacterTable( <G>, <p> )  . . . . . characteristic <p> table of a group
 #O  CharacterTable( <ordtbl>, <p> )
-#O  CharacterTable( <G> ) . . . . . . . . . . ordinary char. table of a group
 #O  CharacterTable( <name> )  . . . . . . . . . library table with given name
 ##
-##  This dispatches to `OrdinaryCharacterTable', `BrauerCharacterTable',
-##  or `CharacterTableFromLibrary'.
+##  Called with a group <G>, `CharacterTable' calls the attribute
+##  `OrdinaryCharacterTable'.
+##  Called with first argument a group <G> or an ordinary character table
+##  <ordtbl>, and second argument a prime <p>, `CharacterTable' calls
+##  the operation `BrauerCharacterTable'.
+##  Called with a string <name>, `CharacterTable' delegates to
+##  `CharacterTableFromLibrary'.
 ##
 DeclareOperation( "CharacterTable", [ IsGroup, IsInt ] );
 
@@ -284,8 +481,10 @@ DeclareOperation( "CharacterTable", [ IsGroup, IsInt ] );
 #A  OrdinaryCharacterTable( <G> ) . . . . . . . . . . . . . . . . for a group
 #A  OrdinaryCharacterTable( <modtbl> )  . . . .  for a Brauer character table
 ##
-##  For Brauer character tables without underlying group, the value of this
-##  attribute must be stored.
+##  `OrdinaryCharacterTable' returns the ordinary character table of the
+##  group <G> respectively of the Brauer character table <modtbl>.
+##  If <modtbl> has no underlying group stored then the value of
+##  `OrdinaryCharacterTable' must be stored already.)
 ##
 DeclareAttribute( "OrdinaryCharacterTable", IsGroup );
 
@@ -300,18 +499,20 @@ Append( SupportedBrauerTableInfo, [
 #O  BrauerCharacterTableOp( <ordtbl>, <p> )
 #A  ComputedBrauerCharacterTables( <ordtbl> ) . . . . . . known Brauer tables
 ##
-#O  BrauerCharacterTable( <G>, <p> )
+#F  BrauerCharacterTable( <G>, <p> )
 ##
 ##  `BrauerCharacterTable' returns the <p>-modular character table of the
 ##  ordinary character table <ordtbl>.
 ##  If the first argument is a group <G>, `BrauerCharacterTable' delegates
 ##  to the ordinary character table of <G>.
 ##
-##  The Brauer tables that were computed already by `BrauerCharacterTable'
-##  are stored as value of the attribute `ComputedBrauerCharacterTables'
-##  (at position $p$ for characteristic $p$).
+##  The Brauer tables that are computed already by `BrauerCharacterTable'
+##  are stored using the attribute `ComputedBrauerCharacterTables'.
 ##  Methods for the computation of Brauer tables can be installed for
 ##  the operation `BrauerCharacterTableOp'.
+##
+##  The `\\mod' operator for a character table and a prime is defined to
+##  delegate to `BrauerCharacterTable'.
 ##
 DeclareGlobalFunction( "BrauerCharacterTable" );
 
@@ -320,15 +521,29 @@ DeclareOperation( "BrauerCharacterTableOp", [ IsOrdinaryTable, IsPosInt ] );
 DeclareAttribute( "ComputedBrauerCharacterTables",
     IsOrdinaryTable, "mutable" );
 
+#T candidate for FOA ?
+
 
 #############################################################################
 ##
-#A  Irr( <G> )
+#F  CharacterTableRegular( <tbl>, <p> ) .  table consist. of <p>-reg. classes
+##
+##  preconstructor for the <p>-modular Brauer table of the ordinary character
+##  table <tbl>,
+##  used by the operation `BrauerCharacterTableOp' that should be called by
+##  the user.
+##
+DeclareGlobalFunction( "CharacterTableRegular" );
+
+
+#############################################################################
+##
 #A  Irr( <ordtbl> )
 #A  Irr( <modtbl> )
+#A  Irr( <G> )
 ##
 ##  In the first two forms, `Irr' returns the list of all complex ordinary
-##  absolutely irreducible characters of the finite group <G> resp.
+##  absolutely irreducible characters of the finite group <G>, respectively
 ##  of the ordinary character table <ordtbl>.
 ##
 ##  In the third form, `Irr' returns the absolutely irreducible Brauer
@@ -336,8 +551,10 @@ DeclareAttribute( "ComputedBrauerCharacterTables",
 ##  (Note that `IBr' is just a function that is defined for two arguments,
 ##  a group and a prime;
 ##  Called with a Brauer table, `IBr' calls `Irr'.)
+#T  no longer necessary!!
 ##
-##  ('Irr' may delegate back to the group <G>.)
+##  (`Irr' may delegate back to the group <G>.)
+#T  no!
 ##
 DeclareAttributeSuppCT( "Irr", IsGroup );
 
@@ -353,7 +570,7 @@ DeclareAttributeSuppCT( "Irr", IsGroup );
 ##
 ##  If the only argument is a Brauer character table <modtbl>,
 ##  `IBr' calls `Irr( <modtbl> )'.
-##  ('Irr' may delegate back to <G>.)
+##  (`Irr' may delegate back to <G>.)
 ##
 DeclareGlobalFunction( "IBr" );
 
@@ -383,29 +600,113 @@ DeclareAttributeSuppCT( "UnderlyingCharacteristic",
 
 #############################################################################
 ##
-#A  BlocksInfo( <tbl> )
+#A  OrdersClassRepresentatives( <tbl> )
 ##
-##  If <tbl> is a Brauer character table then the value of `BlocksInfo'
-##  is a list of records, the $i$-th entry containing information about
-##  the $i$-th block.
+##  is a list of orders of representatives of conjugacy classes of the
+##  character table <tbl>,
+##  in the same ordering as the conjugacy classes of <tbl>.
 ##
-##  If <tbl> is an ordinary character table then ...
+DeclareAttributeSuppCT( "OrdersClassRepresentatives",
+    IsNearlyCharacterTable );
+
+
+#############################################################################
+##
+#A  SizesCentralizers( <tbl> )
+##
+##  is a list that stores at position $i$ the size of the centralizer of any
+##  element in the $i$-th conjugacy class of the character table <tbl>.
+##
+DeclareAttributeSuppCT( "SizesCentralizers", IsNearlyCharacterTable );
+
+
+#############################################################################
+##
+#A  SizesConjugacyClasses( <tbl> )
+##
+##  is a list that stores at position $i$ the size of the $i$-th conjugacy
+##  class of the character table <tbl>.
+##
+DeclareAttributeSuppCT( "SizesConjugacyClasses", IsNearlyCharacterTable );
+
+
+#############################################################################
+##
+#A  BlocksInfo( <modtbl> )
+##
+##  If <modtbl> is a Brauer character table then the value of `BlocksInfo'
+##  is a list of (mutable) records, the $i$-th entry containing information
+##  about the $i$-th block.
+##  Each record has the following components.
+##  \beginitems
+##  `defect': &
+##       the defect of the block,
+##
+##  `ordchars': &
+##       the list of positions of the ordinary characters that belong to the
+##       block, relative to `Irr( OrdinaryCharacterTable( <modtbl> ) )',
+##
+##  `modchars': &
+##       the list of positions of the Brauer characters that belong to the
+##       block, relative to `IBr( <modtbl> )'.
+##  \enditems
+##  Optional components are
+##  \beginitems
+##  `basicset': &
+##       a list of positions of ordinary characters in the block whose
+##       restriction to <modtbl> is maximally linearly independent,
+##       relative to `Irr( OrdinaryCharacterTable( <modtbl> ) )',
+##
+##  `decmat': &
+##       the decomposition matrix of the block,
+##
+##  `decinv': &
+##       inverse of the decomposition matrix of the block, restricted to the
+##       ordinary characters described by `basicset',
+##
+##  `brauertree': &
+##       a list that describes the Brauer tree of the block,
+##       in the case that the block is of defect $1$.
+##  \enditems
+##  The `decmat' components can be computed using `AddDecMats'.
+##
+#T  If <tbl> is an ordinary character table then ...
+#T  (store `PrimeBlocks' info??
+#T  operation with two arguments?)
 ##
 DeclareAttributeSuppCT( "BlocksInfo", IsNearlyCharacterTable, "mutable" );
 
 
 #############################################################################
 ##
+#F  AddDecMats( <modtbl> )
+##
+##  stores decomposition matrices of all blocks in the `decmat' component
+##  of each record in the `BlocksInfo' list of the Brauer table <modtbl>.
+##
+DeclareGlobalFunction( "AddDecMats" );
+
+
+#############################################################################
+##
 #A  ClassPositionsOfNormalSubgroups( <ordtbl> )
+#A  ClassPositionsOfMaximalNormalSubgroups( <ordtbl> )
 ##
-##  Every normal subgroup of the group $G$ for that <ordtbl> is the ordinary
-##  character table is a union of conjugacy classes.
-##  `ClassPositionsOfNormalSubgroups' is the list of all positions lists of
-##  the normal subgroups of $G$.
+##  Let <ordtbl> be the ordinary character table of the group $G$.
+##  Every normal subgroup of $G$ is a union of conjugacy classes.
 ##
-##  The entries of the list are sorted according to increasing length.
+##  `ClassPositionsOfNormalSubgroups' returns the list of all position lists
+##  of the normal subgroups of $G$,
+##  `ClassPositionsOfMaximalNormalSubgroups' returns a list describing the
+##  maximal normal subgroups of $G$.
+##
+##  The entries of the result lists are sorted according to increasing
+##  length.
 ##
 DeclareAttribute( "ClassPositionsOfNormalSubgroups", IsOrdinaryTable );
+
+DeclareAttribute( "ClassPositionsOfMaximalNormalSubgroups",
+    IsOrdinaryTable );
 
 
 #############################################################################
@@ -430,11 +731,11 @@ DeclareOperation( "ClassesOfNormalClosure",
 ##  a list of records, the $i$-th entry belonging to the $i$-th irreducible
 ##  character.
 ##
-##  Usual entries are 
+##  Usual entries are
 ##  `classparam'
 ##
 #T remove this, better store the info in the irred. characters themselves
-#T ('IrredInfo' is used in `Display' and `\*' methods)
+#T (`IrredInfo' is used in `Display' and `\*' methods)
 ##
 DeclareAttributeSuppCT( "IrredInfo", IsNearlyCharacterTable, "mutable" );
 
@@ -486,19 +787,33 @@ DeclareAttribute( "DisplayOptions", IsNearlyCharacterTable );
 ##
 #A  Identifier( <tbl> )
 ##
-##  is a string that is used to identify the table <tbl> when it is not
-##  possible to use the object <tbl> itself, for example when a class fusion
-##  to the character table <tbl> shall be described.
-##
-##  For library tables, the identifier is equal to one of the names with
-##  that the table can be fetched.
-##  For tables constructed from groups, an identifier is constructed.
-#T only valid for the current session!
-#T if one would take the group itself as identifier,
-#T one would have to compare identifiers only via `IsIdenticalObj',
-#T and this is the wrong approach for strings!
+##  is a string that identifies the character table <tbl> in the current
+##  {\GAP} session.
+##  It is used mainly for class fusions into <tbl> that are stored on other
+##  character tables.
+##  For character tables without group,
+##  the identifier is also used to print the table;
+##  this is the case for library tables,
+##  but also for tables that are constructed as direct products, factors
+##  etc.~involving tables that may store their groups.
 ##
 DeclareAttributeSuppCT( "Identifier", IsNearlyCharacterTable );
+
+
+#############################################################################
+##
+#V  LARGEST_IDENTIFIER_NUMBER
+##
+##  Character table identifiers computed by {\GAP} are strings of the form
+##  `\"CT#<n>\"', where <n> is a positive integer.
+##  `LARGEST_IDENTIFIER_NUMBER' is the largest integer <n> used in the
+##  current {\GAP} session.
+##
+#T  Note that one must be very careful when it becomes possible to read
+#T  character tables from files!!
+#T  (signal warnings then?)
+##
+BindGlobal( "LARGEST_IDENTIFIER_NUMBER", 1 );
 
 
 #############################################################################
@@ -599,6 +914,39 @@ DeclareAttributeSuppCT( "UnderlyingGroup", IsOrdinaryTable );
 
 #############################################################################
 ##
+#A  ConjugacyClasses( <tbl> )
+##
+##  For a character table <tbl> with known underlying group <G>,
+##  the `ConjugacyClasses' value of <tbl> is defined to be consistent with the
+##  values of `OrdersClassRepresentatives', `SizesCentralizers',
+##  `SizesConjugacyClasses', and with each class function of <tbl>,
+
+##  need not coincide with the ordering in <G>,
+
+##  class of the identity element is always the first one
+
+##  
+#T one more word about the relation to the `ConjugacyClasses' value
+#T of the group!!
+#T (and a word about sorting ...)
+##
+DeclareAttribute( "ConjugacyClasses", IsOrdinaryTable );
+
+
+#############################################################################
+##
+#A  IdentificationOfConjugacyClasses( <tbl> )
+##
+##  For a character table <tbl> with known underlying group <G>,
+##  `IdentificationOfConjugacyClasses' returns a list that contains at
+##  position $i$ the position of the $i$-th conjugacy class of <tbl>
+##  in the list `ConjugacyClasses( <G> )'.
+##
+DeclareAttribute( "IdentificationOfConjugacyClasses", IsOrdinaryTable );
+
+
+#############################################################################
+##
 #O  CharacterTableDirectProduct( <tbl1>, <tbl2> )
 ##
 ##  is the table of the direct product of the character tables <tbl1>
@@ -609,6 +957,15 @@ DeclareAttributeSuppCT( "UnderlyingGroup", IsOrdinaryTable );
 ##  In general, the result will not know an underlying group,
 ##  so the power maps and irreducibles of <tbl1> and <tbl2> may be computed
 ##  in order to construct the direct product.
+##
+##  The embeddings of <tbl1> and <tbl2> into the direct product are stored,
+##  they can be fetched with `GetFusionMap' (see~"GetFusionMap");
+##  if <tbl1> is equal to <tbl2> then the two embeddings are distinguished
+##  by their `specification' components `"1"' and `"2"', respectively.
+##
+##  Analogously, the projections from the direct product onto <tbl1> and
+##  <tbl2> are stored, and can be distinguished by the `specification'
+##  compoenents.
 ##
 DeclareOperation( "CharacterTableDirectProduct",
     [ IsNearlyCharacterTable, IsNearlyCharacterTable ] );
@@ -629,12 +986,22 @@ DeclareOperation( "CharacterTableFactorGroup",
 #############################################################################
 ##
 #O  CharacterTableIsoclinic( <tbl> )
-#O  CharacterTableIsoclinic( <tbl>, <classes_of_normal_subgroup> )
+#O  CharacterTableIsoclinic( <tbl>, <classes_of_normal_subgp> )
+#O  CharacterTableIsoclinic( <tbl>, <classes_of_normal_subgp>, <centrepos> )
 ##
 ##  for table of groups $2.G.2$, the character table of the isoclinic group
-##  (see ATLAS, Chapter 6, Section 7)
+##  (see ATLAS, Chapter~6, Section~7)
+#T needed: unique centre of order 2 in side the normal subgroup;
+#T table arises  from mult. char. values in the outer corner with `E(4)';
+#T generalized in order to admit 4.HS.2 (< HN.2) --> works?
+##
+#T meaning for Brauer tables?
 ##
 DeclareOperation( "CharacterTableIsoclinic", [ IsNearlyCharacterTable ] );
+DeclareOperation( "CharacterTableIsoclinic",
+    [ IsNearlyCharacterTable, IsList and IsCyclotomicCollection ] );
+DeclareOperation( "CharacterTableIsoclinic",
+    [ IsNearlyCharacterTable, IsList and IsCyclotomicCollection, IsPosInt ]);
 
 
 #############################################################################
@@ -666,54 +1033,43 @@ DeclareGlobalFunction( "CharacterTableQuaternionic" );
 
 #############################################################################
 ##
-#O  CharacterTableRegular( <tbl>, <p> ) .  table consist. of <p>-reg. classes
-##
-##  is the table of the Brauer table in characteristic <p> corresp. to
-##  the ordinary table <tbl>.
-##
-DeclareOperation( "CharacterTableRegular",
-    [ IsNearlyCharacterTable, IsPosInt ] );
-
-
-#############################################################################
-##
 #O  PossibleClassFusions( <subtbl>, <tbl> )
 #O  PossibleClassFusions( <subtbl>, <tbl>, <options> )
 ##
 ##  returns the list of all possible class fusions from <subtbl> into <tbl>.
-##  
-##  The optional record <options> may have the following components\:
-##  
+##
+##  The optional record <options> may have the following components:
+##
 ##  `chars':\\
 ##       a list of characters of <tbl> which will be restricted to <subtbl>,
 ##       (see "FusionsAllowedByRestrictions");
 ##       the default is `<tbl>.irreducibles'
-##  
+##
 ##  `subchars':\\
 ##       a list of characters of <subtbl> which are constituents of the
 ##       retrictions of `chars', the default is `<subtbl>.irreducibles'
-##  
+##
 ##  `fusionmap':\\
 ##       a (parametrized) map which is an approximation of the desired map
-##  
+##
 ##  `decompose':\\
 ##       a boolean; if `true', the restrictions of `chars' must have all
 ##       constituents in `subchars', that will be used in the algorithm;
 ##       if `subchars' is not bound and `<subtbl>.irreducibles' is complete,
 ##       the default value of `decompose' is `true', otherwise `false'
-##  
+##
 ##  `permchar':\\
 ##       a permutaion character; only those fusions are computed which
 ##       afford that permutation character
-##  
+##
 ##  `quick':\\
 ##       a boolean; if `true', the subroutines are called with the option
 ##       `\"quick\"'; especially, a unique map will be returned immediately
 ##       without checking all symmetrisations; the default value is `false'
-##  
+##
 ##  `parameters':\\
 ##       a record with fields `maxamb', `minamb' and `maxlen' which control
-##       the subroutine `FusionsAllowedByRestrictions'\:
+##       the subroutine `FusionsAllowedByRestrictions':
 ##       It only uses characters with actual indeterminateness up to
 ##       `maxamb', tests decomposability only for characters with actual
 ##       indeterminateness at least `minamb' and admits a branch only
@@ -733,38 +1089,40 @@ DeclareOperation( "PossibleClassFusions",
 ##  character table <tbl>.
 ##  If <tbl> is a Brauer table, the map is computed from the power map
 ##  of the ordinary table.
-##  
-##  The optional record <options> may have the following components\:
-##  
-##  `chars':\\
+##
+##  The optional record <options> may have the following components:
+##
+##  \beginitems
+##  `chars': &
 ##       a list of characters which are used for the check of kernels
 ##       (see "ConsiderKernels"), the test of congruences (see "Congruences")
 ##       and the test of scalar products of symmetrisations
 ##       (see "PowerMapsAllowedBySymmetrisations");
 ##       the default is `<tbl>.irreducibles'
-##  
-##  `powermap':\\
+##
+##  `powermap': &
 ##       a (parametrized) map which is an approximation of the desired map
-##  
-##  `decompose':\\
+##
+##  `decompose': &
 ##       a boolean; if `true', the symmetrisations of `chars' must have all
 ##       constituents in `chars', that will be used in the algorithm;
 ##       if `chars' is not bound and `Irr( <tbl> )' is known,
 ##       the default value of `decompose' is `true', otherwise `false'
-##  
-##  `quick':\\
+##
+##  `quick': &
 ##       a boolean; if `true', the subroutines are called with the option
 ##       `\"quick\"'; especially, a unique map will be returned immediately
 ##       without checking all symmetrisations; the default value is `false'
-##  
-##  `parameters':\\
+##
+##  `parameters': &
 ##       a record with fields `maxamb', `minamb' and `maxlen' which control
-##       the subroutine `PowerMapsAllowedBySymmetrisations'\:
+##       the subroutine `PowerMapsAllowedBySymmetrisations':
 ##       It only uses characters with actual indeterminateness up to
 ##       `maxamb', tests decomposability only for characters with actual
 ##       indeterminateness at least `minamb' and admits a branch only
 ##       according to a character if there is one with at most `maxlen'
 ##       possible minus-characters.
+##  \enditems
 ##
 DeclareOperation( "PossiblePowerMaps",
     [ IsCharacterTable, IsInt, IsRecord ] );
@@ -774,37 +1132,50 @@ DeclareOperation( "PossiblePowerMaps",
 ##
 #F  FusionConjugacyClasses( <tbl1>, <tbl2> )
 #F  FusionConjugacyClasses( <H>, <G> )
-#O  FusionConjugacyClassesOp( <H>, <G> )
-#A  ComputedClassFusions( <tbl> )
+#F  FusionConjugacyClasses( <hom> )
 ##
 ##  In the first form, `FusionConjugacyClasses' returns the fusion of
 ##  conjugacy classes between the character tables <tbl1> and <tbl2>.
-##  (If one of the tables is a Brauer table, it may delegate to its
-##  ordinary table.)
+##  (If one of the tables is a Brauer table,
+##  it may delegate this task to its ordinary table.)
 ##
 ##  In the second form, `FusionConjugacyClasses' returns the fusion of
-##  conjugacy classes between the group <h> and its supergroup <G>;
+##  conjugacy classes between the group <H> and its supergroup <G>;
 ##  this is done by delegating to the ordinary character tables of <H> and
-##  <G>.
-##  (Note that we store the fusions only on character tables, that's why
-##  the groups delegate to the tables; of course the method for tables
-##  with group will be allowed to use the groups.)
+##  <G>,
+##  since class fusions are stored only for character tables and not for
+##  groups.
+#T  We need this facility mainly for compatibility with {\GAP}~3.
+##  Note that the returned fusion refers to the ordering of conjugacy
+##  classes in the character tables if the arguments are character tables
+##  and to the ordering of conjugacy classes in the groups if the arguments
+##  are groups (see~"ConjugacyClasses!for character tables").
+##
+##  In the third form, `FusionConjugacyClasses' returns the fusion of
+##  conjugacy classes between source and range of the group homomorphism
+##  <hom>; contrary to the second form, also factor fusions can be handled
+##  this way.
 ##
 ##  If no class fusion exists, `fail' is returned.
 ##  If the class fusion is not uniquely determined then an error is
 ##  signalled.
 ##
-##  The class fusions that were computed already by `FusionConjugacyClasses'
-##  are stored as value of the attribute `ComputedClassFusions'
-##  (a list of class fusions)
-#T records or fusion objects?
+#O  FusionConjugacyClassesOp( <tbl1>, <tbl2> )
+#A  FusionConjugacyClassesOp( <hom> )
+#A  ComputedClassFusions( <tbl> )
+##
+##  The class fusions to <tbl2> that have been computed already by
+##  `FusionConjugacyClasses' are stored in the list
+##  `ComputedClassFusions( <tbl2> )'
 ##
 ##  Methods for the computation of class fusions can be installed for
 ##  the operation `FusionConjugacyClassesOp'.
 ##
-##  (see also `GetFusionMap', `StoreFusion')
+##  (see also~"GetFusionMap", "StoreFusion")
 ##
 DeclareGlobalFunction( "FusionConjugacyClasses" );
+
+DeclareAttribute( "FusionConjugacyClassesOp", IsGroupHomomorphism );
 
 DeclareOperation( "FusionConjugacyClassesOp",
     [ IsNearlyCharacterTable, IsNearlyCharacterTable ] );
@@ -832,12 +1203,16 @@ DeclareAttributeSuppCT( "ComputedClassFusions",
 ##  is stored on <source>, and then returned.
 ##
 ##  If no appropriate fusion is found, `fail' is returned.
+##  If several fusions to <destination> are stored on <source>,
+##  the two-argument version returns one such fusion,
+##  and an info statement is printed if the level of `InfoCharacterTable'
+##  is at least 1.
 ##
-##  (For the computation of class fusions, see `FusionConjugacyClasses'.)
+##  (For the computation of class fusions, see~"FusionConjugacyClasses".)
 ##
 ##  Note that the stored fusion map may differ from the entered map if the
 ##  table <destination> has a `ClassPermutation'.
-##  So one should not fetch fusion maps directly via access to
+##  So one should *not* fetch fusion maps directly via access to
 ##  `ComputedFusionMaps'.
 ##
 DeclareGlobalFunction( "GetFusionMap" );
@@ -849,10 +1224,15 @@ DeclareGlobalFunction( "GetFusionMap" );
 #F  StoreFusion( <source>, <fusionmap>, <destination> )
 ##
 ##  The record <fusion> is stored on <source> if no ambiguity arises.
-##  `Identifier( <source> )' is added to `NamesFusionSource( <destination> )'.
+##  `Identifier( <source> )' is added to the list
+##  `NamesOfFusionSources( <destination> )'.
 ##
 ##  If a list <fusionmap> is entered, the same holds for
 ##  `<fusion> = rec( map:= <fusionmap> )'.
+##
+##  If fusions to <destination> are already stored on <source> then
+##  another fusion can be stored only if it has a record component
+##  `specification' that distinguishes it from the stored fusions.
 ##
 ##  Note that the stored fusion map may differ from the entered map if the
 ##  table <destination> has a `ClassPermutation'.
@@ -871,7 +1251,7 @@ DeclareGlobalFunction( "StoreFusion" );
 ##  `ComputedPowerMaps' of <tbl> then `PowerMapByComposition' returns the
 ##  <n>-th power map of <tbl>.
 ##  Otherwise `fail' is returned.
-##  
+##
 DeclareGlobalFunction( "PowerMapByComposition" );
 
 
@@ -934,7 +1314,7 @@ DeclareGlobalFunction( "NrPolyhedralSubgroups" );
 ##  The components listed in `SupportedOrdinaryTableInfo' are used to set
 ##  properties and attributes.
 ##  All other components will simply become components of the record object.
-##  
+##
 DeclareGlobalFunction( "ConvertToOrdinaryTable" );
 
 DeclareGlobalFunction( "ConvertToOrdinaryTableNC" );
@@ -948,7 +1328,7 @@ DeclareGlobalFunction( "ConvertToOrdinaryTableNC" );
 ##  The components listed in `SupportedBrauerTableInfo' are used to set
 ##  properties and attributes.
 ##  All other components will simply become components of the record object.
-##  
+##
 DeclareGlobalFunction( "ConvertToBrauerTable" );
 
 DeclareGlobalFunction( "ConvertToBrauerTableNC" );
@@ -971,7 +1351,7 @@ DeclareGlobalFunction( "ConvertToBrauerTableNC" );
 ##  The components listed in `SupportedOrdinaryTableInfo' are used to set
 ##  properties and attributes.
 ##  All other components will simply become components of the record object.
-##  
+##
 DeclareGlobalFunction( "ConvertToLibraryCharacterTableNC" );
 
 
@@ -979,8 +1359,15 @@ DeclareGlobalFunction( "ConvertToLibraryCharacterTableNC" );
 ##
 #F  PrintCharacterTable( <tbl>, <varname> )
 ##
-##  prints the supported information about the character table <tbl>,
-##  as assignment to the variable with name <varname>.
+##  Let <tbl> be a nearly character table, and <varname> a string.
+##  `PrintCharacterTable' prints those values of the supported attributes
+##  (see~"SupportedOrdinaryTableInfo") that are known for <tbl>;
+##  If <tbl> is a library table then also the known values of supported
+##  components (see~"SupportedLibraryTableComponents") are printed.
+##
+##  The output of `PrintCharacterTable' is {\GAP} readable;
+##  actually reading it into {\GAP} will bind the variable with name
+##  <varname> to a character table that is equivalent to <tbl>.
 ##
 DeclareGlobalFunction( "PrintCharacterTable" );
 
@@ -1046,15 +1433,16 @@ DeclareOperation( "CharacterTableWithSortedCharacters",
 ##  is a list containing the characters <chars>, in a succession specified
 ##  by the other arguments.
 ##
-##  There are three possibilities to sort characters\:\ 
+##  There are three possibilities to sort characters:\ 
 ##  They can be sorted according to ascending norms (parameter `\"norm\"'),
 ##  to ascending degree (parameter `\"degree\"'),
 ##  or both (no third parameter),
 ##  i.e., characters with same norm are sorted according to ascending degree,
 ##  and characters with smaller norm precede those with bigger norm.
 ##
-##  Rational characters always will precede other ones with same norm resp.\ 
-##  same degree afterwards.
+##  Rational characters always will precede other ones with same norm
+##  respectively same degree afterwards.
+##
 ##  The trivial character, if contained in <chars>, will always be sorted to
 ##  the first position.
 ##
@@ -1142,9 +1530,17 @@ DeclareGlobalFunction( "SortedCharacterTable" );
 ##
 #F  CASString( <tbl> )
 ##
-##  is a string that encodes the CAS library format of the character table
-##  <tbl>.
-##  The used line length is `SizeScreen()[1]'.
+##  is a string that encodes the {\sf CAS} library format of the character
+##  table <tbl>.
+##  This string can be printed to a file which then can be read into the
+##  {\sf CAS} system using its `get'-command (see~\cite{NPP84}).
+##
+##  The used line length is `SizeScreen()[1]' (see~"SizeScreen").
+##
+##  Only the values of the following attributes of <tbl> are used.
+##  `ClassParameters' (for partitions only), `ComputedClassFusions',
+##  `ComputedPowerMaps', `Identifier', `InfoText', `Irr', `IrredInfo',
+##  `OrdersClassRepresentatives', `Size', `SizesCentralizers'.
 ##
 DeclareGlobalFunction( "CASString" );
 
@@ -1188,7 +1584,7 @@ BindGlobal( "SupportedLibraryTableComponents", [
      "brauertree",
      "CAS",
      "cliffordTable",
-     "construction", 
+     "construction",
      "decinv",
      "defect",
      "extInfo",
@@ -1241,7 +1637,7 @@ DeclareRepresentation( "IsGenericCharacterTableRep", IsNearlyCharacterTable,
 ##  thereby trying to avoid unnecessary blanks.
 ##  For the subobjects of <obj>, the function `PrintTo' is used.
 ##  (So the subobjects are appended only if <stream> is of the appropriate
-##  type.)
+##  type, see~"PrintTo".)
 ##
 ##  If <obj> is a record then the component `text' and strings in an `irr'
 ##  list are *not* treated in a special way!
@@ -1254,5 +1650,5 @@ DeclareGlobalFunction( "BlanklessPrintTo" );
 
 #############################################################################
 ##
-#E  ctbl.gd . . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

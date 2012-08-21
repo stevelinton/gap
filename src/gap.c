@@ -54,14 +54,18 @@ extern char * In;
 #include        "plist.h"               /* plain lists                     */
 #include        "set.h"                 /* plain sets                      */
 #include        "vector.h"              /* functions for plain vectors     */
+#include        "vecffe.h"              /* functions for fin field vectors */
 #include        "blister.h"             /* boolean lists                   */
 #include        "range.h"               /* ranges                          */
 #include        "string.h"              /* strings                         */
 #include        "vecgf2.h"              /* functions for GF2 vectors       */
+#include        "vec8bit.h"             /* functions for other compressed
+					   GF(q) vectors                   */
 
 #include        "objfgelm.h"            /* objects of free groups          */
 #include        "objpcgel.h"            /* objects of polycyclic groups    */
 #include        "objscoll.h"            /* single collector                */
+#include        "objccoll.h"            /* combinatorial collector         */
 #include        "objcftl.h"             /* from the left collect           */
 
 #include        "dt.h"                  /* deep thought                    */
@@ -90,6 +94,10 @@ extern char * In;
 #include        "streams.h"             /* streams package                 */
 #include        "sysfiles.h"            /* file input/output               */
 #include        "weakptr.h"             /* weak pointers                   */
+
+#ifdef GAPMPI
+#include        "gapmpi.h"              /* GAPMPI			   */
+#endif
 
 
 /****************************************************************************
@@ -210,6 +218,8 @@ int main (
         }
         func = READ_AS_FUNC();
         crc  = SyGAPCRC(SyCompileInput);
+	if (SyStrlen(SyCompileOptions) != 0)
+	  SetCompileOpts(SyCompileOptions);
         type = CompileFunc(
 			   SyCompileOutput,
                             func,
@@ -680,7 +690,7 @@ Obj FuncWhere (
 
     /* evaluate the argument                                               */
     if ( LEN_LIST(args) == 0 ) {
-        depth = 10;
+        depth = 5;
     }
     else if ( LEN_LIST(args) == 1 && IS_INTOBJ( ELM_PLIST(args,1) ) ) {
         depth = INT_INTOBJ( ELM_PLIST( args, 1 ) );
@@ -692,13 +702,13 @@ Obj FuncWhere (
 
     currLVars = CurrLVars;
 
-    if ( ErrorLVars != 0 ) {
+    if ( ErrorLVars != 0  && ErrorLVars != BottomLVars ) {
         SWITCH_TO_OLD_LVARS( ErrorLVars );
         SWITCH_TO_OLD_LVARS( BRK_CALL_FROM() );
         while ( CurrLVars != BottomLVars && 0 < depth ) {
             call = BRK_CALL_TO();
             if ( call == 0 ) {
-                Pr( "<corrupted call value> ", 0L, 0L );
+                Pr( "<compiled or corrupted call value> ", 0L, 0L );
             }
 #if T_PROCCALL_0ARGS
             else if ( T_PROCCALL_0ARGS <= TNUM_STAT(call)
@@ -798,12 +808,8 @@ Obj ErrorMode (
     if ( CurrStat != 0 ) {
         Pr( " at\n", 0L, 0L );
         PrintStat( CurrStat );
-        Pr( "\n", 0L, 0L );
-	CALL_0ARGS(OnBreak);
     }
-    else {
-        Pr( "\n", 0L, 0L );
-    }
+    Pr( "\n", 0L, 0L );
 
     /* try to open input for a break loop                                  */
     if ( mode == 'q' || ! OpenInput( "*errin*") ) {
@@ -815,6 +821,11 @@ Obj ErrorMode (
         ReadEvalError();
     }
     ClearError();
+
+    /* Call the OnBreak function. This can't be done earlier, because
+       there seems to be no safe way to handle errors in it, unless we
+       are about to enter a break r-e-v loop*/
+    CALL_0ARGS(OnBreak);
 
     /* print the sencond message                                           */
     Pr( "Entering break read-eval-print loop, ", 0L, 0L );
@@ -844,7 +855,7 @@ Obj ErrorMode (
         /* read and evaluate one command                                   */
         ClearError();
         DualSemicolon = 0;
-        status = ReadEvalCommand();
+        status = ReadEvalDebug();
 	UserHasQuit = 0;	/* it is enough for quit
 				 to have got us here */
 
@@ -1333,6 +1344,8 @@ Obj FuncCOM_FILE (
         if ( res ) {
             Pr( "#W  init functions returned non-zero exit code\n", 0L, 0L );
         }
+	info->isGapRootRelative = 1;
+	RecordLoadedModule(info, CSTR_STRING(filename));
         return INTOBJ_INT(1);
     }
 
@@ -1349,6 +1362,8 @@ Obj FuncCOM_FILE (
         if ( res ) {
             Pr( "#W  init functions returned non-zero exit code\n", 0L, 0L );
         }
+	info->isGapRootRelative = 1;
+	RecordLoadedModule(info, CSTR_STRING(filename));
         return INTOBJ_INT(2);
     }
 
@@ -1737,7 +1752,12 @@ Obj FuncLOAD_DYN (
     info->isGapRootRelative = 0;
     res = (info->initKernel)(info);
     UpdateCopyFopyInfo();
+
+    /* Start a new executor to run the outer function of the module
+       in global context */
+    ExecBegin( BottomLVars );
     res = res || (info->initLibrary)(info);
+    ExecEnd(res ? STATUS_ERROR : STATUS_END);
     if ( res ) {
         Pr( "#W  init functions returned non-zero exit code\n", 0L, 0L );
     }
@@ -1812,7 +1832,11 @@ Obj FuncLOAD_STAT (
     info->isGapRootRelative = 0;
     res = (info->initKernel)(info);
     UpdateCopyFopyInfo();
+    /* Start a new executor to run the outer function of the module
+       in global context */
+    ExecBegin( BottomLVars );
     res = res || (info->initLibrary)(info);
+    ExecEnd(res ? STATUS_ERROR : STATUS_END);
     if ( res ) {
         Pr( "#W  init functions returned non-zero exit code\n", 0L, 0L );
     }
@@ -2047,6 +2071,7 @@ Obj FuncSHALLOW_SIZE (
 **
 *F  FuncTNUM_OBJ( <self>, <obj> ) . . . . . . . .  expert function 'TNUM_OBJ'
 */
+
 Obj FuncTNUM_OBJ (
     Obj                 self,
     Obj                 obj )
@@ -2069,6 +2094,14 @@ Obj FuncTNUM_OBJ (
     return res;
 }
 
+Obj FuncTNUM_OBJ_INT (
+    Obj                 self,
+    Obj                 obj )
+{
+
+  
+    return  INTOBJ_INT( TNUM_OBJ(obj) ) ;
+}
 
 /****************************************************************************
 **
@@ -2270,9 +2303,9 @@ void FillInVersion (
         q = module->name;
         while ( *p && *q && *p == *q ) { p++; q++; }
         if ( *q || *p != '.' ) {
-            fputs( "#W  corrupt version info '", stderr );
-            fputs( rev_c, stderr );
-            fputs( "'\n", stderr );
+            FPUTS_TO_STDERR( "#W  corrupt version info '" );
+            FPUTS_TO_STDERR( rev_c );
+            FPUTS_TO_STDERR( "'\n" );
         }
     }
     h_ver = ExtractRevision( rev_h, &name );
@@ -2281,9 +2314,9 @@ void FillInVersion (
         q = module->name;
         while ( *p && *q && *p == *q ) { p++; q++; }
         if ( *q || *p != '.' ) {
-            fputs( "#W  corrupt version info '", stderr );
-            fputs( rev_h, stderr );
-            fputs( "'\n", stderr );
+            FPUTS_TO_STDERR( "#W  corrupt version info '" );
+            FPUTS_TO_STDERR( rev_h );
+            FPUTS_TO_STDERR( "'\n" );
         }
     }
     module->version = c_ver*100000+h_ver;
@@ -2729,6 +2762,9 @@ static StructGVarFunc GVarFuncs [] = {
     { "TNUM_OBJ", 1, "object",
       FuncTNUM_OBJ, "src/gap.c:TNUM_OBJ" },
 
+    { "TNUM_OBJ_INT", 1, "object",
+      FuncTNUM_OBJ_INT, "src/gap.c:TNUM_OBJ_INT" },
+
     { "XTNUM_OBJ", 1, "object",
       FuncXTNUM_OBJ, "src/gap.c:XTNUM_OBJ" },
 
@@ -2771,6 +2807,7 @@ static Int InitKernel (
 
     /* list of exit functions                                              */
     InitGlobalBag( &AtExitFunctions, "src/gap.c:AtExitFunctions" );
+    InitGlobalBag( &WindowCmdString, "src/gap.c:WindowCmdString" );
 
     /* init filters and functions                                          */
     InitHdlrFuncsFromTable( GVarFuncs );
@@ -2787,8 +2824,10 @@ static Int InitKernel (
 
 
     /* establish Fopy of ViewObj                                           */
-    ImportFuncFromLibrary(  "ViewObj", 0L ); 
-    ImportFuncFromLibrary(  "OnBreak", &OnBreak );
+    ImportFuncFromLibrary(  "ViewObj", 0L );
+
+    /* Also of OnBreak, but we don't want it made ReadOnly                 */
+    InitFopyGVar(  "OnBreak", &OnBreak );
 
     /* return success                                                      */
     return 0;
@@ -2968,10 +3007,12 @@ static InitInfoFunc InitFuncsBuiltinModules[] = {
     InitInfoPlist,
     InitInfoSet,
     InitInfoVector,
+    InitInfoVecFFE,
     InitInfoBlist,
     InitInfoRange,
     InitInfoString,
     InitInfoGF2Vec,
+    InitInfoVec8bit,
 
     /* free and presented groups                                           */
     InitInfoFreeGroupElements,
@@ -2979,6 +3020,7 @@ static InitInfoFunc InitFuncsBuiltinModules[] = {
     InitInfoTietze,
     InitInfoPcElements,
     InitInfoSingleCollector,
+    InitInfoCombiCollector,
     InitInfoPcc,
     InitInfoDeepThought,
     InitInfoDTEvaluation,
@@ -2996,6 +3038,11 @@ static InitInfoFunc InitFuncsBuiltinModules[] = {
 
     /* main module                                                         */
     InitInfoGap,
+
+#ifdef GAPMPI
+    /* GAPMPI module							   */
+    InitInfoGapmpi,
+#endif
 
     0
 };
@@ -3100,6 +3147,11 @@ void InitializeGap (
 
 
     /* initialize the basic system and gasman                              */
+#ifdef GAPMPI
+    /* GAPMPI needs to call MPI_Init() first to remove command line args */
+    InitGapmpi( pargc, &argv, &BreakOnError );
+#endif
+
     InitSystem( *pargc, argv );
 
     InitBags( SyAllocBags, SyStorMin,
@@ -3111,14 +3163,14 @@ void InitializeGap (
     /* get info structures for the build in modules                        */
     for ( i = 0;  InitFuncsBuiltinModules[i];  i++ ) {
         if ( NrModules == MAX_MODULES ) {
-            fputs( "panic: too many builtin modules\n", stderr );
+            FPUTS_TO_STDERR( "panic: too many builtin modules\n" );
             SyExit(1);
         }
         Modules[NrModules++] = InitFuncsBuiltinModules[i]();
 #       ifdef DEBUG_LOADING
-            fputs( "#I  InitInfo(builtin ", stderr );
-            fputs( Modules[NrModules-1]->name, stderr );
-            fputs( ")\n", stderr );
+            FPUTS_TO_STDERR( "#I  InitInfo(builtin " );
+            FPUTS_TO_STDERR( Modules[NrModules-1]->name );
+            FPUTS_TO_STDERR( ")\n" );
 #       endif
     }
     NrBuiltinModules = NrModules;
@@ -3127,15 +3179,15 @@ void InitializeGap (
     for ( i = 0;  i < NrBuiltinModules;  i++ ) {
         if ( Modules[i]->initKernel ) {
 #           ifdef DEBUG_LOADING
-                fputs( "#I  InitKernel(builtin ", stderr );
-                fputs( Modules[i]->name, stderr );
-                fputs( ")\n", stderr );
+                FPUTS_TO_STDERR( "#I  InitKernel(builtin " );
+                FPUTS_TO_STDERR( Modules[i]->name );
+                FPUTS_TO_STDERR( ")\n" );
 #           endif
             ret =Modules[i]->initKernel( Modules[i] );
             if ( ret ) {
-                fputs( "#I  InitKernel(builtin ", stderr );
-                fputs( Modules[i]->name, stderr );
-                fputs( ") returned non-zero value\n", stderr );
+                FPUTS_TO_STDERR( "#I  InitKernel(builtin " );
+                FPUTS_TO_STDERR( Modules[i]->name );
+                FPUTS_TO_STDERR( ") returned non-zero value\n" );
             }
         }
     }
@@ -3174,15 +3226,15 @@ void InitializeGap (
         for ( i = 0;  i < NrModules;  i++ ) {
             if ( Modules[i]->postRestore ) {
 #               ifdef DEBUG_LOADING
-                    fputs( "#I  PostRestore(builtin ", stderr );
-                    fputs( Modules[i]->name, stderr );
-                    fputs( ")\n", stderr );
+                    FPUTS_TO_STDERR( "#I  PostRestore(builtin " );
+                    FPUTS_TO_STDERR( Modules[i]->name );
+                    FPUTS_TO_STDERR( ")\n" );
 #               endif
                 ret = Modules[i]->postRestore( Modules[i] );
                 if ( ret ) {
-                    fputs( "#I  PostRestore(builtin ", stderr );
-                    fputs( Modules[i]->name, stderr );
-                    fputs( ") returned non-zero value\n", stderr );
+                    FPUTS_TO_STDERR( "#I  PostRestore(builtin " );
+                    FPUTS_TO_STDERR( Modules[i]->name );
+                    FPUTS_TO_STDERR( ") returned non-zero value\n" );
                 }
             }
         }
@@ -3197,18 +3249,19 @@ void InitializeGap (
 #       ifdef DEBUG_HANDLER_REGISTRATION
             CheckAllHandlers();
 #       endif
+	SyInitializing = 1;    
         for ( i = 0;  i < NrBuiltinModules;  i++ ) {
             if ( Modules[i]->initLibrary ) {
 #               ifdef DEBUG_LOADING
-                    fputs( "#I  InitLibrary(builtin ", stderr );
-                    fputs( Modules[i]->name, stderr );
-                    fputs( ")\n", stderr );
+                    FPUTS_TO_STDERR( "#I  InitLibrary(builtin " );
+                    FPUTS_TO_STDERR( Modules[i]->name );
+                    FPUTS_TO_STDERR( ")\n" );
 #               endif
                 ret = Modules[i]->initLibrary( Modules[i] );
                 if ( ret ) {
-                    fputs( "#I  InitLibrary(builtin ", stderr );
-                    fputs( Modules[i]->name, stderr );
-                    fputs( ") returned non-zero value\n", stderr );
+                    FPUTS_TO_STDERR( "#I  InitLibrary(builtin " );
+                    FPUTS_TO_STDERR( Modules[i]->name );
+                    FPUTS_TO_STDERR( ") returned non-zero value\n" );
                 }
             }
         }
@@ -3219,15 +3272,15 @@ void InitializeGap (
     for ( i = 0;  i < NrModules;  i++ ) {
         if ( Modules[i]->checkInit ) {
 #           ifdef DEBUG_LOADING
-                fputs( "#I  CheckInit(builtin ", stderr );
-                fputs( Modules[i]->name, stderr );
-                fputs( ")\n", stderr );
+                FPUTS_TO_STDERR( "#I  CheckInit(builtin " );
+                FPUTS_TO_STDERR( Modules[i]->name );
+                FPUTS_TO_STDERR( ")\n" );
 #           endif
             ret = Modules[i]->checkInit( Modules[i] );
             if ( ret ) {
-                fputs( "#I  CheckInit(builtin ", stderr );
-                fputs( Modules[i]->name, stderr );
-                fputs( ") returned non-zero value\n", stderr );
+                FPUTS_TO_STDERR( "#I  CheckInit(builtin " );
+                FPUTS_TO_STDERR( Modules[i]->name );
+                FPUTS_TO_STDERR( ") returned non-zero value\n" );
             }
         }
     }
@@ -3291,6 +3344,8 @@ void InitializeGap (
             }
         }
     }
+    SyInitializing = 0;
+
 }
 
 

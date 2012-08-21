@@ -1,0 +1,24 @@
+This directory contains files to wrap up a distribution of GAP4, compiling
+GAP under linux and with the Winooze cross-compiler, creating completion
+files, running the test files, creating the manuals,
+TeXing them, creating an html version and finally wrapping everything up.
+
+The distribution is built under /scratch/gap4dist
+
+The file `setvar' will need editing depending on the linux version used and
+the cvs path.
+
+The files assume that
+
+- cvs path set in `setvar'.
+- standard `gcc' setup under linux
+- `zoo' exists
+- under /user/gnuwin32 the cygnus cross-compiler exists
+
+To build, go into this directory and call
+
+  doit nr
+
+where nr is the number of the version to be wrapped up.
+
+   Alexander Hulpke, 13-5-98

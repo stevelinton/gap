@@ -316,7 +316,7 @@ end);
 ##                                        with possibility to indicate kernel
 ##
 DoFactorCosetOperation:=function(arg)
-local G,u,op,h,p,N;
+local G,u,op,h,p,N,rt;
   G:=arg[1];
   u:=arg[2];
   if Length(arg)>2 then
@@ -331,7 +331,12 @@ local G,u,op,h,p,N;
   if N=false then
     N:=Core(G,u);
   fi;
-  h:=OperationHomomorphism(G,RightTransversal(G,u),OnRight);
+  rt:=RightTransversal(G,u);
+  if not IsRightTransversalRep(rt) then
+    # the right transversal has no special `PositionCanonical' method.
+    rt:=List(rt,i->RightCoset(u,i));
+  fi;
+  h:=OperationHomomorphism(G,rt,OnRight,"surjective");
   op:=Image(h,G);
   SetSize(op,Index(G,N));
 
@@ -416,7 +421,7 @@ local dom,o,bl,i,j,b,op,pool;
     od;
 
     for i in bl do
-      op:=OperationHomomorphism(G,i,OnSets);
+      op:=OperationHomomorphism(G,i,OnSets,"surjective");
       b:=KernelOfMultiplicativeGeneralMapping(op);
 
       #AH kernel is blockstab intersect.
@@ -477,7 +482,7 @@ local G,N,oh,gens,img,dom,b,improve,bp,bb,i,fb,k,bestdeg,subo,op;
 
   i:=PositionSet(b.ker,N);
   if b.blocksdone[i] then
-    return; # we have done it already!
+    return DegreeNaturalHomomorphismsPool(G,N); # we have done it already
   fi;
   b.blocksdone[i]:=true;
 
@@ -514,7 +519,7 @@ local G,N,oh,gens,img,dom,b,improve,bp,bb,i,fb,k,bestdeg,subo,op;
 	      # new nontriv. system found 
 	      AddSet(bp,bb[1]);
 	      # store action
-	      op:=OperationHomomorphism(img,bb,OnSets);
+	      op:=OperationHomomorphism(img,bb,OnSets,"surjective");
 	      k:=KernelOfMultiplicativeGeneralMapping(op);
 	      op:=GroupHomomorphismByImagesNC(G,Range(op),
                      GeneratorsOfGroup(G),
@@ -538,7 +543,7 @@ local G,N,oh,gens,img,dom,b,improve,bp,bb,i,fb,k,bestdeg,subo,op;
 	  od;
 	else
 	  Info(InfoFactor,2,"try only one system");
-	  op:=OperationHomomorphism(img,b,OnSets);
+	  op:=OperationHomomorphism(img,b,OnSets,"surjective");
 	  k:=KernelOfMultiplicativeGeneralMapping(op);
 	  # keep action knowledge
 	  op:=GroupHomomorphismByImagesNC(G,Range(op),GeneratorsOfGroup(G),
@@ -571,7 +576,7 @@ local H;
   if not IsTransitive(G,MovedPoints(G)) then
     Error("need transitive operation");
   fi;
-  H:=Group(GeneratorsOfGroup(G));
+  H:= GroupByGenerators( GeneratorsOfGroup( G ) );
   if HasSize(G) then
     SetSize(H,Size(G));
   fi;
@@ -583,9 +588,9 @@ end);
 ##
 #F  GenericFindOperationKernel  random search for subgroup with faithful core
 ##
-BADINDEX:=10000; # the index that is too big
+BADINDEX:=1000; # the index that is too big
 GenericFindOperationKernel:=function(arg)
-local G,N,u,v,cnt,zen,uc,nu,totalcnt,interupt,cor;
+local G,N,u,v,bv,cnt,zen,uc,nu,totalcnt,interupt,cor,badi;
   G:=arg[1];
   N:=arg[2];
   uc:=TrivialSubgroup(G);
@@ -613,6 +618,7 @@ local G,N,u,v,cnt,zen,uc,nu,totalcnt,interupt,cor;
   # try a random extension step
   # (We might always first add a random element and get something bigger)
   v:=N;
+  bv:=v;
 
   #if Length(arg)=3 then
     ## in one example 512->90, ca. 40 tries
@@ -623,7 +629,8 @@ local G,N,u,v,cnt,zen,uc,nu,totalcnt,interupt,cor;
 
   totalcnt:=0;
   interupt:=false;
-  cnt:=15;
+  cnt:=20;
+  badi:=BADINDEX;
   repeat
     u:=v;
     repeat
@@ -645,7 +652,7 @@ local G,N,u,v,cnt,zen,uc,nu,totalcnt,interupt,cor;
       until 
         # der Index ist nicht so klein, da"s wir keine Chance haben
 	((Index(G,nu)>50 or Factorial(Index(G,nu))>=Index(G,N)) and
-	not IsNormal(G,nu)) or IsSubgroup(u,nu) or interupt;
+	not IsNormal(G,nu)) or IsSubset(u,nu) or interupt;
       u:=nu;
     until 
       # und die Gruppe ist nicht zuviel schlechter als der
@@ -654,6 +661,11 @@ local G,N,u,v,cnt,zen,uc,nu,totalcnt,interupt,cor;
       interupt or (((Length(arg)=2 or Index(G,u)<=100*arg[3])));
 
     cor:=Core(G,u);
+
+    if Size(u)>Size(v) and Size(cor)=Size(N) then
+      v:=u;
+    fi;
+
     # store known information(we do't act, just store the subgroup.
     # Thus this is fairly cheap
     AddNaturalHomomorphismsPool(G,cor,u,Index(G,u));
@@ -661,12 +673,19 @@ local G,N,u,v,cnt,zen,uc,nu,totalcnt,interupt,cor;
     Info(InfoFactor,2,"  ext ",cnt,": ",Index(G,u)," ",Index(G,v)," ",
              v=u,":",totalcnt);
     cnt:=cnt-1;
-    if cnt=0 and Index(G,v)<Index(G,uc) and Index(G,v)>BADINDEX then
-      Print("#W  Warning, index unreasonably large, iterating\n");
-      cnt:=15;
+
+    if Size(v)>Size(bv) then
+      bv:=v;
     fi;
-  until interupt or cnt<=0 or Index(G,v)<100;
-  u:=v;
+
+    if cnt=0 and DegreeNaturalHomomorphismsPool(G,N)>badi then
+      Info(InfoWarning,2,"index unreasonably large, iterating");
+      badi:=Int(badi*11/10);
+      cnt:=20;
+      v:=N; # all new
+    fi;
+  until interupt or cnt<=0 or Index(G,bv)<100;
+  u:=bv;
 
   if Index(G,uc)<Index(G,u) then
     Info(InfoFactor,1,"use centralizer");
@@ -796,7 +815,7 @@ local o,oo,s,i,u,m,v,cnt,comb,bestdeg,dom,blocksdone,p,pool;
 
     Info(InfoFactor,2,"Orbits Stabilizer, Best Index ",bestdeg);
     # first force blocks
-    if (not blocksdone) and bestdeg<20000 and bestdeg<Index(G,N) then
+    if (not blocksdone) and bestdeg<200 and bestdeg<Index(G,N) then
       bestdeg:=ImproveOperationDegreeByBlocks(G,N,
 	GetNaturalHomomorphismsPool(G,N));
       blocksdone:=true;
@@ -853,7 +872,7 @@ local h;
 
   # catch the trivial case N=G (N=1 is a separately installed method)
   if Size(N)=Size(G) then
-    h:=Group(());
+    h:=GroupByGenerators( [], () );
     h:=GroupHomomorphismByImagesNC( G, h, GeneratorsOfGroup( G ),
                                     List( GeneratorsOfGroup( G ), i -> () ));
     SetKernelOfMultiplicativeGeneralMapping( h, G );

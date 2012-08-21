@@ -18,33 +18,101 @@ Revision.morpheus_gi:=
 ##
 MORPHEUSELMS := 50000;
 
-DeclareRepresentation(
-  "IsOperationHomomorphismAutomGroup",
-  IsOperationHomomorphismDirectly and IsOperationHomomorphismByBase,
-  ["basepos"]);
+#############################################################################
+##
+#M  AutomorphismDomain(<G>)
+##
+##  If <G> consists of automorphisms of <H>, this attribute returns <H>.
+InstallMethod( AutomorphismDomain, "use source of one",true,
+  [IsGroupOfAutomorphisms],0,
+function(G)
+  return Source(One(G));
+end);
+
+DeclareRepresentation("IsOperationHomomorphismAutomGroup",
+  IsOperationHomomorphismByBase,["basepos"]);
+
+#############################################################################
+##
+#M  IsGroupOfAutomorphisms(<G>)
+##
+InstallMethod( IsGroupOfAutomorphisms, "test generators and one",true,
+  [IsGroup and HasGeneratorsOfGroup],0,
+function(G)
+local s;
+  if IsGeneralMapping(One(G)) then
+    s:=Source(One(G));
+    if Range(One(G))=s and ForAll(GeneratorsOfGroup(G),
+      g->IsGroupGeneralMapping(g) and IsSPGeneralMapping(g) and IsMapping(g)
+         and IsInjective(g) and IsSurjective(g) and Source(g)=s
+	 and Range(g)=s) then
+      SetAutomorphismDomain(G,s);
+      return true;
+    fi;
+  fi;
+  return false;
+end);
 
 #############################################################################
 ##
 #F  StoreNiceMonomorphismAutomGroup
 ##
-InstallGlobalFunction(StoreNiceMonomorphismAutomGroup,function(aut,elms,elmsgens)
-local xset,fam,hom;
+InstallGlobalFunction(StoreNiceMonomorphismAutomGroup,
+function(aut,elms,elmsgens)
+local xset,fam,hom,G,i,ran;
   One(aut); # to avoid infinite recursion once the niceo is set
-  elmsgens:=Filtered(elmsgens,i->i in elms);
-  xset:=ExternalSet(aut,elms);
-  SetBaseOfGroup(xset,elmsgens);
-  fam := GeneralMappingsFamily( ElementsFamily( FamilyObj( aut ) ),
-				PermutationsFamily );
-  hom := rec(  );
-  hom:=Objectify(NewType(fam,
-                 IsOperationHomomorphismAutomGroup and IsSurjective ),hom);
-  SetUnderlyingExternalSet( hom, xset );
-  hom!.basepos:=List(elmsgens,i->Position(elms,i));
-  SetIsInjective(hom,true);
-  SetRange( hom, Image( hom ) );
-  Setter(SurjectiveOperationHomomorphismAttr)(xset,hom);
-  Setter(IsomorphismPermGroup)(aut,OperationHomomorphism(xset,"surjective"));
-  SetNiceMonomorphism(aut,OperationHomomorphism(xset,"surjective"));
+
+  # short cut 1: If the group has a trivial centre and no outer automorphisms,
+  # take the group itself
+  G:=Source(One(aut)); # we don't yet know that aut is a group of automorphisms
+  if Size(Centre(G))=1 
+     and ForAll(GeneratorsOfGroup(aut),IsConjugatorAutomorphism) then
+    ran:=Group(List(GeneratorsOfGroup(aut),ConjugatorInnerAutomorphism),One(G));
+    IsFinite(ran); # Hack for 4b5f2
+    hom:=GroupHomomorphismByFunction(aut,ran,
+      function(auto)
+	if not IsConjugatorAutomorphism(auto) then
+	  return fail;
+	fi;
+        return ConjugatorInnerAutomorphism(auto);
+      end,
+      function(elm)
+        return ConjugatorAutomorphism(G,elm);
+      end);
+    SetIsGroupHomomorphism(hom,true);
+    SetIsBijective(hom,true);
+    SetRange( hom, G);
+  else
+
+    if elms=false then
+      # fuse orbits of generators by their conjugacy classes
+      elms:=[];
+      for i in SmallGeneratingSet(G) do
+	if not i in elms then
+	  elms:=Union(elms,Orbit(aut,i));
+	fi;
+      od;
+    fi;
+
+    elmsgens:=Filtered(elmsgens,i->i in elms);
+    xset:=ExternalSet(aut,elms);
+    SetBaseOfGroup(xset,elmsgens);
+    fam := GeneralMappingsFamily( ElementsFamily( FamilyObj( aut ) ),
+				  PermutationsFamily );
+    hom := rec(  );
+    hom:=Objectify(NewType(fam,
+		  IsOperationHomomorphismAutomGroup and IsSurjective ),hom);
+    SetUnderlyingExternalSet( hom, xset );
+    hom!.basepos:=List(elmsgens,i->Position(elms,i));
+    SetRange( hom, Image( hom ) );
+    SetIsInjective(hom,true);
+    Setter(SurjectiveOperationHomomorphismAttr)(xset,hom);
+    Setter(IsomorphismPermGroup)(aut,OperationHomomorphism(xset,"surjective"));
+    hom:=OperationHomomorphism(xset,"surjective");
+  fi;
+
+  SetIsFinite(aut,true);
+  SetNiceMonomorphism(aut,hom);
   SetIsHandledByNiceMonomorphism(aut,true);
 end);
 
@@ -253,7 +321,7 @@ local id,result,rig,dom,tall,tsur,tinj,thom,gens,free,rels,len,el,ind,cla,m,
 
       # check surjectivity
       if tsur and ok then
-        ok:=Size(Group(imgs,id))=size;
+        ok:= Size( GroupByGenerators( imgs, id ) ) = size;
       fi;
 
       if ok and thom then
@@ -272,8 +340,9 @@ local id,result,rig,dom,tall,tsur,tinj,thom,gens,free,rels,len,el,ind,cla,m,
 	if tall then
 	  if rig then
 	    if not imgs in result then
-	      result:=Group(Concatenation(GeneratorsOfGroup(result),[imgs]),
-			    One(result));
+	      result:= GroupByGenerators( Concatenation(
+                           GeneratorsOfGroup( result ), [ imgs ] ),
+			   One( result ) );
 	      StoreNiceMonomorphismAutomGroup(result,dom,gens);
 	      Size(result);
 	      Info(InfoMorph,2,"new ",Size(result));
@@ -449,7 +518,7 @@ local
 
       Assert(2,ForAll(GeneratorsOfGroup(G),i->ForAll(elms,j->j^i in elms)));
       result.dom:=elms;
-      inns:=Group(inns,IdentityMapping(G));
+      inns:= GroupByGenerators( inns, IdentityMapping( G ) );
       StoreNiceMonomorphismAutomGroup(inns,elms,gens);
       result.aut:=inns;
     else
@@ -481,7 +550,7 @@ local i,j,k,l,m,o,nl,nj,max,r,e,au,p,gens,offs;
 
   # trivial case
   if Size(G)=1 then
-    au:=Group(IdentityMapping(G));
+    au:= GroupByGenerators( [], IdentityMapping( G ) );
     StoreNiceMonomorphismAutomGroup(au,[One(G)],[One(G)]);
     SetIsAutomorphismGroup( au, true );
     SetIsFinite(au,true);
@@ -569,10 +638,11 @@ local i,j,k,l,m,o,nl,nj,max,r,e,au,p,gens,offs;
 
   for i in au do
     SetIsBijective(i,true);
+    SetIsConjugatorAutomorphism(i,false);
     SetFilterObj(i,IsMultiplicativeElementWithInverse);
   od;
 
-  au:=Group(au,IdentityMapping(G));
+  au:= GroupByGenerators( au, IdentityMapping( G ) );
   SetIsAutomorphismGroup( au, true );
 
   if Size(G)<MORPHEUSELMS then
@@ -649,7 +719,8 @@ local a;
   fi;
   a:=Morphium(G,G,true);
   if IsList(a.aut) then
-    a.aut:=Group(a.aut,IdentityMapping(G));
+    a.aut:= GroupByGenerators( Concatenation( a.aut, a.inner ),
+                               IdentityMapping( G ) );
     a.inner:=SubgroupNC(a.aut,a.inner);
   fi;
   SetInnerAutomorphismsAutomorphismGroup(a.aut,a.inner);
@@ -661,6 +732,8 @@ local a;
   return a.aut;
 end);
 
+RedispatchOnCondition(AutomorphismGroup,true,[IsGroup],
+    [IsGroup and IsFinite],0);
 
 #############################################################################
 ##
@@ -676,40 +749,36 @@ AutomorphismGroupAbelianGroup);
 
 #############################################################################
 ##
-#M IsomorphismPermGroup 
+#M NiceMonomorphism 
 ##
-InstallMethod( IsomorphismPermGroup,
-               "for automorphism groups",
-               true,
-               [IsAutomorphismGroup and IsFinite],
-               0,
+InstallMethod(NiceMonomorphism,"for automorphism groups",true,
+              [IsAutomorphismGroup and IsFinite],0,
 function( A )
 local G, elms,stack,i,j,img;
 
     G  := Source( Identity(A) );
-    # fuse orbits of generators by their conjugacy classes
-    elms:=[];
-    stack:=[];
-    for i in SmallGeneratingSet(G) do
-      if not i in elms then
-	Add(stack,i);
-	elms:=Union(elms,AsList(ConjugacyClass(G,i)));
-      fi;
-    od;
-    # orbit algorithm on classes
-    for i in stack do
-      for j in GeneratorsOfGroup(A) do
-	img:=Image(j,i);
-	if not img in elms then
-	  Add(stack,img);
-	  elms:=Union(elms,AsList(ConjugacyClass(G,img)));
-	fi;
-      od;
-    od;
 
-    StoreNiceMonomorphismAutomGroup(A,elms,SmallGeneratingSet(G));
+    StoreNiceMonomorphismAutomGroup(A,false,SmallGeneratingSet(G));
 
+    # as `StoreNice' will have stored an attribute value this cannot cause
+    # an infinite recursion:
     return NiceMonomorphism(A);
+end);
+
+#############################################################################
+##
+#M  IsomorphismPermGroup 
+##
+InstallMethod(IsomorphismPermGroup,"for automorphism groups",true,
+               [IsAutomorphismGroup and IsFinite],0,
+function(A)
+local nice;
+  nice:=NiceMonomorphism(A);
+  if IsPermGroup(Range(nice)) then
+    return nice;
+  else
+    return CompositionMapping(IsomorphismPermGroup(Image(nice)),nice);
+  fi;
 end);
 
 #############################################################################
@@ -757,8 +826,7 @@ local m,n;
   #Print("GroupId not yet implemented\n");
   if Size(G)<>Size(H) or
      Length(ConjugacyClasses(G))<>Length(ConjugacyClasses(H))
-     or (Size(G)<=1000 and (not Size(G) in [512,768])
-         and SMALL_AVAILABLE and IdGroup(G)<>IdGroup(H))
+     or (ID_AVAILABLE( Size( G ) ) =true and IdGroup(G)<>IdGroup(H))
      then
    return fail;
   fi;

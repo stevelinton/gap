@@ -20,16 +20,16 @@ Revision.polyconw_gi :=
 ##
 InstallGlobalFunction( PowerModEvalPol, function( f, g, xpownmodf )
 
-    local l,    # length of coefficients of 'g'
+    local l,    # length of coefficients of `g'
           res,  # result
-          i;    # loop over coefficients of 'g'
+          i;    # loop over coefficients of `g'
 
     l:= Length( g );
     res:= [ g[l] ];
     for i in [ 1 .. l-1 ] do
-      res:= ProductCoeffs( res, xpownmodf );   # 'res:= res \*\ x\^\ n;'
-      ReduceCoeffs( res, f );                  # 'res:= res mod f;'
-      res[1]:= res[1] + g[l-i];                # 'res:= res + g_{l-i+1};'
+      res:= ProductCoeffs( res, xpownmodf );   # `res:= res * x^n;'
+      ReduceCoeffs( res, f );                  # `res:= res mod f;'
+      res[1]:= res[1] + g[l-i];                # `res:= res + g_{l-i+1};'
       ShrinkCoeffs( res );
     od;
     return res;
@@ -40,7 +40,10 @@ end );
 ##
 #V  CONWAYPOLYNOMIALS
 ##
-CONWAYPOLYNOMIALS := [];
+##  All Conway polynomials listed here, unless stated otherwise for
+##  specific polynomials, are taken from a list computed by Richard Parker.
+##
+InstallValue( CONWAYPOLYNOMIALS, [] );
 
 CONWAYPOLYNOMIALS[2] := [
     [1],
@@ -82,8 +85,9 @@ CONWAYPOLYNOMIALS[2] := [
     [1,1,1,1,1,1],
     [1,1,1,0,0,1,0,0,1,1,1,0,0,0,1],
     [1,0,1,0,0,1,1,1,0,1,1,1,1,0,0,1],
-    ,
+    [1,1,0,1,0,1,0,0,1,0,0,0,1,1,0,1,1,0,1,0,0,1,0,1],
     [1,0,0,1],
+#T the polynomials for p = 2 have been checked with GAP until here!
     ,
     [1,0,0,1,1,0,1],
     ,
@@ -114,16 +118,17 @@ CONWAYPOLYNOMIALS[3] := [
     [1,2],
     [2,0,2,0,2,1,2,0,2,0,1],
     [1,0,2],
-    ,
-    [1,2,0,2,0,1,2,0,2,0,2],
+    [2,1,0,2,2,2,0,0,1,1,1,1,0,2],
+    [1,2,0,2,0,1,2,0,2,0,2], # GAP value, Richard said [1,1,1,2,0,2,0,1,0,1,1]
     [2,2,0,1,0,1,1,1,2,2,1,2],
     [1,1,0,1],
-    ,
+    [2,2,0,2,2,0,2,0,2,0,0,2,0,0,1],
     [1,2,1,1,0,2,2],
-    [2,1,2,1,0,0,2,2,2,2,2,2,2,1], 
+    [2,1,2,1,0,0,2,2,2,2,2,2,2,1],
     [1,0,0,0,0,0,0,2],
     [2,0,0,1,2,0,2,0,1,1,1,2,1,1,2],
     [1,0,0,0,2],
+#T the polynomials for p = 3 have been checked with GAP until here!
     ,
     [1,1,0,1],
     [2,1,0,1,2,1,2,0,0,0,0,2,2],
@@ -308,8 +313,11 @@ CONWAYPOLYNOMIALS[13] := [
     [11,12,12,8,12],
     [2,1,1,8,5,7],
     [11,3],
-    ,
+    [2,4,1,1,3,11,8,5,1],
     [11,12],
+    [2,10,10,7,11,6,0,4],                # computed with GAP, Sep. 1998
+    [11,8,11,10,11,2,12,2],
+    [2,6,12,9,12,2,8,12,3],              # computed with GAP, Oct. 1998
     ];
 
 CONWAYPOLYNOMIALS[17] := [
@@ -379,6 +387,8 @@ CONWAYPOLYNOMIALS[31] := [
     [28,20],
     ];
 
+#T all polynomials have been checked with GAP from here on!
+
 CONWAYPOLYNOMIALS[37] := [
     [35],
     [2,33],
@@ -389,9 +399,455 @@ CONWAYPOLYNOMIALS[37] := [
     [35,7],
     [2,1,27,20,7],
     [35,32,20,6],
+    [2,4,11,18,29,8],
+    [35,2],
     ];
 
-CONWAYPOLYNOMIALS := Immutable( CONWAYPOLYNOMIALS );
+CONWAYPOLYNOMIALS[41] := [
+    [35],
+    [6,38],
+    [35,1],
+    [6,23],
+    [35,14,40],
+    [6,6,39,33,4],
+    [35,6],
+    [6,6,20,32,5],
+    [35,5,31,4],
+    ,
+    [35,20],
+    ,
+    [35,13],
+    ,
+    ,
+    ,
+    [35,4],
+    ,
+    [35,10],
+    ,
+    ,
+    ,
+    [35,10],
+    ,
+    ,
+    ,
+    ,
+    ,
+    [35,13],
+    ,
+    [35,6],
+    ,
+    ,
+    ,
+    ,
+    ,
+    [35,30],
+    ];
+
+CONWAYPOLYNOMIALS[43] := [
+    [40],
+    [3,42],
+    [40,1],
+    [3,42,5],
+    [40,8],
+    [3,21,28,19],
+    [40,7,42],
+    [3,24,20,39,1],
+    [40,1,39,12],
+    ,
+    [40,7],
+    ,
+    [40,4],
+    ,
+    ,
+    ,
+    [40,36],
+    ,
+    [40,30],
+    ,
+    ,
+    ,
+    [40,27],
+    ,
+    ,
+    ,
+    ,
+    ,
+    [40,8,42],
+    ,
+    [40,4],
+    ];
+
+CONWAYPOLYNOMIALS[47] := [
+    [42],
+    [5,45],
+    [42,3],
+    [5,40,8],
+    [42,1],
+    [5,41,9,35,2],
+    [42,12],
+    [5,3,19,29,1],
+    [42,1,19,1],
+    ,
+    [42,6],
+    ,
+    [42,5],
+    ,
+    ,
+    ,
+    [42,16],
+    ,
+    [42,35],
+    ,
+    ,
+    ,
+    [42,14,46],
+    ,
+    ,
+    ,
+    ,
+    ,
+    [42,15],
+    ,
+    [42,10,46],
+    ];
+
+CONWAYPOLYNOMIALS[53] := [
+    [51],
+    [2,49],
+    [51,3],
+    [2,38,9],
+    [51,3],
+    [2,45,4,7,1],
+    [51,9],
+    [2,1,18,29,8],
+    [51,5,13],
+    ,
+    [51,15],
+    ,
+    [51,28,52],
+    ,
+    ,
+    ,
+    [51,12],
+    ,
+    [51,11],
+    ,
+    ,
+    ,
+    [51,27],
+    ,
+    ,
+    ,
+    ,
+    ,
+    [51,20],
+    ,
+    [51,33],
+    ];
+
+CONWAYPOLYNOMIALS[59] := [
+    [57],
+    [2,58],
+    [57,5],
+    [2,40,2],
+    [57,8],
+    [2,0,38,18,2],
+    [57,10],
+    [2,50,2,32,16],
+    [57,47,32,1],
+    ,
+    [57,6],
+    ,
+    [57,3],
+    ,
+    ,
+    ,
+    [57,9],
+    ,
+    [57,11],
+    ,
+    ,
+    ,
+    [57,35],
+    ,
+    ,
+    ,
+    ,
+    ,
+    [57,9,58],
+    ,
+    [57,9],
+    ];
+
+CONWAYPOLYNOMIALS[61] := [
+    [59],
+    [2,60],
+    [59,7],
+    [2,40,3],
+    [59,12],
+    [2,29,3,49],
+    [59,2],
+    [2,56,1,57],
+    [59,18,50,9],
+    ,
+    [59,18],
+    ,
+    [59,3],
+    ,
+    ,
+    ,
+    [59,10],
+    ,
+    [59,2],
+    ,
+    ,
+    ,
+    [59,13],
+    ,
+    ,
+    ,
+    ,
+    ,
+    [59,4],
+    ,
+    [59,11],
+    ];
+
+CONWAYPOLYNOMIALS[67] := [
+    [65],
+    [2,63],
+    [65,6],
+    [2,54,8],
+    [65,2],
+    [2,55,49,63],
+    [65,7],
+    [2,64,17,46,3],
+    [65,55,49,25],
+    ,
+    [65,9,66],
+    ,
+    [65,22],
+    ,
+    ,
+    ,
+    [65,5],
+    ,
+    [65,18],
+    ,
+    ,
+    ,
+    [65,11],
+    ,
+    ,
+    ,
+    ,
+    ,
+    [65,2],
+    ,
+    [65,24],
+    ];
+
+CONWAYPOLYNOMIALS[71] := [
+    [64],
+    [7,69],
+    [64,4],
+    [7,41,4],
+    [64,18],
+    [7,29,13,10,1],
+    [64,2],
+    [7,19,22,53],
+    [64,62,43,4],
+    ,
+    [64,48],
+    ,
+    [64,27],
+    ,
+    ,
+    ,
+    [64,3],
+    ,
+    [64,4],
+    ,
+    ,
+    ,
+    [64,4],
+    ,
+    ,
+    ,
+    ,
+    ,
+    [64,19],
+    ,
+    [64,21],
+    ];
+
+CONWAYPOLYNOMIALS[73] := [
+    [68],
+    [5,70],
+    [68,2],
+    [5,56,16],
+    [68,9],
+    [5,48,23,45],
+    [68,10],
+    [5,18,39,53,3],
+    [68,15,72],
+    ,
+    [68,5],
+    ,
+    [68,7],
+    ,
+    ,
+    ,
+    [68,8],
+    ,
+    [68,25],
+    ,
+    ,
+    ,
+    [68,13],
+    ,
+    ,
+    ,
+    ,
+    ,
+    [68,3],
+    ,
+    [68,10],
+    ];
+
+CONWAYPOLYNOMIALS[79] := [
+    [76],
+    [3,78],
+    [76,9],
+    [3,66,2],
+    [76,5],
+    [3,68,28,19],
+    [76,4],
+    [3,48,59,60],
+    [76,19,57],
+    ,
+    [76,3],
+    ,
+    [76,4,78],
+    ,
+    ,
+    ,
+    [76,25],
+    ,
+    [76,25],
+    ,
+    ,
+    ,
+    [76,9],
+    ,
+    ,
+    ,
+    ,
+    ,
+    [76,11],
+    ,
+    [76,52,78],
+    ];
+
+CONWAYPOLYNOMIALS[83] := [
+    [81],
+    [2,82],
+    [81,3],
+    [2,42,4],
+    [81,9],
+    [2,17,32,76,1],
+    [81,3],
+    [2,42,23,65,1],
+    [81,18,24,1],
+    ,
+    [81,17],
+    ,
+    [81,15],
+    ,
+    ,
+    ,
+    [81,7],
+    ,
+    [81,47],
+    ,
+    ,
+    ,
+    [81,4],
+    ,
+    ,
+    ,
+    ,
+    ,
+    [81,9],
+    ,
+    [81,38],
+    ];
+
+CONWAYPOLYNOMIALS[89] := [
+    [86],
+    [3,82],
+    [86,3],
+    [3,72,4],
+    [86,1],
+    [3,15,80,82,1],
+    [86,7],
+    [3,79,40,65],
+    [86,6,12,5],
+    ,
+    [86,26,88],
+    ,
+    [86,17],
+    ,
+    ,
+    ,
+    [86,20],
+    ,
+    [86,34],
+    ,
+    ,
+    ,
+    [86,9],
+    ,
+    ,
+    ,
+    ,
+    ,
+    [86,1],
+    ];
+
+CONWAYPOLYNOMIALS[97] := [
+    [92],
+    [5,96],
+    [92,9],
+    [5,80,6],
+    [92,3],
+    [5,88,58,92],
+    [92,5],
+    [5,32,1,65],
+    [92,7,59,12],
+    ,
+    [92,5],
+    ,
+    [92,3],
+    ,
+    ,
+    ,
+    [92,5],
+    ,
+    [92,15],
+    ,
+    ,
+    ,
+    [92,35],
+    ,
+    ,
+    ,
+    ,
+    ,
+    [92,22],
+    ];
+
+MakeImmutable( CONWAYPOLYNOMIALS );
 
 
 ############################################################################
@@ -400,20 +856,20 @@ CONWAYPOLYNOMIALS := Immutable( CONWAYPOLYNOMIALS );
 ##
 InstallGlobalFunction( ConwayPol, function( p, n )
 
-    local F,          # 'GF(p)'
-          eps,        # $(-1)^n$ in 'F'
-          x,          # indeterminate over 'F', as coefficients list
+    local F,          # `GF(p)'
+          eps,        # $(-1)^n$ in `F'
+          x,          # indeterminate over `F', as coefficients list
           cpol,       # actual candidate for the Conway polynomial
-          nfacs,      # all 'n/d' for prime divisors 'd' of 'n'
-          cpols,      # Conway polynomials for 'd' in 'nfacs'
+          nfacs,      # all `n/d' for prime divisors `d' of `n'
+          cpols,      # Conway polynomials for `d' in `nfacs'
           pp,         # $p^n-1$
-          quots,      # list of $(p^n-1)/(p^d-1)$, for $d$ in 'nfacs'
+          quots,      # list of $(p^n-1)/(p^d-1)$, for $d$ in `nfacs'
           ppmin,      # list of $(p^n-1)/d$, for prime factors $d$ of $p^n-1$
           found,      # is the actual candidate compatible?
           pow,        # powers of several polynomials
-          i,          # loop over 'ppmin'
-          xpownmodf,  # power of 'x', modulo 'cpol'
-          c,          # loop over 'cpol'
+          i,          # loop over `ppmin'
+          xpownmodf,  # power of `x', modulo `cpol'
+          c,          # loop over `cpol'
           e;          # 1 or -1, used to compute the next candidate
 
     # Check the arguments.
@@ -434,13 +890,13 @@ InstallGlobalFunction( ConwayPol, function( p, n )
         eps:=   One( F );
       fi;
 
-      # polynomial 'x' (as coefficients list)
-      x:=[ Zero( F ), One( F ) ];
+      # polynomial `x' (as coefficients list)
+      x:= [ Zero( F ), One( F ) ];
 
-      # Initialize the smallest polynomial of degree 'n' that is a candidate
+      # Initialize the smallest polynomial of degree `n' that is a candidate
       # for being the Conway polynomial.
-      # This is 'x^n + (-1)^n \*\ z' for the smallest primitive root 'z'.
-      # If the field can be realized in {\GAP} then 'z' is just 'Z(p)'.
+      # This is `x^n + (-1)^n \*\ z' for the smallest primitive root `z'.
+      # If the field can be realized in {\GAP} then `z' is just `Z(p)'.
 
       # Note that we enumerate monic polynomials with constant term
       # $(-1)^n \alpha$ where $\alpha$ is the smallest primitive element in
@@ -449,16 +905,16 @@ InstallGlobalFunction( ConwayPol, function( p, n )
 
       cpol:= List( [ 1 .. n ], y -> Zero( F ) );
       cpol[ n+1 ]:= One( F );
-      cpol[1]:= eps * PrimitiveRootMod(p);
+      cpol[1]:= eps * PrimitiveRootMod( p );
 
       if n > 1 then
 
-        # Compute the list of all 'n / p' for 'p' a prime divisor of 'n'
+        # Compute the list of all `n / p' for `p' a prime divisor of `n'
         nfacs:= List( Set( FactorsInt( n ) ), d -> n / d );
 
         if nfacs = [ 1 ] then
 
-          # 'n' is a prime, we have to check compatibility only with
+          # `n' is a prime, we have to check compatibility only with
           # the degree 1 Conway polynomial.
           # But this condition is satisfied by choice of the constant term
           # of the candidates.
@@ -482,7 +938,7 @@ InstallGlobalFunction( ConwayPol, function( p, n )
 
         while not found do
 
-          # Test whether 'cpol' is primitive.
+          # Test whether `cpol' is primitive.
           #  $f$ is primitive if and only if
           #  1. $f$ divides $X^{q^n-1} -1$, and
           #  2. $f$ does not divide $X^{(q^n-1)/p} - 1$ for every
@@ -490,7 +946,7 @@ InstallGlobalFunction( ConwayPol, function( p, n )
 
           pow:= PowerModCoeffs( x, pp, cpol );
           ShrinkCoeffs( pow );
-          found:= pow = [ One( F ) ];
+          found:= ( pow = [ One( F ) ] );
 
           i:= 1;
           while found and ( i <= Length( ppmin ) ) do
@@ -500,11 +956,11 @@ InstallGlobalFunction( ConwayPol, function( p, n )
             i:= i+1;
           od;
 
-          # Test compatibility with polynomials in 'cpols'.
+          # Test compatibility with polynomials in `cpols'.
           i:= 1;
           while found and i <= Length( cpols ) do
 
-            # Compute $'cpols[i]'( x^{\frac{p^n-1}{p^m-1}} ) mod 'cpol'$.
+            # Compute $'cpols[i]'( x^{\frac{p^n-1}{p^m-1}} ) mod `cpol'$.
             xpownmodf:= PowerModCoeffs( x, quots[i], cpol );
             pow:= PowerModEvalPol( cpol, cpols[i], xpownmodf );
             ShrinkCoeffs( pow );
@@ -542,7 +998,7 @@ InstallGlobalFunction( ConwayPol, function( p, n )
       cpol:= List( cpol, IntFFE );
       found:= ShallowCopy( cpol );
 
-      # Subtract 'x^n', strip leading zeroes,
+      # Subtract `x^n', strip leading zeroes,
       # and store this polynomial in the global list.
       Unbind( found[ n+1 ] );
       ShrinkCoeffs( found );
@@ -570,16 +1026,17 @@ end );
 #F  ConwayPolynomial( <p>, <n> ) .  <n>-th Conway polynomial in charact. <p>
 ##
 InstallGlobalFunction( ConwayPolynomial, function( p, n )
-    if not IsPrimeInt( p ) or not IsInt( n ) or not n > 0 then
+    local F;
+    if IsPrimeInt( p ) and IsPosInt( n ) then
+      F:= GF(p);
+      return UnivariatePolynomial( F, One( F ) * ConwayPol( p, n ) );
+    else
       Error( "<p> must be a prime, <n> a positive integer" );
     fi;
-    return UnivariatePolynomial( Rationals, ConwayPol( p, n ) );
 end );
 
 
 #############################################################################
 ##
-#E  polyconw.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-
-
+#E
 

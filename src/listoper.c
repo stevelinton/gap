@@ -176,7 +176,7 @@ Obj             InListDefaultHandler (
 *F  SumList(<listL>,<listR>)  . . . . . . . . . . . . . . . . .  sum of lists
 *F  SumSclList(<listL>,<listR>) . . . . . . . . .  sum of a scalar and a list
 *F  SumListScl(<listL>,<listR>) . . . . . . . . .  sum of a list and a scalar
-*F  SumListList(<listL>,<listR>)  . . . . . . . . . . . . .  sum of two lists
+*F  SumListList<listL>,<listR>)  . . . . . . . . . . . . .  sum of two lists
 **
 **  'SumList' is the extended dispatcher for the  sums involving lists.  That
 **  is, whenever  two operands are  added and at  least one operand is a list
@@ -213,7 +213,8 @@ Obj             SumSclList (
 
     /* make the result list                                                */
     len = LEN_LIST( listR );
-    listS = NEW_PLIST( T_PLIST+IMMUTABLE, len );
+    listS = NEW_PLIST( IS_MUTABLE_OBJ(listR) ?
+		       T_PLIST : (T_PLIST + IMMUTABLE), len );
     SET_LEN_PLIST( listS, len );
 
     /* loop over the entries and add                                       */
@@ -240,7 +241,8 @@ Obj             SumListScl (
 
     /* make the result list                                                */
     len = LEN_LIST( listL );
-    listS = NEW_PLIST( T_PLIST+IMMUTABLE, len );
+    listS = NEW_PLIST( IS_MUTABLE_OBJ(listL) ?
+		       T_PLIST : T_PLIST+IMMUTABLE, len );
     SET_LEN_PLIST( listS, len );
 
     /* loop over the entries and add                                       */
@@ -275,7 +277,8 @@ Obj             SumListList (
             "you can return a new list for <right>" );
         return SUM( listL, listR );
     }
-    listS = NEW_PLIST( T_PLIST+IMMUTABLE, len );
+    listS = NEW_PLIST( (IS_MUTABLE_OBJ(listL) || IS_MUTABLE_OBJ(listR)) ?
+		       T_PLIST : T_PLIST+IMMUTABLE, len );
     SET_LEN_PLIST( listS, len );
 
     /* loop over the entries and add                                       */
@@ -345,7 +348,7 @@ Obj             ZeroListDefault (
 
     /* make the result list                                                */
     len = LEN_LIST( list );
-    res = NEW_PLIST( T_PLIST+IMMUTABLE, len );
+    res = NEW_PLIST( IS_MUTABLE_OBJ(list) ? T_PLIST : T_PLIST+IMMUTABLE, len );
     SET_LEN_PLIST( res, len );
 
     /* enter zeroes everywhere                                             */
@@ -398,7 +401,8 @@ Obj AInvListDefault (
 
     /* make the result list                                                */
     len = LEN_LIST( list );
-    res = NEW_PLIST( T_PLIST+IMMUTABLE, len );
+    res = NEW_PLIST(IS_MUTABLE_OBJ(list) ? T_PLIST :
+		    T_PLIST+IMMUTABLE, len );
     SET_LEN_PLIST( res, len );
 
     /* enter the additive inverses everywhere                              */
@@ -463,7 +467,8 @@ Obj             DiffSclList (
 
     /* make the result list                                                */
     len = LEN_LIST( listR );
-    listD = NEW_PLIST( T_PLIST+IMMUTABLE, len );
+    listD = NEW_PLIST(IS_MUTABLE_OBJ(listR) ? T_PLIST :
+		      T_PLIST+IMMUTABLE, len );
     SET_LEN_PLIST( listD, len );
 
     /* loop over the entries and subtract                                  */
@@ -490,7 +495,8 @@ Obj             DiffListScl (
 
     /* make the result list                                                */
     len = LEN_LIST( listL );
-    listD = NEW_PLIST( T_PLIST+IMMUTABLE, len );
+    listD = NEW_PLIST( IS_MUTABLE_OBJ(listL) ? T_PLIST :
+		       T_PLIST+IMMUTABLE, len );
     SET_LEN_PLIST( listD, len );
 
     /* loop over the entries and subtract                                  */
@@ -525,7 +531,8 @@ Obj             DiffListList (
             "you can return a new list for <right>" );
         return DIFF( listL, listR );
     }
-    listD = NEW_PLIST( T_PLIST+IMMUTABLE, len );
+    listD = NEW_PLIST( (IS_MUTABLE_OBJ(listL) || IS_MUTABLE_OBJ(listR)) ?
+		       T_PLIST : T_PLIST+IMMUTABLE, len );
     SET_LEN_PLIST( listD, len );
 
     /* loop over the entries and subtract                                  */
@@ -613,7 +620,7 @@ Obj             ProdSclList (
 
     /* make the result list                                                */
     len = LEN_LIST( listR );
-    listP = NEW_PLIST( T_PLIST+IMMUTABLE, len );
+    listP = NEW_PLIST( IS_MUTABLE_OBJ(listR) ? T_PLIST :T_PLIST+IMMUTABLE, len );
     SET_LEN_PLIST( listP, len );
 
     /* loop over the entries and multiply                                  */
@@ -640,7 +647,8 @@ Obj             ProdListScl (
 
     /* make the result list                                                */
     len = LEN_LIST( listL );
-    listP = NEW_PLIST( T_PLIST+IMMUTABLE, len );
+    listP = NEW_PLIST( (IS_MUTABLE_OBJ(listL) || IS_MUTABLE_OBJ(listR))
+		       ? T_PLIST :T_PLIST+IMMUTABLE, len );
     SET_LEN_PLIST( listP, len );
 
     /* loop over the entries and multiply                                  */
@@ -668,6 +676,13 @@ Obj             ProdListList (
 
     /* get and check the length                                            */
     len = LEN_LIST( listL );
+    if ( !len ) {
+        listL = ErrorReturnObj(
+            "Vector *: <left> must not be the empty list",
+            0L, 0L,
+            "you can return a new list for <left>" );
+        return PROD( listL, listR );
+    }
     if ( len != LEN_LIST( listR ) ) {
         listR = ErrorReturnObj(
             "Vector *: <right> must have the same length as <left> (%d)",
@@ -744,6 +759,7 @@ Obj             OneMatrix (
     Obj                 one;            /* one element                     */
     UInt                len;            /* length (and width) of matrix    */
     UInt                i, k;           /* loop variables                  */
+    UInt                isMut;
 
     /* check that the operand is a *square* matrix                         */
     len = LEN_LIST( mat );
@@ -759,10 +775,11 @@ Obj             OneMatrix (
     one  = ONE( zero );
 
     /* make the identity matrix                                            */
-    res = NEW_PLIST( T_PLIST+IMMUTABLE, len );
+    isMut = IS_MUTABLE_OBJ(mat);
+    res = NEW_PLIST(  isMut ? T_PLIST : T_PLIST+IMMUTABLE, len );
     SET_LEN_PLIST( res, len );
     for ( i = 1; i <= len; i++ ) {
-        row = NEW_PLIST( T_PLIST+IMMUTABLE, len );
+        row = NEW_PLIST( isMut ? T_PLIST : T_PLIST+IMMUTABLE, len );
         SET_LEN_PLIST( row, len );
         for ( k = 1; k <= len; k++ )
             SET_ELM_PLIST( row, k, zero );
@@ -794,13 +811,19 @@ Obj             OneMatrixHandler (
 **  the  extended type of the  operand and then  dispatches through 'InvList'
 **  again.
 **
-**  'InvMatrix' is a generic function for the inverse.
+**  'InvMatrix' is a generic function for the inverse. In nearly all
+**  circumstances, we should use a more efficient function based on
+**  calls to AddRowVector, etc.
 */
 Obj             InvList (
     Obj                 list )
 {
     return (*InvFuncs[XTNum(list)])( list );
 }
+
+#ifdef SYS_IS_MAC_MWC
+#pragma global_optimizer on /* CW Pro 2 can't compile this w/o global optimization */
+#endif
 
 Obj             InvMatrix (
     Obj                 mat )
@@ -829,7 +852,7 @@ Obj             InvMatrix (
     one  = ONE( zero );
 
     /* make a matrix of the form $ ( Id_<len> | <mat> ) $                  */
-    res = NEW_PLIST( T_PLIST+IMMUTABLE, len );
+    res = NEW_PLIST( IS_MUTABLE_OBJ(mat) ? T_PLIST: T_PLIST+IMMUTABLE, len );
     SET_LEN_PLIST( res, len );
     for ( i = 1; i <= len; i++ ) {
         row = NEW_PLIST( T_PLIST, 2 * len );
@@ -901,6 +924,10 @@ Obj             InvMatrix (
     /* return the result                                                   */
     return res;
 }
+
+#ifdef SYS_IS_MAC_MWC
+#pragma global_optimizer reset 
+#endif
 
 Obj             InvMatrixHandler (
     Obj                 self,
@@ -1085,7 +1112,437 @@ Obj             CommList (
 
 /****************************************************************************
 **
+*F  FuncADD_ROW_VECTOR_5( <self>, <list1>, <list2>, <mult>, <from>, <to> )
+**
+**  This function adds <mult>*<list2>[i] destructively to <list1>[i] for
+**  each i in the range <from>..<to>. It does very little checking
+**
+*/
+Obj FuncADD_ROW_VECTOR_5( Obj self,
+			  Obj list1,
+			  Obj list2,
+			  Obj mult,
+			  Obj from,
+			  Obj to )
+{
+  UInt i;
+  Obj new;
+  for (i = INT_INTOBJ(from); i <= INT_INTOBJ(to); i++)
+    {
+      new = SUM(ELM_LIST(list1,i), PROD(mult, ELM_LIST(list2,i)));
+      ASS_LIST(list1,i,new);
+      CHANGED_BAG(list1);
+    }
+  return 0;
+}
 
+/****************************************************************************
+**
+*F  FuncADD_ROW_VECTOR_5_FAST( <self>, <list1>, <list2>, <mult>, <from>, <to> )
+**
+**  This function adds <mult>*<list2>[i] destructively to <list1>[i] for
+**  each i in the range <from>..<to>. It does very little checking
+**
+**  This version is specialised to the "fast" case where list1 and list2 are
+**  plain lists of cyclotomics and mult is a small integers
+*/
+Obj FuncADD_ROW_VECTOR_5_FAST ( Obj self,
+				Obj list1,
+				Obj list2,
+				Obj mult,
+				Obj from,
+				Obj to )
+{
+  UInt i;
+  Obj e1,e2, prd, sum;
+  for (i = INT_INTOBJ(from); i <= INT_INTOBJ(to); i++)
+    {
+      e1 = ELM_PLIST(list1,i);
+      e2 = ELM_PLIST(list2,i);
+      if ( !ARE_INTOBJS( e2, mult ) || !PROD_INTOBJS( prd, e2, mult ))
+	{
+	  prd = PROD(e2,mult);
+	}
+      if ( !ARE_INTOBJS(e1, prd) || !SUM_INTOBJS( sum, e1, prd) )
+	{
+	  sum = SUM(e1,prd);
+	  SET_ELM_PLIST(list1,i,sum);
+	  CHANGED_BAG(list1);
+	}
+      else
+	  SET_ELM_PLIST(list1,i,sum);
+    }
+  return 0;
+}
+
+/****************************************************************************
+**
+*F  FuncADD_ROW_VECTOR_3( <self>, <list1>, <list2>, <mult> )
+**
+**  This function adds <mult>*<list2>[i] destructively to <list1>[i] for
+**  each i in the range 1..Length(<list1>). It does very little checking
+**
+*T  This could be speeded up still further by using special code for various
+**  types of list -- this version just uses generic list ops
+*/
+Obj FuncADD_ROW_VECTOR_3( Obj self,
+			  Obj list1,
+			  Obj list2,
+			  Obj mult)
+{
+  UInt i;
+  Obj new;
+  for (i = 1; i <= LEN_LIST(list1); i++)
+    {
+      new = SUM(ELMW_LIST(list1,i), PROD(mult, ELMW_LIST(list2,i)));
+      ASS_LIST(list1,i,new);
+      CHANGED_BAG(list1);
+    }
+  return 0;
+}
+
+/****************************************************************************
+**
+*F  FuncADD_ROW_VECTOR_3_FAST( <self>, <list1>, <list2>, <mult> )
+**
+**  This function adds <mult>*<list2>[i] destructively to <list1>[i] for
+**  each i in the range 1..Length(<list1>). It does very little checking
+**
+**  This version is specialised to the "fast" case where list1 and list2 are
+**  plain lists of cyclotomics and mult is a small integers
+*/
+Obj FuncADD_ROW_VECTOR_3_FAST ( Obj self,
+				Obj list1,
+				Obj list2,
+				Obj mult )
+{
+  UInt i;
+  Obj e1,e2, prd, sum;
+  for (i = 1; i <= LEN_PLIST(list1); i++)
+    {
+      e1 = ELM_PLIST(list1,i);
+      e2 = ELM_PLIST(list2,i);
+      if ( !ARE_INTOBJS( e2, mult ) || !PROD_INTOBJS( prd, e2, mult ))
+	{
+	  prd = PROD(e2,mult);
+	}
+      if ( !ARE_INTOBJS(e1, prd) || !SUM_INTOBJS( sum, e1, prd) )
+	{
+	  sum = SUM(e1,prd);
+	  SET_ELM_PLIST(list1,i,sum);
+	  CHANGED_BAG(list1);
+	}
+      else
+	  SET_ELM_PLIST(list1,i,sum);
+    }
+  return 0;
+}
+
+/****************************************************************************
+**
+*F  FuncADD_ROW_VECTOR_2( <self>, <list1>, <list2>)
+**
+**  This function adds <list2>[i] destructively to <list1>[i] for
+**  each i in the range 1..Length(<list1>). It does very little checking
+**
+*T  This could be speeded up still further by using special code for various
+**  types of list -- this version just uses generic list ops
+*/
+Obj FuncADD_ROW_VECTOR_2( Obj self,
+			  Obj list1,
+			  Obj list2)
+{
+  UInt i;
+  Obj new;
+  for (i = 1; i <= LEN_LIST(list1); i++)
+    {
+      new = SUM(ELMW_LIST(list1,i), ELMW_LIST(list2,i));
+      ASS_LIST(list1,i,new);
+      CHANGED_BAG(list1);
+    }
+  return 0;
+}
+
+/****************************************************************************
+**
+*F  FuncADD_ROW_VECTOR_2_FAST( <self>, <list1>, <list2> )
+**
+**  This function adds <list2>[i] destructively to <list1>[i] for
+**  each i in the range 1..Length(<list1>). It does very little checking
+**
+**  This version is specialised to the "fast" case where list1 and list2 are
+**  plain lists of cyclotomics 
+*/
+Obj FuncADD_ROW_VECTOR_2_FAST ( Obj self,
+				Obj list1,
+				Obj list2 )
+{
+  UInt i;
+  Obj e1,e2, sum;
+  for (i = 1; i <= LEN_PLIST(list1); i++)
+    {
+      e1 = ELM_PLIST(list1,i);
+      e2 = ELM_PLIST(list2,i);
+      if ( !ARE_INTOBJS(e1, e2) || !SUM_INTOBJS( sum, e1, e2) )
+	{
+	  sum = SUM(e1,e2);
+	  SET_ELM_PLIST(list1,i,sum);
+	  CHANGED_BAG(list1);
+	}
+      else
+	  SET_ELM_PLIST(list1,i,sum);
+    }
+  return 0;
+}
+
+/****************************************************************************
+**
+*F  FuncMULT_ROW_VECTOR_2( <self>, <list>, <mult> )
+**
+**  This function destructively multiplies the entries of <list> by <mult>
+**  It does very little checking
+**
+*/
+
+Obj FuncMULT_ROW_VECTOR_2( Obj self,
+			   Obj list,
+			   Obj mult )
+{
+  UInt i;
+  Obj prd;
+  for (i = 1; i <= LEN_LIST(list); i++)
+    {
+     prd = PROD(ELMW_LIST(list,i),mult);
+     ASS_LIST(list,i,prd);
+     CHANGED_BAG(list);
+    }
+  return 0;
+}
+
+/****************************************************************************
+**
+*F  FuncMULT_ROW_VECTOR_2_FAST( <self>, <list>, <mult> )
+**
+**  This function destructively multiplies the entries of <list> by <mult>
+**  It does very little checking
+**
+**  This is the fast method for plain lists of cyclotomics and an integer
+**  multiplier
+*/
+
+Obj FuncMULT_ROW_VECTOR_2_FAST( Obj self,
+				Obj list,
+				Obj mult )
+{
+  UInt i;
+  Obj el,prd;
+  for (i = 1; i <= LEN_PLIST(list); i++)
+    {
+      el = ELM_PLIST(list,i);
+      if (!ARE_INTOBJS(el, mult) || !PROD_INTOBJS(prd,el,mult))
+	{
+	  prd = PROD(el,mult);
+	  SET_ELM_PLIST(list,i,prd);
+	  CHANGED_BAG(list);
+	}
+      else
+	  SET_ELM_PLIST(list,i,prd);
+    }
+  return 0;
+}
+
+/****************************************************************************
+**
+*F  FuncPROD_VEC_MAT_DEFAULT( <self>, <vec>, <mat> )
+**
+**  This is a specialized version of PROD_LIST_LIST_DEFAULT, that uses
+**  AddRowVector rather than SUM and PROD.
+*/
+
+static Obj AddRowVectorOp;   /* BH changed to static */
+static Obj MultRowVectorOp;  /* BH changed to static */
+
+Obj FuncPROD_VEC_MAT_DEFAULT( Obj self,
+			      Obj vec,
+			      Obj mat )
+{
+  Obj res;
+  Obj elt;
+  Obj vecr;
+  UInt i,len;
+  Obj z;
+  Obj o;
+  res = (Obj) 0;
+  len = LEN_LIST(vec);
+  while (len != LEN_LIST(mat))
+    {
+      mat = ErrorReturnObj("<vec> * <mat>: vector and matrix must have same length", 0L, 0L,
+			   "you can return a new matrix to continue");
+      return PROD(vec,mat);
+    }
+  elt = ELM_LIST(vec,1);
+  z = ZERO(elt);
+  for (i = 1; i <= len; i++)
+    {
+      elt = ELM_LIST(vec,i);
+      if (!EQ(elt,z))
+	{
+	  vecr = ELM_LIST(mat,i);
+	  if (res == (Obj)0)
+	    {
+	      res = SHALLOW_COPY_OBJ(vecr);
+	      CALL_2ARGS(MultRowVectorOp,res,elt);
+	    }
+	  else
+	    CALL_3ARGS(AddRowVectorOp, res, vecr, elt);
+	}
+    }
+  if (res == (Obj)0)
+    res = ZERO(ELM_LIST(mat,1));
+  if (!IS_MUTABLE_OBJ(vec) && !IS_MUTABLE_OBJ(mat))
+    MakeImmutable(res);
+  return res;
+}
+
+/****************************************************************************
+**
+*F  FuncINV_MAT_DEFAULT
+**
+**  A faster version of InvMat for those matrices for whose rows AddRowVector
+** and MultRowVector make sense (and might have fast kernel methods)
+**
+*/
+
+#ifdef SYS_IS_MAC_MWC
+#pragma global_optimizer on /* CW 11 can't compile this w/o global optimization */
+#endif
+
+Obj ConvertToMatrixRep;
+
+Obj FuncINV_MAT_DEFAULT( Obj self, Obj mat)
+{
+  Obj                 res;            /* result                          */
+  Obj                 matcopy;        /* copy of mat                     */
+  Obj                 row;            /* one row of matcopy              */
+  Obj                 row2;           /* corresponding row of res        */
+  Obj                 row3;           /* another row of matcopy          */
+  Obj                 x;              /* one element of the matrix       */
+  Obj                 xi;             /* 1/x                             */
+  Obj                 y;              /* another element of the matrix   */
+  Obj                 yi;             /* -y                              */
+  Obj                 zero;           /* zero element                    */
+  Obj                 zerov;          /* zero vector                     */
+  Obj                 one;            /* one element                     */
+  UInt                len;            /* length (and width) of matrix    */
+  UInt                i, k, j;        /* loop variables                  */
+
+  /* check that the operand is a *square* matrix                         */
+  len = LEN_LIST( mat );
+  if ( len != LEN_LIST( ELM_LIST( mat, 1 ) ) ) {
+    mat = ErrorReturnObj(
+			 "Matrix INV: <mat> must be square (not %d by %d)",
+			 (Int)len, (Int)LEN_LIST( ELM_LIST( mat, 1 ) ),
+			 "you can return a square matrix for <mat>" );
+    return INV(mat);
+  }
+
+  /* get the zero and the one                                            */
+  zerov = ZERO( ELM_LIST(mat, 1));
+  zero = ZERO( ELM_LIST( ELM_LIST( mat, 1 ), 1 ) );
+  one  = ONE( zero );
+
+  /* set up res (initially the identity) and matcopy */
+  res = NEW_PLIST(T_PLIST,len);
+  matcopy = NEW_PLIST(T_PLIST,len);
+  SET_LEN_PLIST(res,len);
+  SET_LEN_PLIST(matcopy,len);
+  for (i = 1; i <= len; i++)
+    {
+      row = SHALLOW_COPY_OBJ(zerov);
+      ASS_LIST(row,i,one);
+      SET_ELM_PLIST(res,i,row);
+      SET_ELM_PLIST(matcopy,i,SHALLOW_COPY_OBJ(ELM_LIST(mat,i)));
+    }
+
+
+  /* Now to work, make matcopy an identity by row operations and
+     do the same row operations to res */
+
+  /* outer loop over columns of matcopy */
+  for (i = 1; i <= len; i++)
+    {
+      /* Find a non-zero leading entry that is in that column */
+      for (j = i; j <= len; j++)
+	{
+	  row = ELM_PLIST(matcopy,j);
+	  x = ELM_LIST(row,i);
+	  if (!EQ(x,zero))
+	    break;
+	}
+
+      /* if there isn't one then the matrix is not invertible */
+      if (j > len)
+	return Fail;
+
+      /* Maybe swap two rows */
+      /* But I will want this value anyway */
+      row2 = ELM_PLIST(res,j);
+      if (j != i)
+	{
+	  SET_ELM_PLIST(matcopy,j,ELM_PLIST(matcopy,i));
+	  SET_ELM_PLIST(res,j,ELM_PLIST(res,i));
+	  SET_ELM_PLIST(matcopy,i,row);
+	  SET_ELM_PLIST(res,i,row2);
+	}
+
+      /*Maybe rescale the row */
+      if (!EQ(x, one))
+	{
+	  xi = INV(x);
+	  CALL_2ARGS(MultRowVectorOp, row, xi);
+	  CALL_2ARGS(MultRowVectorOp, row2, xi);
+	}
+
+      /* Clear the entries. We know that we can ignore the entries in rows i..j */
+      for (k = 1; k < i; k++)
+	{
+	  row3 = ELM_PLIST(matcopy,k);
+	  y = ELM_LIST(row3,i);
+	  if (!EQ(y,zero))
+	    {
+	      yi = AINV(y);
+	      CALL_3ARGS(AddRowVectorOp, row3, row, yi);
+	      CALL_3ARGS(AddRowVectorOp, ELM_PLIST(res,k), row2, yi);
+	    }
+	}
+      for (k = j+1; k <= len; k++)
+	{
+	  row3 = ELM_PLIST(matcopy,k);
+	  y = ELM_LIST(row3,i);
+	  if (!EQ(y,zero))
+	    {
+	      yi = AINV(y);
+	      CALL_3ARGS(AddRowVectorOp, row3, row, yi);
+	      CALL_3ARGS(AddRowVectorOp, ELM_PLIST(res,k), row2, yi);
+	    }
+	}
+				 
+    }
+
+  /* Now res contains the result.
+     We put it into optimum format */
+  CALL_1ARGS(ConvertToMatrixRep, res);
+  return res;
+}
+  
+#ifdef SYS_IS_MAC_MWC
+#pragma global_optimizer reset 
+#endif
+
+
+
+/****************************************************************************
+**
 *F * * * * * * * * * * * * * initialize package * * * * * * * * * * * * * * *
 */
 
@@ -1148,6 +1605,36 @@ static StructGVarFunc GVarFuncs [] = {
     { "POW_MATRIX_INT", 2, "list, int",
       PowMatrixIntHandler, "src/listoper.c:POW_MATRIX_INT" },
 
+    { "ADD_ROW_VECTOR_5", 5, "list1, list2, mult, from, to",
+      FuncADD_ROW_VECTOR_5, "src/listoper.c:ADD_ROW_VECTOR_5" },
+
+    { "ADD_ROW_VECTOR_5_FAST", 5, "list1, list2, mult, from, to",
+      FuncADD_ROW_VECTOR_5_FAST, "src/listoper.c:ADD_ROW_VECTOR_5_FAST" },
+
+    { "ADD_ROW_VECTOR_3", 3, "list1, list2, mult",
+      FuncADD_ROW_VECTOR_3, "src/listoper.c:ADD_ROW_VECTOR_3" },
+
+    { "ADD_ROW_VECTOR_3_FAST", 3, "list1, list2, mult",
+      FuncADD_ROW_VECTOR_3_FAST, "src/listoper.c:ADD_ROW_VECTOR_3_FAST" },
+
+    { "ADD_ROW_VECTOR_2", 2, "list1, list2",
+      FuncADD_ROW_VECTOR_2, "src/listoper.c:ADD_ROW_VECTOR_2" },
+
+    { "ADD_ROW_VECTOR_2_FAST", 2, "list1, list2",
+      FuncADD_ROW_VECTOR_2_FAST, "src/listoper.c:ADD_ROW_VECTOR_2_FAST" },
+
+    { "MULT_ROW_VECTOR_2", 2, "list, mult",
+      FuncMULT_ROW_VECTOR_2, "src/listoper.c:MULT_ROW_VECTOR_2" },
+
+    { "MULT_ROW_VECTOR_2_FAST", 2, "list, mult",
+      FuncMULT_ROW_VECTOR_2_FAST, "src/listoper.c:MULT_ROW_VECTOR_2_FAST" },
+
+    { "PROD_VEC_MAT_DEFAULT", 2, "vec, mat",
+      FuncPROD_VEC_MAT_DEFAULT, "src/listoper.c:PROD_VEC_MAT_DEFAULT" },
+    
+    { "INV_MAT_DEFAULT", 1, "mat",
+      FuncINV_MAT_DEFAULT, "src/listoper.c:INV_MAT_DEFAULT" },
+
     { 0 }
 
 };
@@ -1160,16 +1647,28 @@ static StructGVarFunc GVarFuncs [] = {
 **
 **  C = constant, R = record, L = list,   X = extrnl, V = virtual
 **
-**  s = scalar, v = vector, m = matrix, e = empty,  - = nothing
-**  i = incomplete type (call 'XTNum' and try again), ] = end marker
-**
 ** 0    0    1    1    2    2    3    3    4    4    5    5    6    6
 ** 0    5    0    5    0    5    0    5    0    5    0    5    0    5
 ** CCCCCCCCCCCCRRLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLXXXXVVV
+**
+**  s = scalar, v = vector, m = matrix, e = empty,  - = nothing
+**  i = incomplete type (call 'XTNum' and try again), ] = end marker
 */
 static Char * CAT =
-  "ssssssss----ssiiiiiiiieeiiiiiiiiiiiivvvvvvvvvv-----------------mm]";
-
+  "ssssssss----ssiiiiiiiieeiiiiiiiiiiiivvvvvvvvvvvv-----------------mm]";
+/* |       |   | |       | |           |     | |   |               |
+** |       |   | |       | |           |     | |   |               +- T_OBJECT
+** |       |   | |       | |           |     | |   +- T_BLIST
+** |       |   | |       | |           |     | +- T_RANGE_NSORT
+** |       |   | |       | |           |     +- T_PLIST_FFE
+** |       |   | |       | |           +- T_PLIST_CYC
+** |       |   | |       | +- T_PLIST_HOM
+** |       |   | |       +-T_PLIST_EMPTY
+** |       |   | +- T_PLIST
+** |       |   +- T_PREC
+** |       +- T_BOOL
+** +- T_INT
+*/
 static Int InitKernel (
     StructInitInfo *    module )
 {
@@ -1178,6 +1677,10 @@ static Int InitKernel (
 
     /* init filters and functions                                          */
     InitHdlrFuncsFromTable( GVarFuncs );
+
+    InitFopyGVar( "AddRowVector", &AddRowVectorOp );
+    InitFopyGVar( "MultRowVector", &MultRowVectorOp );
+    InitFopyGVar( "ConvertToMatrixRep", &ConvertToMatrixRep );
 
     /* check that <CAT> is consistent with the number LAST_VIRTUAL_TNUM    */
     if ( CAT[LAST_VIRTUAL_TNUM+1] != ']' ) {

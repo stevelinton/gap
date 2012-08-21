@@ -380,7 +380,7 @@ end );
 ##
 #V  CharTableSymmetric  . . . .  generic character table of symmetric groups.
 ##
-CharTableSymmetric := rec(
+InstallValue( CharTableSymmetric, Immutable( rec(
     isGenericTable:=
         true,
     identifier:=
@@ -388,7 +388,7 @@ CharTableSymmetric := rec(
     size:=
         Factorial,
     specializedname:=
-        ( n -> Concatenation( "S", String(n) ) ),
+        ( n -> Concatenation( "Sym(", String(n), ")" ) ),
     text:=
         "generic character table for symmetric groups",
     classparam:=
@@ -478,14 +478,14 @@ CharTableSymmetric := rec(
         end,
     domain:=
         IsPosInt
-    );
+    ) ) );
 
 
 #############################################################################
 ##
 #V  CharTableAlternating  . .  generic character table of alternating groups.
 ##
-CharTableAlternating := rec(
+InstallValue( CharTableAlternating, Immutable( rec(
     isGenericTable:=
         true,
     identifier:=
@@ -493,7 +493,7 @@ CharTableAlternating := rec(
     size:=
         ( n -> Factorial(n)/2 ),
     specializedname:=
-        ( n -> Concatenation( "A", String(n) ) ),
+        ( n -> Concatenation( "Alt(", String(n), ")" ) ),
     text:=
         "generic character table for alternating groups",
     classparam:=
@@ -626,7 +626,7 @@ CharTableAlternating := rec(
             end ] ],
     domain:=
         ( n -> IsInt(n) and n > 1 )
-    );
+    ) ) );
 
 
 #############################################################################
@@ -705,7 +705,7 @@ end );
 ##
 #V  CharTableWeylB  . . . . generic character table of Weyl groups of type B.
 ##
-CharTableWeylB := rec(
+InstallValue( CharTableWeylB, Immutable( rec(
     isGenericTable:=
         true,
     identifier:=
@@ -754,14 +754,14 @@ CharTableWeylB := rec(
         n -> MatCharsWreathSymmetric( CharacterTable( "Cyclic", 2 ), n),
     domain:=
         IsPosInt
-    );
+    ) ) );
 
 
 #############################################################################
 ##
 #V  CharTableWeylD  . . . . generic character table of Weyl groups of type D.
 ##
-CharTableWeylD := rec(
+InstallValue( CharTableWeylD, Immutable( rec(
     isGenericTable:=
         true,
     identifier:=
@@ -888,7 +888,7 @@ CharTableWeylD := rec(
             end ] ],
     domain:=
         ( n -> IsInt(n) and n > 1 )
-    );
+    ) ) );
 
 
 #############################################################################
@@ -1042,7 +1042,5 @@ end );
 
 #############################################################################
 ##
-#E  ctblsymm.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-
-
+#E
 

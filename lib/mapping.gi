@@ -184,8 +184,12 @@ InstallGlobalFunction( Image, function ( arg )
           return ImagesSet( map, Set( elm ) );
         fi;
 
-      fi;
+      # image of the empty list
+      elif IsList( elm ) and IsEmpty( elm ) then
 
+        return [];
+
+      fi;
     fi;
     Error( "usage: Image(<map>), Image(<map>,<elm>), Image(<map>,<coll>" );
 end );
@@ -232,6 +236,11 @@ InstallGlobalFunction( Images, function ( arg )
             return ImagesSet( map, Set( elm ) );
           fi;
 
+        # image of the empty list
+        elif IsList( elm ) and IsEmpty( elm ) then
+
+          return [];
+
         fi;
     fi;
     Error("usage: Images(<map>), Images(<map>,<elm>), Images(<map>,<coll>)");
@@ -273,11 +282,16 @@ InstallGlobalFunction( PreImage, function ( arg )
         elif     CollFamRangeEqFamElms( FamilyObj( map ), FamilyObj( img ) )
              and IsSubset( Range( map ), img ) then
 
-          if IsDomain( img ) or IsSSortedList( map ) then
+          if IsDomain( img ) or IsSSortedList( img ) then
             return PreImagesSet( map, img );
           elif IsHomogeneousList( img ) then
             return PreImagesSet( map, Set( img ) );
           fi;
+
+        # preimage of the empty list
+        elif IsList( img ) and IsEmpty( img ) then
+
+          return [];
 
         fi;
     fi;
@@ -321,11 +335,16 @@ InstallGlobalFunction( PreImages, function ( arg )
         elif     CollFamRangeEqFamElms( FamilyObj( map ), FamilyObj( img ) )
              and IsSubset( Range( map ), img ) then
 
-          if IsDomain( img ) or IsSSortedList( map ) then
+          if IsDomain( img ) or IsSSortedList( img ) then
             return PreImagesSet( map, img );
           elif IsHomogeneousList( img ) then
             return PreImagesSet( map, Set( img ) );
           fi;
+
+        # preimage of the empty list
+        elif IsList( img ) and IsEmpty( img ) then
+
+          return [];
 
         fi;
     fi;
@@ -782,9 +801,9 @@ InstallOtherMethod( \^,
 
 #############################################################################
 ##
-#M  One( <map> )  . . . . . . . . . . . . . . . . . . . . .  identity mapping
+#M  OneOp( <map> )  . . . . . . . . . . . . . . . . . . . .  identity mapping
 ##
-InstallOtherMethod( One,
+InstallOtherMethod( OneOp,
     "for a general mapping",
     true,
     [ IsGeneralMapping ], 0,
@@ -799,9 +818,9 @@ InstallOtherMethod( One,
 
 #############################################################################
 ##
-#M  Zero( <map> ) . . . . . . . . . . . . . . . . . . . . . . .  zero mapping
+#M  ZeroOp( <map> ) . . . . . . . . . . . . . . . . . . . . . .  zero mapping
 ##
-InstallOtherMethod( Zero,
+InstallOtherMethod( ZeroOp,
     "for a general mapping",
     true,
     [ IsGeneralMapping ], 0,
@@ -810,9 +829,9 @@ InstallOtherMethod( Zero,
 
 #############################################################################
 ##
-#M  Inverse( <map> )  . . . . . . . . . . delegate to `InverseGeneralMapping'
+#M  InverseOp( <map> )  . . . . . . . . . delegate to `InverseGeneralMapping'
 ##
-InstallMethod( Inverse,
+InstallMethod( InverseOp,
     "for a general mapping",
     true,
     [ IsGeneralMapping ], 0,
@@ -820,6 +839,9 @@ InstallMethod( Inverse,
     if IsEndoGeneralMapping( map ) and IsBijective( map ) then
       return InverseGeneralMapping( map );
     else
+      Info(InfoWarning,1,
+        "The mapping must be bijective and have source=range\n",
+	"#I  You might want to use `InverseGeneralMapping'");
       return fail;
     fi;
     end );
@@ -929,6 +951,14 @@ InstallMethod( ImagesSet,
       UniteSet( imgs, AsList( ImagesElm( map, elm ) ) );
     od;
     return imgs;
+    end );
+
+InstallMethod( ImagesSet,
+    "for general mapping, and empty list",
+    true,
+    [ IsGeneralMapping, IsList and IsEmpty ], 0,
+    function( map, elms )
+    return [];
     end );
 
 
@@ -1076,6 +1106,14 @@ InstallMethod( PreImagesSet,
       UniteSet( primgs, AsList( PreImagesElm( map, elm ) ) );
     od;
     return primgs;
+    end );
+
+InstallMethod( PreImagesSet,
+    "for general mapping, and empty list",
+    true,
+    [ IsGeneralMapping, IsList and IsEmpty ], 0,
+    function( map, elms )
+    return [];
     end );
 
 

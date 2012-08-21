@@ -1830,7 +1830,7 @@ gap> List( ChiefSeriesPermGroup( g ), Size );
 [ 36578304, 6048, 1 ]
 
 
-gap> STOP_TEST( "grpprmcs.tst", 10000 );
+gap> STOP_TEST( "grpprmcs.tst", 25799659528 );
 
 
 #############################################################################

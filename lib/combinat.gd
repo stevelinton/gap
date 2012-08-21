@@ -1,14 +1,14 @@
 #############################################################################
 ##
-#W  combinat.gi      GAP library       Martin Schoenert
-#W                     Alexander Hulpke
+#W  combinat.gi                 GAP library                  Martin Schoenert
+#W                                                           Alexander Hulpke
 ##
 #H  @(#)$Id$
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 ##
-##  This file contains declaration for combinatoric functions.
+##  This file contains declaration for combinatorics functions.
 ##
 Revision.combinat_gd :=
   "@(#)$Id$";
@@ -24,6 +24,7 @@ Revision.combinat_gd :=
 ##  $n!$ is the  number of permutations of a set of $n$ elements.  $1/n!$
 ##  is the coefficient  of  $x^n$  in  the  formal series  $e^x$, which  is
 ##  the generating function for factorial.
+##
 DeclareGlobalFunction("Factorial");
 
 
@@ -43,6 +44,7 @@ DeclareGlobalFunction("Factorial");
 ##  ${n \choose k}$  is the coefficient of the  term $x^k$ of the  polynomial
 ##  $(x + 1)^n$, which is the generating function for ${n \choose \*}$, hence
 ##  the name.
+##
 DeclareGlobalFunction("Binomial");
 
 
@@ -59,6 +61,7 @@ DeclareGlobalFunction("Binomial");
 ##  implies of  course that $B(n) =  \sum_{k=0}^{n}{S_2(n,k)}$  (see
 ##  "Stirling2").  $B(n)/n!$ is the coefficient of  $x^n$ in the formal
 ##  series  $e^{e^x-1}$, which is the generating function for $B(n)$.
+##
 DeclareGlobalFunction("Bell");
 
 
@@ -80,6 +83,7 @@ DeclareGlobalFunction("Bell");
 ##  S_2(-k,-n)$ if $n,k\<0$.  There are  many  formulae relating Stirling
 ##  numbers of  the first kind to Stirling numbers of the second kind, Bell
 ##  numbers, and Binomial numbers.
+##
 DeclareGlobalFunction("Stirling1");
 
 
@@ -101,6 +105,7 @@ DeclareGlobalFunction("Stirling1");
 ##  S_1(-k,-n)$ if $n,k\<0$.  There are many formulae relating  Stirling
 ##  numbers of  the second kind to Stirling numbers of the first kind, Bell
 ##  numbers, and Binomial numbers.
+##
 DeclareGlobalFunction("Stirling2");
 
 
@@ -108,8 +113,9 @@ DeclareGlobalFunction("Stirling2");
 ##
 #F  Combinations( <mset> [,<k>] )
 ##
-##  returns the  set of all combinations of the multiset  <mset> with <k>
-##  elements if <k> is not given it returns all multisets.
+##  returns the  set of all combinations of the multiset  <mset> (a
+##  list of objects which may contain the same object several times) with <k>
+##  elements; if <k> is not given it returns all combinations of <mset>.
 ##
 ##  A *combination* of  <mset> is an  unordered selection without
 ##  repetitions and is represented by a sorted sublist of <mset>. If
@@ -135,7 +141,7 @@ DeclareGlobalFunction("NrCombinations");
 #F  Arrangements( <mset> [,<k>] )
 ##
 ##  returns the  set of arrangements of the multiset <mset> that contain <k>
-##  elements. If <k> is not given it returns all arrangements.
+##  elements. If <k> is not given it returns all arrangements of <mset>.
 ##
 ##  An  *arrangement* of <mset>  is an ordered selection  without
 ##  repetitions and is represented by a list that contains only elements
@@ -150,6 +156,7 @@ DeclareGlobalFunction("Arrangements");
 #F  NrArrangements( <mset> [,<k>] )
 ##
 ##  returns the number of `Arrangements(<mset>,<k>)'.
+##
 DeclareGlobalFunction("NrArrangements");
 
 #############################################################################
@@ -169,6 +176,7 @@ DeclareGlobalFunction("NrArrangements");
 ##  contains the smallest element of <set> at all  positions except at the
 ##  last positions, where it contains the second smallest element from <set>
 ##  and so on.
+##
 DeclareGlobalFunction("UnorderedTuples");
 
 
@@ -177,6 +185,7 @@ DeclareGlobalFunction("UnorderedTuples");
 #F  NrUnorderedTuples( <set>, <k> ) . . number unordered of tuples from a set
 ##
 ##  returns the number of `UnorderedTuples(<set>,<k>)'.
+##
 DeclareGlobalFunction("NrUnorderedTuples");
 
 
@@ -196,6 +205,7 @@ DeclareGlobalFunction("NrUnorderedTuples");
 ##  smallest element of <set> at all positions except at the  last
 ##  positions, where it contains the second smallest element from <set> and
 ##  so on.
+##
 DeclareGlobalFunction("Tuples");
 
 
@@ -204,6 +214,7 @@ DeclareGlobalFunction("Tuples");
 #F  NrTuples( <set>, <k> )  . . . . . . . number of ordered tuples from a set
 ##
 ##  returns the number of `Tuples(<set>,<k>)'.
+##
 DeclareGlobalFunction("NrTuples");
 
 
@@ -258,6 +269,7 @@ DeclareGlobalFunction("Derangements");
 #F  NrDerangements( <list> ) .  number of fixpointfree permutations of a list
 ##
 ##  returns the number of `Derangements(<list>)'.
+##
 DeclareGlobalFunction("NrDerangements");
 
 #############################################################################
@@ -274,6 +286,7 @@ DeclareGlobalFunction("NrDerangements");
 ##  such sets.  There are $B( |set| )$ (see "Bell") partitions of  the
 ##  set  <set>  and $S_2( |set|, k )$ (see "Stirling2") partitions with
 ##  <k> elements.
+##
 DeclareGlobalFunction("PartitionsSet");
 
 
@@ -282,6 +295,7 @@ DeclareGlobalFunction("PartitionsSet");
 #F  NrPartitionsSet( <set> [,<k>] )
 ##
 ##  returns the number of `PartitionsSet(<set>,<k>)'.
+##
 DeclareGlobalFunction("NrPartitionsSet");
 
 
@@ -301,7 +315,7 @@ DeclareGlobalFunction("NrPartitionsSet");
 ##
 ##  It  is possible to  associate with every partition  of the integer  <n>
 ##  a conjugacy class of permutations in the symmetric group on <n>  points
-##  and vice  versa. Therefore $p(n) := NrPartitions(n)$  is  the
+##  and vice  versa. Therefore $p(n) := `NrPartitions'(n)$  is  the
 ##  number of conjugacy classes of the symmetric group on <n> points.
 ##
 ##  Ramanujan found the identities $p(5i+4) = 0$ mod 5, $p(7i+5) = 0$  mod
@@ -311,6 +325,7 @@ DeclareGlobalFunction("NrPartitionsSet");
 ##  Do not call `Partitions' with an <n> much larger than 40, in  which
 ##  case there are 37338 partitions, since the list will simply become too
 ##  large.
+##
 DeclareGlobalFunction("Partitions");
 
 #############################################################################
@@ -318,6 +333,7 @@ DeclareGlobalFunction("Partitions");
 #F  NrPartitions( <n> [,<k>])
 ##
 ##  returns the number of `Partitions(<set>,<k>)'.
+##
 DeclareGlobalFunction("NrPartitions");
 
 #############################################################################
@@ -335,6 +351,7 @@ DeclareGlobalFunction("NrPartitions");
 ##
 ##  Do not call `OrderedPartitions' with an <n> much larger  than  15,  the
 ##  list will simply become too large.
+##
 DeclareGlobalFunction("OrderedPartitions");
 
 #############################################################################
@@ -342,6 +359,7 @@ DeclareGlobalFunction("OrderedPartitions");
 #F  NrOrderedPartitions( <n> [,<k>] )
 ##
 ##  returns the number of `OrderedPartitions(<set>,<k>)'.
+##
 DeclareGlobalFunction("NrOrderedPartitions");
 
 #############################################################################
@@ -360,6 +378,7 @@ DeclareGlobalFunction("NrOrderedPartitions");
 ##  nonincreasing order.  The difference is that  here  the $p_i$ must be
 ##  elements from the set <set>, while for ordinary partitions they may be
 ##  elements from `[1..n]'.
+##
 DeclareGlobalFunction("RestrictedPartitions");
 
 
@@ -368,6 +387,7 @@ DeclareGlobalFunction("RestrictedPartitions");
 #F  NrRestrictedPartitions(<n>,<set> [,<k>] )
 ##
 ##  returns the number of `RestrictedPartitions(<n>,<set>,<k>)'.
+##
 DeclareGlobalFunction("NrRestrictedPartitions");
 
 
@@ -382,6 +402,7 @@ DeclareGlobalFunction("NrRestrictedPartitions");
 ##  exactly the alternating  group $A_n$  (see "SignPerm").  Partitions  of
 ##  sign  1  are called *even* partitions while partitions of sign $-1$ are
 ##  called *odd*.
+##
 DeclareGlobalFunction("SignPartition");
 
 
@@ -389,7 +410,7 @@ DeclareGlobalFunction("SignPartition");
 ##
 #F  AssociatedPartition( <pi> )
 ##
-##  'AssociatedPartition'  returns the associated partition  of the partition
+##  `AssociatedPartition'  returns the associated partition  of the partition
 ##  <pi> which is obtained by transposing the corresponding Young diagram.
 ##
 DeclareGlobalFunction("AssociatedPartition");
@@ -397,9 +418,9 @@ DeclareGlobalFunction("AssociatedPartition");
 
 #############################################################################
 ##
-#F  PowerPartition(" <pi>, <k> ) . . . . . . . . . . . .  power of a partition
+#F  PowerPartition( <pi>, <k> ) . . . . . . . . . . . .  power of a partition
 ##
-##  'PowerPartition'  returns the partition corresponding to the <k>-th power
+##  `PowerPartition'  returns the partition corresponding to the <k>-th power
 ##  of a permutation with cycle structure <pi>.
 ##
 ##  Each part $l$ of <pi> is replaced by $d = \gcd(l, k)$ parts $l/d$.  So
@@ -413,12 +434,13 @@ DeclareGlobalFunction("PowerPartition");
 ##
 #F  PartitionTuples( <n>, <r> ) . . . . . . . . . <r> partitions with sum <n>
 ##
-##  'PartitionTuples'  returns the list of all <r>-tuples of partitions which
+##  `PartitionTuples'  returns the list of all <r>-tuples of partitions which
 ##  together form a partition of <n>.
 ##
 ##  <r>--tuples  of partitions describe the  classes  and  the  characters
 ##  of wreath products of groups with  <r> conjugacy classes with the
 ##  symmetric group $S_n$.
+##
 DeclareGlobalFunction("PartitionTuples");
 
 
@@ -443,9 +465,10 @@ DeclareGlobalFunction("PartitionTuples");
 ##  $U_{2k} = U_k V_k,  U_{2k+1} = (P U_{2k} + V_{2k}) / 2$ and $V_{2k} =
 ##  V_k^2 - 2 Q^k,  V_{2k+1} = ((P^2-4Q) U_{2k} + P V_{2k}) / 2$.
 ##
-##  `Fibonnaci(<k>)' (see "Fibonacci") is simply `Lucas(1,-1,<k>)[1]'.  In
+##  `Fibonacci(<k>)' (see "Fibonacci") is simply `Lucas(1,-1,<k>)[1]'.  In
 ##  an abuse of notation, the sequence  `Lucas(1,-1,<k>)[2]' is sometimes
 ##  called the Lucas sequence.
+##
 DeclareGlobalFunction("Lucas");
 
 #############################################################################
@@ -462,9 +485,10 @@ DeclareGlobalFunction("Lucas");
 ##  1/\phi^n$, where  $\phi$ is $(\sqrt{5} + 1)/2$, i.e., one root of $x^2 -
 ##  x - 1 = 0$.  Fibonacci  numbers have  the  property $Gcd( F_m,  F_n ) =
 ##  F_{Gcd(m,n)}$.  But a pair of Fibonacci numbers requires more division
-##  steps in Euclid\'s algorithm (see "Gcd") than any  other  pair of
+##  steps in Euclid's algorithm (see~"Gcd") than any  other  pair of
 ##  integers of the same size.  `Fibonnaci(<k>)' is the special case
 ##  `Lucas(1,-1,<k>)[1]' (see "Lucas").
+##
 DeclareGlobalFunction("Fibonacci");
 
 
@@ -478,6 +502,7 @@ DeclareGlobalFunction("Fibonacci");
 ##  $B_n/n!$ is the coefficient of $x^n$  in the power series of
 ##  $x/{e^x-1}$.  Except for $B_1=-1/2$ the Bernoulli numbers for odd
 ##  indices $m$ are zero.
+##
 DeclareGlobalFunction("Bernoulli");
 
 #############################################################################
@@ -491,13 +516,12 @@ DeclareGlobalFunction("Bernoulli");
 ##  definition of the determinant.  In  fact the only  difference is the
 ##  missing sign of the permutation.  However the  permanent is quite unlike
 ##  the determinant, for example it is  not  multilinear or  alternating.
-##  It has  however important combinatorical properties.
+##  It has however important combinatorial properties.
+##
 DeclareGlobalFunction("Permanent");
 
 #############################################################################
 ##
-#E  combinat.gd . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 ##
-
-
 

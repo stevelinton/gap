@@ -57,18 +57,18 @@ const char * Revision_set_c =
 
 *F  IsSet( <list> ) . . . . . . . . . . . . . . . . . test if a list is a set
 **
-**  'IsSet' returns 1 if the list <list> is a proper set  and 0 otherwise.  A
-**  proper set is a list that has no holes, no duplicates, and is sorted.  As
-**  a sideeffect 'IsSet' changes the type of proper sets to 'T_SET'.
+**  'IsSet' returns 1 if the list <list> is a proper set and 0
+**  otherwise.  A proper set is a homogenous list that has no holes,
+**  no duplicates, and is sorted.  As a sideeffect 'IsSet' changes the
+**  type of proper sets as appropriate.
 **
 **  A typical call in the set functions looks like this:
 **
 **  |    if ( ! IsSet(list) )  list = SetList(list); |
 **
-**  This tests if 'list' is a proper set and the type  is changed to 'T_SET'.
+**  This tests if 'list' is a proper set and the type  is changed 
 **  If it is not  then 'SetList' is  called to make  a copy of 'list', remove
-**  the holes, sort the copy, and remove the duplicates.
-*/
+**  the holes, sort the copy, and remove the duplicates.  */
 #define IS_IMM_PLIST(list)  ((TNUM_OBJ(list) - T_PLIST) % 2)
 
 Int IsSet ( 
@@ -86,8 +86,8 @@ Int IsSet (
             isSet = 1;
         }
 
-        /* if <list> homogeneous and strictly sorted, its a set            */
-        else if ( IS_HOMOG_LIST(list) && IS_SSORT_LIST(list) ) {
+        /* if <list>  strictly sorted, its a set            */
+        else if ( IS_SSORT_LIST(list) ) {
             isSet = 1;
         }
 
@@ -108,10 +108,10 @@ Int IsSet (
             isSet = 1;
         }
 
-        /* if <list> homogeneous and strictly sorted, its a set            */
-        else if ( IS_HOMOG_LIST(list) && IS_SSORT_LIST(list) ) {
+        /* if <list> strictly sorted, its a set            */
+        else if (  IS_SSORT_LIST(list) ) {
             PLAIN_LIST( list );
-            SET_FILT_LIST( list, FN_IS_HOMOG );
+            /* SET_FILT_LIST( list, FN_IS_HOMOG ); */
             SET_FILT_LIST( list, FN_IS_SSORT );
             isSet = 1;
         }
@@ -219,7 +219,7 @@ Obj FuncLIST_SORTED_LIST (
     }
 
     /* if <list> is a set just shallow copy it                             */
-    else if ( IS_HOMOG_LIST(list) && IS_SSORT_LIST(list) ) {
+    else if ( /* IS_HOMOG_LIST(list) && */ IS_SSORT_LIST(list) ) {
         set = SHALLOW_COPY_OBJ( list );
     }
 
@@ -435,7 +435,11 @@ Obj FuncADD_SET (
     UInt                len;            /* logical length of the list      */
     UInt                pos;            /* position                        */
     UInt                i;              /* loop variable                   */
-
+    UInt                isCyc;          /* True if the set being added to consists
+					   of kernel cyclotomics           */
+    UInt                notpos;         /* position of an original element
+					   (not the new one)               */
+    
     /* check the arguments                                                 */
     while ( ! IsSet(set) || ! IS_MUTABLE_OBJ(set) ) {
         set = ErrorReturnObj(
@@ -460,11 +464,43 @@ Obj FuncADD_SET (
 
         /* fix up the type of the result                                   */
         if ( HAS_FILT_LIST( set, FN_IS_SSORT ) ) {
+	    isCyc = (TNUM_OBJ(set) == T_PLIST_CYC_SSORT);
             CLEAR_FILTS_LIST(set);
-            if ( IS_MUTABLE_OBJ(obj) ) {
-                SET_FILT_LIST( set, FN_IS_DENSE );
-            }
-            else {
+	    /* the result of addset is always dense */
+	    SET_FILT_LIST( set, FN_IS_DENSE );
+
+				/* if the object we added was not
+                                   mutable then we might be able to
+                                   conclude more */
+	    if ( ! IS_MUTABLE_OBJ(obj) ) {
+				/* a one element list is automatically
+                                   homogenous */
+	        if (len == 0 )
+		  {
+		    if (TNUM_OBJ(obj) <= T_CYC)
+		      RetypeBag( set, T_PLIST_CYC_SSORT);
+		    else
+		      SET_FILT_LIST( set, FN_IS_HOMOG );
+		  }
+		else
+		  {
+		    /* Now determine homogeneity */
+		    if (isCyc)
+		      if (TNUM_OBJ(obj) <= T_CYC)
+			RetypeBag( set, T_PLIST_CYC_SSORT);
+		      else
+			SET_FILT_LIST(set, FN_IS_NHOMOG);
+		    else if (!SyInitializing) {
+		      notpos = (pos == 1) ? 2 : 1;
+		      if (FAMILY_OBJ(ELM_PLIST(set,notpos)) == FAMILY_OBJ(obj))
+			SET_FILT_LIST(set, FN_IS_HOMOG);
+		      else
+			RetypeBag( set, T_PLIST_DENSE_NHOM);
+		    }
+		  }
+		
+		/* This only does anything if we have managed to set
+                   Homog by now */
                 SET_FILT_LIST( set, FN_IS_SSORT );
             }
         }
@@ -635,10 +671,21 @@ Obj FuncUNITE_SET (
     }
 
     /* fix up the type of the result                                       */
-    CLEAR_FILTS_LIST(set1);
     if ( 0 == LEN_PLIST(set1) ) {
         RetypeBag( set1, MUTABLE_TNUM(TNUM_OBJ(set2)) );
+    } else if ( 0 != LEN_PLIST(set2)) {
+      if (HAS_FILT_LIST(set1, FN_IS_HOMOG))
+	if( !HAS_FILT_LIST(set2, FN_IS_HOMOG))
+	  RESET_FILT_LIST(set1, FN_IS_HOMOG);
+	else if (!SyInitializing &&
+		 FAMILY_OBJ(ELM_PLIST(set1,1)) != FAMILY_OBJ(ELM_PLIST(set2,1)))
+	  {
+	    RetypeBag(set1, T_PLIST_DENSE_NHOM);
+	  }
     }
+
+    /* This only does something if set1 has ended up homogenous */
+    SET_FILT_LIST(set1, FN_IS_SSORT);
 
     /* resize the result and copy back from the union                      */
     GROW_PLIST(    set1, lenr );
@@ -726,9 +773,28 @@ Obj FuncINTER_SET (
 
     /* fix up the type of the result                                       */
     if ( lenr == 0 ) {
-        CLEAR_FILTS_LIST(set1);
-        SET_FILT_LIST( set1, FN_IS_EMPTY );
+      CLEAR_FILTS_LIST(set1);
+      SET_FILT_LIST( set1, FN_IS_EMPTY );
     }
+    else if ( lenr == 1) {
+      if (TNUM_OBJ(ELM_PLIST(set1,1)) <= T_CYC)
+	RetypeBag(set1, T_PLIST_CYC_SSORT);
+      else
+	RetypeBag(set1, T_PLIST_HOM_SSORT);
+    }
+    else
+      {
+	if ( TNUM_OBJ(set2) >= T_PLIST_CYC )
+	  RetypeBag(set1, MUTABLE_TNUM( TNUM_OBJ(set2)));
+	else
+	  {
+	    RESET_FILT_LIST(set1, FN_IS_NHOMOG);
+	    if ( HAS_FILT_LIST( set2, FN_IS_HOMOG )) {
+	      SET_FILT_LIST(set1, FN_IS_HOMOG );
+	      SET_FILT_LIST(set1, FN_IS_SSORT );
+	    }
+	  }
+      }
 
     /* return void, this is a procedure                                    */
     return (Obj)0;
@@ -816,6 +882,14 @@ Obj FuncSUBTR_SET (
         CLEAR_FILTS_LIST(set1);
         SET_FILT_LIST( set1, FN_IS_EMPTY );
     }
+    else if ( lenr == 1) {
+      if (TNUM_OBJ(ELM_PLIST(set1,1)) <= T_CYC)
+	RetypeBag(set1, T_PLIST_CYC_SSORT);
+      else
+	RetypeBag(set1, T_PLIST_HOM_SSORT);
+    }
+    else
+      RESET_FILT_LIST(set1, FN_IS_NHOMOG);
 
     /* return void, this is a procedure                                    */
     return (Obj)0;

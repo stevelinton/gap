@@ -12,6 +12,39 @@
 Revision.string_gd :=
     "@(#)$Id$";
 
+
+#############################################################################
+##
+#F  IsDigitChar(<c>)
+##
+##  checks whether the character <c> is a digit
+##
+DeclareGlobalFunction("IsDigitChar");
+
+#############################################################################
+##
+#F  IsAlphaChar(<c>)
+##
+##  checks whether the character <c> is an alphabet letter.
+##
+DeclareGlobalFunction("IsAlphaChar");
+
+#############################################################################
+##
+#F  IsUpperAlphaChar(<c>)
+##
+##  checks whether the character <c> is an uppercase alphabet letter.
+##
+DeclareGlobalFunction("IsUpperAlphaChar");
+
+#############################################################################
+##
+#F  IsLowerAlphaChar(<c>)
+##
+##  checks whether the character <c> is an lowercase alphabet letter.
+##
+DeclareGlobalFunction("IsLowerAlphaChar");
+
 #2
 ##  All calendar functions use the Gregorian calendar.
 
@@ -53,7 +86,8 @@ DeclareGlobalFunction("DayDMY");
 #v  NamesWeekDay  . . . . . . . . . . . . . . . . . list of names of weekdays
 ##
 ##  is a list of abbreviated weekday names.
-NameWeekDay := Immutable( ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"] );
+BindGlobal( "NameWeekDay",
+    Immutable( ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"] ) );
 
 
 #############################################################################
@@ -68,8 +102,9 @@ DeclareGlobalFunction("WeekDay");
 ##
 #v  NameMonth . . . . . . . . . . . . . . . . . . . . list of names of months
 ##
-NameMonth := Immutable( [ "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ] );
+BindGlobal( "NameMonth",
+    Immutable( [ "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ] ) );
 
 
 #############################################################################
@@ -132,6 +167,29 @@ DeclareGlobalFunction("LowercaseString");
 
 #############################################################################
 ##
-#E  string.gd . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#O  SplitString( <string>, <seps> [, <wspace> ] )
+##
+##  This function accepts a string <string> and lists <seps> and, optionally,
+##  <wspace> of characters.  Now string is split into substrings at each
+##  occurrence of a character in <seps> or <wspace>.  The characters in
+##  <wspace> are interpreted as white space charactes.  Substrings of
+##  characters in <wspace> are treated as one white space character and they
+##  are ignored at the beginning and end of a string.
+##
+##  Both arguments <seps> and <wspace> can be single characters.
+##
+##  Each string in the resulting list of substring does not contain any
+##  characters in <seps> or <wspace>.
+##
+##  A character that occurs both in <seps> and <wspace> is treated as a
+##  white space character.
+##
+##  A separator at the end of a string is interpreted as a terminator; in
+##  this case, the separator does not produce a trailing empty string.
+##
+DeclareOperation( "SplitString", [IsString, IsObject, IsObject] );
 
+#############################################################################
+##
+#E
 

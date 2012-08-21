@@ -71,7 +71,7 @@ gap> v:= LeftModuleByGenerators( GF(2), [ [ Z(2), Z(2) ], [ Z(4), Z(4) ] ] );
 gap> Print(AsList( v ),"\n");
 [ [ 0*Z(2), 0*Z(2) ], [ Z(2)^0, Z(2)^0 ], [ Z(2^2), Z(2^2) ], 
   [ Z(2^2)^2, Z(2^2)^2 ] ]
-gap> Print(AsListSorted( v ),"\n");
+gap> Print(AsSSortedList( v ),"\n");
 [ [ 0*Z(2), 0*Z(2) ], [ Z(2)^0, Z(2)^0 ], [ Z(2^2), Z(2^2) ], 
   [ Z(2^2)^2, Z(2^2)^2 ] ]
 gap> IsSubset( v, w );

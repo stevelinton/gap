@@ -1,0 +1,78 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%A  addmagma.msk               GAP documentation                Thomas Breuer
+%%
+%A  @(#)$Id$
+%%
+%Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+%%
+\PreliminaryChapter{Additive Magmas}
+
+This chapter deals with domains that are closed under addition `+',
+which are called *additive magmas* in {\GAP}.
+Together with the domains closed under multiplication `\*', (see~"Magmas"),
+they are the basic algebraic structures;
+every module (see~"Modules"), vector space (see~"Vector Spaces"),
+ring (see~"Rings"), or field (see~"Fields and Division Rings")
+is an additive magma.
+In the cases of an *additive magma-with-zero* or
+*additive magma-with-inverses*,
+additional additive structure is present, see~"Additive Magma Categories".
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Additive Magma Categories}
+
+\Declaration{IsAdditiveMagma}
+\Declaration{IsAdditiveMagmaWithZero}
+\Declaration{IsAdditiveGroup}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Additive Magma Generation}
+
+\Declaration{AdditiveMagma}
+\Declaration{AdditiveMagmaWithZero}
+\Declaration{AdditiveGroup}
+
+The underlying operations for which methods can be installed are the
+following.
+
+\Declaration{AdditiveMagmaByGenerators}
+\Declaration{AdditiveMagmaWithZeroByGenerators}
+\Declaration{AdditiveGroupByGenerators}
+
+Substructures of an additive magma can be formed as follows.
+
+\Declaration{SubadditiveMagma}
+\Declaration{SubadditiveMagmaWithZero}
+\Declaration{SubadditiveGroup}
+
+%The following functions can be used to regard a collection as an additive
+%magma.
+%
+%Declaration{AsAdditiveMagma}
+%Declaration{AsSubadditiveMagma}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Attributes and Properties for Additive Magmas}
+
+\Declaration{GeneratorsOfAdditiveMagma}
+\Declaration{GeneratorsOfAdditiveMagmaWithZero}
+\Declaration{GeneratorsOfAdditiveGroup}
+
+\Declaration{AdditiveNeutralElement}
+\Declaration{TrivialSubadditiveMagmaWithZero}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Operations for Additive Magmas}
+
+\Declaration{ClosureAdditiveGroup}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%E
+

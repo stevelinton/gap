@@ -1,10 +1,10 @@
 #############################################################################
 ##
-#W  Makefile                    GAP source                       Frank Celler
+#W  Makefile			GAP source			 Frank Celler
 ##
 #H  @(#)$Id$
 ##
-#Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
+#Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,	RWTH Aachen,  Germany
 ##
 ##  This file creates the `configure' scripts using `autoconf'.
 ##
@@ -16,12 +16,12 @@ calls		code		compiler	compstat	costab	\
 cyclotom	dt		dteval		exprs		finfield\
 funcs		gap		gasman		gvars		integer	\
 intrprtr	listfunc	listoper	lists		objcftl	\
-objects		objfgelm	objpcgel	objscoll	opers	\
-permutat	plist		precord		range		rational\
-read		records		saveload	scanner		sctable	\
-set		stats		streams		string		sysfiles\
-system		tietze		vars		vecgf2		vector	\
-weakptr
+objects		objfgelm	objpcgel	objscoll	objccoll\
+opers		permutat	plist		precord		range	\
+rational	read		records		saveload	scanner \
+sctable		set		stats		streams		string	\
+sysfiles	system		tietze		vars		vecgf2	\
+vec8bit         vector		vecffe		weakptr		
 
 
 default: configure.out ../configure
@@ -44,6 +44,7 @@ AlwaysMakegap.in:
 	@echo '# OBJECTS are generated from SOURCE' >> Makegap.in
 	@echo -n "OBJECTS=" >> Makegap.in
 	@eval 'for i in $(SOURCE); do echo -n "$$i.o "; done' >> Makegap.in
+	@echo '$$(GAPMPI_OBJ)' >> Makegap.in
 	@echo >> Makegap.in
 	@echo >> Makegap.in
 	@echo '# compile and link GAP' >> Makegap.in
@@ -55,5 +56,6 @@ AlwaysMakegap.in:
 	    $(CC) -MM -I ../src -DUSE_PRECOMPILED ../src/$$i.c; \
 	    echo '	$$(CC) -I. -DCONFIG_H $$(CFLAGS)' -o $$i.o -c ../src/$$i.c; \
 	    echo ; \
-          done \
+	done \
 	) | sed -e 's:../src:@srcdir@:g' >> Makegap.in
+	@cat Makegap.bottom >> Makegap.in

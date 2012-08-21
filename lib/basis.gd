@@ -17,14 +17,17 @@
 ##  and `LinearCombination'.
 ##
 ##  {\GAP} supports three types of bases, namely
-##  \beginitems
-##   1. & *relative bases* that delegate the work to another basis of the same
-##     left module (via a basechange matrix), 
+##  \beginlist
+##  \item{1.}
+##    *relative bases* that delegate the work to another basis of the same
+##    left module (via a basechange matrix), 
 ##
-##  2. & *bases handled by nice bases* that delegate the work to a basis
-##     of an isomorphic left module over the same left acting domain, and
+##  \item{2.}
+##    *bases handled by nice bases* that delegate the work to a basis
+##    of an isomorphic left module over the same left acting domain, and
 ##
-##  3. & bases that really do the work.
+##  \item{3.}
+##    bases that really do the work.
 ##  \endlist
 ##
 ##  *Constructors* for bases are `RelativeBasis' resp. `RelativeBasisNC'
@@ -34,23 +37,28 @@
 ##  `RelativeBasis' does only need one method.
 ##  
 ##  Examples:
-##  \beginitems
-##   - & In the case of Gaussian row and matrix spaces, 
+##  \beginlist
+##  \item{-}
+##    In the case of Gaussian row and matrix spaces, 
 ##    `BasisOfDomain( <V> )'
 ##    computes a semi-echelonized basis that uses Gaussian elimination.
 ##    A basis constructed with user supplied vectors is either
 ##    semi-echelonized or is a relative basis.
 ##
-##  - & In the case of handling by nice bases, *no* basechange matrix is used
+##  \item{-}
+##    In the case of handling by nice bases, *no* basechange matrix is used
 ##    (the nice basis, however, is allowed to use a basechange matrix).
 ##
-##  - & Non-Gaussian row and matrix spaces are handled via nice bases.
+##  \item{-}
+##    Non-Gaussian row and matrix spaces are handled via nice bases.
 ##
-##  - & Field element spaces occur in two situations.
+##  \item{-}
+##    Field element spaces occur in two situations.
 ##    For the fields themselves and subfields special bases are used.
 ##    For a subspace of a field the nice basis is constructed
 ##    relative to a basis of the enveloping field.
-##  \enditems
+##  \endlist
+##
 Revision.basis_gd :=
     "@(#)$Id$";
 
@@ -316,9 +324,15 @@ DeclareOperation( "SemiEchelonBasisByGeneratorsNC",
 ##
 #F  Basis( <V> )
 #F  Basis( <V>, <vectors> )
+#F  Basis( <V>, <vectors>, true )
 ##
-##  These are abbreviations for `BasisByDomain' and `BasisByGenerators'
-##  respectively.
+##  Called with a free left module <V> as the only argument,
+##  `Basis' returns the result of `BasisOfDomain' (see~"BasisOfDomain").
+##  Called with a free left module <V> and a list <vectors> of vectors in
+##  <V>, `Basis' returns the result of `BasisByGenerators'
+##  (see~"BasisByGenerators").
+##  If additionally a third argument `true' is entered then
+##  `BasisByGeneratorsNC' (see~"BasisByGeneratorsNC") is called instead.
 ##
 DeclareGlobalFunction( "Basis" );
 
@@ -327,9 +341,17 @@ DeclareGlobalFunction( "Basis" );
 ##
 #F  SemiEchelonBasis( <V> )
 #F  SemiEchelonBasis( <V>, <vectors> )
+#F  SemiEchelonBasis( <V>, <vectors>, true )
 ##
-##  These are abbreviations for `SemiEchelonBasisByDomain'
-##  and `SemiEchelonBasisByGenerators' respectively.
+##  Called with a free left module <V> as the only argument,
+##  `SemiEchelonBasis' returns the result of `SemiEchelonBasisOfDomain'
+##  (see~"BasisOfDomain").
+##  Called with a free left module <V> and a list <vectors> of vectors in
+##  <V>, `SemiEchelonBasis' returns the result of
+##  `SemiEchelonBasisByGenerators' (see~"SemiEchelonBasisByGenerators").
+##  If additionally a third argument `true' is entered then
+##  `SemiEchelonBasisByGeneratorsNC' (see~"SemiEchelonBasisByGeneratorsNC")
+##  is called instead.
 ##
 DeclareGlobalFunction( "SemiEchelonBasis" );
 
@@ -382,7 +404,7 @@ DeclareOperation( "RelativeBasisNC", [ IsBasis, IsHomogeneousList ] );
 ##  computation of basis vectors, coefficients w.r.t. $B$ etc.
 ##  to a basis $C$ of an isomorphic ``nicer'' left $F$-module,
 ##  which usually is a row vector space or a matrix vector space,
-##  and thus allows to apply Gaussian elimination. 
+##  and thus allows one to apply Gaussian elimination. 
 ##  $C$ is called the {\it nice basis} of $B$, its underlying space $W$
 ##  is called the {\it nice vector space} of $V$.
 ##  (It is *not* required that the nice vector space is a coefficient space.)
@@ -396,11 +418,15 @@ DeclareOperation( "RelativeBasisNC", [ IsBasis, IsHomogeneousList ] );
 ##
 ##  If left module generators for $V$ are known then the usual process is as
 ##  follows.
-##  1. `B:= BasisOfDomain( <V> )'
+##  \beginlist
+##  \item{1.}
+##     `B:= BasisOfDomain( <V> )'
 ##           computes a basis for <V>, without basis vectors.
-##  2. `PrepareNiceFreeLeftModule( <V> )'
+##  \item{2.}
+##     `PrepareNiceFreeLeftModule( <V> )'
 ##           computes the necessary data for the bijections
-##  3. `W:= NiceFreeLeftModule( <V> )'
+##  \item{3.}
+##     `W:= NiceFreeLeftModule( <V> )'
 ##           computes the left module generated by the images of
 ##           left module generators of <V> under the homomorphism mentioned
 ##           above.
@@ -408,12 +434,15 @@ DeclareOperation( "RelativeBasisNC", [ IsBasis, IsHomogeneousList ] );
 ##           that either left module generators of <V> are known or that
 ##           <V> is a FLMLOR(-with-one) with known left operator
 ##           ring(-with-one) generators.)
-##  3. `C:= BasisOfDomain( W )'
+##  \item{3.}
+##     `C:= BasisOfDomain( W )'
 ##           computes a basis of the nice module `W' (That this is possible
 ##           is a problem of `W' and must of course be assumed!).
-##  4. `BasisVectors( B )'
+##  \item{4.}
+##     `BasisVectors( B )'
 ##           computes the preimages of `BasisVectors( C )' under the
 ##           homomorphism.
+##  \endlist
 ##
 ##  The default of `NiceBasis( <B> )' is
 ##  `Basis( NiceFreeLeftModule( <V> ) )' if no basis vectors are bound in
@@ -540,8 +569,8 @@ DeclareOperation( "PrepareNiceFreeLeftModule",
 ##  If <r> lies in <W> (which usually can be checked)
 ##  then `NiceVector( <V>, UglyVector( <V>, <r> ) ) = <r>'.
 ##
-##  (This allows for example to implement a membership test for <V> using the
-##  membership test in <W>.)
+##  (This allows one for example to implement a membership test for <V>
+##  using the membership test in <W>.)
 ##
 ##  Note that `NiceVector' and `UglyVector' may fail if <V> is a free module
 ##  for that `PrepareNiceFreeLeftModule' was not yet called.
@@ -555,5 +584,5 @@ DeclareOperation( "UglyVector",
 
 #############################################################################
 ##
-#E  basis.gd  . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

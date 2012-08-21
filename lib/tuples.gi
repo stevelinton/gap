@@ -197,7 +197,7 @@ end);
 ##
 
 DeclareRepresentation( "IsDefaultTupleRep", 
-                             IsComponentObjectRep and IsTuple, [] );
+                             IsPositionalObjectRep and IsTuple, [] );
 
 
 #############################################################################
@@ -215,7 +215,7 @@ InstallMethod( TupleNC,
     local t;
     Assert(2, ComponentsOfTuplesFamily( fam ) = List(objlist, FamilyObj));
     t := Objectify( NewType(fam,  IsDefaultTupleRep ), 
-         List(objlist, Immutable) );
+         PlainListCopy(List(objlist, Immutable)) );
     Info(InfoTuples,3,"Created a new Tuple ",t);
     return t;
 end);
@@ -254,7 +254,7 @@ end);
 ##
 #M  Inverse( <tuple> )
 ##
-InstallMethod( Inverse,
+InstallMethod( InverseOp,
     "for a tuple",
     true, [ IsTuple ], 0,
 function( elm )
@@ -265,7 +265,7 @@ end );
 ##
 #M  One( <tuple> )
 ##
-InstallMethod( One,
+InstallMethod( OneOp,
     "for a tuple",
     true, [ IsTuple ], 0,
 function( elm )

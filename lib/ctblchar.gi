@@ -414,6 +414,7 @@ InstallGlobalFunction( Symmetrisations, function( tbl, characters, Sn )
     fi;
 
     tbl_powermap:= ShallowCopy( ComputedPowerMaps( tbl ) );
+#T better do the computation of necessary power maps only once!
 
     cyclestruct:= [];
     Sn_classparam:= ClassParameters( Sn );
@@ -441,6 +442,7 @@ InstallGlobalFunction( Symmetrisations, function( tbl, characters, Sn )
       fi;
     od;
 
+    powermap:= tbl_powermap;
     symmetrisations:= [];
     for chi in characters do
 
@@ -483,8 +485,9 @@ InstallGlobalFunction( Symmetrisations, function( tbl, characters, Sn )
           fi;
 
         od;
-        Add( symmetrisations, single );
+        Add( symmetrisations, ClassFunctionSameType( tbl, chi, single ) );
       od;
+
     od;
 
     # Return the symmetrizations.
@@ -1190,7 +1193,5 @@ end );
 
 #############################################################################
 ##
-#E  ctblchar.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-
-
+#E
 

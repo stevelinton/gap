@@ -1,0 +1,420 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%W  debug.msk                 GAP manual                    Thomas Breuer
+%W                                                       Alexander Hulpke
+%W                                                       Martin Schoenert
+%%
+%H  @(#)$Id$
+%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Chapter{Debugging and Profiling Facilities}
+
+This chapter describes some functions that are useful mainly for
+debugging and profiling purposes.
+
+The sections~"ApplicableMethod" and~"Tracing Methods" show how to get
+information about the methods chosen by the method selection mechanism
+(see~"prg:Method Selection").
+
+The final sections describe functions for collecting statistics about
+computations (see "Runtime", "Profiling").
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{ApplicableMethod}
+
+\Declaration{ApplicableMethod}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Tracing Methods}
+
+\Declaration{TraceMethods}
+\Declaration{UntraceMethods}
+
+\beginexample
+gap> TraceMethods( [ Size ] );
+gap> g:= Group( (1,2,3), (1,2) );;
+gap> Size( g );
+#I  Size: method for a permutation group
+#I  Setter(Size): system setter
+#I  Size: system getter
+#I  Size: system getter
+6
+gap> UntraceMethods( [ Size ] );
+\endexample
+
+\Declaration{TraceImmediateMethods}
+
+\beginexample
+gap> TraceImmediateMethods( true );
+gap> g:= Group( (1,2,3), (1,2) );;
+#I  immediate: IsFinitelyGeneratedGroup
+gap> Size( g );
+#I  Size: method for a permutation group
+#I  immediate: IsFinitelyGeneratedGroup
+#I  immediate: IsCyclic
+#I  immediate: IsFinitelyGeneratedGroup
+#I  Setter(Size): system setter
+#I  Size: system getter
+#I  immediate: IsPerfectGroup
+#I  Size: system getter
+#I  immediate: IsEmpty
+6
+gap> TraceImmediateMethods( false );
+gap> UntraceMethods( [ Size ] );
+\endexample
+
+This example gives an explanation for the two calls of the
+``system getter'' for `Size'.
+Namely, there are immediate methods that access the known size
+of the group.
+Note that the group `g' was known to be finitely generated already
+before the size was computed,
+the calls of the immediate method for `IsFinitelyGeneratedGroup'
+after the call of `Size' have other arguments than `g'.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Info Functions}
+
+The `Info' mechanism permits operations to display intermediate results or
+information about the progress of the algorithms.
+Information is always given according to one or more *info classes*. Each of the
+info classes defined in the {\GAP} library usually covers a certain range
+of algorithms, so for example `InfoLattice' covers all the cyclic extension
+algorithms for the computation of a subgroup lattice.
+
+The amount of information to be displayed can be specified by the user for
+each info class separately by a *level*, the higher the level the more
+information will be displayed.
+Ab initio all info classes have level zero except `InfoWarning' which
+has level 1.
+
+\>NewInfoClass( <name> ) O
+
+creates a new info class with name <name>.
+
+\>DeclareInfoClass( <name> ) F
+
+creates a new info class with name <name> and binds it to the global
+variable <name>. The variable must previously be writable, and is made 
+readonly by this function.
+
+\>SetInfoLevel( <infoclass>, <level> ) O
+
+Sets the info level for <infoclass> to <level>.
+
+\>InfoLevel( <infoclass> ) O
+
+returns the info level of <infoclass>.
+
+\>Info( <infoclass>, <level>, <info> [,<moreinfo> . . .] )
+
+If the info level of <infoclass> is at least <level> the remaining
+arguments (<info> and possibly <moreinfo> and so on) are evaluated and
+viewed. Otherwise the third and subsequent arguments are not
+evaluated. (The latter can save substantial time when displaying
+difficult results.)
+
+\beginexample
+gap> InfoExample:=NewInfoClass("InfoExample");;
+gap> Info(InfoExample,1,"one");Info(InfoExample,2,"two");
+gap> SetInfoLevel(InfoExample,1);
+gap> Info(InfoExample,1,"one");Info(InfoExample,2,"two");
+#I  one
+gap> SetInfoLevel(InfoExample,2);
+gap> Info(InfoExample,1,"one");Info(InfoExample,2,"two");
+#I  one
+#I  two
+gap> InfoLevel(InfoExample);
+2
+gap> Info(InfoExample,3,Length(Combinations([1..9999])));
+\endexample
+
+Note that the last `Info' call is executed without problems,
+since the actual level `2' of `InfoExample' causes `Info' to ignore
+the last argument, which prevents `Length(Combinations([1..9999]))'
+from being evaluated;
+note that an evaluation would be impossible due to memory restrictions.
+
+
+A set of info classes (called an *info selector* may be passed to a
+single `Info' statement). As a shorthand, info classes and selectors
+may be combined with `+' rather than `Union'. In this case, the
+message is triggered if the level of *any* of the classes is high enough.
+
+\beginexample
+gap> InfoExample:=NewInfoClass("InfoExample");;
+gap> SetInfoLevel(InfoExample,0);
+gap> Info(InfoExample + InfoWarning, 1, "hello");
+#I  hello
+gap> Info(InfoExample + InfoWarning, 2, "hello");
+gap> SetInfoLevel(InfoExample,2);
+gap> Info(InfoExample + InfoWarning, 2, "hello");
+#I  hello
+gap> InfoLevel(InfoWarning);
+1
+\endexample
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Assertions}
+
+Assertions are used to find errors in algorithms.
+They test whether intermediate results conform to required conditions
+and issue an error if not.
+
+\>SetAssertionLevel(<lev>) F
+
+assigns the global assertion level to <lev>. By default it is zero.
+
+\>AssertionLevel() F
+
+returns the current assertion level.
+
+\>Assert(<lev>,<cond>) F
+
+if the global assertion level is at least <lev>, condition <cond> is tested
+and if it does not return `true' an error is raised.
+Thus `Assert(lev, <code>)' is equivalent to the code
+\begintt
+if AssertionLevel() >= lev and not <code> then
+  Error("Assertion failure");
+fi;
+\endtt
+
+\>Assert(<lev>, <cond>, <message> ) F
+
+In this version of the `Assert' statement, if the global assertion
+level is at least <lev>, condition <cond> is tested and if it does not
+return `true' then <message> is evaluated and printed.
+
+Assertions are used at various places in the library.
+Thus turning assertions on can slow code execution significantly.
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Timing}
+
+\>Runtime() F
+
+`Runtime' returns the time spent by {\GAP} in milliseconds as an integer.
+This is usually the cpu time, i.e., not the wall clock time.
+Also time spent by subprocesses of {\GAP} (see "Process") is not counted.
+
+\>`time;'{time}
+
+in the read-eval-print loop returns the time the last command took.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Profiling}
+
+Profiling of code can be used to determine in which parts of a program how
+much time has been spent during runtime.
+
+\Declaration{ProfileOperations}
+\Declaration{ProfileOperationsAndMethods}
+\Declaration{ProfileMethods}
+\Declaration{UnprofileMethods}
+\Declaration{ProfileFunctions}
+\Declaration{UnprofileFunctions}
+
+\Declaration{DisplayProfile}
+
+\Declaration{ClearProfile}
+
+\begintt
+gap> ProfileOperationsAndMethods(true);
+gap> ConjugacyClasses(PrimitiveGroup(24,1));;
+gap> ProfileOperationsAndMethods(false);
+gap> DisplayProfile();
+  count  self/ms   sum/ms  chld/ms  function                                  
+[the following is excerpted from a much longer list]
+      1        0        0     5610  ConjugacyClasses: perm group              
+      1        0        0      100  NormalClosureOp: subgroup of perm group   
+      1        0        0      160  Method(DerivedSubgroup)                   
+      1        0        0       90  LatticeSubgroups: method for a cyclic g*  
+      1        0        0      160  DerivedSubgroup                           
+      1        0        0       90  LatticeSubgroups                          
+      1        0        0      100  ConjugacyClassesSubgroups: group          
+      1        0        0      190  Method(IsSimpleGroup)                     
+      1        0        0      100  NormalClosureOp                           
+      1        0        0      210  NaturalHomomorphismByNormalSubgroupOp     
+      1        0        0      190  Method(IsSimple)                          
+      2        0        0      120  ClosureGroup                              
+      4        0        0      190  Method(StabChainMutable)                  
+     26        0        0     1040  Method(StabilizerOfExternalSet)           
+     26        0        0     1040  StabilizerFuncOp: P, pnt, gens, gens, o*  
+     26        0        0      420  Size: method for a conjugacy class        
+     26        0        0     1040  StabilizerFuncOp                          
+     29        0        0      210  StabChainOp                               
+    107        0        0     1040  CentralizerOp                             
+    553        0        0      210  Method(StabChainImmutable)                
+    926        0        0     1040  Method(CentralizerOp)                     
+      2       10      180     5610  ConjugacyClasses                          
+      1       70     1760     5300  Method(ConjugacyClasses)                  
+      3       90     2000      100  Method(StabChainOp)                       
+    287       90     2090      280  Method(CyclesOp)                          
+   6890       90     2180      110  PositionCanonical                         
+   5962      130     2430      180  POW: sliced perm                          
+     26      600     4160      440  CentralizerOp: perm group,elm             
+    819     2630     6790     2120  Method(IN)                                
+            6790                    TOTAL  
+gap> DisplayProfile(StabChainOp,DerivedSubgroup); # only two functions
+  count  self/ms   sum/ms  chld/ms  function                                  
+      1        0        0      160  DerivedSubgroup                           
+     29        0        0      210  StabChainOp                               
+            6790                    OTHER                                     
+            6790                    TOTAL                                     
+\endtt
+
+Note that profiling (even the command `ProfileOperationsAndMethods(true)')
+can take substantial time and {\GAP} will perform much more slowly
+when profiling than when not.
+
+\Declaration{DisplayCacheStats}
+\Declaration{ClearCacheStats}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Information about the version used}
+
+\Declaration{DisplayRevision}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Test Files}
+
+Test files are used to check that {\GAP} produces correct results in
+certain computations. A selection of test files for the library can be
+found in the `tst' directory of the {\GAP} distribution.
+
+\>ReadTest( <name-file> ) O
+
+reads a test file.
+A test file starts with a line
+
+\begintt
+gap> START_TEST("arbitrary identifier string");
+\endtt
+
+(Note that the `gap>' prompt is part of the line!)
+It continues by lines of {\GAP} input and corresponding output.
+The input lines again start with the `gap>' prompt (or the `>' prompt if
+commands exceed one line). The output is exactly as would result from typing
+in the input interactively to a {\GAP} session
+(on a screen with 80 characters per line).
+
+The test file stops with a line
+
+\begintt
+gap> STOP_TEST( "filename", 10000 );
+\endtt
+
+Here the string `"filename"' should give the name of the test file. The
+number is a proportionality factor that is used to output a ``{\GAP}stone''
+speed ranking after the file has been completely processed. For the files
+provided with the distribution this scaling is roughly equalized to yield
+the same numbers as produced by `combinat.tst'.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Debugging Recursion}
+
+The {\GAP} interpreter monitors the level of nesting of {\GAP}
+functions during execution. By default, whenever this nesting reaches
+a multiple of 5000, {\GAP} enters a break loop ("break loop") allowing 
+you to terminate the calculation, or enter `return;' to continue it. 
+
+
+\begintt
+gap> dive:= function(depth) if depth>1 then dive(depth-1); fi; return; end;
+function( depth ) ... end
+gap> dive(100);
+gap> OnBreak:= function() Where(1); end; # shorter traceback
+function(  ) ... end
+gap> dive(6000);
+recursion depth trap (5000)
+ at
+dive( depth - 1 );
+dive( depth - 1 ); called from
+...
+Entering break read-eval-print loop, you can 'quit;' to quit to outer loop,
+or you may return to continue
+brk> return;
+gap> dive(11000);
+recursion depth trap (5000)
+ at
+dive( depth - 1 );
+dive( depth - 1 ); called from
+...
+Entering break read-eval-print loop, you can 'quit;' to quit to outer loop,
+or you may return to continue
+brk> return;
+recursion depth trap (10000)
+ at
+dive( depth - 1 );
+dive( depth - 1 ); called from
+...
+Entering break read-eval-print loop, you can 'quit;' to quit to outer loop,
+or you may return to continue
+brk> return;
+gap>
+\endtt
+
+This behaviour can be controlled using the procedure
+
+\> SetRecursionTrapInterval( <interval> ) F
+
+<interval> must be a non-negative small integer (between 0 and
+$2^{28}$). An <interval> of 0 suppresses the monitoring of recursion
+altogether. In this case excessive recursion may cause {\GAP} to crash.
+
+
+
+\begintt
+gap> dive:= function(depth) if depth>1 then dive(depth-1); fi; return; end;
+function( depth ) ... end
+gap> SetRecursionTrapInterval(1000);
+gap> dive(2500);
+recursion depth trap (1000)
+ at
+dive( depth - 1 );
+dive( depth - 1 ); called from
+...
+Entering break read-eval-print loop, you can 'quit;' to quit to outer loop,
+or you may return to continue
+brk> return;
+recursion depth trap (2000)
+ at
+dive( depth - 1 );
+dive( depth - 1 ); called from
+...
+Entering break read-eval-print loop, you can 'quit;' to quit to outer loop,
+or you may return to continue
+brk> return;
+gap> SetRecursionTrapInterval(-1);
+SetRecursionTrapInterval( <interval> ): <interval> must be a non-negative smal\
+l integer
+not in any function
+Entering break read-eval-print loop, you can 'quit;' to quit to outer loop,
+or You can return a non-negative small integer to continue
+brk> return ();
+SetRecursionTrapInterval( <interval> ): <interval> must be a non-negative smal\
+l integer
+not in any function
+Entering break read-eval-print loop, you can 'quit;' to quit to outer loop,
+or You can return a non-negative small integer to continue
+brk> return 0;
+gap> dive(20000);
+gap> dive(2000000);
+Segmentation fault
+\endtt
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%E
+

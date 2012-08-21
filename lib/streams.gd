@@ -83,9 +83,9 @@ StreamsFamily := NewFamily( "StreamsFamily" );
 
 #O  IsEndOfStream( <input-stream> ) . . . . . . . . . check for end-of-stream
 ##
-##  'IsEndOfStream' returns 'true' if the input stream is at <end-of-stream>,
-##  and 'false' otherwise.  Note   that 'IsEndOfStream' might  return 'false'
-##  even if the next 'ReadByte' fails.
+##  `IsEndOfStream' returns `true' if the input stream is at <end-of-stream>,
+##  and `false' otherwise.  Note   that `IsEndOfStream' might  return `false'
+##  even if the next `ReadByte' fails.
 ##
 DeclareOperation( "IsEndOfStream", [ IsInputStream ] );
 
@@ -101,13 +101,13 @@ DeclareOperation( "PositionStream", [ IsInputStream ] );
 ##
 #O  ReadAll( <input-text-stream> )  . . . . . . .  read whole input as string
 ##
-##  'ReadAll' returns all  characters  as   string  from the input     stream
+##  `ReadAll' returns all  characters  as   string  from the input     stream
 ##  <stream-in>.  It reads in the input until the stream is at end-of-stream,
-##  it    returns  'fail' if   the   <input-text-stream>  is  already at  the
+##  it    returns  `fail' if   the   <input-text-stream>  is  already at  the
 ##  end-of-stream.
 ##
-##  If <stream-in> is  the input stream  of a input/output process, 'ReadAll'
-##  may also return 'fail' if the process is also trying to read.
+##  If <stream-in> is  the input stream  of a input/output process, `ReadAll'
+##  may also return `fail' if the process is also trying to read.
 ##
 DeclareOperation( "ReadAll", [ IsInputTextStream ] );
 
@@ -116,12 +116,12 @@ DeclareOperation( "ReadAll", [ IsInputTextStream ] );
 ##
 #O  ReadByte( <input-stream> )	. . . . . . . . . . . . . .  read single byte
 ##
-##  'ReadByte' returns  one character (returned  as  integer) from  the input
-##  stream <stream-in>.  'ReadByte' returns 'fail' if there is no character
+##  `ReadByte' returns  one character (returned  as  integer) from  the input
+##  stream <stream-in>.  `ReadByte' returns `fail' if there is no character
 ##  available, in particular if it is at the end of a file.
 ##
-##  If <stream-in> is the input stream of  a input/output process, 'ReadByte'
-##  may also return 'fail' if the process is also trying to read.
+##  If <stream-in> is the input stream of  a input/output process, `ReadByte'
+##  may also return `fail' if the process is also trying to read.
 ##
 DeclareOperation( "ReadByte", [ IsInputStream ] );
                     
@@ -130,12 +130,12 @@ DeclareOperation( "ReadByte", [ IsInputStream ] );
 ##
 #O  ReadLine( <input-text-stream> ) . . . . . . . . read whole line as string
 ##
-##  'ReadLine' one   line (returned as  string  *with* the newline)  from the
-##  input stream <stream-in>.  'ReadLine' reads  in the input until a newline
+##  `ReadLine' one   line (returned as  string  *with* the newline)  from the
+##  input stream <stream-in>.  `ReadLine' reads  in the input until a newline
 ##  is read or the end-of-stream. is encountered.
 ##
-##  If <stream-in> is the input stream of  a input/output process, 'ReadLine'
-##  may also return 'fail' if the process is also trying to read.
+##  If <stream-in> is the input stream of  a input/output process, `ReadLine'
+##  may also return `fail' if the process is also trying to read.
 ##
 DeclareOperation( "ReadLine", [ IsInputTextStream ] );
 
@@ -200,7 +200,7 @@ DeclareOperation( "InputTextFile", [ IsString ] );
 
 #############################################################################
 ##
-#O  InputTextNone() . . . . . . . . . . . . . . . . . dummy input text stream
+#F  InputTextNone() . . . . . . . . . . . . . . . . . dummy input text stream
 ##
 UNBIND_GLOBAL( "InputTextNone" );
 DeclareGlobalFunction( "InputTextNone" );
@@ -208,7 +208,7 @@ DeclareGlobalFunction( "InputTextNone" );
 
 #############################################################################
 ##
-#O  InputTextUser() . . . . . . . . . . . . . input text stream from the user
+#F  InputTextUser() . . . . . . . . . . . . . input text stream from the user
 ##
 DeclareGlobalFunction( "InputTextUser" );
 
@@ -229,7 +229,7 @@ DeclareOperation( "OutputTextFile", [ IsList, IsBool ] );
 
 #############################################################################
 ##
-#O  OutputTextNone()  . . . . . . . . . . . . . . .  dummy output text stream
+#F  OutputTextNone()  . . . . . . . . . . . . . . .  dummy output text stream
 ##
 UNBIND_GLOBAL( "OutputTextNone" );
 DeclareGlobalFunction( "OutputTextNone" );
@@ -237,7 +237,7 @@ DeclareGlobalFunction( "OutputTextNone" );
 
 #############################################################################
 ##
-#O  OutputTextUser()  . . . . . . . . . . . .  output text stream to the user
+#F  OutputTextUser()  . . . . . . . . . . . .  output text stream to the user
 ##
 DeclareGlobalFunction( "OutputTextUser" );
 
@@ -247,11 +247,11 @@ DeclareGlobalFunction( "OutputTextUser" );
 
 #F  AppendTo( <stream>, <arg1>, ... ) . . . . . . . . . .  append to a stream
 ##
-##  This is   the same as   'PrintTo'  for streams.   If   <stream> is just a
-##  filename than there  is a difference:  'PrintTo'  will clear the    file,
-##  'AppendTo' will not.
+##  This is   the same as   `PrintTo'  for streams.   If   <stream> is just a
+##  filename than there  is a difference:  `PrintTo'  will clear the    file,
+##  `AppendTo' will not.
 ##
-AppendTo := function( arg )
+BIND_GLOBAL( "AppendTo", function( arg )
     if IsString(arg[1])  then
         CallFuncList( APPEND_TO, arg );
     elif IsOutputStream(arg[1])  then
@@ -259,16 +259,16 @@ AppendTo := function( arg )
     else
         Error( "first argument must be a filename or output stream" );
     fi;
-end;
+end );
 
 
 #############################################################################
 ##
 #F  PrintTo( <stream>, <arg1>, ... )  . . . . . . . . . .  append to a stream
 ##
-##  'PrintTo' appends <arg1>, ... to the output stream.
+##  `PrintTo' appends <arg1>, ... to the output stream.
 ##
-PrintTo := function( arg )
+BIND_GLOBAL( "PrintTo", function( arg )
     if IsString(arg[1])  then
         CallFuncList( PRINT_TO, arg );
     elif IsOutputStream(arg[1])  then
@@ -276,7 +276,7 @@ PrintTo := function( arg )
     else
         Error( "first argument must be a filename or output stream" );
     fi;
-end;
+end );
 
 
 #############################################################################

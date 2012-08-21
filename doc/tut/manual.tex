@@ -39,7 +39,7 @@
   \centerline{\secfont and}\bigskip
   \centerline{\secfont School of Mathematical and Computational Sciences}
     \medskip
-  \centerline{\secfont University of St.~Andrews, North Haugh, St.~Andrews,
+  \centerline{\secfont University of St~Andrews, North Haugh, St~Andrews,
               Fife KY16 9SS, Scotland}
 }
 %
@@ -60,7 +60,8 @@
 %F  FrontMatter . . . . . . . . . . . . . . . . . . . . .  GAP 4 Tutorial
 %%
 \FrontMatter
-\input copyrigh
+\immediate\write\citeout{\bs bibdata{mrabbrev,../manual}}
+\input ../ref/copyrigh
 \input preface
 %
 %
@@ -71,13 +72,22 @@
 \Chapters
 \Input{introduc}
 \Input{lists}
-\Input{records}
 \Input{function}
 \Input{group}
 \Input{algvspc}
 \Input{domain}
 \Input{opers}
 \Input{migrat}
+
+% fill doublepage before appendix
+\ifodd\pageno\else\null\vfill\eject\headlinefalse\fi
+% create chapter index entry for authors and preface
+\advance\chapno by1\secno=0\subsecno=0
+\immediate\write\secindout{C authors.tex \thechapter. Authors}
+\advance\chapno by1\secno=0\subsecno=0
+\immediate\write\secindout{C preface.tex \thechapter. Preface}
+
+
 %
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -85,7 +95,7 @@
 %F  Appendices  . . . . . . . . . . . .  Extending GAP 4 Reference Manual
 %%
 \Appendices
-\Answers
+%\Answers
 \Bibliography
 \Index
 %

@@ -21,7 +21,7 @@ Revision.wordass_gi :=
 ##  Multiplication of associative words is done by concatenating the words
 ##  and removing adjacent pairs of an abstract generator and its inverse.
 ##
-AssocWord_Product := function( x, y )
+BindGlobal( "AssocWord_Product", function( x, y )
 
     local xx,    # external representation of 'x'
           l,     # current length of 'xx', minus 1
@@ -108,12 +108,14 @@ AssocWord_Product := function( x, y )
       fi;
 
     fi;
-end;
+end );
+
 InstallMethod( \*,
     "for two assoc. words",
     IsIdenticalObj,
     [ IsAssocWord, IsAssocWord ], 0,
     AssocWord_Product );
+
 
 #############################################################################
 ##
@@ -195,7 +197,7 @@ InstallMethod( \^,
     fi;
     end );
 
-AssocWordWithInverse_Power := function( x, n )
+BindGlobal( "AssocWordWithInverse_Power", function( x, n )
 
     local xx,      # external representation of 'x'
           cxx,     # external repres. of the inverse of 'x'
@@ -307,14 +309,16 @@ AssocWordWithInverse_Power := function( x, n )
                               xx[2], head );
 
     fi;
-end;
+end );
+
 InstallMethod( \^,
     "for an assoc. word with inverse, and an integer",
     true,
     [ IsAssocWordWithInverse, IsInt ], 0,
     AssocWordWithInverse_Power );
 
-AssocWordWithInverse_Inverse := function( x )
+
+BindGlobal( "AssocWordWithInverse_Inverse", function( x )
 
     local xx,      # external representation of 'x'
           cxx,     # external repres. of the inverse of 'x'
@@ -345,12 +349,14 @@ AssocWordWithInverse_Inverse := function( x )
     # The exponents in the inverse do not exceed the exponents in 'x'.
 #T ??
     return AssocWord( TypeObj( x )![ AWP_PURE_TYPE ], cxx );
-end;
+end );
+
 InstallMethod( Inverse,
     "for an assoc. word with inverse",
     true,
     [ IsAssocWordWithInverse ], 0,
     AssocWordWithInverse_Inverse );
+
 
 #############################################################################
 ##
@@ -458,13 +464,20 @@ InstallMethod( ExponentSumWord,
 ##
 #M  Subword( <w>, <from>, <to> )
 ##
-InstallMethod( Subword,
+InstallOtherMethod( Subword,
     "for associative word and two positions",
     true,
-    [ IsAssocWord, IsPosInt, IsPosInt ],
+    # note: `SubstitutedWord' might call `Subword(w,1,0)', so the second
+    # number may be 0.
+    [ IsAssocWord, IsPosInt, IsInt ],
     0,
     function( w, from, to )
     local extw, pos, nextexp, firstexp, sub;
+
+    if to<from then
+      return ObjByExtRep( FamilyObj( w ), [] ); # we cannot call `One'
+      # because semigroups would whine!
+    fi;
 
     extw:= ExtRepOfObj( w );
     to:= to - from + 1;
@@ -698,13 +711,45 @@ end );
 
 #############################################################################
 ##
+#M  RenumberWord( <word>, <renumber> )  . . . . . . . . .  for an assoc. word
+##
+InstallMethod( RenumberedWord,
+    "associative words",
+    true,
+    [IsAssocWord, IsList], 0,
+function( w, renumber )
+    local   t,  i;
+
+    t := TypeObj( w );
+    w := ExtRepOfObj( w );
+
+    for i in [1,3..Length(w)-1] do
+        w[i] := renumber[ w[i] ];
+    od;
+    return AssocWord( t, w );
+end );
+
+#############################################################################
+##
 #M  MappedWord( <x>, <gens1>, <gens2> )
 ##
 BindGlobal( "MappedWordForAssocWord", function( x, gens1, gens2 )
 
-    local i, mapped, exp;
+local i, mapped, exp,ex2,p;
 
-    gens1:= List( gens1, x -> ExtRepOfObj( x )[1] );
+    gens1:= List( gens1, x -> ExtRepOfObj( x ));
+    if not ForAll(gens1,i->Length(i)=2 and i[2]=1) then
+      Error("<gens1> must be proper generators");
+    fi;
+
+    gens1:= List( gens1, x -> x[1] );
+    if ForAll(gens2,IsAssocWordWithInverse) then
+      ex2:=List(gens2,x->ExtRepOfObj(x));
+    else
+      # not words, forget special treatment
+      ex2:=fail;
+    fi;
+
     x:= ExtRepOfObj( x );
     if IsEmpty( x ) then
 
@@ -712,13 +757,34 @@ BindGlobal( "MappedWordForAssocWord", function( x, gens1, gens2 )
       mapped:= gens2[1] ^ 0;
 
     else
-      mapped:= gens2[ Position( gens1, x[1] ) ] ^ x[2];
-      for i in [ 2 .. Length( x )/2 ] do
-        exp:= x[ 2*i ];
-        if exp <> 0 then
-          mapped:= mapped * gens2[ Position( gens1, x[ 2*i-1 ] ) ] ^ exp;
-        fi;
-      od;
+      if ex2<>fail and ForAll(ex2,i->Length(i)=2 and AbsInt(i[2])=1) and 
+	 # ensure that all images are different (otherwise we would have to
+	 # deal with cancellation.
+   	 Length(Set(List(ex2,i->i[1])))=Length(ex2) then
+        # special case: all the genimages are generators or their inverses.
+	# We can deal with this by immediately creating a new ExtRep.
+	exp:=List(ex2,i->i[2]<0);
+	ex2:=List(ex2,i->i[1]);
+	mapped:=[];
+	for i in [2,4..Length(x)] do
+	  p:=Position(gens1,x[i-1]);
+	  Add(mapped,ex2[p]);
+	  if exp[p] then
+	    Add(mapped,-x[i]);
+	  else
+	    Add(mapped,x[i]);
+	  fi;
+	od;
+        mapped:=ObjByExtRep(FamilyObj(gens2[1]),mapped);
+      else
+	mapped:= gens2[ Position( gens1, x[1] ) ] ^ x[2];
+	for i in [ 4,6 .. Length( x ) ] do
+	  exp:= x[ i ];
+	  if exp <> 0 then
+	    mapped:= mapped * gens2[ Position( gens1, x[ i-1 ] ) ] ^ exp;
+	  fi;
+	od;
+      fi;
     fi;
 
     return mapped;
@@ -840,5 +906,6 @@ end );
 #############################################################################
 ##
 
-#E  wordass.gi  . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 ##
+

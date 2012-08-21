@@ -1189,7 +1189,7 @@ Obj             EvalRangeExpr (
     val = EVAL_EXPR( ADDR_EXPR(expr)[0] );
     while ( ! IS_INTOBJ(val) ) {
         val = ErrorReturnObj(
-            "Range: <first> must be an integer (not a %s)",
+            "Range: <first> must be an integer less that 2^28 (not a %s)",
             (Int)TNAM_OBJ(val), 0L,
             "you can return an integer for <first>" );
     }
@@ -1201,7 +1201,7 @@ Obj             EvalRangeExpr (
         while ( ! IS_INTOBJ(val) || INT_INTOBJ(val) == low ) {
             if ( ! IS_INTOBJ(val) ) {
                 val = ErrorReturnObj(
-                    "Range: <second> must be an integer (not a %s)",
+                    "Range: <second> must be an integer less that 2^28 (not a %s)",
                     (Int)TNAM_OBJ(val), 0L,
                     "you can return an integer for <second>" );
             }
@@ -1223,7 +1223,7 @@ Obj             EvalRangeExpr (
     while ( ! IS_INTOBJ(val) || (INT_INTOBJ(val) - low) % inc != 0 ) {
         if ( ! IS_INTOBJ(val) ) {
             val = ErrorReturnObj(
-                "Range: <last> must be an integer (not a %d)",
+                "Range: <last> must be an integer less that 2^28 (not a %s)",
                 (Int)TNAM_OBJ(val), 0L,
                 "you can return an integer for <last>" );
         }
@@ -1794,15 +1794,13 @@ void            PrintStringExpr (
 **
 **  'PrintRecExpr' the record expression <expr>.
 */
-void            PrintRecExpr (
+void            PrintRecExpr1 (
     Expr                expr )
 {
-    Expr                tmp;            /* temporary variable              */
-    UInt                i;              /* loop variable                   */
-
-    Pr("%2>rec(\n%2>",0L,0L);
-    for ( i = 1; i <= SIZE_EXPR(expr)/(2*sizeof(Expr)); i++ ) {
-
+  Expr                tmp;            /* temporary variable              */
+  UInt                i;              /* loop variable                   */
+  
+  for ( i = 1; i <= SIZE_EXPR(expr)/(2*sizeof(Expr)); i++ ) {
         /* print an ordinary record name                                   */
         tmp = ADDR_EXPR(expr)[2*i-2];
         if ( IS_INTEXPR(tmp) ) {
@@ -1824,7 +1822,13 @@ void            PrintRecExpr (
             Pr("%2<,\n%2>",0L,0L);
 
     }
+}
 
+void            PrintRecExpr (
+    Expr                expr )
+{
+    Pr("%2>rec(\n%2>",0L,0L);
+    PrintRecExpr1(expr);
     Pr(" %4<)",0L,0L);
 
 }

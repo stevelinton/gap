@@ -110,6 +110,12 @@ IsCollsElmsElmsX := function( F1, F2, F3, F4 )
        and IsIdenticalObj( F2, F3 );
 end;
 
+IsCollsElmsXElms := function( F1, F2, F3, F4 )
+    return HasElementsFamily(F1)
+       and IsIdenticalObj( ElementsFamily(F1), F2 )
+       and IsIdenticalObj( F2, F4 );
+end;
+
 IsCollCollsElmsElms := function( F1, F2, F3 )
     return HasElementsFamily(F1)
        and HasElementsFamily( ElementsFamily(F1) )
@@ -124,6 +130,12 @@ IsCollsCollsElms := function( F1, F2, F3 )
 end;
 
 IsCollsCollsElmsX := function( F1, F2, F3, F4 )
+    return HasElementsFamily( F1 )
+       and IsIdenticalObj( F1, F2 )
+       and IsIdenticalObj( ElementsFamily( F1 ), F3 );
+end;
+
+IsCollsCollsElmsXX := function( F1, F2, F3, F4, F5 )
     return HasElementsFamily( F1 )
        and IsIdenticalObj( F1, F2 )
        and IsIdenticalObj( ElementsFamily( F1 ), F3 );
@@ -401,7 +413,7 @@ end;
 
 #############################################################################
 ##
-#F  IsIdenticalObjObjXObj( <F1>, <F2>, <F3> )
+#f  IsIdenticalObjObjXObj( <F1>, <F2>, <F3> )
 IsIdenticalObjObjXObj := function( F1, F2, F3 )
     return IsIdenticalObj( F1, F3 );
 end;                                            

@@ -6,12 +6,12 @@
 %%
 %Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 %%
-\Chapter{Finite Fields}
+\PreliminaryChapter{Finite Fields}
 
 \Declaration{IsFFE}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Operations for finite field elements}
+\Section{Operations for Finite Field Elements}
 
 \Declaration{DegreeFFE}
 \Declaration{LogFFE}

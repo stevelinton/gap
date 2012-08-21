@@ -474,11 +474,65 @@ void CleanStringCopy (
 **
 **  No  linebreaks are allowed,  if one must be  inserted  anyhow, it must be
 **  escaped by a backslash '\', which is done in 'Pr'.
+**
+**  The kernel buffer PrStrBuf is used to protect Pr against garbage collections
+**  caused by printing to string streams, which might move the body of list
+**
 */
+static char PrStrBuf[10001];	/* 1 for the \0 at the end */
+
 void PrintString (
     Obj                 list )
 {
-    Pr( "\"%S\"", (Int)CSTR_STRING(list), 0L );
+  UInt scanout;
+  Char c;
+  UInt len = SyStrlen(CSTR_STRING(list));
+  UInt off = 0;
+  Pr("\"", 0L, 0L);
+  while (off <= len)
+    {
+      scanout = 0;
+      do 
+	{
+	  c = CSTR_STRING(list)[off++];
+	  switch (c)
+	    {
+	    case '\n':
+	      PrStrBuf[scanout++] = '\\';
+	      PrStrBuf[scanout++] = 'n';
+	      break;
+	    case '\t':
+	      PrStrBuf[scanout++] = '\\';
+	      PrStrBuf[scanout++] = 't';
+	      break;
+	    case '\r':
+	      PrStrBuf[scanout++] = '\\';
+	      PrStrBuf[scanout++] = 'r';
+	      break;
+	    case '\b':
+	      PrStrBuf[scanout++] = '\\';
+	      PrStrBuf[scanout++] = 'b';
+	      break;
+	    case '\01':
+	      PrStrBuf[scanout++] = '\\';
+	      PrStrBuf[scanout++] = '>';
+	      break;
+	    case '\02':
+	      PrStrBuf[scanout++] = '\\';
+	      PrStrBuf[scanout++] = '<';
+	      break;
+	    case '\03':
+	      PrStrBuf[scanout++] = '\\';
+	      PrStrBuf[scanout++] = 'c';
+	      break;
+	    default:
+	      PrStrBuf[scanout++] = c;
+	    }
+	}
+      while (c != '\0' && scanout <= 10000);
+      Pr( "%s", (Int)PrStrBuf, 0L );
+    }
+  Pr( "\"", 0L, 0L );
 }
 
 
@@ -489,10 +543,21 @@ void PrintString (
 **  'PrintString1' prints the string  constant  in  the  format  used  by the
 **  'Print' and 'PrintTo' function.
 */
+
+
 void PrintString1 (
     Obj                 list )
 {
-    Pr( "%s", (Int)CSTR_STRING(list), 0L );
+  UInt len = SyStrlen(CSTR_STRING(list));
+  UInt off = 0;
+  
+  while (off < len)
+    {
+      PrStrBuf[0] = '\0';
+      SyStrncat(PrStrBuf, CSTR_STRING(list)+off, 10000);
+      Pr( "%s", (Int)PrStrBuf, 0L );
+      off += 10000;
+    }
 }
 
 
@@ -1123,6 +1188,18 @@ Int IsStringConv (
     return res;
 }
 
+/****************************************************************************
+**
+*F  MakeImmutableString(  <str> ) make a string immutable in place
+**
+*/
+
+void MakeImmutableString( Obj str )
+{
+    RetypeBag(str, IMMUTABLE_TNUM(TNUM_OBJ(str)));
+}
+
+
 
 /****************************************************************************
 **
@@ -1673,6 +1750,11 @@ static Int InitKernel (
     for ( t1 = FIRST_EXTERNAL_TNUM; t1 <= LAST_EXTERNAL_TNUM; t1++ ) {
         IsStringFuncs[ t1 ] = IsStringObject;
     }
+
+    MakeImmutableObjFuncs[ T_STRING       ] = MakeImmutableString;
+    MakeImmutableObjFuncs[ T_STRING_SSORT ] = MakeImmutableString;
+    MakeImmutableObjFuncs[ T_STRING_NSORT ] = MakeImmutableString;
+    
 
     /* return success                                                      */
     return 0;

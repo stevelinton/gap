@@ -27,7 +27,19 @@
 Revision.grppc_gd :=
     "@(#)$Id$";
 
+
+#############################################################################
+##
+#V  InfoPcGroup
+##
 DeclareInfoClass("InfoPcGroup");
+
+
+#############################################################################
+##
+#M  KnowsHowToDecompose( <G> )  . . . . . . . . . . always true for pc groups
+##
+InstallTrueMethod( KnowsHowToDecompose, IsPcGroup );
 
 
 #############################################################################
@@ -53,7 +65,7 @@ DeclareAttribute( "CanonicalPcgsWrtHomePcgs", IsGroup );
 DeclareAttribute( "FamilyPcgs", IsGroup );
 
 
-InstallSubsetMaintainedMethod( FamilyPcgs, IsGroup, IsGroup );
+InstallSubsetMaintenance( FamilyPcgs, IsGroup, IsGroup );
 
 
 #############################################################################
@@ -63,7 +75,7 @@ InstallSubsetMaintainedMethod( FamilyPcgs, IsGroup, IsGroup );
 DeclareAttribute( "HomePcgs", IsGroup );
 
 
-InstallSubsetMaintainedMethod( HomePcgs, IsGroup, IsGroup );
+InstallSubsetMaintenance( HomePcgs, IsGroup, IsGroup );
 
 
 #############################################################################
@@ -77,8 +89,23 @@ DeclareAttribute( "InducedPcgsWrtFamilyPcgs", IsGroup );
 ##
 #O  InducedPcgs( <pcgs>, <grp> )
 ##
-##  computes a pcgs for <group> which is induced by (the parent of) <pcgs>.
+##  computes a pcgs for <grp> which is induced by <pcgs>. If <pcgs> has
+##  a parent pcgs, then the result is induced with repect to this parent
+##  pcgs.
 DeclareOperation( "InducedPcgs", [IsPcgs,IsGroup] );
+
+#############################################################################
+##
+#F  SetInducedPcgs( <home>,<grp>,<pcgs> )
+##
+##  This function sets <pcgs> to be an <home>-induced pcgs for <grp> if the
+##  `HomePcgs' of <grp> equals <home> and the `ParentPcgs' of <pcgs> equals
+##  <home>. (This means <pcgs> is induced by <home>.) If <grp> has no
+##  `HomePcgs' yet, it is assigned to <home> before this.
+##  This function should be used in algorithms if a pcgs for a new subgroup
+##  is computed that by this calculation is known to be compatible with the
+##  home pcgs of the calculation.
+DeclareGlobalFunction( "SetInducedPcgs" );
 
 
 #############################################################################
@@ -94,10 +121,12 @@ DeclareAttribute(
 
 #############################################################################
 ##
-#A  Pcgs( <grp> ) . . . . . . . . . . . . . . . . . . . . . . pcgs of a group
+#A  Pcgs( <G> ) . . . . . . . . . . . . . . . . . . . . . . pcgs of a group
 ##
-##  returns a pcgs for <grp>. If <grp> is not solvable it returns `fail'
-##  *and this result is not stored as attribute value*!
+##  returns a pcgs for the group <G>. 
+##  If <grp> is not polycyclic it returns `fail' *and this result is not 
+##  stored as attribute value*, in particular in this case the filter
+##  `HasPcgs' is *not* set for <G>!
 DeclareAttribute( "Pcgs", IsGroup );
 
 
@@ -106,65 +135,22 @@ DeclareAttribute( "Pcgs", IsGroup );
 ##
 #F  CanEasilyComputePcgs( <grp> ) . . . . .  group is willing to compute pcgs
 ##
-##  This filter indicates whether a group can compute a pcgs comparatively
-##  cheaply. A group of this sort must be solvable, but not every solvable
-##  group can compute a pcgs cheaply. The reason for this is that some
-##  groups may be known to be solvable but still cannot compute a pcgs
-##  cheaply. It is used in the method selection to decide for algorithms
-##  that require a Pcgs.
-##  The willingness of GAP may change over time, depending which further
-##  information is known. Therefore this is not implemented as a property,
-##  but as a filter.
+##  This filter indicates whether it is possible to compute a pcgs for <grp>
+##  cheaply. Clearly, <grp> must be polycyclic in this case. However, not
+##  for every polycyclic group there is a method to compute a pcgs at low
+##  costs. This filter is used in the method selection mainly.
+##  Note that this filter may change its value from false to true. 
 ##
 DeclareFilter( "CanEasilyComputePcgs" );
 
 # to satisfy method installation requirements
 InstallTrueMethod(IsGroup,CanEasilyComputePcgs);
 
-#############################################################################
-##
-#M  CanEasilyComputePcgs( <pcgrp> ) . . . . . . . . . . . . . . . .  pc group
-##
-InstallTrueMethod(
-    CanEasilyComputePcgs,
-    IsPcGroup );
-
-InstallTrueMethod(
-    CanEasilyComputePcgs,
-    HasPcgs );
-
-#############################################################################
-##
-#M  CanEasilyComputePcgs( <grp> ) . . . . . . . . . home or family pcgs known
-##
-InstallTrueMethod( CanEasilyComputePcgs, IsGroup and HasHomePcgs );
-InstallTrueMethod( CanEasilyComputePcgs, IsGroup and HasFamilyPcgs );
-
-#############################################################################
-##
-#M  CanEasilyComputePcgs( <grp> ) . . . . . . . . . subset or factor relations
-##
-#T  As CanEasilyComputePcgs is a filter and not a property, we cannot use
-##  'InstallSubsetMaintainedMethod', but have to do this 'by hand'.
-InstallMethod(UseSubsetRelation,"inherit 'CanEasilyComputePcgs' to subgroups",
-              IsIdenticalObj,[IsGroup and CanEasilyComputePcgs,IsGroup],0,
-function(super,sub)
-  SetFilterObj(sub,CanEasilyComputePcgs);
-  TryNextMethod();
-end);
-
-#T  factor groups might be in a different representation and therefore should
-#T  not become 'CanEasilyComputePcgs' automatically.
-
 
 #############################################################################
 ##
 #P  IsPcgsElementaryAbelianSeries( <pcgs> )
 ##
-##  indicates whether <pcgs> refines an elementary abelian series.
-##  If this is the case, `IndicesNormalSteps' gives the indices of the pc
-##  elements, which start a new step in the descending elementary abelian
-##  series.
 DeclareProperty(
   "IsPcgsElementaryAbelianSeries", IsPcgs );
 
@@ -174,20 +160,24 @@ InstallTrueMethod(IsPcgsElementaryAbelianSeries,IsSpecialPcgs);
 ##
 #A  PcgsElementaryAbelianSeries( <G> )
 ##
-##  computes a pcgs for <G> that refines an elementary abelian series. See
-##  `IsPcgsElementaryAbelianSeries'.
+##  computes a pcgs for <G> that refines an elementary abelian series.
+##  `IndicesNormalSteps' gives the indices in the Pcgs, at which normal
+##  subgroups start.
+DeclareAttribute( "PcgsElementaryAbelianSeries", IsGroup );
+
+#############################################################################
 ##
-DeclareAttribute( "PcgsElementaryAbelianSeries",
-  IsGroup );
+#A  PcgsChiefSeries( <G> )
+##
+##  computes a pcgs for <G> that refines a chief series.
+##  `IndicesNormalSteps' gives the indices in the Pcgs, at which normal
+##  subgroups start.
+DeclareAttribute( "PcgsChiefSeries", IsGroup );
 
 #############################################################################
 ##
 #P  IsPcgsCentralSeries( <pcgs> )
 ##
-##  indicates whether <pcgs> refines a central series.
-##  If this is the case, `IndicesNormalSteps' gives the indices of the pc
-##  elements, which start a new elementary abelian step in the descending
-##  central series.
 DeclareProperty( "IsPcgsCentralSeries", IsPcgs );
 
 InstallTrueMethod(IsPcgsCentralSeries,IsSpecialPcgs);
@@ -196,29 +186,24 @@ InstallTrueMethod(IsPcgsCentralSeries,IsSpecialPcgs);
 ##
 #A  PcgsCentralSeries( <G> )
 ##
-##  computes a pcgs for <G> that refines a central series. See
-##  `IsPcgsCentralSeries'.
-##
+##  computes a pcgs for <G> that refines a central series.
+##  `IndicesNormalSteps' gives the indices in the Pcgs, at which normal
+##  subgroups start.
 DeclareAttribute( "PcgsCentralSeries", IsGroup );
-
 
 #############################################################################
 ##
 #P  IsPcgsPCentralSeriesPGroup( <pcgs> )
 ##
-##  indicates whether <pcgs> refines a p-central series in a p group.
-##  If this is the case, `IndicesNormalSteps' gives the indices of the pc
-##  elements, which start a new elementary abelian step in the descending
-##  p-central series.
 DeclareProperty( "IsPcgsPCentralSeriesPGroup", IsPcgs );
 
 #############################################################################
 ##
 #A  PcgsPCentralSeriesPGroup( <G> )
 ##
-##  computes a pcgs for <G> that refines a central series. See
-##  `IsPcgsCentralSeries'.
-##
+##  computes a pcgs for <G> that refines the lower p-central series.
+##  `IndicesNormalSteps' gives the indices in the Pcgs, at which normal
+##  subgroups start.
 DeclareAttribute( "PcgsPCentralSeriesPGroup", IsGroup );
 
 
@@ -233,6 +218,9 @@ DeclareOperation( "SubgroupByPcgs", [IsGroup, IsPcgs] );
 ##
 #O  AffineOperation( <gens>, <basisvectors>, <linear>, <transl> )
 ##
+##  returns a list of matrices, one for each element of <gens>, which
+##  corresponds to the affine action of the elements in <gens> on the
+##  basis <basisvectors> via <linear> with translation <transl>.
 DeclareOperation(
     "AffineOperation", 
     [ IsList, IsMatrix, IsFunction, IsFunction ] );
@@ -242,6 +230,9 @@ DeclareOperation(
 ##
 #O  LinearOperation( <gens>, <basisvectors>, <linear> )
 ##
+##  returns a list of matrices, one for each element of <gens>, which
+##  corresponds to the matrix action of the elements in <gens> on the
+##  basis <basisvectors> via <linear>.
 DeclareOperation(
     "LinearOperation",
     [ IsList, IsMatrix, IsFunction ] );
@@ -260,27 +251,39 @@ InstallTrueMethod(
 ##
 #F  AffineOperationLayer( <G>, <gens>, <pcgs>, <transl> )
 ##
+##  returns a list of matrices, one for each element of <gens>, which
+##  corresponds to the affine action of <G> on the vector space corresponding
+##  to the modulo pcgs <pcgs> with translation <transl>.
 DeclareGlobalFunction( "AffineOperationLayer" );
 
 
 #############################################################################
 ##
 #F  GeneratorsCentrePGroup( <G> )
+#F  GeneratorsCenterPGroup( <G> )
 ##
 DeclareGlobalFunction( "GeneratorsCentrePGroup" );
+
+DeclareSynonym( "GeneratorsCenterPGroup", GeneratorsCentrePGroup );
 
 
 #############################################################################
 ##
 #F  LinearOperationLayer( <G>, <gens>, <pcgs> )
 ##
+##  returns a list of matrices, one for each element of <gens>, which
+##  corresponds to the matrix action of <G> on the vector space corresponding
+##  to the modulo pcgs <pcgs>.
 DeclareGlobalFunction( "LinearOperationLayer" );
 
 
 #############################################################################
 ##
-#F  VectorSpaceByPcgsOfElementaryAbelianGroup( <pcgs>, <fld> )
+#F  VectorSpaceByPcgsOfElementaryAbelianGroup( <mpcgs>, <fld> )
 ##
+##  returns the vectors space over <fld> corresponding to the modulo pcgs
+##  <mpcgs>. Note that <mpcgs> has to define an elementary abelian $p$-group
+##  where $p$ is the characteristic of <fld>.
 DeclareGlobalFunction(
     "VectorSpaceByPcgsOfElementaryAbelianGroup" );
 

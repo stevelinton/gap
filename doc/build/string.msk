@@ -7,7 +7,7 @@
 %%
 %Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 %%
-\Chapter{Strings and Characters}
+\PreliminaryChapter{Strings and Characters}
 
 A *character* is simply an object in {\GAP} that represents an arbitrary
 character from the character set of the operating system. Character
@@ -18,10 +18,10 @@ literals can be entered in {\GAP} by enclosing the character in
 \index{doublequotes}
 
 \beginexample
-gap> `a';
-`a'
-gap> `*';
-`*'
+gap> 'a';
+'a'
+gap> '*';
+'*'
 \endexample
 
 A *string* is simply a dense list of characters. Strings are used mainly
@@ -31,10 +31,10 @@ simply as the list of characters or by writing the characters between
 format.
 
 \beginexample
-gap> s1 := ['H','a','l','l','o',' `,'w','o','r','l','d','.'];
-"Hallo world."
-gap> s2 := "Hallo world.";
-"Hallo world."
+gap> s1 := ['H','e','l','l','o',' ','w','o','r','l','d','.'];
+"Hello world."
+gap> s2 := "Hello world.";
+"Hello world."
 gap> s1 = s2;
 true
 gap> s3 := "";
@@ -44,9 +44,10 @@ true
 \endexample
 
 Note that a string is just a special case of a list. So everything that
-is possible for lists (see "Lists") is also possible for strings. Thus
+is possible for lists (see~"Lists") is also possible for strings. Thus
 you can access the characters in such a string (see "List Elements"),
-test for membership (see "In"), etc. You can even assign to such a
+test for membership (see~"Membership Test for Collections"), etc.
+You can even assign to such a
 string (see "List Assignment"). Of course unless you assign a character
 in such a way that the list stays dense, the resulting list will no
 longer be a string.
@@ -55,24 +56,32 @@ longer be a string.
 gap> Length( s2 );
 12
 gap> s2[2];
-`a'
-gap> `e' in s2;
+'e'
+gap> 'a' in s2;
 false
-gap> s2[2] := `e';; s2;
+gap> s2[2] := 'e';; s2;
 "Hello world." 
+gap> s2{[1..4]};
+"Hell"
+gap> Concatenation(s2,s2);
+"Hello world.Hello world."
 \endexample
 
 If a string is displayed as result of an evaluation (see "Main Loop"), it
 is displayed with enclosing doublequotes. However, if a string is
-displayed by `Print', `PrintTo', or `AppendTo' (see "Print", "PrintTo",
-"AppendTo") the enclosing doublequotes are dropped.
+displayed by `Print', `PrintTo', or `AppendTo' (see "View and Print",
+"PrintTo", "AppendTo") the enclosing doublequotes are dropped.
+Note that only those line breaks are printed that are contained in the
+string (`\\n' characters), as is shown in the example below.
 
 \beginexample
 gap> s2;
 "Hello world."
+\endexample
+\begintt
 gap> Print( s2 );
 Hello world.gap>
-\endexample
+\endtt
 
 \Declaration{IsChar}
 \Declaration{IsString}
@@ -84,11 +93,11 @@ gap> IsString( "123" );
 true
 gap> IsString( 123 );
 false
-gap> IsString( [ `1', `2', `3' ] );
+gap> IsString( [ '1', '2', '3' ] );
 true
-gap> IsString( [ `1', `2', , `4' ] );
+gap> IsString( [ '1', '2', , '4' ] );
 false # strings must be dense
-gap> IsString( [ `1', `2', 3 ] );
+gap> IsString( [ '1', '2', 3 ] );
 false # strings must only contain characters
 \endexample
 
@@ -104,37 +113,37 @@ a backslash $\backslash$. The second may be any character. The meaning
 is given in the following list
 
 \beginitems
-`n':& *newline character*. This is the character that, at least on
+`$\backslash$n'& *newline character*. This is the character that, at least on
     UNIX systems, separates lines in a text file. Printing of this
     character in a string has the effect of moving the cursor down
     one line and back to the beginning of the line.
 
-`\"':& *doublequote character*. Inside a string a doublequote must be
+`$\backslash$\"'& *doublequote character*. Inside a string a doublequote must be
       escaped by the backslash, because it is otherwise interpreted as
       end of the string.
 
-`{'}':& *singlequote character*. Inside a character a singlequote must
+`$\backslash${'}'& *singlequote character*. Inside a character a singlequote must
      escaped by the backslash, because it is otherwise interpreted as
      end of the character.
 
-$\backslash$:& *backslash character*. Inside a string a backslash must
+$\backslash${$\backslash$}& *backslash character*. Inside a string a backslash must
      be escaped by another backslash, because it is otherwise
      interpreted as first character of an escape sequence.
 
-`b':& *backspace character*. Printing this character should have the
+`$\backslash$b'& *backspace character*. Printing this character should have the
      effect of moving the cursor back one character. Whether it works
      or not is system dependent and should not be relied upon.
 
-`r':& *carriage return character*. Printing this character should have
+`$\backslash$r'& *carriage return character*. Printing this character should have
      the effect of moving the cursor back to the beginning of the same
      line. Whether this works or not is again system dependent.
 
-`c':& *flush character*. This character is not printed. Its purpose
+`$\backslash$c'& *flush character*. This character is not printed. Its purpose
      is to flush the output queue. Usually {\GAP} waits until it sees
      a <newline> before it prints a string. If you want to display a
      string that does not include this character use $\backslash c$.
 
-other:& For any other character the backslash is simply ignored.
+other& For any other character the backslash is simply ignored.
 \enditems
 
 Again, if the line is displayed as result of an evaluation, those escape
@@ -166,6 +175,14 @@ re continued on the next line."
 \endexample
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Recognizing Characters}%
+
+\Declaration{IsDigitChar}
+\Declaration{IsAlphaChar}
+\Declaration{IsUpperAlphaChar}
+\Declaration{IsLowerAlphaChar}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{Comparisons of Strings}%
 
 \>`<string1> = <string2>'{comparison!strings}
@@ -185,7 +202,7 @@ gap> "Hello world." = "Hello world.\n";
 false # the first string has no <newline>
 gap> "Goodbye world.\n" = "Hello world.\n";
 false
-gap> [ `a', `b' ] = "ab";
+gap> [ 'a', 'b' ] = "ab";
 true
 \endexample
 
@@ -206,7 +223,7 @@ true # `G' comes before `H', in ASCII at least
 \endexample
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Operations to produce strings}
+\Section{Operations to Produce Strings}
 
 \index{convert!to a string}
 \Declaration{String}
@@ -235,8 +252,18 @@ gap> LowercaseString("This Is UpperCase");
 "this is uppercase"
 \endexample
 
+\Declaration{SplitString}
+\beginexample
+gap> SplitString( "substr1:substr2::substr4", ":" );
+[ "substr1", "substr2", "", "substr4" ]
+gap> SplitString( "a;b;c;d;", ";" );
+[ "a", "b", "c", "d" ]
+gap> SplitString( "/home//user//dir/", "", "/" );
+[ "home", "user", "dir" ]
+\endexample
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Operations to evaluate strings}
+\Section{Operations to Evaluate Strings}
 
 \){\fmark Int(<str>)}\index{evaluation!strings}
 \){\fmark Rat(<str>)}
@@ -273,7 +300,7 @@ gap> Ordinal(-33);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Calendar arithmetic}
+\Section{Calendar Arithmetic}
 
 \FileHeader{string}[2]
 

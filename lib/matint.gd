@@ -12,8 +12,7 @@
 ##  integral matrices.
 ##
 Revision.matint_gd:=
-  "@(#)$$";
-
+  "@(#)$Id$";
 
 #############################################################################
 ##
@@ -33,7 +32,7 @@ Revision.matint_gd:=
 ##  8\quad inverse column transformations\par\noindent
 ##  The operation returns a record with the component `normal' containing the
 ##  computed normal form and optional components `rowtrans', `rowinverse',
-##  `columntrans', and `columninverse' which hold the computed transformation
+##  `coltrans', and `invcoltrans' which hold the computed transformation
 ##  matrices.
 DeclareGlobalFunction("SNFNormDriven");
 DeclareGlobalFunction("SNFChouCollins");
@@ -82,22 +81,20 @@ DeclareGlobalFunction("TriangulizeIntegerMat");
 ##
 #O  SmithNormalFormIntegerMat(<mat>)
 #O  SmithNormalFormIntegerMatTransforms(<mat>)
-#O  SmithNormalFormIntegerMatColumnTransforms(<mat>)
-#O  SmithNormalFormIntegerMatInverseColumnTransforms(<mat>)
+#O  SmithNormalFormIntegerMatInverseTransforms(<mat>)
 ##
 ##  These operations compute the Smith normal form of a matrix <mat> with
 ##  integer entries. The operations will try to select a suitable strategy.
 ##  The first operation returns a new immutable matrix in the Smith normal
-##  form. The other three operations also compute matrices for the row and
-##  column transformations or inverses respectively.
+##  form. The other  operations also compute matrices for the row and
+##  column transformations or inverses thereof respectively.
 ##  They return a record with the component `normal' containing the
-##  computed normal form and optional components `rowtrans',
-##  `columntrans', and `columninverse' which hold the computed transformation
+##  computed normal form and optional components `rowtrans' and 'coltrans', or 
+##  `invrowtrans' and `invcoltrans ' which hold the computed transformation
 ##  matrices.
 DeclareOperation("SmithNormalFormIntegerMat",[IsMatrix]);
 DeclareOperation("SmithNormalFormIntegerMatTransforms",[IsMatrix]);
-#DeclareOperation("SmithNormalFormIntegerMatColumnTransforms",[IsMatrix]);
-#DeclareOperation("SmithNormalFormIntegerMatInverseColumnTransforms",[IsMatrix]);
+DeclareOperation("SmithNormalFormIntegerMatInverseTransforms",[IsMatrix]);
 
 
 #############################################################################
@@ -112,17 +109,17 @@ DeclareOperation("SmithNormalFormIntegerMatTransforms",[IsMatrix]);
 ##  form. The other two operations also compute matrices for the row 
 ##  transformations or inverses respectively.
 ##  They return a record with the component `normal' containing the
-##  computed normal form and optional components `rowtrans' or `rowinverse'
+##  computed normal form and optional components `rowtrans' or 'invrowtrans'
 ##  which hold the computed transformation matrix.
 ##  If the optional argument <reduction> ( a rational in the range [0..1] )
-##  is given, it specifies which representatives
-##  are used for entries modulo $c$ when cleaning column entries to the top. 
+##  is given, it specifies which representatives are used for entries modulo $c$ 
+##  when cleaning column entries to the top. 
 ##  Off diagonal entries are reduced to the range
 ##  \hphantom{-}\quad$\lfloor c(1-r)\rfloor\ldots \lfloor cr\rfloor$
 ##  If it is not given, a value of 1 is assumed.
 DeclareOperation("HermiteNormalFormIntegerMat",[IsMatrix]);
 DeclareOperation("HermiteNormalFormIntegerMatTransforms",[IsMatrix]);
-#DeclareOperation("HermiteNormalFormIntegerMatInverseTransforms",[IsMatrix]);
+DeclareOperation("HermiteNormalFormIntegerMatInverseTransforms",[IsMatrix]);
 
 #############################################################################
 ##
@@ -136,11 +133,11 @@ DeclareOperation("HermiteNormalFormIntegerMatTransforms",[IsMatrix]);
 ##  The other two operations also compute matrices for the row 
 ##  transformations or inverses respectively.
 ##  They return a record with the component `normal' containing the
-##  computed normal form and optional components `rowtrans' or `rowinverse'
+##  computed normal form and optional components `rowtrans' or `invrowtrans'
 ##  which hold the computed transformation matrix.
 DeclareOperation("TriangulizedIntegerMat",[IsMatrix]);
 DeclareOperation("TriangulizedIntegerMatTransforms",[IsMatrix]);
-#DeclareOperation("TriangulizedIntegerMatInverseTransforms",[IsMatrix]);
+DeclareOperation("TriangulizedIntegerMatInverseTransforms",[IsMatrix]);
 
 #############################################################################
 ##

@@ -28,7 +28,7 @@ Revision.polyconw_gd :=
 ##  $( \cdots (((c_k x^n + c_{k-1}) x^n + c_{k-2}) x^n + c_{k-3}) x^n
 ##   + \cdots c_0$.
 ##
-##  (this function is used in 'ConwayPol'.)
+##  (this function is used in `ConwayPol'.)
 ##
 DeclareGlobalFunction( "PowerModEvalPol" );
 
@@ -37,7 +37,13 @@ DeclareGlobalFunction( "PowerModEvalPol" );
 ##
 #V  CONWAYPOLYNOMIALS
 ##
-CONWAYPOLYNOMIALS := [];
+##  is a list that stores at position $p$, if bound,
+##  a list $l$ describing Conway polynomials in characteristic $p$.
+##  The $n$-th entry of $l$, if bound, is a list $[ i_0, i_1, \ldots, i_k ]$
+##  of integers such that the Conway polynomial for the field with $p^n$
+##  elements is $i_0 + i_1 X + \cdots + i_k X^k + X^n$.
+##
+DeclareGlobalVariable( "CONWAYPOLYNOMIALS" );
 
 
 ############################################################################
@@ -52,7 +58,7 @@ DeclareGlobalFunction( "ConwayPol" );
 #F  ConwayPolynomial( <p>, <n> ) .  <n>-th Conway polynomial in charact. <p>
 ##
 ##  is the Conway polynomial of the finite field $GF(p^n)$ as
-##  polynomial over the Rationals.
+##  polynomial over the prime field in characteristic <p>.
 ##
 ##  The *Conway polynomial* $\Phi_{n,p}$ of $GF(p^n)$ is defined by the
 ##  following properties.
@@ -81,7 +87,5 @@ DeclareGlobalFunction( "ConwayPolynomial" );
 
 #############################################################################
 ##
-#E  polyconw.gd . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-
-
+#E
 

@@ -2,7 +2,6 @@
 ##
 #W  grpramat.gi                 GAP Library                     Franz G"ahler
 ##
-#H  @(#)$Id$
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
@@ -21,20 +20,151 @@ InstallMethod( IsRationalMatrixGroup, true, [ IsCyclotomicMatrixGroup ], 0,
 
 #############################################################################
 ##
-#M  IsIntegralMatrixGroup( G )
+#M  IsIntegerMatrixGroup( G )
 ##
-InstallMethod( IsIntegralMatrixGroup, true, [ IsCyclotomicMatrixGroup ], 0,
+InstallMethod( IsIntegerMatrixGroup, true, [ IsCyclotomicMatrixGroup ], 0,
     G -> ForAll( Flat( GeneratorsOfGroup( G ) ), IsInt ) );
 
-InstallTrueMethod( IsRationalMatrixGroup, IsIntegralMatrixGroup );
+InstallTrueMethod( IsRationalMatrixGroup, IsIntegerMatrixGroup );
 
 #############################################################################
 ##
-#M  InvariantLattice( G ) . . . . .Invariant lattice of rational matrix group
+#M  GeneralLinearGroupCons(IsMatrixGroup,n,Integers)
 ##
-InstallMethod( InvariantLattice, "for rational matrix groups", 
-  true, [ IsCyclotomicMatrixGroup ], 0,
- function( G )
+InstallOtherMethod(GeneralLinearGroupCons,"some generators for GL_n(Z)",true,
+  [IsMatrixGroup,IsPosInt,IsIntegers],0,
+function(fil,n,ints)
+local gens,mat,G;
+  # permutations
+  gens:=List(GeneratorsOfGroup(SymmetricGroup(n)),i->PermutationMat(i,n));
+  # sign swapper
+  mat:= IdentityMat(n,1);
+  mat[1][1]:=-1;
+  Add(gens,mat);
+  # elementary addition
+  mat:= IdentityMat(n,1);
+  mat[1][2]:=1;
+  Add(gens,mat);
+  gens:=List(gens,Immutable);
+  G:= GroupByGenerators( gens, IdentityMat( n, 1 ) );
+  Setter(IsNaturalGLnZ)(G,true);
+  SetName(G,Concatenation("GL(",String(n),",Integers)"));
+  SetSize(G,infinity);
+  SetIsFinite(G,false);
+  return G;
+end);
+
+#############################################################################
+##
+#M  Normalizer( GLnZ, G ) . . . . . . . . . . . . . . . . .Normalizer in GLnZ
+##
+InstallMethod( NormalizerOp, IsIdenticalObj,
+    [ IsNaturalGLnZ, IsCyclotomicMatrixGroup ], 0, 
+function( GLnZ, G )
+    return NormalizerInGLnZ( G );
+end );
+
+#############################################################################
+##
+#M  Centralizer( GLnZ, G ) . . . . . . . . . . . . . . . .Centralizer in GLnZ
+##
+InstallMethod( CentralizerOp, IsIdenticalObj,
+    [ IsNaturalGLnZ, IsCyclotomicMatrixGroup ], 0, 
+function( GLnZ, G )
+    return CentralizerInGLnZ( G );
+end );
+
+#############################################################################
+##
+#M  CrystGroupDefaultAction . . . . . . . . . . . . . . RightAction initially
+##
+InstallValue( CrystGroupDefaultAction, RightAction );
+
+#############################################################################
+##
+#M  SetCrystGroupDefaultAction( <action> ) . . . . .RightAction or LeftAction
+##
+InstallGlobalFunction( SetCrystGroupDefaultAction, function( action )
+   if   action = LeftAction then
+       MakeReadWriteGlobal( "CrystGroupDefaultAction" );
+       CrystGroupDefaultAction := LeftAction;
+       MakeReadOnlyGlobal( "CrystGroupDefaultAction" );
+   elif action = RightAction then
+       MakeReadWriteGlobal( "CrystGroupDefaultAction" );
+       CrystGroupDefaultAction := RightAction;
+       MakeReadOnlyGlobal( "CrystGroupDefaultAction" );
+   else
+       Error( "action must be either LeftAction or RightAction" );
+   fi;
+end );
+
+#############################################################################
+##
+#M  IsBravaisGroup( <G> ) . . . . . . . . . . . . . . . . . .  IsBravaisGroup
+##
+InstallGlobalFunction( IsBravaisGroup, function( G )
+    if CrystGroupDefaultAction = RightAction then
+        return IsBravaisGroupOnRight( G );
+    else
+        return IsBravaisGroupOnLeft( G );
+    fi;
+end );
+
+#############################################################################
+##
+#M  BravaisGroup( <G> ) . . . . . . . . . . . . . . . . . . . .  BravaisGroup
+##
+InstallGlobalFunction( BravaisGroup, function( G )
+    if CrystGroupDefaultAction = RightAction then
+        return BravaisGroupOnRight( G );
+    else
+        return BravaisGroupOnLeft( G );
+    fi;
+end );
+
+#############################################################################
+##
+#M  BravaisSubgroups( <G> ) . . . . . . .  Bravais subgroups of Bravais group
+##
+InstallGlobalFunction( BravaisSubgroups, function( G )
+    if CrystGroupDefaultAction = RightAction then
+        return BravaisSubgroupsOnRight( G );
+    else
+        return BravaisSubgroupsOnLeft( G );
+    fi;
+end );
+
+#############################################################################
+##
+#M  BravaisSupergroups( <G> ) . . . . .  Bravais supergroups of Bravais group
+##
+InstallGlobalFunction( BravaisSupergroups, function( G )
+    if CrystGroupDefaultAction = RightAction then
+        return BravaisSupergroupsOnRight( G );
+    else
+        return BravaisSupergroupsOnLeft( G );
+    fi;
+end );
+
+#############################################################################
+##
+#M  BravaisNormalizerinGLnZ( <G> ) . . .  norm. of Bravais group of G in GLnZ
+##
+InstallGlobalFunction( BravaisNormalizerInGLnZ, function( G )
+    if CrystGroupDefaultAction = RightAction then
+        return BravaisNormalizerInGLnZOnRight( G );
+    else
+        return BravaisNormalizerInGLnZOnLeft( G );
+    fi;
+end );
+
+#############################################################################
+##
+#M  InvariantLatticeOnRight( G ) . . .right-inv. lattice of rational matgroup
+##
+InstallMethod( InvariantLatticeOnRight, "for rational matrix groups", 
+    true, [ IsCyclotomicMatrixGroup ], 0,
+function( G )
 
     local gen, dim, trn, rnd, tab, den;
 
@@ -52,7 +182,7 @@ InstallMethod( InvariantLattice, "for rational matrix groups",
     fi;
 
     dim := DimensionOfMatrixGroup( G );
-    trn := IdentityMat( dim );
+    trn := Immutable( IdentityMat( dim ) );
     rnd := Random( GeneratorsOfGroup( G ) );
 
     # refine lattice until it contains its image
@@ -74,9 +204,10 @@ InstallMethod( InvariantLattice, "for rational matrix groups",
 
         if Length( tab ) > 0 then
             den := Lcm( List( Flat( tab ), x -> DenominatorRat( x ) ) );
-            tab := Concatenation( den * IdentityMat( dim ), den * tab );
+            tab := Concatenation( den * Immutable( IdentityMat( dim ) ),
+                       den * tab );
             tab := HermiteNormalFormIntegerMat( tab ) / den;
-            trn := tab * trn;
+            trn := tab{[1..dim]} * trn;
         else
             den := 1;
         fi;         
@@ -87,42 +218,29 @@ InstallMethod( InvariantLattice, "for rational matrix groups",
 
 end );
 
+#############################################################################
+##
+#M  InvariantLatticeOnLeft( G ) . . . .left-inv. lattice of rational matgroup
+##
+InstallMethod( InvariantLatticeOnLeft, "for rational matrix groups", 
+    true, [ IsCyclotomicMatrixGroup ], 0,
+function( G )
+    local Gtr;
+    Gtr := Group( List( GeneratorsOfGroup( G ), TransposedMat ), One( G ) );
+    return InvariantLatticeOnRight( Gtr );
+end );
 
 #############################################################################
 ##
-#F  SizeOfMinkowskiKernel( grp ) . . . . . . . . . . . .SizeOfMinkowskiKernel
+#M  InvariantLattice( G ) . . . . . . .invariant lattice of rational matgroup
 ##
-##  Size for group which has only diagonal elements, with +1 or -1 on 
-##  the diagonal. This is faster than NiceMethod for Size.
-##
-SizeOfMinkowskiKernel := function( grp )
-
-    local mat, dim, h, i, j, tmp;
-
-    mat := List( GeneratorsOfGroup( grp ), DiagonalOfMat );
-    dim := DimensionOfMatrixGroup( grp );
-    h := 1;
-    for i in [1..dim] do
-        for j in [h..Length(mat)] do
-            if mat[j][i] = -1 then
-                if IsBound( tmp ) then
-                    mat[j] := List( [1..dim], k -> mat[j][k]*tmp[k] );
-                else
-                    tmp := mat[j];
-                    if j > h then
-                        mat[j] := mat[h];
-                        mat[h] := tmp;
-                    fi;
-                    h := h+1;
-                fi;
-            fi;
-        od;
-        Unbind( tmp );
-    od;
-    return 2^(h-1);
-
-end;
-
+InstallGlobalFunction( InvariantLattice, function( G )
+    if CrystGroupDefaultAction = RightAction then
+        return InvariantLatticeOnRight( G );
+    else
+        return InvariantLatticeOnLeft( G );
+    fi;
+end );
 
 #############################################################################
 ##
@@ -142,8 +260,8 @@ function( G )
     fi;
 
     # if not integral, choose basis in which it is integral
-    if not IsIntegralMatrixGroup( G ) then
-        lat := InvariantLattice( G );
+    if not IsIntegerMatrixGroup( G ) then
+        lat := InvariantLatticeOnRight( G );
         if lat = fail then
              return false;
         fi;
@@ -154,7 +272,7 @@ function( G )
 
     size  := 1;
     dim   := DimensionOfMatrixGroup( grp );
-    basis := IdentityMat( dim, GF( 2 ) );
+    basis := Immutable( IdentityMat( dim, GF( 2 ) ) );
     for i in [1..dim] do
         orb := [ basis[i] ];
         rep := [ One( grp ) ];
@@ -182,11 +300,13 @@ function( G )
                 fi;
             od;
         od;
-        grp  := Group( stb, One( grp ) );
+        grp  := GroupByGenerators( stb, One( grp ) );
         size := size * Length( orb );
     od;
-#    SetSize( G, size * Size( grp ) );
-    SetSize( G, size * SizeOfMinkowskiKernel( grp ) );
+
+    # if we arrive here, the group is finite
+    SetIsFinite( grp, true );
+    SetSize( G, size * Size( grp ) );
     return true;
 
 end );

@@ -49,7 +49,7 @@ DeclareAttribute("PerfectIdentification", IsGroup );
 
 #############################################################################
 ##
-#F  SizesPerfectGroups( ) . . . . . . . . . . . . . . . . . . . . . . . . . .
+#F  SizesPerfectGroups()
 ##
 DeclareGlobalFunction("SizesPerfectGroups");
 
@@ -88,7 +88,7 @@ DeclareGlobalFunction("NumberPerfectLibraryGroups");
 ##  returned.  Possible categories so far are `IsPermGroup' and
 ##  `IsSubgroupFpGroup'. In the latter case,
 ##  the  generators   and  relators used    coincide   with  those  given  in
-##  \cite{HoltPlesken89}.
+##  \cite{HP89}.
 DeclareGlobalFunction("PerfectGroup");
 
 
@@ -111,14 +111,14 @@ DeclareGlobalFunction("PerfectGroup");
 ##    \item{$\bullet$} a message if $G$ is simple  or quasisimple, id est, if
 ##      the factor group of $G$ by its centre is simple,
 ##    \item{$\bullet$} the ``description'' of  the structure of  $G$ as it is
-##      given by Holt and Plesken in \cite{HoltPlesken89} (see below),
+##      given by Holt and Plesken in \cite{HP89} (see below),
 ##    \item{$\bullet$} the size of  the centre of $G$  (suppressed, if $G$ is
 ##      simple),
 ##    \item{$\bullet$} the prime decomposition of the size of $G$,
 ##    \item{$\bullet$} orbit sizes for  a faithful permutation representation
 ##      of $G$ which is provided by the library (see below),
 ##    \item{$\bullet$} a reference to each occurrence of $G$ in the tables of
-##      section 5.3    of  \cite{HoltPlesken89}. Each  of   these  references
+##      section 5.3    of  \cite{HP89}. Each  of   these  references
 ##      consists of a class number and an internal number $(i,j)$ under which
 ##      $G$ is listed in that class. For some groups, there  is more than one
 ##      reference because these groups belong to more than one of the classes
@@ -159,11 +159,11 @@ DeclareGlobalFunction("DisplayInformationPerfectGroups");
 ##      $J_2$.
 ##  \endlist
 ##
-##  Note that,   for  most of  the  groups, the   preceding  list offers  two
-##  different names in order  to  be consistent with   the notation  used  in
-##  \cite{HoltPlesken89} as  well   as   with the   notation  used  in    the
-##  `DisplayCompositionSeries' command of {\GAP}.  However, as the  names are
-##  compared  as text strings, you are  restricted  to the above choice. Even
+##  Note  that, for  most  of the  groups,   the  preceding list  offers  two
+##  different  names in order  to  be consistent  with the  notation used  in
+##  \cite{HP89}  as     well  as     with    the  notation    used    in  the
+##  `DisplayCompositionSeries' command of {\GAP}.   However, as the names are
+##  compared  as text strings, you are  restricted to  the above choice. Even
 ##  expressions like `L2(32)' or `L2(2\^5)' are not accepted.
 ##
 ##  As the use of the  term $PSU(n,q)$ is  not  unique in the literature,  we

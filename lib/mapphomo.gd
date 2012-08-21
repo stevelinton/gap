@@ -33,14 +33,14 @@ Revision.mapphomo_gd :=
 ##  Let <mapp> be a general mapping with underlying relation
 ##  $F \subseteq S \times R$,
 ##  where $S$ and $R$ are the source and the range of <mapp>, respectively.
-##  Then 'RespectsMultiplication' returns 'true' if
+##  Then `RespectsMultiplication' returns `true' if
 ##  $S$ and $R$ are magmas such that
 ##  $(s_1,r_1), (s_2,r_2) \in F$ implies $(s_1 \* s_2,r_1 \* r_2) \in F$,
-##  and 'false' otherwise.
+##  and `false' otherwise.
 ##
-##  If <mapp> is single-valued then 'RespectsMultiplication' returns 'true'
+##  If <mapp> is single-valued then `RespectsMultiplication' returns `true'
 ##  if and only if the equation
-##  '<s1>^<mapp> * <s2>^<mapp> = (<s1>*<s2>)^<mapp>'
+##  `<s1>^<mapp> * <s2>^<mapp> = (<s1>*<s2>)^<mapp>'
 ##  holds for all <s1>, <s2> in $S$.
 ##
 DeclareProperty( "RespectsMultiplication", IsGeneralMapping );
@@ -53,14 +53,14 @@ DeclareProperty( "RespectsMultiplication", IsGeneralMapping );
 ##  Let <mapp> be a general mapping with underlying relation
 ##  $F \subseteq S \times R$,
 ##  where $S$ and $R$ are the source and the range of <mapp>, respectively.
-##  Then 'RespectsOne' returns 'true' if
+##  Then `RespectsOne' returns `true' if
 ##  $S$ and $R$ are magmas-with-one such that
-##  $( 'One('S'), One('R')' ) \in F$,
-##  and 'false' otherwise.
+##  $( `One('S'), One('R')' ) \in F$,
+##  and `false' otherwise.
 ##
-##  If <mapp> is single-valued then 'RespectsOne' returns 'true'
+##  If <mapp> is single-valued then `RespectsOne' returns `true'
 ##  if and only if the equation
-##  'One( S )^<mapp> = One( R )'
+##  `One( S )^<mapp> = One( R )'
 ##  holds.
 ##
 DeclareProperty( "RespectsOne", IsGeneralMapping );
@@ -73,14 +73,14 @@ DeclareProperty( "RespectsOne", IsGeneralMapping );
 ##  Let <mapp> be a general mapping with underlying relation
 ##  $F \subseteq S \times R$,
 ##  where $S$ and $R$ are the source and the range of <mapp>, respectively.
-##  Then 'RespectsInverses' returns 'true' if
+##  Then `RespectsInverses' returns `true' if
 ##  $S$ and $R$ are magmas-with-inverses such that
 ##  $(s,r) \in F$ implies $(s^{-1},r^{-1}) \in F$,
-##  and 'false' otherwise.
+##  and `false' otherwise.
 ##
-##  If <mapp> is single-valued then 'RespectsInverses' returns 'true'
+##  If <mapp> is single-valued then `RespectsInverses' returns `true'
 ##  if and only if the equation
-##  'Inverse( <s> )^<mapp> = Inverse( <s>^<mapp> )'
+##  `Inverse( <s> )^<mapp> = Inverse( <s>^<mapp> )'
 ##  holds for all <s> in $S$.
 ##
 DeclareProperty( "RespectsInverses", IsGeneralMapping );
@@ -114,7 +114,7 @@ DeclareSynonymAttr( "IsGroupHomomorphism",
 #A  KernelOfMultiplicativeGeneralMapping( <mapp> )
 ##
 ##  Let <mapp> be a general mapping.
-##  Then 'KernelOfMultiplicativeGeneralMapping' returns the set of all
+##  Then `KernelOfMultiplicativeGeneralMapping' returns the set of all
 ##  elements in the source of <mapp> that have the identity of the range in
 ##  their set of images.
 ##
@@ -130,7 +130,7 @@ DeclareAttribute( "KernelOfMultiplicativeGeneralMapping",
 #A  CoKernelOfMultiplicativeGeneralMapping( <mapp> )
 ##
 ##  Let <mapp> be a general mapping.
-##  Then 'CoKernelOfMultiplicativeGeneralMapping' returns the set of all
+##  Then `CoKernelOfMultiplicativeGeneralMapping' returns the set of all
 ##  elements in the range of <mapp> that have the identity of the source in
 ##  their set of preimages.
 ##
@@ -153,14 +153,14 @@ DeclareAttribute( "CoKernelOfMultiplicativeGeneralMapping",
 ##  Let <mapp> be a general mapping with underlying relation
 ##  $F \subseteq S \times R$,
 ##  where $S$ and $R$ are the source and the range of <mapp>, respectively.
-##  Then 'RespectsAddition' returns 'true' if
+##  Then `RespectsAddition' returns `true' if
 ##  $S$ and $R$ are additive magmas such that
 ##  $(s_1,r_1), (s_2,r_2) \in F$ implies $(s_1 + s_2,r_1 + r_2) \in F$,
-##  and 'false' otherwise.
+##  and `false' otherwise.
 ##
-##  If <mapp> is single-valued then 'RespectsAddition' returns 'true'
+##  If <mapp> is single-valued then `RespectsAddition' returns `true'
 ##  if and only if the equation
-##  '<s1>^<mapp> + <s2>^<mapp> = (<s1>+<s2>)^<mapp>'
+##  `<s1>^<mapp> + <s2>^<mapp> = (<s1>+<s2>)^<mapp>'
 ##  holds for all <s1>, <s2> in $S$.
 ##
 DeclareProperty( "RespectsAddition", IsGeneralMapping );
@@ -173,14 +173,14 @@ DeclareProperty( "RespectsAddition", IsGeneralMapping );
 ##  Let <mapp> be a general mapping with underlying relation
 ##  $F \subseteq S \times R$,
 ##  where $S$ and $R$ are the source and the range of <mapp>, respectively.
-##  Then 'RespectsZero' returns 'true' if
+##  Then `RespectsZero' returns `true' if
 ##  $S$ and $R$ are additive-magmas-with-zero such that
-##  $( 'Zero('S'), Zero('R')' ) \in F$,
-##  and 'false' otherwise.
+##  $( `Zero('S'), Zero('R')' ) \in F$,
+##  and `false' otherwise.
 ##
-##  If <mapp> is single-valued then 'RespectsZero' returns 'true'
+##  If <mapp> is single-valued then `RespectsZero' returns `true'
 ##  if and only if the equation
-##  'Zero( S )^<mapp> = Zero( R )'
+##  `Zero( S )^<mapp> = Zero( R )'
 ##  holds.
 ##
 DeclareProperty( "RespectsZero", IsGeneralMapping );
@@ -193,14 +193,14 @@ DeclareProperty( "RespectsZero", IsGeneralMapping );
 ##  Let <mapp> be a general mapping with underlying relation
 ##  $F \subseteq S \times R$,
 ##  where $S$ and $R$ are the source and the range of <mapp>, respectively.
-##  Then 'RespectsAdditiveInverses' returns 'true' if
+##  Then `RespectsAdditiveInverses' returns `true' if
 ##  $S$ and $R$ are additive-magmas-with-inverses such that
 ##  $(s,r) \in F$ implies $(-s,-r) \in F$,
-##  and 'false' otherwise.
+##  and `false' otherwise.
 ##
-##  If <mapp> is single-valued then 'RespectsAdditiveInverses' returns 'true'
+##  If <mapp> is single-valued then `RespectsAdditiveInverses' returns `true'
 ##  if and only if the equation
-##  'AdditiveInverse( <s> )^<mapp> = AdditiveInverse( <s>^<mapp> )'
+##  `AdditiveInverse( <s> )^<mapp> = AdditiveInverse( <s>^<mapp> )'
 ##  holds for all <s> in $S$.
 ##
 DeclareProperty( "RespectsAdditiveInverses", IsGeneralMapping );
@@ -231,7 +231,7 @@ DeclareSynonymAttr( "IsAdditiveGroupHomomorphism",
 #A  KernelOfAdditiveGeneralMapping( <mapp> )
 ##
 ##  Let <mapp> be a general mapping.
-##  Then 'KernelOfAdditiveGeneralMapping' returns the set of all
+##  Then `KernelOfAdditiveGeneralMapping' returns the set of all
 ##  elements in the source of <mapp> that have the zero of the range in
 ##  their set of images.
 ##
@@ -243,7 +243,7 @@ DeclareAttribute( "KernelOfAdditiveGeneralMapping", IsGeneralMapping );
 #A  CoKernelOfAdditiveGeneralMapping( <mapp> )
 ##
 ##  Let <mapp> be a general mapping.
-##  Then 'KernelOfAdditiveGeneralMapping' returns the set of all
+##  Then `KernelOfAdditiveGeneralMapping' returns the set of all
 ##  elements in the source of <mapp> that have the zero of the range in
 ##  their set of images.
 ##
@@ -262,15 +262,15 @@ DeclareAttribute( "CoKernelOfAdditiveGeneralMapping", IsGeneralMapping );
 ##  Let <mapp> be a general mapping, with underlying relation
 ##  $F \subseteq S \times R$,
 ##  where $S$ and $R$ are the source and the range of <mapp>, respectively.
-##  Then 'RespectsScalarMultiplication' returns 'true' if
+##  Then `RespectsScalarMultiplication' returns `true' if
 ##  $S$ and $R$ are left modules with the left acting domain $D$ of $S$
 ##  contained in the left acting domain of $R$ and such that
 ##  $(s,r) \in F$ implies $(c \* s,c \* r) \in F$ for all $c \in D$,
-##  and 'false' otherwise.
+##  and `false' otherwise.
 ##
-##  If <mapp> is single-valued then 'RespectsScalarMultiplication' returns
-##  'true' if and only if the equation
-##  '<c> \* <s>^<mapp> = (<c> \* <s>)^<mapp>'
+##  If <mapp> is single-valued then `RespectsScalarMultiplication' returns
+##  `true' if and only if the equation
+##  `<c> \* <s>^<mapp> = (<c> \* <s>)^<mapp>'
 ##  holds for all <c> in $D$ and <s> in $S$.
 ##
 DeclareProperty( "RespectsScalarMultiplication", IsGeneralMapping );
@@ -294,8 +294,8 @@ DeclareSynonymAttr( "IsLeftModuleHomomorphism",
 ##
 #O  IsLinearMapping( <F>, <mapp> )
 ##
-##  is 'true' if <mapp> is an <F>-linear general mapping,
-##  and 'false' otherwise.
+##  is `true' if <mapp> is an <F>-linear general mapping,
+##  and `false' otherwise.
 ##
 DeclareOperation( "IsLinearMapping", [ IsDomain, IsGeneralMapping ] );
 

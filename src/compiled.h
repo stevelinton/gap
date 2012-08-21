@@ -247,7 +247,7 @@ typedef UInt    RNam;
 #define C_ASS_LIST_FPL(list,p,rhs) \
  if ( TNUM_OBJ(list) == T_PLIST ) { \
   if ( LEN_PLIST(list) < p ) { \
-   GROW_PLIST( list, p ); \
+   GROW_PLIST( list, (UInt)p ); \
    SET_LEN_PLIST( list, p ); \
   } \
   SET_ELM_PLIST( list, p, rhs ); \
@@ -260,7 +260,7 @@ typedef UInt    RNam;
 #define C_ASS_LIST_FPL_INTOBJ(list,p,rhs) \
  if ( TNUM_OBJ(list) == T_PLIST ) { \
   if ( LEN_PLIST(list) < p ) { \
-   GROW_PLIST( list, p ); \
+   GROW_PLIST( list, (UInt)p ); \
    SET_LEN_PLIST( list, p ); \
   } \
   SET_ELM_PLIST( list, p, rhs ); \

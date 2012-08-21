@@ -133,6 +133,7 @@ InstallMethod( GeneratorsMagmaFamily,
 #F  FreeMagma( <rank>, <name> )
 #F  FreeMagma( <name1>, <name2>, ... )
 #F  FreeMagma( <names> )
+#F  FreeMagma( infinity, <name>, <init> )
 ##
 InstallGlobalFunction( FreeMagma,
     function( arg )
@@ -146,12 +147,16 @@ InstallGlobalFunction( FreeMagma,
       names:= InfiniteListOfNames( "x" );
     elif Length( arg ) = 2 and arg[1] = infinity then
       names:= InfiniteListOfNames( arg[2] );
+    elif Length( arg ) = 3 and arg[1] = infinity then
+      names:= InfiniteListOfNames( arg[2], arg[3] );
     elif Length( arg ) = 1 and IsInt( arg[1] ) and 0 < arg[1] then
       names:= List( [ 1 .. arg[1] ],
                     i -> Concatenation( "x", String(i) ) );
+      MakeImmutable( names );
     elif Length( arg ) = 2 and IsInt( arg[1] ) and 0 < arg[1] then
       names:= List( [ 1 .. arg[1] ],
                     i -> Concatenation( arg[2], String(i) ) );
+      MakeImmutable( names );
     elif 1 <= Length( arg ) and ForAll( arg, IsString ) then
       names:= arg;
     elif Length( arg ) = 1 and IsList( arg[1] ) and not IsEmpty( arg[1]) then
@@ -186,6 +191,7 @@ end );
 #F  FreeMagmaWithOne( <rank>, <name> )
 #F  FreeMagmaWithOne( <name1>, <name2>, ... )
 #F  FreeMagmaWithOne( <names> )
+#F  FreeMagmaWithOne( infinity, <name>, <init> )
 ##
 InstallGlobalFunction( FreeMagmaWithOne,
     function( arg )
@@ -199,12 +205,16 @@ InstallGlobalFunction( FreeMagmaWithOne,
       names:= InfiniteListOfNames( "x" );
     elif Length( arg ) = 2 and arg[1] = infinity then
       names:= InfiniteListOfNames( arg[2] );
+    elif Length( arg ) = 3 and arg[1] = infinity then
+      names:= InfiniteListOfNames( arg[2], arg[3] );
     elif Length( arg ) = 1 and IsInt( arg[1] ) and 0 < arg[1] then
       names:= List( [ 1 .. arg[1] ],
                     i -> Concatenation( "x", String(i) ) );
+      MakeImmutable( names );
     elif Length( arg ) = 2 and IsInt( arg[1] ) and 0 < arg[1] then
       names:= List( [ 1 .. arg[1] ],
                     i -> Concatenation( arg[2], String(i) ) );
+      MakeImmutable( names );
     elif 1 <= Length( arg ) and ForAll( arg, IsString ) then
       names:= arg;
     elif Length( arg ) = 1 and IsList( arg[1] ) and not IsEmpty( arg[1]) then
@@ -241,7 +251,5 @@ end );
 
 #############################################################################
 ##
-#E  mgmfree.gi  . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-
-
+#E
 

@@ -524,13 +524,13 @@ InstallMethod( Enumerator,
 
 #############################################################################
 ##
-#R  IsSubspacesSpaceIterator( <D> )
+#R  IsSubspacesSpaceIteratorRep( <D> )
 ##
 ##  uses the subspaces iterator for full row spaces and the mechanism of
 ##  associated row spaces.
 ##
-DeclareRepresentation( "IsSubspacesSpaceIterator",
-    IsComponentObjectRep and IsIterator,
+DeclareRepresentation( "IsSubspacesSpaceIteratorRep",
+    IsComponentObjectRep,
     [ "structure", "basis", "associatedIterator" ] );
 
 
@@ -539,15 +539,15 @@ DeclareRepresentation( "IsSubspacesSpaceIterator",
 #M  Iterator( <D> ) . . . . . . . . . . . . . . . . .  for a subspaces domain
 ##
 InstallMethod( IsDoneIterator,
-    "method for an iterator of a subspaces domain",
+    "for an iterator of a subspaces domain",
     true,
-    [ IsSubspacesSpaceIterator ], 0,
+    [ IsIterator and IsSubspacesSpaceIteratorRep ], 0,
     iter -> IsDoneIterator( iter!.associatedIterator ) );
 
 InstallMethod( NextIterator,
-    "method for an iterator of a subspaces domain",
+    "for a mutable iterator of a subspaces domain",
     true,
-    [ IsSubspacesSpaceIterator ], 0,
+    [ IsIterator and IsMutable and IsSubspacesSpaceIteratorRep ], 0,
     function( iter )
     local next;
     next:= NextIterator( iter!.associatedIterator );
@@ -557,7 +557,7 @@ InstallMethod( NextIterator,
     end );
 
 InstallMethod( Iterator,
-    "method for a subspaces domain",
+    "for a subspaces domain",
     true,
     [ IsSubspacesVectorSpace and IsSubspacesVectorSpaceDefaultRep ], 0,
     function( D )
@@ -565,7 +565,9 @@ InstallMethod( Iterator,
 
     V:= D!.structure;
     return Objectify( NewType( IteratorsFamily,
-                               IsSubspacesSpaceIterator ),
+                                   IsIterator
+                               and IsMutable
+                               and IsSubspacesSpaceIteratorRep ),
                       rec(
                            structure          := V,
                            basis              := BasisOfDomain( V ),
@@ -576,6 +578,18 @@ InstallMethod( Iterator,
                           ) );
     end );
 
+InstallMethod( ShallowCopy,
+    "for an iterator of a subspaces domain",
+    true,
+    [ IsIterator and IsSubspacesSpaceIteratorRep ], 0,
+    iter -> Objectify( Subtype( TypeObj( iter ), IsMutable ),
+                rec(
+                     structure          := iter!.structure,
+                     basis              := iter!.basis,
+                     associatedIterator := ShallowCopy(
+                                               iter!.associatedIterator )
+                    ) ) );
+
 
 #############################################################################
 ##
@@ -583,12 +597,12 @@ InstallMethod( Iterator,
 #M  SubspacesAll( <V> )
 ##
 InstallMethod( SubspacesDim,
-    "method for a vector space, and an integer",
+    "for a vector space, and an integer",
     true,
     [ IsVectorSpace, IsInt ], 0,
     function( V, dim )
     if IsFinite( V ) then
-      return Objectify( NewType( CollectionsFamily( V ),
+      return Objectify( NewType( CollectionsFamily( FamilyObj( V ) ),
                                      IsSubspacesVectorSpace
                                  and IsSubspacesVectorSpaceDefaultRep ),
                         rec(
@@ -602,12 +616,12 @@ InstallMethod( SubspacesDim,
     end );
 
 InstallMethod( SubspacesAll,
-    "method for a vector space",
+    "for a vector space",
     true,
     [ IsVectorSpace ], 0,
     function( V )
     if IsFinite( V ) then
-      return Objectify( NewType( CollectionsFamily( V ),
+      return Objectify( NewType( CollectionsFamily( FamilyObj( V ) ),
                                      IsSubspacesVectorSpace
                                  and IsSubspacesVectorSpaceDefaultRep ),
                         rec(

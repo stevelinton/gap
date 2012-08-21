@@ -5,7 +5,7 @@
 #H  @(#)$Id$
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
-#Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  (C) 1999 School Math and Comp. Sci., University of St.  Andrews, Scotland
 ##
 ##  This file contains attributes, properties and operations for univariate
 ##  polynomials
@@ -23,6 +23,12 @@ Revision.upoly_gd:=
 ##  a list of the irreducible factors of <f> over <ring>.
 ##
 DeclareAttribute("IrrFacsPol",IsPolynomial,"mutable");
+
+#############################################################################
+##
+#F  StoreFactorsPol( <pring>, <upol>, <factlist> ) . . . . store factors list
+##
+DeclareGlobalFunction("StoreFactorsPol");
 
 #############################################################################
 ##
@@ -71,6 +77,17 @@ DeclareGlobalFunction( "CyclotomicPol" );
 ##
 DeclareGlobalFunction( "CyclotomicPolynomial" );
 
+#############################################################################
+##
+#F  CompanionMat( <poly> )
+##
+DeclareGlobalFunction( "CompanionMat" );
+
+#############################################################################
+##
+#F  AllIrreducibleMonicPolynomials( <degree>, <field> )
+##
+DeclareGlobalFunction( "AllIrreducibleMonicPolynomials" );
 
 #############################################################################
 ##

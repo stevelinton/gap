@@ -1,0 +1,4 @@
+@msfiles = ("debug","objects","types");
+@gdfiles = ("methwhy.g","profile.g","oper.g","object","type.g","domain");
+$DIR = "../ref";
+$LIB = "../../lib"; 

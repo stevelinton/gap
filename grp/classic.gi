@@ -70,7 +70,7 @@ Sp := function( d, q )
 
         # SP(d,q)
         else
-            mat1 := MutableIdentityMat( d, o );
+            mat1 := IdentityMat( d, o );
             mat2 := List( 0 * mat1, ShallowCopy );
             for i  in [ 2 .. d/2 ]      do mat2[i][i-1]:= o;  od;
             for i  in [ d/2+1 .. d-1 ]  do mat2[i][i+1]:= o;  od;
@@ -125,8 +125,9 @@ Sp := function( d, q )
         c[i][d-i+1] := o;
         c[d/2+i][d/2-i+1] := -o;
     od;
-    g!.form := c;
-    SetFilterObj( g, IsGeneralLinearGroupWithFormRep );
+    SetInvariantBilinearForm(g,rec(matrix:=c));
+    SetIsFullSubgroupGLorSLRespectingBilinearForm(g,true);
+    SetIsSubgroupSL(g,true);
 
     # and return
     return g;
@@ -156,7 +157,7 @@ GU := function( n, q )
      # Construct the generators.
      z:= PrimitiveRoot( f );
      o:= One( f );
-     mat1:= MutableIdentityMat( n, o );
+     mat1:= IdentityMat( n, o );
      mat2:= List( 0 * mat1, ShallowCopy );
 
      if   n = 2 then
@@ -220,8 +221,8 @@ GU := function( n, q )
 
      # construct the form
      c := Reversed( One( g ) );
-     g!.form := c;
-     SetFilterObj( g, IsGeneralUnitaryGroupWithFormRep );
+     SetInvariantSesquilinearForm(g,rec(matrix:=c));
+     SetIsFullSubgroupGLorSLRespectingSesquilinearForm(g,true);
      
      # Return the group.
      return g;
@@ -257,7 +258,7 @@ SU := function( n, q )
 
      else
 
-       mat1:= MutableIdentityMat( n, o );
+       mat1:= IdentityMat( n, o );
        mat2:= List( 0 * mat1, ShallowCopy );
 
        if   n = 2 then
@@ -329,8 +330,9 @@ SU := function( n, q )
 
      # construct the form
      c := Reversed( One( g ) );
-     g!.form := c;
-     SetFilterObj( g, IsGeneralLinearGroupWithFormRep );
+     SetInvariantSesquilinearForm(g,rec(matrix:=c));
+     SetIsFullSubgroupGLorSLRespectingSesquilinearForm(g,true);
+     SetIsSubgroupSL(g,true);
 
      # Return the group.
      return g;
@@ -353,9 +355,10 @@ EichlerTransformation := function( g, u, x )
     # loop over the standard vectors
     for b  in One( g )  do
         i := b
-             + (b*g!.form*x)*u
-             - (b*g!.form*u)*x
-             - (b*g!.form*u)*((x*g!.quadraticForm)*x)*u;
+             + (b*InvariantBilinearForm(g).matrix*x)*u
+             - (b*InvariantBilinearForm(g).matrix*u)*x
+             - (b*InvariantBilinearForm(g).matrix*u)
+	       *((x*g!.quadraticForm)*x)*u;
         Add( e, i );
     od;
     
@@ -374,7 +377,7 @@ Oplus45 := function()
 
     # identity matrix over <f>
     f  := GF(5);
-    id := IdentityMat( 4, f );
+    id := Immutable( IdentityMat( 4, f ) );
 
     # construct TAU2: tau(x1-x2)
     tau2 := List( 0*id, ShallowCopy );
@@ -412,7 +415,8 @@ Oplus45 := function()
     SetSize( g, 28800 );
 
     # construct the form
-    g!.form := [[0,1,0,0],[1,0,0,0],[0,0,2,0],[0,0,0,2]] * One( f );
+    SetInvariantBilinearForm(g,rec(matrix:=
+      [[0,1,0,0],[1,0,0,0],[0,0,2,0],[0,0,0,2]] * One( f )));
 
     # and the quadratic form
     g!.quadraticForm := [[0,1,0,0],[0,0,0,0],[0,0,1,0],[0,0,0,1]] * One( f );
@@ -434,7 +438,7 @@ Opm3 := function( s, d )
 
     # identity matrix over <f>
     f  := GF(3);
-    id := IdentityMat( d, f );
+    id := Immutable( IdentityMat( d, f ) );
 
     # construct DELTA: u <-> v, x -> x
     delta := List( id, ShallowCopy );
@@ -475,7 +479,7 @@ Opm3 := function( s, d )
     delta := List( 2*id, ShallowCopy );
     delta{[1,2]}{[1,2]} := [[0,1],[1,0]]*One( f );
     delta[3][3] := 2*One( f )*2;
-    g!.form := delta;
+    SetInvariantBilinearForm(g,rec(matrix:= delta));
 
     # construct quadratic form
     delta := List( id, ShallowCopy );
@@ -509,7 +513,7 @@ OpmSmall := function( s, d, q )
 
     # identity matrix over <f>
     f  := GF(q);
-    id := IdentityMat( d, f );
+    id := Immutable( IdentityMat( d, f ) );
 
     # construct DELTA: u <-> v, x -> x
     delta := List( id, ShallowCopy );
@@ -550,7 +554,7 @@ OpmSmall := function( s, d, q )
     delta := List( 2*id, ShallowCopy );
     delta{[1,2]}{[1,2]} := [[0,1],[1,0]]*One( f );
     delta[3][3] := 2*One( f );
-    g!.form := delta;
+    SetInvariantBilinearForm(g,rec(matrix:= delta));
 
     # construct quadratic form
     delta := List( id, ShallowCopy );
@@ -615,16 +619,20 @@ OpmOdd := function( s, d, q )
 
     # special cases
     if q = 3 and d = 4 and s = +1  then
-        g := Group( [[1,0,0,0],[0,1,2,1],[2,0,2,0],[1,0,0,1]]*One( f ),
-                    [[0,2,2,2],[0,1,1,2],[1,0,2,0],[1,2,2,0]]*One( f ) );
-        g!.form := [[0,1,0,0],[1,0,0,0],[0,0,1,0],[0,0,0,2]]*One( f );
+        g := GroupByGenerators( [
+                    [[1,0,0,0],[0,1,2,1],[2,0,2,0],[1,0,0,1]]*One( f ),
+                    [[0,2,2,2],[0,1,1,2],[1,0,2,0],[1,2,2,0]]*One( f ) ] );
+	SetInvariantBilinearForm(g,rec(matrix:=
+          [[0,1,0,0],[1,0,0,0],[0,0,1,0],[0,0,0,2]]*One( f )));
         g!.quadraticForm := [[0,1,0,0],[0,0,0,0],[0,0,2,0],[0,0,0,1]]*One( f );
         SetSize( g, 1152 );
         return g;
     elif q = 3 and d = 4 and s = -1  then
-        g := Group( [[0,2,0,0],[2,1,0,1],[0,2,0,1],[0,0,1,0]]*One( f ),
-                    [[2,0,0,0],[1,2,0,2],[1,0,0,1],[0,0,1,0]]*One( f ) );
-        g!.form := [[0,1,0,0],[1,0,0,0],[0,0,2,0],[0,0,0,2]]*One( f );
+        g := GroupByGenerators( [
+                    [[0,2,0,0],[2,1,0,1],[0,2,0,1],[0,0,1,0]]*One( f ),
+                    [[2,0,0,0],[1,2,0,2],[1,0,0,1],[0,0,1,0]]*One( f ) ] );
+	SetInvariantBilinearForm(g,rec(matrix:=
+          [[0,1,0,0],[1,0,0,0],[0,0,2,0],[0,0,0,2]]*One( f )));
         g!.quadraticForm := [[0,1,0,0],[0,0,0,0],[0,0,1,0],[0,0,0,1]]*One( f );
         SetSize( g, 1440 );
         return g;
@@ -644,7 +652,7 @@ OpmOdd := function( s, d, q )
     fi;
 
     # identity matrix over <f>
-    id := IdentityMat( d, f );
+    id := Immutable( IdentityMat( d, f ) );
 
     # construct the reflection TAU_epsilon*x1+x2
     eb1 := epsilon^2*beta+1;
@@ -689,7 +697,7 @@ OpmOdd := function( s, d, q )
     delta := List( 2*id, ShallowCopy );
     delta{[1,2]}{[1,2]} := [[0,1],[1,0]]*One( f );
     delta[3][3] := 2*beta;
-    g!.form := delta;
+    SetInvariantBilinearForm(g,rec(matrix:=delta));
 
     # construct quadratic form
     delta := List( id, ShallowCopy );
@@ -729,8 +737,8 @@ Oplus2 := function( q )
     m2 := [ [ 0, 1 ], [ 1, 0 ] ] * z^0;
 
     # construct the group, set the order, and return
-    g := Group( m1, m2 );
-    g!.form := m2;
+    g := GroupByGenerators( [ m1, m2 ] );
+    SetInvariantBilinearForm(g,rec(matrix:=m2));
     g!.quadraticForm := [ [ 0, 1 ], [ 0, 0 ] ] * z^0;
     SetSize( g, 2*(q-1) );
     return g;
@@ -752,7 +760,7 @@ Oplus4Even := function( q )
     f := GF(q);
 
     # identity matrix over <f>
-    id := IdentityMat( 4, f );
+    id := Immutable( IdentityMat( 4, f ) );
 
     # construct RHO: x1 <-> y1
     rho := List( id, ShallowCopy );
@@ -780,7 +788,8 @@ Oplus4Even := function( q )
     SetSize( g, 2*q^2*(q^2-1)^2 );
 
     # construct the form
-    g!.form := [[0,1,0,0],[1,0,0,0],[0,0,0,1],[0,0,1,0]] * One( f );
+    SetInvariantBilinearForm(g,rec(matrix:=
+      [[0,1,0,0],[1,0,0,0],[0,0,0,1],[0,0,1,0]] * One( f )));
 
     # and the quadratic form
     g!.quadraticForm := [[0,1,0,0],[0,0,0,0],[0,0,0,1],[0,0,0,0]] * One( f );
@@ -812,7 +821,7 @@ OplusEven := function( d, q )
     f := GF(q);
 
     # identity matrix over <f>
-    id := IdentityMat( d, f );
+    id := Immutable( IdentityMat( d, f ) );
 
     # V = H | H_1 | ... | H_k
     k := (d-2) / 2;
@@ -897,7 +906,7 @@ OplusEven := function( d, q )
         delta[2*i-1][2*i] := One( f );
         delta[2*i][2*i-1] := One( f );
     od;
-    g!.form := delta;
+    SetInvariantBilinearForm(g,rec(matrix:=delta));
 
     # construct quadratic form
     delta := List( 0*id, ShallowCopy );
@@ -951,8 +960,9 @@ Ominus2 := function( q )
     m1 := bc^-1 * [[z,0*z],[0*z,z^-1]] * bc;
 
     # and return the group
-    g := Group( m1, m2 );
-    g!.form := [ [ 2, 1 ], [ 1, 2*t ] ] * z^0;
+    g := GroupByGenerators( [ m1, m2 ] );
+    SetInvariantBilinearForm(g,rec(matrix:=
+      [ [ 2, 1 ], [ 1, 2*t ] ] * z^0));
     g!.quadraticForm := [ [ 1, 1 ], [ 0, t ] ] * z^0;
     SetSize( g, 2*(q+1) );
     return g;
@@ -974,7 +984,7 @@ Ominus4Even := function( q )
     f := GF(q);
 
     # identity matrix over <f>
-    id := IdentityMat( 4, f );
+    id := Immutable( IdentityMat( 4, f ) );
 
     # construct RHO: x1 <-> y1
     rho := List( id, ShallowCopy );
@@ -1011,7 +1021,8 @@ Ominus4Even := function( q )
     SetSize( g, 2*q^2*(q^2+1)*(q^2-1) );
 
     # construct the form
-    g!.form := [[0,1,0,0],[1,0,0,0],[0,0,0,1],[0,0,1,0]] * One( f );
+    SetInvariantBilinearForm(g,rec(matrix:=
+      [[0,1,0,0],[1,0,0,0],[0,0,0,1],[0,0,1,0]] * One( f )));
 
     # and the quadratic form
     g!.quadraticForm := [[0,1,0,0],[0,0,0,0],[0,0,t,1],[0,0,0,t]] * One( f );
@@ -1043,7 +1054,7 @@ OminusEven := function( d, q )
     f := GF(q);
 
     # identity matrix over <f>
-    id := IdentityMat( d, f );
+    id := Immutable( IdentityMat( d, f ) );
 
     # V = H | H_1 | ... | H_k
     k := (d-2) / 2;
@@ -1138,7 +1149,7 @@ OminusEven := function( d, q )
         delta[2*i-1][2*i] := One( f );
         delta[2*i][2*i-1] := One( f );
     od;
-    g!.form := delta;
+    SetInvariantBilinearForm(g,rec(matrix:=delta));
 
     # construct quadratic form
     delta := List( 0*id, ShallowCopy );
@@ -1187,7 +1198,7 @@ OzeroOdd := function( d, q, b )
     f := GF(q);
 
     # identity matrix over <f>
-    id := IdentityMat( d, f );
+    id := Immutable( IdentityMat( d, f ) );
 
     # construct PHI: u -> au, v -> a^-1v, x -> x
     phi := List( id, ShallowCopy );
@@ -1230,7 +1241,7 @@ OzeroOdd := function( d, q, b )
     # construct the form
     s := List( 2*b*id, ShallowCopy );
     s{[1,2]}{[1,2]} := [[0,1],[1,0]]*One( f );
-    g!.form := s;
+    SetInvariantBilinearForm(g,rec(matrix:=s));
 
     # and the quadratic form
     s := List( b*id, ShallowCopy );
@@ -1309,7 +1320,7 @@ O := function( e, d, q )
     SetName( g, Concatenation( "O(", i, String(e), ",", String(d), ",",
                                    String(q), ")" ) );
 
-    SetFilterObj( g, IsGeneralLinearGroupWithFormRep );
+    SetIsFullSubgroupGLorSLRespectingBilinearForm( g, true);
     
     # and return
     return g;
@@ -1375,7 +1386,7 @@ WreathProductOfMatrixGroup := function( M, P )
 
     m := DimensionOfMatrixGroup( M );
     d := LargestMovedPoint( P );
-    id := MutableIdentityMat( m * d, DefaultFieldOfMatrixGroup( M ) );
+    id := IdentityMat( m * d, DefaultFieldOfMatrixGroup( M ) );
     gens := [  ];
     for b  in [ 1 .. d ]  do
         ran := ( b - 1 ) * m + [ 1 .. m ];
@@ -1413,7 +1424,7 @@ TensorWreathProductOfMatrixGroup := function( M, P )
     one := One( FieldOfMatrixGroup( M ) );
     a := LargestMovedPoint( P );
     n := m ^ a;
-    id := IdentityMat( n, one );
+    id := Immutable( IdentityMat( n, one ) );
     gens := [  ];
     for b  in [ 1 .. a ]  do
         for mat  in GeneratorsOfGroup( M )  do
@@ -1474,5 +1485,5 @@ end;
 #############################################################################
 ##
 
-#E  classic.gi  . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

@@ -26,26 +26,26 @@ Revision.ctbllatt_gd :=
 ##  spanned by (virtual) characters <characters> of the character table <tbl>
 ##  (see "ScalarProduct").  By finding shorter vectors in the lattice spanned
 ##  by <characters>, i.e.  virtual characters of smaller norm, in some cases
-##  'LLL' is able to find irreducible characters.
+##  `LLL' is able to find irreducible characters.
 ##  
-##  'LLL' returns a record with at least components 'irreducibles' (the list
-##  of found irreducible characters), 'remainders' (a list of reducible
-##  virtual characters), and 'norms' (the list of norms of 'remainders').
-##  'irreducibles' together with 'remainders' span the same lattice as
+##  `LLL' returns a record with at least components `irreducibles' (the list
+##  of found irreducible characters), `remainders' (a list of reducible
+##  virtual characters), and `norms' (the list of norms of `remainders').
+##  `irreducibles' together with `remainders' span the same lattice as
 ##  <characters>.
 ##  
-##  There are some optional parameters\:
+##  There are some optional parameters:
 ##  
 ##  <y>:\\ controls the sensitivity of the algorithm; the value of <y> must
 ##         be between $1/4$ and 1, the default value is $3/4$.
 ##  
-##  '\"sort\"':\\
-##         'LLL' sorts <characters> and the 'remainders' component of the
+##  `\"sort\"':\\
+##         `LLL' sorts <characters> and the `remainders' component of the
 ##         result according to the degrees.
 ##  
-##  '\"linearcomb\"':\\ The returned record contains components 'irreddecomp'
-##         and 'reddecomp' which are decomposition matrices of 'irreducibles'
-##         and 'remainders', with respect to <characters>.
+##  `\"linearcomb\"':\\ The returned record contains components `irreddecomp'
+##         and `reddecomp' which are decomposition matrices of `irreducibles'
+##         and `remainders', with respect to <characters>.
 ##  
 ##  |    gap> s4:= CharTable( "Symmetric", 4 );;
 ##      gap> chars:= [ [ 8, 0, 0, -1, 0 ], [ 6, 0, 2, 0, 2 ],

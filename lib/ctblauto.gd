@@ -106,13 +106,10 @@ DeclareGlobalFunction( "TransformingPermutations" );
 ##  matrix `Irr( <tbl1> )' to the set of rows of the matrix
 ##  `Irr( <tbl2> )' by permutation of columns.
 ##
-DeclareGlobalFunction(
-    "TransformingPermutationsCharacterTables" );
+DeclareGlobalFunction( "TransformingPermutationsCharacterTables" );
 
 
 #############################################################################
 ##
-#E  ctblauto.gd . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-
-
+#E
 

@@ -51,12 +51,12 @@ InstallGlobalFunction( DisplayCompositionSeries, function( S )
     # display the composition series
     Print( GroupString( S[1], "G" ), "\n" );
     for i  in [2..Length(S)]  do
-	if Parent(S[i])=S[i-1] then
-	  f:=Image( NaturalHomomorphismByNormalSubgroupInParent( S[ i ] ) );
-	else
-	  f:=Image(NaturalHomomorphismByNormalSubgroup(S[i-1],S[i]));
-	fi;
-        Print( " | ",IsomorphismTypeFiniteSimpleGroup(f),"\n");
+	#if Parent(S[i])=S[i-1] then
+	#  f:=Image( NaturalHomomorphismByNormalSubgroupInParent( S[ i ] ) );
+	#else
+	f:=Image(NaturalHomomorphismByNormalSubgroup(S[i-1],S[i]));
+        #fi;
+        Print( " | ",IsomorphismTypeFiniteSimpleGroup(f).name,"\n");
         if i < Length(S)  then
             Print( GroupString( S[i], "S" ), "\n" );
         else
@@ -112,6 +112,7 @@ InstallMethod( CompositionSeries,
             tchom,      # transitive constituent homomorphism applied to
                         # intransitive workgroup
             bhom,       # block homomorphism applied to imprimitive workgroup
+	    fahom,	# factor homomorphism to store
             bl,         # block system in workgroup
             D,          # derived subgroup of workgroup
             top,        # index of D in workgroup
@@ -130,11 +131,12 @@ InstallMethod( CompositionSeries,
             t := AsSubgroup( s, list[ i ] );
             fac := CyclicGroup( IsPermGroup,
                            RelativeOrders( pcgs )[ i - 1 ] );
-            Setter( NaturalHomomorphismByNormalSubgroupInParent )( t,
-                    GroupHomomorphismByImagesNC( s, fac,
-                    pcgs{ [ i - 1 .. Length( pcgs ) ] },
-                    Concatenation( GeneratorsOfGroup( fac ),
-                    List( [ i .. Length( pcgs ) ], k -> One( fac ) ) ) ) );
+            fahom:=GroupHomomorphismByImagesNC( s, fac,
+		 pcgs{ [ i - 1 .. Length( pcgs ) ] },
+		 Concatenation( GeneratorsOfGroup( fac ),
+		 List( [ i .. Length( pcgs ) ], k -> One( fac ) ) ) );
+            Setter( NaturalHomomorphismByNormalSubgroupInParent )( t,fahom);
+	    AddNaturalHomomorphismsPool(s,t,fahom);
             list[ i ] := t;
             s := t;
         od;
@@ -225,9 +227,10 @@ InstallMethod( CompositionSeries,
         fac := GroupByGenerators( factors[i-1] );
         SetSize( fac, factorsize[i-1] );
         SetIsSimpleGroup( fac, true );
-        Setter( NaturalHomomorphismByNormalSubgroupInParent )( t,
-                GroupHomomorphismByImagesNC( s, fac,
-                        normals[i-1], factors[i-1] ) );
+	fahom:=GroupHomomorphismByImagesNC( s, fac,
+                        normals[i-1], factors[i-1] );
+        Setter( NaturalHomomorphismByNormalSubgroupInParent )( t,fahom);
+        AddNaturalHomomorphismsPool(s, t,fahom);
         Add( list, t );
         s := t;
     od;
@@ -238,9 +241,10 @@ InstallMethod( CompositionSeries,
     fac := GroupByGenerators( factors[Length(normals)] );
     SetSize( fac, factorsize[Length(normals)] );
     SetIsSimpleGroup( fac, true );
-    Setter( NaturalHomomorphismByNormalSubgroupInParent )( t,
-            GroupHomomorphismByImagesNC( s, fac,
-                    normals[Length(normals)], factors[Length(normals)] ) );
+    fahom:=GroupHomomorphismByImagesNC( s, fac,
+                    normals[Length(normals)], factors[Length(normals)] );
+    Setter( NaturalHomomorphismByNormalSubgroupInParent )( t,fahom);
+    AddNaturalHomomorphismsPool(s, t,fahom);
     Add( list, t );
 
     # return output
@@ -365,7 +369,8 @@ InstallGlobalFunction( PerfectCSPG,
             kernel,     # output
             ready,      # boolean variable indicating whether normal subgroup
                         # was found
-            chainK;
+            chainK,
+            list;
 
     while not IsSimpleGroup(K)  do
         whichcase := CasesCSPG(K);
@@ -413,9 +418,11 @@ InstallGlobalFunction( PerfectCSPG,
                kerelement := Product(word);
                N := NormalClosure(K, SubgroupNC(K,[kerelement]));
             else
-               H := NormalizerStabCSPG(K);
+               list := NormalizerStabCSPG(K);
+               H := list[1];
+               chainK := list[2];
                if whichcase[1] = 2 then
-                 stab2 := Stabilizer( K, [ chainK.orbit[1],
+                  stab2 := Stabilizer( K, [ chainK.orbit[1],
                                            chainK.stabilizer.orbit[1] ],
                                   OnTuples);
                   H := CentralizerNormalCSPG( H, stab2 );
@@ -464,7 +471,7 @@ InstallGlobalFunction( PerfectCSPG,
 
     # case when we found last factor of original group
     else
-        kernel := Group(());
+        kernel := GroupByGenerators( [], () );
     fi;
 
     return kernel;
@@ -907,10 +914,12 @@ end );
 
 #############################################################################
 ##
-#F  NormalizerStabCSPG()  . . . . . . . . .  normalizer of 2 point stabilizer
+#F  NormalizerStabCSPG( <G> ) . . . . . . .  normalizer of 2 point stabilizer
 ##
-##  given primitive, perfect group which has regular normal subgroup
-##  with nontrivial centralizer, the output is N_G(G_{xy})
+##  Given a primitive, perfect group <G> which has a regular normal subgroup
+##  with nontrivial centralizer,
+##  the output is a list of length two, the first entry being N_G(G_{xy})
+##  and the second entry being a stabilizer chain of <G>.
 ##
 InstallGlobalFunction( NormalizerStabCSPG, function(G)
     local   n,          # degree of G
@@ -989,7 +998,7 @@ InstallGlobalFunction( NormalizerStabCSPG, function(G)
     normalizer.stabChain.stabilizer:=normalizer.stabChain2;
 
     normalizer := GroupStabChain( Parent( G ), normalizer.stabChain, true );
-    return normalizer;
+    return [normalizer, chainG];
 end );
 
 
@@ -1676,7 +1685,7 @@ InstallMethod( Centre,
             GGG,        # the image of GG at tchom2
             hgens,      # list of generators for the direct product of
                         # centralizers of GG in Sym(orbit), for orbits of GG
-            order,      # order of Group(hgens,())
+            order,      # order of `GroupByGenerators( hgens, () )'
             centr,      # the centralizer of GG in Sym(orbit)
             inverse2,   # inverse of the conjugating permutation of tchom2
             g,          # generator of centr
@@ -2595,4 +2604,5 @@ InstallOtherMethod(ChiefSeriesThrough,"perm group under perm group action",
 
 #############################################################################
 ##
-#E  grpprmcs.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
+

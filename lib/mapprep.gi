@@ -107,7 +107,6 @@ InstallMethod( Source,
 ##
 DeclareRepresentation( "IsCompositionMappingRep",
     IsGeneralMapping and IsAttributeStoringRep, [ "map1", "map2" ] );
-#T better list object?
 
 
 #############################################################################
@@ -475,9 +474,9 @@ InstallMethod( ViewObj,
     [ IsCompositionMappingRep ], 100,
     function( com )
     Print( "CompositionMapping( " );
-    View( com!.map1 );
-    Print( ", " );
     View( com!.map2 );
+    Print( ", " );
+    View( com!.map1 );
     Print( " )" );
     end );
  
@@ -486,7 +485,7 @@ InstallMethod( PrintObj,
     true,
     [ IsCompositionMappingRep ], 100,
     function( com )
-    Print( "CompositionMapping( ", com!.map1, ", ", com!.map2, " )" );
+    Print( "CompositionMapping( ", com!.map2, ", ", com!.map1, " )" );
     end );
  
 
@@ -500,7 +499,7 @@ InstallMethod( PrintObj,
 #R  IsMappingByFunctionRep( <map> )
 ##
 DeclareRepresentation( "IsMappingByFunctionRep",
-    IsNonSPGeneralMapping and IsMapping and IsAttributeStoringRep,
+    IsMapping and IsAttributeStoringRep,
     [ "fun" ] );
 #T really attribute storing ??
 
@@ -515,13 +514,43 @@ DeclareRepresentation( "IsMappingByFunctionWithInverseRep",
 #T 1996/10/10 fceller where to put non-reps, 4th position?
     [ "fun", "invFun" ] );
 
+#############################################################################
+##
+#R  IsNonSPMappingByFunctionRep( <map> )
+##
+DeclareRepresentation( "IsNonSPMappingByFunctionRep",
+    IsNonSPGeneralMapping and IsMappingByFunctionRep, [] );
+
+#############################################################################
+##
+#R  IsNonSPMappingByFunctionWithInverseRep( <map> )
+##
+DeclareRepresentation( "IsNonSPMappingByFunctionWithInverseRep",
+        IsMappingByFunctionWithInverseRep and IsNonSPMappingByFunctionRep,
+    [ "fun", "invFun" ] );
+
+#############################################################################
+##
+#R  IsSPMappingByFunctionRep( <map> )
+##
+DeclareRepresentation( "IsSPMappingByFunctionRep",
+    IsSPGeneralMapping and IsMappingByFunctionRep, [] );
+
+#############################################################################
+##
+#R  IsSPMappingByFunctionWithInverseRep( <map> )
+##
+DeclareRepresentation( "IsSPMappingByFunctionWithInverseRep",
+        IsMappingByFunctionWithInverseRep and IsSPMappingByFunctionRep,
+    [ "fun", "invFun" ] );
+
 
 #############################################################################
 ##
 #F  MappingByFunction( <D>, <E>, <fun> )  . . . . .  create map from function
 #F  MappingByFunction( <D>, <E>, <fun>, <invfun> )
 ##
-BindGlobal( "MappingByFunction", function ( arg )
+InstallGlobalFunction( MappingByFunction, function ( arg )
     local   map;        # mapping <map>, result
 
     # no inverse function given
@@ -529,7 +558,7 @@ BindGlobal( "MappingByFunction", function ( arg )
 
       # make the general mapping
       map:= Objectify( TypeOfDefaultGeneralMapping( arg[1], arg[2],
-                               IsMappingByFunctionRep
+                               IsNonSPMappingByFunctionRep
                            and IsSingleValued
                            and IsTotal ),
                        rec( fun:= arg[3] ) );
@@ -539,7 +568,7 @@ BindGlobal( "MappingByFunction", function ( arg )
 
       # make the mapping
       map:= Objectify( TypeOfDefaultGeneralMapping( arg[1], arg[2],
-                               IsMappingByFunctionWithInverseRep
+                               IsNonSPMappingByFunctionWithInverseRep
                            and IsBijective ),
                        rec( fun    := arg[3],
                             invFun := arg[4] ) );
@@ -659,7 +688,7 @@ InstallMethod( ViewObj,
     true,
     [ IsMappingByFunctionRep ], 0,
     function ( map )
-    Print( "GeneralMappingByFunction( " );
+    Print( "MappingByFunction( " );
     View( Source( map ) );
     Print( ", " );
     View( Range( map ) );
@@ -673,7 +702,7 @@ InstallMethod( PrintObj,
     true,
     [ IsMappingByFunctionRep ], 0,
     function ( map )
-    Print( "GeneralMappingByFunction( ",
+    Print( "MappingByFunction( ",
            Source( map ), ", ", Range( map ), ", ",
            map!.fun, " )" );
     end );
@@ -756,14 +785,14 @@ InstallMethod( InverseGeneralMapping,
     function ( map )
     local   inv;
 
-    # make the mapping
+    # Make the mapping.
     inv:= Objectify( TypeOfDefaultGeneralMapping( Range( map ),
                                                   Source( map ),
                              IsInverseGeneralMappingRep
                          and IsAttributeStoringRep ),
                      rec() );
 
-    # if possible, enter preimage and image
+    # If possible, enter preimage and image.
     if HasImagesSource( map ) then
       SetPreImagesRange( inv, ImagesSource( map ) );
     fi;
@@ -771,6 +800,7 @@ InstallMethod( InverseGeneralMapping,
       SetImagesSource( inv, PreImagesRange( map ) );
     fi;
 
+    # Maintain the maintainings w.r.t. multiplication.
     if HasRespectsMultiplication( map ) then
       SetRespectsMultiplication( inv, RespectsMultiplication( map ) );
     fi;
@@ -780,6 +810,7 @@ InstallMethod( InverseGeneralMapping,
       SetRespectsOne( inv, RespectsOne( map ) );
     fi;
 
+    # Maintain the maintainings w.r.t. addition.
     if HasRespectsAddition( map ) then
       SetRespectsAddition( inv, RespectsAddition( map ) );
     fi;
@@ -789,12 +820,19 @@ InstallMethod( InverseGeneralMapping,
       SetRespectsZero( inv, RespectsZero( map ) );
     fi;
 
-#T there is an asymmetry of resp. sc. mult.?
+    # Maintain respecting of scalar multiplication.
+    # (Note the slight asymmetry, depending on the coefficient domains.)
+    if     HasRespectsScalarMultiplication( map )
+       and   LeftActingDomain( Source( map ) )
+           = LeftActingDomain( Range( map ) ) then
+      SetRespectsScalarMultiplication( inv,
+          RespectsScalarMultiplication( map ) );
+    fi;
 
-    # we know the inverse general mapping of the inverse general mapping ;-)
+    # We know the inverse general mapping of the inverse general mapping ;-).
     SetInverseGeneralMapping( inv, map );
 
-    # return the inverse general mapping
+    # Return the inverse general mapping.
     return inv;
     end );
 
@@ -1060,7 +1098,7 @@ BindGlobal( "ImmediateImplicationsIdentityMapping", function( idmap )
       SetRespectsAddition( idmap, true );
       if IsAdditiveMagmaWithZero( source ) then
 	SetRespectsZero( idmap, true );
-	if IsAdditiveMagmaWithInverses( source ) then
+	if IsAdditiveGroup( source ) then
 	  SetRespectsAdditiveInverses( idmap, true );
 
           # linear structure
@@ -1249,13 +1287,17 @@ InstallMethod( PrintObj,
 #M  CompositionMapping2( <map>, <idmap> ) .  for gen. mapping and id. mapping
 ##
 InstallMethod( CompositionMapping2,
-    "for general mapping and identity mapping",
-    FamSource1EqFamRange2,
-    [ IsGeneralMapping, IsGeneralMapping and IsOne ],
-    SUM_FLAGS + 1,  # should be higher than the rank for a zero mapping
-    function ( map, id )
-    return map;
-    end );
+  "for general mapping and identity mapping", FamSource1EqFamRange2,
+  [ IsGeneralMapping, IsGeneralMapping and IsOne ],
+  SUM_FLAGS + 1,  # should be higher than the rank for a zero mapping
+function ( map, id )
+  if not IsSubset(Range(id),Source(map)) then
+    # if the identity is defined on something smaller, we need to take a
+    # true `CompositionMapping'.
+    TryNextMethod();
+  fi;
+  return map;
+end );
 
 
 #############################################################################
@@ -1263,13 +1305,17 @@ InstallMethod( CompositionMapping2,
 #M  CompositionMapping2( <idmap>, <map> ) .  for id. mapping and gen. mapping
 ##
 InstallMethod( CompositionMapping2,
-    "for identity mapping and general mapping",
-    FamSource1EqFamRange2,
-    [ IsGeneralMapping and IsOne, IsGeneralMapping ],
-    SUM_FLAGS + 1,  # should be higher than the rank for a zero mapping
-    function( id, map )
-    return map;
-    end );
+  "for identity mapping and general mapping",FamSource1EqFamRange2,
+  [ IsGeneralMapping and IsOne, IsGeneralMapping ],
+  SUM_FLAGS + 1,  # should be higher than the rank for a zero mapping
+function( id, map )
+  if not IsSubset(Source(id),ImagesSource(map)) then
+    # if the identity is defined on something smaller, we need to take a
+    # true `CompositionMapping'.
+    TryNextMethod();
+  fi;
+  return map;
+end );
 
 
 #############################################################################
@@ -1308,7 +1354,7 @@ BindGlobal( "ImmediateImplicationsZeroMapping", function( zeromap )
       SetRespectsAddition( zeromap, true );
       if IsAdditiveMagmaWithZero( source ) then
 	SetRespectsZero( zeromap, true );
-	if IsAdditiveMagmaWithInverses( source ) then
+	if IsAdditiveGroup( source ) then
 	  SetRespectsAdditiveInverses( zeromap, true );
 	fi;
       fi;
@@ -1566,5 +1612,5 @@ InstallMethod( IsSurjective,
 
 #############################################################################
 ##
-#E  mapprep.gi  . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

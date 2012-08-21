@@ -1,4 +1,4 @@
 @msfiles = ("mapping","grphomom");
-@gdfiles = ("mapping","ghom","mapphomo","morpheus","grppclat");
+@gdfiles = ("mapping","ghom","mapphomo","morpheus","grppclat","grpnice");
 $DIR = "../ref";
 $LIB = "../../lib"; 

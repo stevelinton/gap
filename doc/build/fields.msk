@@ -6,7 +6,7 @@
 %%
 %Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 %%
-\Chapter{Fields and Division Rings}
+\PreliminaryChapter{Fields and Division Rings}
 
 \index{fields}
 \index{division rings}
@@ -49,7 +49,7 @@
 \Declaration{Conjugates}
 \beginexample
 gap> GaloisGroup(CF(8));
-Group( [ ANFAutomorphism( CF(8), 7 ), ANFAutomorphism( CF(8), 5 ) ], ... )
+<group with 2 generators>
 gap> Norm(CF(8),E(8));    
 1
 gap> Trace(CF(8),E(8));

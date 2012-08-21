@@ -1,0 +1,8 @@
+@msfiles = ("install","run","sharepkg");
+@gdfiles = ("package.g","files.gd","system.g");
+$DIR = "../ref";
+$LIB = "../../lib"; 
+versionnumber=4b5
+versionsuffix=4b5
+gapdirname=gap4b5
+ucgapdirname=GAP4B5

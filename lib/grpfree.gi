@@ -58,14 +58,14 @@ Revision.grpfree_gi :=
 ##         s_{c_{i+1}+1} & ; & \mbox{\rm otherwise}
 ##                            \end{array} \right.    \]
 ##
-DeclareRepresentation( "IsFreeGroupIterator",
-    IsIterator and IsComponentObjectRep,
+DeclareRepresentation( "IsFreeGroupIteratorRep",
+    IsComponentObjectRep,
     [ "family", "nrgenerators", "exp", "word", "counter", "length" ] );
 
 InstallMethod( NextIterator,
-    "method for iterator of a free group",
+    "for mutable iterator of a free group",
     true,
-    [ IsFreeGroupIterator ], 0,
+    [ IsIterator and IsMutable and IsFreeGroupIteratorRep ], 0,
     function( iter )
 
     local word,
@@ -101,16 +101,19 @@ InstallMethod( NextIterator,
     end );
 
 InstallMethod( IsDoneIterator,
-    "method for iterator of a free group",
+    "for iterator of a free group",
     true,
-    [ IsFreeGroupIterator ], 0,
+    [ IsIterator and IsFreeGroupIteratorRep ], 0,
     ReturnFalse );
 
 InstallMethod( Iterator,
-    "method for a free group",
+    "for a free group",
     true,
     [ IsAssocWordWithInverseCollection and IsWholeFamily ], 0,
-    G -> Objectify( NewType( IteratorsFamily, IsFreeGroupIterator ),
+    G -> Objectify( NewType( IteratorsFamily,
+                                 IsIterator
+                             and IsMutable
+                             and IsFreeGroupIteratorRep ),
                     rec(
                          family         := ElementsFamily( FamilyObj( G ) ),
                          nrgenerators   := Length( GeneratorsOfGroup( G ) ),
@@ -118,6 +121,21 @@ InstallMethod( Iterator,
                          word           := [],
                          length         := 0,
                          counter        := [ 0, 0 ]
+                        )
+                   ) );
+
+InstallMethod( ShallowCopy,
+    "for iterator of a free group",
+    true,
+    [ IsIterator and IsFreeGroupIteratorRep ], 0,
+    iter -> Objectify( Subtype( TypeObj( iter ), IsMutable ),
+                    rec(
+                         family         := iter!.family,
+                         nrgenerators   := iter!.nrgenerators,
+                         exp            := iter!.exp,
+                         word           := ShallowCopy( iter!.word ),
+                         length         := iter!.length,
+                         counter        := ShallowCopy( iter!.counter )
                         )
                    ) );
 
@@ -430,6 +448,7 @@ InstallMethod( GeneratorsMagmaFamily,
 #F  FreeGroup( <rank>, <name> )
 #F  FreeGroup( <name1>, <name2>, ... )
 #F  FreeGroup( <names> )
+#F  FreeGroup( infinity, <name>, <init> )
 ##
 InstallGlobalFunction( FreeGroup, function ( arg )
 
@@ -442,12 +461,16 @@ InstallGlobalFunction( FreeGroup, function ( arg )
       names:= InfiniteListOfNames( "f" );
     elif Length( arg ) = 2 and arg[1] = infinity then
       names:= InfiniteListOfNames( arg[2] );
+    elif Length( arg ) = 3 and arg[1] = infinity then
+      names:= InfiniteListOfNames( arg[2], arg[3] );
     elif Length( arg ) = 1 and IsInt( arg[1] ) and 0 <= arg[1] then
       names:= List( [ 1 .. arg[1] ],
                     i -> Concatenation( "f", String(i) ) );
+      MakeImmutable( names );
     elif Length( arg ) = 2 and IsInt( arg[1] ) and 0 <= arg[1] then
       names:= List( [ 1 .. arg[1] ],
                     i -> Concatenation( arg[2], String(i) ) );
+      MakeImmutable( names );
     elif Length( arg ) = 1 and IsList( arg[1] ) and IsEmpty( arg[1] ) then
       names:= arg[1];
     elif 1 <= Length( arg ) and ForAll( arg, IsString ) then
@@ -551,7 +574,7 @@ InstallMethod( ElementOfFpGroup,
 ##
 #M  install            methods for all free group elements.
 ##
-InstallMethod( Inverse,
+InstallMethod( InverseOp,
     "method for a free group element",
     true,
     [ IsElementOfFreeGroup ], 0,
@@ -596,7 +619,7 @@ InstallMethod( \*,
       IsElementOfFreeGroup and Is8BitsAssocWord ], 0,
     8Bits_Product );
 
-InstallMethod( One,
+InstallMethod( OneOp,
         methname8b1,
     true,
     [ IsElementOfFreeGroup and Is8BitsAssocWord ], 0,
@@ -670,7 +693,7 @@ InstallMethod( \*,
       IsElementOfFreeGroup and Is16BitsAssocWord ], 0,
     16Bits_Product );
 
-InstallMethod( One,
+InstallMethod( OneOp,
     methname16b1,
     true,
     [ IsElementOfFreeGroup and Is16BitsAssocWord ], 0,
@@ -745,7 +768,7 @@ InstallMethod( \*,
       IsElementOfFreeGroup and Is32BitsAssocWord ], 0,
     32Bits_Product );
 
-InstallMethod( One,
+InstallMethod( OneOp,
     methname32b1,
     true,
     [ IsElementOfFreeGroup and Is32BitsAssocWord ], 0,
@@ -820,7 +843,7 @@ InstallMethod( \*,
       IsElementOfFreeGroup and IsInfBitsAssocWord ], 0,
     AssocWord_Product );
 
-InstallMethod( One,
+InstallMethod( OneOp,
     "method for a free group element (inf bits)",
     true,
     [ IsElementOfFreeGroup and IsInfBitsAssocWord ], 0,

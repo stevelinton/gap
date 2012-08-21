@@ -1,6 +1,12 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%W  stabchain.tex             GAP documentation            Heiko Thei\3en
+%%
+%H  @(#)$Id$
+%%
+%Y  Copyright 1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,   Germany
+%%
 \Chapter{Stabilizer Chains}
-
-\def\labelto#1{\buildrel\lower0.8ex\hbox{$\scriptstyle #1$}\over\to}%
 
 This  chapter contains some rather  technical complements to the material
 handled  in chapter~"ref:Permutations  and   Permutation Groups"  of  the
@@ -44,7 +50,6 @@ the scrolling capabilities of your terminal.)
         calculating the size.
 
 `generators' &
-        a generating set for    the current stabilizer. Usually this   is
         `labels\{ genlabels \}', but it can be a different set.
 
 `orbit' &
@@ -55,8 +60,8 @@ the scrolling capabilities of your terminal.)
 `translabels' &
         the factorized inverse   transversal  that was  found during  the
         orbit  algorithm  carried out   with the   inverses of  `labels\{
-        genlabels \}', starting from the base point. The directed edge $i
-        \labelto g j  = ig^{-1}$ in  the Schreier tree  is represented by
+        genlabels \}', starting from the base point. The directed edge
+	$i(g)j  = ig^{-1}$ in  the Schreier tree  is represented by
         `labels[ translabels[<j>] ]' = <g> in  the stabilizer chain (note
         that <i> can be reconstructed as <jg> from this information). The
         entries in the `translabels'   component are thus   just integers
@@ -97,57 +102,62 @@ record and `stabilizer'  records further down   are not themselves  group
 records. Thus you cannot take such a record and  apply group functions to
 it. Instead, the following functions can be used to access these records.
 Let <S> denote a stabilizer chain.
-\beginitems
-\function IsFixedStabilizer( <S>, <pnt> ) &
-        returns `true'  if <pnt> is fixed by   all generators of  <S> and
-        `false' otherwise.
+\>IsFixedStabilizer( <S>, <pnt> )
 
-\function EmptyStabChain( <labels>, <id> \[, <pnt> \] ) &
-        constructs  a   stabilizer  chain  for   the trivial   group with
-        `identity=<id>' and `labels=$\{id\}\cup  labels$'  (but of course
-        with `genlabels=[ ]' and `generators=[ ]'). If the optional third
-        argument <pnt>  is present, the only stabilizer   of the chain is
-        initialized with the  one-point basic orbit  `[ <pnt> ]' and with
-        `translabels' and `transversal' components.
-        
-\function InsertTrivialStabilizer( <S>, <pnt> ) &
-        `InsertTrivialStabilizer' initializes the current stabilizer with
-        <pnt>  as `EmptyStabChain' did,  but  assigns the original <S> to
-        the  new `<S>.stabilizer' component,  such that  a new level with
-        trivial basic  orbit (but identical  `labels' and `ShallowCopy'ed
-        `genlabels' and  `generators') is  inserted. These functions  are
-        recommended if <pnt> really is  fixed  by the generators of  <S>,
-        because   then new generators  can   be added and  the  orbit and
-        transversal   at the  same   time  extended  with  the  following
-        function.
+returns `true'  if <pnt> is fixed by   all generators of  <S> and
+`false' otherwise.
 
-\function AddGeneratorsExtendSchreierTree( <S>, <new> ) &
-        adds the elements  in <new> to the list  of generators of <S> and
-        at the  same time extends the  orbit and transversal. This is the
-        only legal way  to extend  a  Schreier tree (because  it involves
-        careful handling of the tree components).
+\>EmptyStabChain( <labels>, <id> \[, <pnt> \] )
 
-\function InverseRepresentative( <S>, <pnt> ) &
-        calculates the transversal element which  maps <pnt> back to  the
-        base point of  <S>. It just  runs back through the  Schreier tree
-        from <pnt> to the root and multiplies the labels along the way.
+constructs  a   stabilizer  chain  for   the trivial   group with
+`identity=<id>' and `labels=$\{id\}\cup  labels$'  (but of course
+with `genlabels=[ ]' and `generators=[ ]'). If the optional third
+argument <pnt>  is present, the only stabilizer   of the chain is
+initialized with the  one-point basic orbit  `[ <pnt> ]' and with
+`translabels' and `transversal' components.
 
-\function SiftedPermutation( <S>, <g> ) &
-        sifts  the element  <g> as  follows: <g>  is replaced by  `<g> \*
-        InverseRepresentative(  <S>, <S>.orbit[1] ^   <g> )', then <S> is
-        replaced by `<S>.stabilizer' and  this process is repeated  until
-        <S> is trivial or `<S>.orbit[1] ^ <g>' is  not in the basic orbit
-        `<S>.orbit'.  The remainder <g>  is returned, it  is the identity
-        permutation if  and  only if the  original <g>  was in  the group
-        described by the original~<S>.
+\>InsertTrivialStabilizer( <S>, <pnt> )
 
-\function GroupStabChain( \[ <G>, \] <S> ) &
-        constructs a permutation group with stabilizer chain <S>, i.e., a
-        group    with  generators `Generators( <S>  )'   to  which <S> is
-        assigned as component  `stabChain'. If the  optional argument <G>
-        is  given, the result  will be  a subgroup (in  the {\GAP} sense)
-        of~<G>.
-\enditems
+`InsertTrivialStabilizer' initializes the current stabilizer with
+<pnt>  as `EmptyStabChain' did,  but  assigns the original <S> to
+the  new `<S>.stabilizer' component,  such that  a new level with
+trivial basic  orbit (but identical  `labels' and `ShallowCopy'ed
+`genlabels' and  `generators') is  inserted. These functions  are
+recommended if <pnt> really is  fixed  by the generators of  <S>,
+because   then new generators  can   be added and  the  orbit and
+transversal   at the  same   time  extended  with  the  following
+function.
+
+\>AddGeneratorsExtendSchreierTree( <S>, <new> )
+
+adds the elements  in <new> to the list  of generators of <S> and
+at the  same time extends the  orbit and transversal. This is the
+only legal way  to extend  a  Schreier tree (because  it involves
+careful handling of the tree components).
+
+\>InverseRepresentative( <S>, <pnt> )
+
+calculates the transversal element which  maps <pnt> back to  the
+base point of  <S>. It just  runs back through the  Schreier tree
+from <pnt> to the root and multiplies the labels along the way.
+
+\>SiftedPermutation( <S>, <g> )
+
+sifts  the element  <g> as  follows: <g>  is replaced by  `<g> \*
+InverseRepresentative(  <S>, <S>.orbit[1] ^   <g> )', then <S> is
+replaced by `<S>.stabilizer' and  this process is repeated  until
+<S> is trivial or `<S>.orbit[1] ^ <g>' is  not in the basic orbit
+`<S>.orbit'.  The remainder <g>  is returned, it  is the identity
+permutation if  and  only if the  original <g>  was in  the group
+described by the original~<S>.
+
+\>GroupStabChain( \[ <G>, \] <S> )
+
+constructs a permutation group with stabilizer chain <S>, i.e., a
+group    with  generators `Generators( <S>  )'   to  which <S> is
+assigned as component  `stabChain'. If the  optional argument <G>
+is  given, the result  will be  a subgroup (in  the {\GAP} sense)
+of~<G>.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{Generalized conjugation technique}
@@ -198,7 +208,7 @@ reference manual).
 To ``conjugate''  the  points  (i.e., `orbit')  and  permutations  (i.e.,
 `labels') of the Schreier  tree, a loop is  set up over the `orbit'  list
 constructed  during the  orbit algorithm,  and for each  vertex  <b> with
-unique edge $a\labelto l b$ ending at  <b>, the label  <l> is mapped with
+unique edge $a(l)b$ ending at  <b>, the label  <l> is mapped with
 <hom> and <b> with   <map>. We assume  that  the `orbit' list   was built
 w.r.t.~a  certain ordering of the  labels, where $l'\<l$ means that every
 point in the  orbit was mapped with  $l'$ before it  was mapped with <l>.
@@ -207,7 +217,7 @@ extended only by  `AddGeneratorsExtendSchreierTree', and it  is then also
 guaranteed  for the ``conjugated''  Schreier  tree. (The  ordering of the
 labels cannot be read from the Schreier tree, however.)
 
-In the generalized case, it   can happen that the   edge $a\labelto l  b$
+In the generalized case, it   can happen that the   edge $a(l)b$
 bears a label <l> whose image is ``old'', i.e.,  equal to the image of an
 earlier label  $l'\<l$. Because of  the  compatibility of the  actions we
 then have   $map(b)    = map(a).  hom(l)^{-1}   =   map(a).hom(l')^{-1} =
@@ -850,7 +860,9 @@ been left out.
 \begintt
 InstallMethod( Length, true, [ IsCosetSolvableFactorEnumeratorRep ], 0,
     enum -> Product( RelativeOrdersPcgs( enum!.pcgs ){ enum!.range } ) );
+\endtt
 
+\begintt
 InstallMethod( \[\], true, [ IsCosetSolvableFactorEnumeratorRep,
         IsPosRat and IsInt ], 0,
     function( enum, pos )
@@ -863,14 +875,15 @@ InstallMethod( \[\], true, [ IsCosetSolvableFactorEnumeratorRep,
     od;
     return enum!.representative * elm;
 end );
+\endtt
 
+\begintt
 InstallMethod( Position, true, [ IsCosetSolvableFactorEnumeratorRep,
         IsObject, IsZeroCyc ], 0,
     function( enum, elm, zero )
     exp := ExponentsOfPcElement( enum!.pcgs,
                    LeftQuotient( enum!.representative, elm ) );
     pos := 0;
-|_
     for i  in enum!.range  do
         pos := pos * RelativeOrderOfPcElement( pcgs, i ) + exp[ i ];
     od;
@@ -894,7 +907,9 @@ in $model$).
 \begintt
 IsPermOnEnumerator := NewCategory( "IsPermOnEnumerator",
     IsMultiplicativeElementWithInverse and IsPerm );
+\endtt
 
+\begintt
 IsPermOnEnumeratorDefaultRep := NewRepresentation
     ( "IsPermOnEnumeratorDefaultRep",
       IsPermOnEnumerator and IsAttributeStoringRep,
@@ -902,7 +917,9 @@ IsPermOnEnumeratorDefaultRep := NewRepresentation
 
 PermOnEnumerator := NewOperation( "PermOnEnumerator",
     [ IsEnumerator, IsObject ] );
+\endtt
 
+\begintt
 InstallMethod( PermOnEnumerator, true,
         [ IsEnumerator, IsObject ], 0,
     function( enum, a )
@@ -913,7 +930,9 @@ InstallMethod( PermOnEnumerator, true,
     SetEnumerator( a, enum );
     return a;
 end );
+\endtt
 
+\begintt
 InstallMethod( PermOnEnumerator, true,
         [ IsEnumerator, IsPermOnEnumeratorDefaultRep ], 0,
     function( enum, a )
@@ -931,11 +950,12 @@ InstallMethod( \*, IsIdenticalObj,
         [ IsPermOnEnumeratorDefaultRep, IsPermOnEnumeratorDefaultRep ], 0,
     function( a, b )
     perm := a!.perm * b!.perm;
-|_
     SetIsBijective( perm, true );
     return PermOnEnumerator( Enumerator( a ), perm );
 end );
+\endtt
 
+\begintt
 InstallMethod( \^, true,
         [ IsPosRat and IsInt, IsPermOnEnumeratorDefaultRep ], 0,
     function( p, a )
@@ -969,6 +989,8 @@ corresponding to that level.
 \)end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%E
 % Local Variables:
 % mode:               text
 % mode:               outline-minor

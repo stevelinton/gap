@@ -1,0 +1,18 @@
+#############################################################################
+##
+#W  id4.z                  GAP library of id's             Hans Ulrich Besche
+##
+Revision.id4_z :=
+    "@(#)$Id$";
+
+ID_GROUP_TREE.next[4]:=
+rec(
+  fp:= [ 1 ],
+  next:= [ rec(
+    fp:= [ 4 ],
+    next:= [ rec(
+      fp:= [ 2 ],
+      next:= [ rec(
+        desc:= [ 104003 ],
+        fp:= [ 2, 12 ],
+        next:= [ 19, 20 ] ) ] ) ] ) ] );

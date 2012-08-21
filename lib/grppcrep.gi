@@ -153,7 +153,8 @@ end );
 InstallGlobalFunction( TrivialModule, function( n, F )
     return rec( field := F,
                 dimension := 1,
-                generators := List( [1..n], x ->  IdentityMat( 1, F ) ),
+                generators := ListWithIdenticalEntries( n,
+                                  Immutable( IdentityMat( 1, F ) ) ),
                 isMTXModule := true,
                 basis := [[One(F)]] );
 end );
@@ -169,8 +170,8 @@ InstallGlobalFunction( InducedModule, function( pcgsS, modu )
     m := Length( pcgsS );
     d := modu.dimension;
     r := RelativeOrderOfPcElement( pcgsS, g );
-    zero := NullMat( d, d, modu.field );
-    id   := IdentityMat( d, modu.field );
+    zero := Immutable( NullMat( d, d, modu.field ) );
+    id   := Immutable( IdentityMat( d, modu.field ) );
    
     # the first matrix
     mat := List( [1..r], x -> List( [1..r], y -> zero ) );
@@ -300,7 +301,7 @@ InstallGlobalFunction( ExtensionsOfModule, function( pcgsS, modu, conj, dim )
                           UnivariatePolynomialByCoefficients( 
                           FamilyObj(One(E)), 
                           List( [1..r], x -> One( E )), 1));
-            d := DegreeOfUnivariateLaurentPolynomial( f[1] );
+            d := DegreeOfLaurentPolynomial( f[1] );
 
             b := dE * d;
             if b * modu.dimension <= dim then
@@ -364,7 +365,7 @@ InstallGlobalFunction( InitAbsAndIrredModules, function( r, F, dim )
     if d > dim then return []; fi;
 
     if ( (p^d-1) mod r ) <> 0 then
-        mats := [ IdentityMat( 1, F ) ];
+        mats := [ Immutable( IdentityMat( 1, F ) ) ];
         modu := GModuleByMats( mats, F );
         Add( new, modu );
 
@@ -373,7 +374,7 @@ InstallGlobalFunction( InitAbsAndIrredModules, function( r, F, dim )
                           UnivariatePolynomialByCoefficients( 
                           FamilyObj(One(F)), 
                           List( [1..r], x -> One( F )), 1));
-            l := DegreeOfUnivariateLaurentPolynomial( f[1] );
+            l := DegreeOfLaurentPolynomial( f[1] );
             b := l * d;
             if b <= dim then
                 E := GF( p^b );

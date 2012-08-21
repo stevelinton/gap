@@ -8,11 +8,11 @@
 %%
 %Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 %%
-\Chapter{Integral matrices and lattices}
+\PreliminaryChapter{Integral matrices and lattices}
 
 \Declaration{IntegralizedMat}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Normal forms over the integers}
+\Section{Normal Forms over the Integers}
 
 \Declaration{DiagonalizeIntMatNormDriven}
 
@@ -36,7 +36,7 @@
 \Declaration{Decomposition}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Lattice reduction}
+\Section{Lattice Reduction}
 
 \index{LLL algorithm!for vectors}%
 \index{short vectors spanning a lattice}%

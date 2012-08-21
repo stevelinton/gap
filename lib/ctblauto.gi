@@ -175,7 +175,7 @@ MatAutomorphismsFamily := function( chainG, K, family, permutations )
       return true;
     end;
 
-    K:= ListSorted( K );
+    K:= SSortedList( K );
     for gen in chainG.generators do
       if ForAll( permutations, x -> stabilizes( family, gen, x ) ) then
         AddSet( K, gen );
@@ -221,7 +221,7 @@ MatAutomorphismsFamily := function( chainG, K, family, permutations )
       # Make `points' a subset of $S.orbit ^ s$ of those points which
       # correspond to cosets that might contain elements satisfying <prop>.
       # Make this set as small as possible with reasonable effort!
-      points:= ListSorted( OnTuples( S.orbit, s ) );
+      points:= SSortedList( OnTuples( S.orbit, s ) );
 
       # Improvement in our special situation:
       # For the basepoint `$b$ = S.orbit[1]' we have
@@ -316,7 +316,7 @@ MatAutomorphismsFamily := function( chainG, K, family, permutations )
       # Make `points' a subset of $S.orbit$ of those points which
       # correspond to cosets that might contain elements satisfying <prop>.
       # Make this set as small as possible with reasonable effort!
-      points := ListSorted( S.orbit );
+      points := SSortedList( S.orbit );
 
       # Improvement in our special situation:
       # For the basepoint `$b$ = S.orbit[1]', we have
@@ -416,7 +416,7 @@ InstallGlobalFunction( MatAutomorphisms, function( mat, maps, subgroup )
     # Check the arguments.
 
     if IsPermGroup( subgroup ) then
-      subgroup:= ListSorted( GeneratorsOfGroup( subgroup ) );
+      subgroup:= SSortedList( GeneratorsOfGroup( subgroup ) );
     elif     IsList( subgroup )
          and ( IsEmpty( subgroup ) or IsPermCollection( subgroup ) ) then
       subgroup:= ShallowCopy( subgroup );
@@ -467,7 +467,7 @@ InstallGlobalFunction( MatAutomorphisms, function( mat, maps, subgroup )
       od;
       for j in [ 1 .. Length( nonfixedpoints ) ] do
         colfam:= nonfixedpoints[j];
-        values:= ListSorted( row{ colfam } );
+        values:= SSortedList( row{ colfam } );
         nonfixedpoints[j]:= Filtered( colfam, x -> row[x] = values[1] );
         for k in [ 2 .. Length( values ) ] do
           Add( nonfixedpoints, Filtered( colfam, x -> row[x] = values[k] ) );
@@ -480,7 +480,7 @@ InstallGlobalFunction( MatAutomorphisms, function( mat, maps, subgroup )
     if IsEmpty( nonfixedpoints ) then
       Info( InfoMatrix, 2,
             "MatAutomorphisms: return trivial group without hard test" );
-      return Group( () );
+      return GroupByGenerators( [], () );
     fi;
     
     # Step 4:
@@ -576,10 +576,10 @@ InstallGlobalFunction( TableAutomorphisms, function( arg )
     tbl:= arg[1];
     characters:= arg[2];
     if Length( arg ) = 3 then
-      subgroup:= Group( GaloisMat( TransposedMat( characters ) ).generators,
-                        () );
+      subgroup:= GroupByGenerators(
+          GaloisMat( TransposedMat( characters ) ).generators, () );
     else
-      subgroup:= Group( () );
+      subgroup:= GroupByGenerators( [], () );
     fi;
 
     # Compute the matrix automorphisms.
@@ -611,7 +611,7 @@ InstallGlobalFunction( TableAutomorphisms, function( arg )
                        perm -> ForAll( powermap, 
                                  x -> ForAll( [ 1 .. nccl ],
                                         y -> x[ y^perm ] = x[y]^perm ) ),
-                                     Group( admissible, () ) );
+                                     GroupByGenerators( admissible, () ) );
 
     else
       admissible:= GroupByGenerators( admissible, () );
@@ -692,7 +692,7 @@ TransformingPermutationFamily := function( chainG, K, fam1, fam2, bij_col,
         return s;
       fi;                                                            
     
-      points:= ListSorted( OnTuples( S.orbit, s ) );
+      points:= SSortedList( OnTuples( S.orbit, s ) );
 
       for i in [ 1 .. Length( permutations ) ] do
         union:= [];
@@ -774,7 +774,9 @@ InstallGlobalFunction( TransformingPermutations, function( mat1, mat2 )
     if Length( mat1 ) <> Length( mat2 ) then
       return fail;
     elif IsEmpty( mat1 ) then
-      return rec( columns:= (), rows:= (), group:= Group( () ) );
+      return rec( columns := (),
+                  rows    := (),
+                  group   := GroupByGenerators( [], () ) );
     fi;
     
     # Step 1:
@@ -812,8 +814,8 @@ InstallGlobalFunction( TransformingPermutations, function( mat1, mat2 )
         for j in [ 1 .. Length( bij_col[1] ) ] do
           preimage:= bij_col[1][j];
           image:=    bij_col[2][j];
-          values:= ListSorted( row1{ preimage } );
-          if values <> ListSorted( row2{ image } ) then
+          values:= SSortedList( row1{ preimage } );
+          if values <> SSortedList( row2{ image } ) then
             Info( InfoMatrix, 2,
                   "TransformingPermutations: ",
                   "no bijection of column families" );
@@ -861,8 +863,8 @@ InstallGlobalFunction( TransformingPermutations, function( mat1, mat2 )
         for j in [ 1 .. Length( bij_col[1] ) ] do
           preimage:= bij_col[1][j];
           image:=    bij_col[2][j];
-          values:= ListSorted( row1{ preimage } );
-          if values <> ListSorted( row2{ image } ) then
+          values:= SSortedList( row1{ preimage } );
+          if values <> SSortedList( row2{ image } ) then
             Info( InfoMatrix, 2,
                   "TransformingPermutations: ",
                   "no bijection of column families" );
@@ -1036,7 +1038,7 @@ InstallGlobalFunction( TransformingPermutationsCharacterTables,
                          perm -> ForAll( powermap2, 
                                    x -> ForAll( [ 1 .. nccl ],
                                           y -> x[y^perm] = x[y]^perm ) ),
-                                       Group( admissible, () ) );
+                                       GroupByGenerators( admissible, () ) );
       fi;
 
       # Store the automorphisms.
@@ -1086,5 +1088,5 @@ end );
 
 #############################################################################
 ##
-#E  ctblauto.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

@@ -51,7 +51,7 @@ DeclareGlobalFunction( "AutomorphismGroupPermGroup" );
 #F  ElementProperty( <G>, <Pr> [, <L> [, <R> ] ] )  one element with property
 ##
 ##  tries to find an element of <G> for which the one-argument function <Pr>
-##  returns true and returns 'fail' if no such element exists. the optional
+##  returns true and returns `fail' if no such element exists. The optional
 ##  groups <L> and <R> are subgroups of <G> with the properties that the
 ##  property <Pr> has the same value for all elements in the cosets <L><g>,
 ##  respectively <g><R>.
@@ -61,21 +61,26 @@ DeclareGlobalFunction( "ElementProperty" );
 ##
 #F  SubgroupProperty( <G>, <Pr> [, <L> ] )  . . . . . . . fulfilling subgroup
 ##
-##  <Pr> must be a one-argument function that returns `true' or 'false' for
+##  <Pr> must be a one-argument function that returns `true' or `false' for
 ##  elements of <G> and the subset of elements of <G> that fulfill <Pr> must
 ##  be a subgroup. This command computes this subgroup.  The optional
 ##  argument <L> must a subgroup of the set of all elements fulfilling <Pr>
 ##  and can be given if known to speed up the calculation.
 DeclareGlobalFunction( "SubgroupProperty" );
 
+
 #############################################################################
 ##
-#O  PartitionStabilizerPermGroup(<G>,<part>)
+#O  PartitionStabilizerPermGroup( <G>, <part> )
 ##
-##  <part> must be a list of sets of points, on which <G> acts. This
-##  function computes the stabilizer in <G> of <part>, that is the subgroup
-##  which maps every set from <part> to another set from <part>.
-DeclareGlobalFunction("PartitionStabilizerPermGroup");
+##  <part> must be a list of pairwise disjoint sets of points
+##  on which the permutation group <G> acts via `OnPoints'.
+##  This function computes the stabilizer in <G> of <part>, that is,
+##  the subgroup of all those elements in <G> that map each set in <part>
+##  onto a set in <part>, via `OnSets'.
+##
+DeclareGlobalFunction( "PartitionStabilizerPermGroup" );
+
 
 #############################################################################
 ##
@@ -90,5 +95,5 @@ DeclareAttribute("TwoClosure",IsPermGroup);
 
 #############################################################################
 ##
-#E  stbcbckt.gd . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

@@ -13,14 +13,17 @@ Revision.field_gd :=
     "@(#)$Id$";
 
 #1
-##  A *division ring* is a ring in which every non-zero element has an inverse.
-##  The most important class of division rings are the commutative ones, which
-##  are called *fields*. This chapter describes the general {\GAP} functions
-##  for fields and division rings.\\
-##  If a field <F> is a subfield of a commutative ring <C>, <C> can be
-##  considered as a vector space over the (left) acting domain <F>.
-##  (See chapter "Vector Spaces".) In this situation, we call <F> the *field of
-##  definition* of <C>.
+##  A *division ring* is a ring in which every non-zero element has an
+##  inverse.
+##  The most important class of division rings are the commutative ones,
+##  which are called *fields*.
+##  This chapter describes the general {\GAP} functions for fields and
+##  division rings.
+##
+##  If a field <F> is a subfield of a commutative ring <C>,
+##  <C> can be considered as a vector space over the (left) acting domain
+##  <F> (see Chapter~"Vector Spaces").
+##  In this situation, we call <F> the *field of definition* of <C>.
 
 
 #############################################################################
@@ -43,10 +46,10 @@ InstallTrueMethod( IsCommutative, IsDivisionRing and IsFinite );
 ##
 DeclareProperty( "IsNumberField", IsField );
 
-InstallSubsetMaintainedMethod( IsNumberField,
+InstallSubsetMaintenance( IsNumberField,
     IsField and IsNumberField, IsField );
 
-InstallIsomorphismMaintainedMethod( IsNumberField,
+InstallIsomorphismMaintenance( IsNumberField,
     IsField and IsNumberField, IsField );
 
 
@@ -61,10 +64,10 @@ DeclareProperty( "IsAbelianNumberField", IsField );
 InstallTrueMethod( IsNumberField,
     IsAbelianNumberField );
 
-InstallSubsetMaintainedMethod( IsAbelianNumberField,
+InstallSubsetMaintenance( IsAbelianNumberField,
     IsField and IsAbelianNumberField, IsField );
 
-InstallIsomorphismMaintainedMethod( IsAbelianNumberField,
+InstallIsomorphismMaintenance( IsAbelianNumberField,
     IsField and IsAbelianNumberField, IsField );
 
 
@@ -79,7 +82,7 @@ DeclareProperty( "IsCyclotomicField", IsField );
 
 InstallTrueMethod( IsAbelianNumberField, IsCyclotomicField );
 
-InstallIsomorphismMaintainedMethod( IsCyclotomicField,
+InstallIsomorphismMaintenance( IsCyclotomicField,
     IsField and IsCyclotomicField, IsField );
 
 
@@ -92,7 +95,7 @@ InstallIsomorphismMaintainedMethod( IsCyclotomicField,
 ##
 DeclareProperty( "IsPrimeField", IsDivisionRing );
 
-InstallIsomorphismMaintainedMethod( IsPrimeField,
+InstallIsomorphismMaintenance( IsPrimeField,
     IsField and IsPrimeField, IsField );
 
 
@@ -109,11 +112,11 @@ DeclareAttribute( "PrimeField", IsDivisionRing );
 
 #############################################################################
 ##
-#M  Conductor( <F> )
+#m  Conductor( <F> )
 ##
 ##  The attribute is defined in `cyclotom.g'.
 ##
-InstallIsomorphismMaintainedMethod( Conductor,
+InstallIsomorphismMaintenance( Conductor,
     IsField and IsAbelianNumberField, IsField );
 
 
@@ -133,10 +136,9 @@ DeclareAttribute( "DefiningPolynomial", IsField );
 ##
 ##  is the degree of the field <F> over its prime field.
 ##
-DeclareAttribute( "DegreeOverPrimeField",
-    IsDivisionRing );
+DeclareAttribute( "DegreeOverPrimeField", IsDivisionRing );
 
-InstallIsomorphismMaintainedMethod( DegreeOverPrimeField,
+InstallIsomorphismMaintenance( DegreeOverPrimeField,
     IsDivisionRing, IsDivisionRing );
 
 
@@ -157,7 +159,7 @@ DeclareAttribute( "GeneratorsOfDivisionRing", IsDivisionRing );
 ##  generators with respect to addition, multiplication, and taking
 ##  inverses. This attribute is the same as `GeneratorsOfDivisionRing' (see
 ##  "GeneratorsOfDivisionRing").
-##  
+##
 DeclareSynonymAttr( "GeneratorsOfField", GeneratorsOfDivisionRing );
 
 
@@ -181,7 +183,7 @@ DeclareAttribute( "GaloisGroup", IsField );
 ##
 DeclareAttribute( "GaloisStabilizer", IsAbelianNumberField );
 
-InstallIsomorphismMaintainedMethod( GaloisStabilizer,
+InstallIsomorphismMaintenance( GaloisStabilizer,
     IsField and IsAbelianNumberField, IsField );
 
 
@@ -226,14 +228,38 @@ DeclareAttribute( "RootOfDefiningPolynomial", IsField );
 
 #############################################################################
 ##
-#O  AsDivisionRing( <F>, <D> )
-#O  AsField( <F>, <D> )
+#O  AsDivisionRing( <C> )
+#O  AsDivisionRing( <F>, <C> )
+#O  AsField( <C> )
+#O  AsField( <F>, <C> )
 ##
-##  view <D> as division ring over <F>.
+##  If the collection <C> can be regarded as a division ring then
+##  `AsDivisionRing( <C> )' is the division ring that consists of the
+##  elements of <C>, viewed as a vector space over its prime field;
+##  otherwise `fail' is returned.
 ##
-DeclareOperation( "AsDivisionRing", [ IsDivisionRing, IsDivisionRing ] );
+##  In the second form, if <F> is a division ring contained in <C> then
+##  the returned division ring is viewed as a vector space over <F>.
+##
+##  `AsField' is just a synonym for `AsDivisionRing'.
+##
+DeclareOperation( "AsDivisionRing", [ IsCollection ] );
+DeclareOperation( "AsDivisionRing", [ IsDivisionRing, IsCollection ] );
 
 DeclareSynonym( "AsField", AsDivisionRing );
+
+
+#############################################################################
+##
+#O  ClosureDivisionRing( <D>, <r> )
+#O  ClosureDivisionRing( <D>, <C> )
+##
+##  For a division ring <D> and either an element <r> of its elements family
+##  or a collection <C>,
+##  `ClosureDivisionRing' returns the division ring generated by both
+##  arguments.
+##
+DeclareOperation( "ClosureDivisionRing", [ IsDivisionRing, IsObject ] );
 
 
 #############################################################################
@@ -283,9 +309,10 @@ DeclareOperation( "Norm", [ IsField, IsScalar ] );
 #O  Trace( <F>, <z> ) . . . . . . . . . . . . . . .  trace of a field element
 #O  Trace( <z> )
 #O  Trace( <mat> )  . . . . . . . . . . . . . . . . . . . . trace of a matrix
-## 
-##  The trace of a field element is the product of all its conjugates. It is an
-##  element of the field field fixed by the Galois group.
+##
+##  The trace of a field element is the sum of all its conjugates.
+##  It is an element of the field field fixed by the Galois group.
+##
 ##  The trace of a matrix is the sum of its diagonal entries.
 ##
 DeclareOperation( "Trace", [ IsField, IsScalar ] );
@@ -295,10 +322,10 @@ DeclareOperation( "Trace", [ IsField, IsScalar ] );
 ##
 #A  ComplexConjugate( <z> )
 ##
-##  For a cyclotomic number <z>, 'ComplexConjugate' returns
-##  'GaloisCyc( <z>, -1 )'.
+##  For a cyclotomic number <z>, `ComplexConjugate' returns
+##  `GaloisCyc( <z>, -1 )'.
 ##  For a quaternion $<z> = c_1 e + c_2 i + c_3 j + c_4 k$,
-##  'ComplexConjugate' returns $c_1 e - c_2 i - c_3 j - c_4 k$.
+##  `ComplexConjugate' returns $c_1 e - c_2 i - c_3 j - c_4 k$.
 ##
 DeclareAttribute( "ComplexConjugate", IsScalar );
 
@@ -314,13 +341,14 @@ DeclareAttribute( "ComplexConjugate", IsScalar );
 ##
 DeclareOperation("TracePolynomial",[IsField,IsField,IsScalar,IsPosInt]);
 
+
 #############################################################################
 ##
 #O  DivisionRingByGenerators( [ <z>, ... ] )  . . . . div. ring by generators
 #O  DivisionRingByGenerators( <F>, [ <z>, ... ] ) . . div. ring by generators
 ##
 ##  The first version returns a division ring as vector space over
-##  'FieldOverItselfByGenerators( <gens> )'.
+##  `FieldOverItselfByGenerators( <gens> )'.
 ##
 DeclareOperation( "DivisionRingByGenerators",
         [ IsDivisionRing, IsCollection ] );
@@ -332,8 +360,8 @@ DeclareSynonym( "FieldByGenerators", DivisionRingByGenerators );
 ##
 #O  FieldOverItselfByGenerators( [ <z>, ... ] )
 ##
-##  This  operation is  needed for  the  call of 'Field' or
-##  'FieldByGenerators'
+##  This  operation is  needed for  the  call of `Field' or
+##  `FieldByGenerators'
 ##  without  explicitly given subfield, in  order to construct  a left acting
 ##  domain for such a field.
 ##
@@ -342,7 +370,7 @@ DeclareOperation( "FieldOverItselfByGenerators", [ IsCollection ] );
 
 #############################################################################
 ##
-#O  DefaultFieldByGenerators( [ <z>, ... ] )  . . default field by generators 
+#O  DefaultFieldByGenerators( [ <z>, ... ] )  . . default field by generators
 ##
 DeclareOperation( "DefaultFieldByGenerators", [ IsCollection ] );
 
@@ -360,6 +388,7 @@ DeclareOperation( "DefaultFieldByGenerators", [ IsCollection ] );
 ##  and $<z>, \ldots$, as a field over <F>.
 ##
 DeclareGlobalFunction( "Field" );
+#T why not `DivisionRing', and `Field' as a (more or less) synonym?
 
 
 #############################################################################
@@ -390,5 +419,5 @@ InstallTrueMethod( IsSubsetLocallyFiniteGroup, IsFFECollection and IsMagma );
 
 #############################################################################
 ##
-#E  field.gd  . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

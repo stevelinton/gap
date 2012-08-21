@@ -230,17 +230,16 @@ end;
 #F OnRelVector( vec, tup, cohom )
 ##
 OnRelVector := function( vec, tup, cohom )
-    local base, z, H, pcgsH, pcgsG, imgs, k, i, j, rel, tail, w, tails, 
-          vecs, mapd, ords, m;
+    local z, H, pcgsH, pcgsG, imgs, k, i, j, rel, tail, w, tails, 
+          vecs, mapd, ords, m, fpgens;
 
-    base  := Concatenation( cohom.cohomology, cohom.coboundaries );
-    z := One( cohom.module.field );
 
     # compute extensions
     H := ExtensionSQ( cohom.collector, cohom.group, cohom.module, vec );   
     pcgsH := Pcgs( H );
-    pcgsG := cohom.pcgs;
+    pcgsG := Pcgs( cohom.group );
     ords  := RelativeOrders( pcgsG );
+    fpgens := GeneratorsOfGroup( cohom.presentation.group );
 
     # map pcgs of G to H
     imgs := List( pcgsG, x -> x^Inverse( tup[1] ) );
@@ -248,14 +247,15 @@ OnRelVector := function( vec, tup, cohom )
 
     # compute tails of relators in H
     k := 0;
+    z := One( cohom.module.field );
     tails := [];
     for i in [1..Length(pcgsG)] do
         for j in [1..i] do
 
             # compute tail of relator
             k := k + 1;
-            rel := cohom.fprelators[k];
-            tail := MappedWord( rel, cohom.fpgens, imgs );
+            rel := cohom.presentation.relators[k];
+            tail := MappedWord( rel, fpgens, imgs );
 
             # conjugating element
             if i = j then
@@ -387,7 +387,7 @@ InstallGlobalFunction( CompatiblePairs, function( arg )
     # catch arguments
     G := arg[1];
     M := arg[2];
-    Mgrp := Group( M.generators );
+    Mgrp := GroupByGenerators( M.generators );
     oper := GroupHomomorphismByImagesNC( G, Mgrp, Pcgs(G), M.generators );
 
     # automorphism groups of G and M
@@ -400,8 +400,8 @@ InstallGlobalFunction( CompatiblePairs, function( arg )
         D := arg[3];
     fi;
 
-    # if M is the trivial module
-    if M.dimension = 1 and Size( Mgrp ) = 1 then
+    # the trivial case
+    if IsBound( M.isCentral ) and M.isCentral then
         return D;
     fi;
 
@@ -446,7 +446,8 @@ IsCompatiblePair := function( G, M, tup )
     local pcgs, imgs, hom, i, g, h, new;
     pcgs := Pcgs( G );
     imgs := M.generators;
-    hom  := GroupHomomorphismByImagesNC( G, Group(imgs, imgs[1]^0),
+    hom  := GroupHomomorphismByImagesNC( G,
+                GroupByGenerators( imgs, imgs[1]^0 ),
                 pcgs, imgs);
     if not IsGroupHomomorphism( hom ) then return false; fi;
     for i in [1..Length(pcgs)] do
@@ -467,34 +468,88 @@ end;
 #F MatrixOperationOfCP( cohom, tup )
 ##
 MatrixOperationOfCP := function( cohom, tup )
-    local l, mat, c, im, sol, base, coc, new;
+    local mat, c, b, d;
 
-    base := Concatenation( cohom.cohomology, cohom.coboundaries );
-    l   := Length( cohom.cohomology );
     mat := [];
-    for c in cohom.cohomology do
-        im := OnRelVector( c, tup, cohom );
-        Add( mat, im );
+    for c in Basis( Image( cohom.cohom ) ) do
+        b := PreImagesRepresentative( cohom.cohom, c );
+        d := OnRelVector( b, tup, cohom );
+        Add( mat, Image( cohom.cohom, d ) );
     od;
-    sol := List( mat, x -> SolutionMat( base, x ) );
+    return mat;
+end;
 
-#    # if something has gone wrong
-#    if ForAny( sol, x -> IsBool( x ) ) then 
-#        mat := [];
-#        for c in cohom.cohomology do
-#            coc := RelVectorToCocycle( c, cohom );
-#            new := OnCocycle( coc, tup, cohom );
-#            im  := CocycleToRelVector( new, cohom );
-#            Add( mat, im );
-#        od;
-#        sol := List( mat, x -> SolutionMat( base, x ) );
-#    fi;
+#############################################################################
+##
+#F MatrixOperationOfCPGroup( cc, gens )
+##
+MatrixOperationOfCPGroup := function( cc, gens  )
+    local mats, base, pcgs, ords, imgs, n, d, fpgens, fprels, c, H, pcgsH, 
+          l, g, imgl, k, i, j, rel, tail, m, tails, prei, h;
+ 
 
-    if ForAny( sol, x -> IsBool( x ) ) then
-        Error("no solution for matrix"); 
-    fi;
+    mats := List( gens, x -> [] );
+    base := Basis( Image( cc.cohom ) );
+    prei := List( base, x -> PreImagesRepresentative( cc.cohom, x ) );
 
-    return sol{[1..l]}{[1..l]};
+    pcgs := Pcgs( cc.group );
+    ords := RelativeOrders( pcgs );
+    imgs := List( gens, x -> List( pcgs, y -> y^Inverse( x[1] ) ) );
+
+    n := Length( pcgs );
+    d := cc.module.dimension;
+
+    fpgens := GeneratorsOfGroup( cc.presentation.group );
+    fprels := cc.presentation.relators;
+
+    # loop over base elements and compute images under operation
+    for h in [1..Length(base)] do
+        H := ExtensionSQ( cc.collector, cc.group, cc.module, prei[h] );
+        pcgsH := Pcgs( H );
+
+        # loop over generators 
+        for l in [1..Length(gens)] do
+            g := gens[l];
+            imgl := List( imgs[l], x -> MappedPcElement( x, pcgs, pcgsH ) );
+            
+            if imgl <> pcgs then
+
+                # compute tails of relators in H
+                k := 0;
+                tails := [];
+                for i in [1..Length(pcgs)] do
+                    for j in [1..i] do
+
+                        # compute tail of relator
+                        k := k + 1;
+                        rel := fprels[k];
+                        tail := MappedWord( rel, fpgens, imgl );
+
+                        # conjugating element
+                        if not IsBound( cc.module.isCentral ) or 
+                           not cc.module.isCentral then
+                            if i = j then
+                                m := imgl[i]^ords[i];
+                            else
+                                m := imgl[i]^imgl[j];
+                            fi;
+                            tail := tail^m;
+                        fi;
+                        tail := ExponentsOfPcElement(pcgsH,tail,[n+1..n+d]);
+                        tail := tail * g[2];
+                        Add( tails, tail );
+                    od;
+                od;
+            else
+                tails := List( [1..Length(fprels)], 
+                                x -> base[h]{[(x-1)*d+1..x*d]}*g[2] );
+            fi;
+            tails := Flat( tails );
+            tails := Image( cc.cohom, tails );
+            Add( mats[l], tails );
+        od;
+    od;
+    return mats;
 end;
 
 #############################################################################
@@ -504,27 +559,28 @@ end;
 InstallMethod( ExtensionRepresentatives,
     "generic method for pc groups",
     true, 
-    [ CanEasilyComputePcgs, IsRecord, IsList ],
+    [ CanEasilyComputePcgs, IsRecord, IsGroup ],
     0,
 function( G, M, C )
-    local cohom, ext, mats, Mgrp, orbs, V;
+    local cc, ext, mats, Mgrp, orbs, V;
 
-    cohom := TwoCohomology( G, M );
+    cc := TwoCohomology( G, M );
 
     # catch the trivial case
-    if Length(cohom.cohomology) = 0 then
-        return [ExtensionSQ( cohom.collector, G, M, 0 )];
+    if Dimension(Image(cc.cohom)) = 0 then
+        return [ExtensionSQ( cc.collector, G, M, 0 )];
+    elif Dimension( Image(cc.cohom)) = 1 then
+        return [ExtensionSQ( cc.collector, G, M, 0 ),
+                ExtensionSQ( cc.collector, G, M, Basis(Source(cc.cohom))[1])]; 
     fi;
 
-    mats := List( GeneratorsOfGroup( C ), 
-                  x -> MatrixOperationOfCP( cohom, x ) );
+    mats := MatrixOperationOfCPGroup( cc, GeneratorsOfGroup( C ) );
 
     # compute orbit of mats on H^2( G, M )
-    Mgrp := Group( mats );
-    V    := FullRowSpace( M.field, Length(cohom.cohomology) );
-    orbs := Orbits( Mgrp, V, OnRight );
-    ext  := List( orbs, 
-            x -> ExtensionSQ( cohom.collector, G, M, x[1]*cohom.cohomology ) );
+    Mgrp := GroupByGenerators( mats );
+    orbs := Orbits( Mgrp, Image(cc.cohom), OnRight );
+    orbs := List( orbs, x -> PreImagesRepresentative( cc.cohom, x[1] ) );
+    ext  := List( orbs, x -> ExtensionSQ( cc.collector, G, M, x ) );
     return ext;
 end);
 
@@ -611,71 +667,73 @@ end;
 #F NonSplitExtensions( G, M [, reduce] ) 
 ##
 NonSplitExtensions := function( arg )
-    local G, M, C, co, cb, cc, cohom, mats, V, Mgrp, orbs, CP, all, i, red;
+    local G, M, C, co, cb, cc, cohom, mats, V, Mgrp, orbs, CP, all, i, red, c;
 
     # catch arguments
     G := arg[1];
     M := arg[2];
 
     # compute H^2(G, M)
-    cohom := TwoCohomology( G, M );
-    cc := cohom.cohomology;
-    C  := cohom.collector;
+    cc := TwoCohomology( G, M );
+    C  := cc.collector;
 
-    Info( InfoFrattExt, 5, "   dim(M) = ",M.dimension,
+    Info( InfoExtReps, 1, "   dim(M) = ",M.dimension,
                                 " char(M) = ", Characteristic(M.field),
-                                " dim(H2) = ", Length(cc));
+                                " dim(H2) = ", Dimension(Image(cc.cohom)));
 
     # catch the trivial cases
-    if Length(cc) = 0 then
+    if Dimension( Image( cc.cohom ) ) = 0 then
         all := [];
         red := true;
 
-    elif Length(cc) = 1 then
-        all := [ExtensionSQ( C, G, M, cc[1] )];
+    elif Dimension( Image(cc.cohom ) ) = 1 then
+        c := PreImagesRepresentative(cc.cohom, Basis(Image(cc.cohom))[1]);
+        all := [ExtensionSQ( C, G, M, c)];
         red := true;
 
     # if reduction is suppressed
     elif IsBound( arg[3] ) and not arg[3] then
-        all := NormedVectors( VectorSpace( M.field, cc ) );
-        all := List( all, x -> ExtensionSQ( cohom.collector, G, M, x ) );
+        all := NormedVectors( Image(cc.cohom) );
+        all := List( all, x -> ExtensionSQ(cohom.collector, G, M, 
+                               PreImagesRepresentative(cc.cohom,x )));
         red := false;
 
     # sometimes we do not want to reduce
     elif not IsBound( arg[3] ) 
-        and Characteristic( M.field )^Length(cc) < 10
+        and Size(Image(cc.cohom)) < 10
         and not (HasIsFrattiniFree( G ) and IsFrattiniFree( G ))
         and not HasAutomorphismGroup( G )
     then
-        all := NormedVectors( VectorSpace( M.field, cc ) );
-        all := List( all, x -> ExtensionSQ( cohom.collector, G, M, x ) );
+        all := NormedVectors( Image(cc.cohom) );
+        all := List( all, x -> ExtensionSQ(cc.collector, G, M, 
+                               PreImagesRepresentative(cc.cohom, x )));
         red := false;
 
     # then we want to reduce
     else
 
-        Info( InfoExtReps, 1, "   Ext: compute compatible pairs");
+        Info( InfoExtReps, 2, "   Ext: compute compatible pairs");
         CP := CompatiblePairs( G, M );
 
-        Info( InfoExtReps, 1, "   Ext: compute linear action");
-        mats := List( GeneratorsOfGroup( CP ),
-                      x -> MatrixOperationOfCP( cohom, x ) );
+        Info( InfoExtReps, 2, "   Ext: compute linear action");
+        mats := MatrixOperationOfCPGroup( cc, GeneratorsOfGroup( CP ) );
 
-        Info( InfoExtReps, 1, "   Ext: compute orbits ");
+        Info( InfoExtReps, 2, "   Ext: compute orbits ");
         orbs := MatOrbsApprox( mats, Length(mats[1]) , M.field );
         all  := orbs.reps;
         red  := orbs.red;
-        Info( InfoExtReps, 1, "   Ext: found ",Length(all)," orbits ");
+        Info( InfoExtReps, 2, "   Ext: found ",Length(all)," orbits ");
 
         # create extensions and add info
-        all := List( all, x -> ExtensionSQ(cohom.collector, G, M, x*cc) );
+        all := List( all, x -> ExtensionSQ(cc.collector, G, M, 
+                               PreImagesRepresentative(cc.cohom,x )));
     fi;
 
     if red then
-        Info( InfoFrattExt, 5, "    found ",Length(all),
+        Info( InfoExtReps, 1, "    found ",Length(all),
                                " extensions - reduced");
     else
-        Info( InfoFrattExt, 5, "    found ",Length(all)," extensions ");
+        Info( InfoExtReps, 1, "    found ",Length(all)," extensions ");
     fi;
 
     return rec( groups := all, reduced := red );

@@ -9,7 +9,8 @@
 ##
 ##  This file contains the definition of the family of Lie elements of a
 ##  family of ring elements.
-##
+
+#1
 ##  Given a family $F$ of ring elements, we can form its Lie family $L$.
 ##  The elements of $F$ and $L$ are in bijection, only the multiplications
 ##  via `\*' differ for both families.
@@ -28,15 +29,19 @@
 ##
 ##  Note that the family situation with Lie families may be not familiar.
 ##
-##  - An element is *not* equal to its Lie element.
+##  \beginlist
+##  \item{-}
+##    An element is *not* equal to its Lie element.
 ##
-##  - If we take the Lie object of an ordinary (associative) matrix
+##  \item{-}
+##    If we take the Lie object of an ordinary (associative) matrix
 ##    then this is again a matrix;
 ##    it is therefore a collection (of its rows) and a list.
 ##    But it is *not* a collection of collections of its entries,
 ##    and its family is *not* a collections family.
 ##
-##  - We have to be careful when installing methods for certain types
+##  \item{-}
+##    We have to be careful when installing methods for certain types
 ##    of domains that may involve Lie elements.
 ##    For example, the zero element of a matrix space is either an ordinary
 ##    matrix or its Lie element, depending on the space.
@@ -47,9 +52,11 @@
 ##    with the additional requirement `IsLieObjectCollection' but that
 ##    we must explicitly require non-Lie elements for the non-Lie case.
 ##
-##  - Being a full matrix space is a property that may hold for a space
+##  \item{-}
+##    Being a full matrix space is a property that may hold for a space
 ##    of ordinary matrices or a space of Lie matrices.
 ##    So methods for full matrix spaces must also be aware of Lie matrices.
+##  \endlist
 ##
 Revision.liefam_gd :=
     "@(#)$Id$";
@@ -82,7 +89,8 @@ DeclareCategoryCollections( "IsLieObject" );
 ##
 ##  The standard type of objects in a Lie family <F> is `<F>!.packedType'.
 ##
-##  The bijection from <Fam> to $F$ is given by `Embedding( <Fam>, $F$ )'.
+##  The bijection from <Fam> to $F$ is given by `Embedding( <Fam>, $F$ )';
+##  this bijection respects addition and additive inverses.
 ##
 DeclareAttribute( "LieFamily", IsFamily );
 
@@ -103,14 +111,12 @@ DeclareAttribute( "UnderlyingFamily", IsObject );
 ##
 ##  Let <obj> be a ring element in the family $F$.
 ##  Then `LieObject( <obj> )' is the corresponding object in the family
-##  `LieFamily( $F$ )'.
+##  `LieFamily( $F$ )', see~"LieFamily".
 ##
 DeclareAttribute( "LieObject", IsRingElement );
 
 
 #############################################################################
 ##
-#E  liefam.gd . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-
-
+#E
 

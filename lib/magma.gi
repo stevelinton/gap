@@ -267,11 +267,13 @@ InstallMethod( CentralizerOp,
     fi;
     end );
 
-InstallOtherMethod( CentralizerOp,"dummy to ignore optional third argument",
-  true,[ IsMagma, IsObject,IsObject ], 0,
-function( M, obj,x )
-  return CentralizerOp(M,obj);
-end );
+InstallOtherMethod( CentralizerOp,
+    "dummy to ignore optional third argument",
+    true,
+    [ IsMagma, IsObject,IsObject ], 0,
+    function( M, obj, x )
+    return CentralizerOp( M, obj );
+    end );
 
 
 #############################################################################
@@ -735,6 +737,8 @@ InstallMethod( GeneratorsOfMagmaWithOne,
       and IsFiniteOrderElementCollection ], 0,
     GeneratorsOfMagmaWithInverses );
 
+#T also if the magma is finite but not nec. in `IsFiniteOrderElementCollection'!
+
 
 #############################################################################
 ##
@@ -849,7 +853,8 @@ InstallOtherMethod( One,
 #M  Enumerator( <M> ) . . . . . . . . .  enumerator of trivial magma with one
 #M  EnumeratorSorted( <M> ) . . . . . .  enumerator of trivial magma with one
 ##
-EnumeratorOfTrivialMagmaWithOne := M -> Immutable( [ One( M ) ] );
+BindGlobal( "EnumeratorOfTrivialMagmaWithOne",
+    M -> Immutable( [ One( M ) ] ) );
 
 InstallMethod( Enumerator,
     "for trivial magma-with-one",
@@ -868,7 +873,7 @@ InstallMethod( EnumeratorSorted,
 ##
 #F  ClosureMagmaDefault( <M>, <elm> ) . . . . . closure of magma with element
 ##
-ClosureMagmaDefault := function( M, elm )
+BindGlobal( "ClosureMagmaDefault", function( M, elm )
 
     local   C,          # closure of `M' with `obj', result
             gens,       # generators of `M'
@@ -880,7 +885,7 @@ ClosureMagmaDefault := function( M, elm )
 
     # try to avoid adding an element to a magma that already contains it
     if   elm in gens
-      or ( HasAsListSorted( M ) and elm in AsListSorted( M ) )
+      or ( HasAsSSortedList( M ) and elm in AsSSortedList( M ) )
     then
         return M;
     fi;
@@ -894,9 +899,9 @@ ClosureMagmaDefault := function( M, elm )
     # (multiply each element from the left and right with the new
     # generator, and then multiply with all elements until the
     # list becomes stable)
-    if HasAsListSorted( M ) then
+    if HasAsSSortedList( M ) then
 
-        Celements := ShallowCopy( AsListSorted( M ) );
+        Celements := ShallowCopy( AsSSortedList( M ) );
         AddSet( Celements, elm );
         UniteSet( Celements, Celements * elm );
         UniteSet( Celements, elm * Celements );
@@ -908,7 +913,7 @@ ClosureMagmaDefault := function( M, elm )
             od;
         until len = Length( Celements );
 
-        SetAsListSorted( C, AsListSorted( Celements ) );
+        SetAsSSortedList( C, AsSSortedList( Celements ) );
         SetIsFinite( C, true );
         SetSize( C, Length( Celements ) );
 
@@ -916,7 +921,7 @@ ClosureMagmaDefault := function( M, elm )
 
     # return the closure
     return C;
-end;
+end );
 
 
 #############################################################################
@@ -924,7 +929,7 @@ end;
 #M  Enumerator( <M> ) . . . . . . . . . . . .  set of the elements of a magma
 #M  EnumeratorSorted( <M> ) . . . . . . . . .  set of the elements of a magma
 ##
-EnumeratorOfMagma := function( M )
+BindGlobal( "EnumeratorOfMagma", function( M )
 
     local   gens,       # magma generators of <M>
             H,          # submagma of the first generators of <M>
@@ -938,7 +943,7 @@ EnumeratorOfMagma := function( M )
 
     # start with the empty magma and its element list
     H:= Submagma( M, [] );
-    SetAsListSorted( H, Immutable( [ ] ) );
+    SetAsSSortedList( H, Immutable( [ ] ) );
 
     # Add the generators one after the other.
     # We use a function that maintains the elements list for the closure.
@@ -947,9 +952,9 @@ EnumeratorOfMagma := function( M )
     od;
 
     # return the list of elements
-    Assert( 2, HasAsListSorted( H ) );
-    return AsListSorted( H );
-end;
+    Assert( 2, HasAsSSortedList( H ) );
+    return AsSSortedList( H );
+end );
 
 InstallMethod( Enumerator,
     "generic method for a magma",
@@ -1040,9 +1045,13 @@ InstallMethod( IsSubset,
 
 #############################################################################
 ##
-#M  AsMagma( <D> ) . . . . . . . . . . . . . . .  domain <D>, viewed as magma
+#M  AsMagma( <D> ) . . . . . . . . . . . . . .  domain <D>, regarded as magma
 ##
-InstallMethod( AsMagma, true, [ IsMagma ], 100, IdFunc );
+InstallMethod( AsMagma,
+    "for a magma (return the argument)",
+    true,
+    [ IsMagma ], 100,
+    IdFunc );
 
 InstallMethod( AsMagma,
     "generic method for collections",
@@ -1051,19 +1060,19 @@ InstallMethod( AsMagma,
     function( D )
     local   M,  L;
 
-    D := AsListSorted( D );
+    D := AsSSortedList( D );
     L := ShallowCopy( D );
     M := Submagma( MagmaByGenerators( D ), [] );
-    SubtractSet( L, AsListSorted( M ) );
+    SubtractSet( L, AsSSortedList( M ) );
     while not IsEmpty(L)  do
         M := ClosureMagmaDefault( M, L[1] );
-        SubtractSet( L, AsListSorted( M ) );
+        SubtractSet( L, AsSSortedList( M ) );
     od;
-    if Length( AsListSorted( M ) ) <> Length( D )  then
+    if Length( AsSSortedList( M ) ) <> Length( D )  then
         return fail;
     fi;
     M := MagmaByGenerators( GeneratorsOfMagma( M ) );
-    SetAsListSorted( M, D );
+    SetAsSSortedList( M, D );
     SetIsFinite( M, true );
     SetSize( M, Length( D ) );
 
@@ -1077,15 +1086,19 @@ InstallMethod( AsMagma,
 #M  AsSubmagma( <G>, <U> )
 ##
 InstallMethod( AsSubmagma,
-    "generic method for magmas",
+    "generic method for a domain and a collection",
     IsIdenticalObj,
-    [ IsMagma, IsMagma ], 0,
+    [ IsDomain, IsCollection ], 0,
     function( G, U )
     local S;
     if not IsSubset( G, U ) then
       return fail;
     fi;
-    S:= SubmagmaNC( G, GeneratorsOfMagma( U ) );
+    if IsMagma( U ) then
+      S:= SubmagmaNC( G, GeneratorsOfMagma( U ) );
+    else
+      S:= SubmagmaNC( G, AsList( U ) );
+    fi;
     UseIsomorphismRelation( U, S );
     UseSubsetRelation( U, S );
     return S;
@@ -1094,5 +1107,5 @@ InstallMethod( AsSubmagma,
 
 #############################################################################
 ##
-#E  magma.gi  . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

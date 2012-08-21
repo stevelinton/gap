@@ -9,6 +9,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Chapter{Method Selection}
 
+This chapter explains how {\GAP} decides which function to call for which
+types of objects.
+It assumes that you have read the chapters about objects
+("ref:Objects and Elements") and types ("ref:Types of Objects") in the
+Reference Manual.
+
 An *operation* is a special {\GAP} function that bundles a set of
 functions, its *methods*.
 
@@ -26,7 +32,7 @@ and logical implications.
 
 Operations are functions in the category `IsOperation'.
 
-So on one hand, *operations* are {\GAP} functions, that is,
+So on the one hand, *operations* are {\GAP} functions, that is,
 they can be applied to arguments and return a result or cause a
 side-effect.
 
@@ -49,7 +55,7 @@ Each attribute has a special method which is called
 if the attribute value is already stored;
 this method of course simply returns this value.
 
-As stated above, the setter of an attribute is called automatically
+The setter of an attribute is called automatically
 if an attribute value has been computed.
 Attribute setters are operations, too.
 They have a default method that ignores the request to store the value.
@@ -241,7 +247,7 @@ It should be installed via
 \>InstallTrueMethod( <prop>, <filt> )
 
 This has the effect that <prop> becomes an implied filter of <filt>,
-see~"Filters".
+see~"ref:Filters" in the Reference Manual.
 
 For example, each cyclic group is abelian,
 each finite vector space is finite dimensional,
@@ -257,6 +263,64 @@ logical implications cannot be switched off.
 This means that after the above implication has been installed,
 one can rely on the fact that every object in the filter
 `IsGroup and IsCyclic' will also be in the filter `IsCommutative'.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Operations and Mathematical Terms}
+
+\index{overload}
+
+Usually an operation stands for a mathematical concept,
+and the name of the operation describes this uniquely.
+Examples are the property `IsFinite' and the attribute `Size'.
+But there are cases where the same mathematical term is used 
+to denote different concepts,
+for example `Degree' is defined for polynomials, group characters,
+and permutation actions,
+and `Rank' is defined for matrices, free modules, $p$-groups,
+and transitive permutation actions.
+
+It is in principle possible to install methods for the operation
+`Rank' that are applicable to the different types of arguments,
+corresponding to the different contexts.
+But this is not the approach taken in the {\GAP} library.
+Instead there are operations such as `RankMat' for matrices
+and `DegreeOfCharacter' (in fact these are attributes)
+which are installed as methods of the ``ambiguous'' operations
+`Rank' and `Degree'.
+
+The idea is to distinguish between on the one hand different ways
+to compute the same thing (e.g.~different methods for `\\=', `Size', etc.),
+and on the other hand genuinely different things
+(such as the degree of a polynomial and a permutation action).
+
+The former is the basic purpose of operations and attributes.
+The latter is provided as a user convenience where mathematical usage
+forces it on us *and* where no conflicts arise.
+In programming the library, we use the underlying mathematically
+precise operations or attributes, such as `RankMat' and
+`RankOperation'.
+These should be attributes if appropriate, and the only role of the
+operation `Rank' is to decide which attribute the user meant.
+That way, stored information is stored with ``full mathematical precision''
+and is less likely to be retrieved for a wrong purpose later.
+
+One word about possible conflicts.
+A typical example is the mathematical term ``centre'',
+which is defined as $\{ x \in M | a \* x = x \* a \forall a \in M \}$
+for a magma $M$, and as $\{ x \in L | l \* x = 0 \forall l \in L \}$
+for a Lie algebra $L$.
+Here it is *not* possible to introduce an operation `Centre' that
+delegates to attributes `CentreOfMagma' and `CentreOfLieAlgebra',
+depending on the type of the argument.
+This is because any Lie algebra in {\GAP} is also a magma,
+so both `CentreOfMagma' and `CentreOfLieAlgebra' would be defined
+for a Lie algebra, with different meaning if the characteristic is $2$.
+So we cannot achieve that one operation in {\GAP} corresponds to
+the mathematical term ``centre''.
+
+``Ambiguous'' operations such as `Rank' are declared in the library file
+`overload.g'.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%

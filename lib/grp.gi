@@ -15,10 +15,6 @@
 Revision.grp_gi :=
     "@(#)$Id$";
 
-
-ClosureSubgroup := OperationSubdomain( "ClosureSubgroup",
-                           ClosureGroup, true );
-
 #############################################################################
 ##
 #M  IsFinitelyGeneratedGroup( <G> ) . . test if a group is finitely generated
@@ -109,6 +105,45 @@ InstallMethod( IsElementaryAbelian,
     fi;
     end );
 
+
+#############################################################################
+##
+#M  IsPGroup  . . . . . . . . . . . . . . . . . . . .  is a group a p-group ?
+##
+InstallMethod( IsPGroup,
+        "generic method",
+        true, [IsGroup and IsFinite], 0,
+function( grp )
+    local   s;
+
+    s := Size( grp );
+    if s = 1 then return false; fi;
+
+    s := Collected( Factors( s ) );
+    if Length( s ) = 1 then
+        SetPrimePGroup( grp, s[1][1] );
+        return true;
+    else
+        return false;
+    fi;
+end );
+
+#############################################################################
+##
+#M  PrimePGroup . . . . . . . . . . . . . . . . . . . . .  prime of a p-group
+##
+InstallMethod( PrimePGroup,
+        "method if size is given",
+        true, [IsPGroup and HasSize], 0,
+function( grp )
+    local   s;
+
+    s := Size( grp );
+    if s = 1 then
+        return false;
+    fi;
+    return Collected( Factors( s ) )[1][1];
+end );
 
 #############################################################################
 ##
@@ -247,7 +282,7 @@ InstallMethod( IsSupersolvableGroup,
 ##
 InstallMethod( IsTrivial, true, [ IsGroup ], 0,
         G -> ForAll( GeneratorsOfGroup( G ), gen -> gen = One( G ) ) );
-        
+
 
 #############################################################################
 ##
@@ -311,23 +346,27 @@ InstallMethod( AsGroup, true, [ IsGroup ], 100, IdFunc );
 
 InstallMethod( AsGroup,
     "generic method for collections",
-    true, [ IsCollection ], 0,
+    true,
+    [ IsCollection ], 0,
     function ( D )
     local   G,  L;
 
-    D := AsListSorted( D );
+    D := AsSSortedList( D );
+    if IsEmpty( D ) then
+      return fail;
+    fi;
     L := ShallowCopy( D );
     G := TrivialSubgroup( GroupByGenerators( D ) );
-    SubtractSet( L, AsListSorted( G ) );
+    SubtractSet( L, AsSSortedList( G ) );
     while not IsEmpty(L)  do
         G := ClosureGroupDefault( G, L[1] );
-        SubtractSet( L, AsListSorted( G ) );
+        SubtractSet( L, AsSSortedList( G ) );
     od;
     if Length( AsList( G ) ) <> Length( D )  then
         return fail;
     fi;
     G := GroupByGenerators( GeneratorsOfGroup( G ), One( D[1] ) );
-    SetAsListSorted( G, D );
+    SetAsSSortedList( G, D );
     SetIsFinite( G, true );
     SetSize( G, Length( D ) );
 
@@ -368,7 +407,7 @@ InstallMethod( CompositionSeries,
     0,
 
 function( grp )
-    local   der,  series,  i,  comp,  low,  elm,  pelm,  o,  p,  x,  
+    local   der,  series,  i,  comp,  low,  elm,  pelm,  o,  p,  x,
             j,  qelm;
 
     # this only works for solvable groups
@@ -406,7 +445,7 @@ function( grp )
     od;
 
     return series;
-            
+
 end );
 
 
@@ -493,41 +532,43 @@ InstallMethod( DerivedSubgroup,
     return D;
     end );
 
-#T ##########################################################################
-#T ##
-#T #M  DimensionsLoewyFactors( <G> )  . . . . . . dimension of the Loewy factors
-#T ##
-#T InstallMethod( DimensionsLoewyFactors,
-#T     "generic method for groups",
-#T     true, [ IsGroup ], 0,
-#T     function( G )
-#T
-#T     local   p,  J,  x,  P,  i,  s,  j;
-#T
-#T     # <G> must be a p-group
-#T     if not IsFinite(G) or not IsPrimePowerInt(Size(G))  then
-#T      Error( "<G> must be a p-group" );
-#T     fi;
-#T
-#T     # get the prime and the Jennings series
-#T     p := FactorsInt(Size(G))[1];
-#T     J := JenningsSeries(G);
-#T
-#T     # construct the Jennings polynomial over the rationals
-#T     x := X(Rationals);
-#T     P := x^0;
-#T     for i  in [ 1 .. Length(J)-1 ]  do
-#T         s := 0*x;
-#T         for j  in [ 0 .. p-1 ]  do
-#T             s := s + x^(j*i);
-#T         od;
-#T         P := P * s^LogInt( Index( J[i], J[i+1] ), p );
-#T     od;
-#T
-#T     # the coefficients are the dimension of the loewy series
-#T     return ShiftedCoeffs( P.coefficients, P.valuation );
-#T #T !!
-#T     end );
+
+##########################################################################
+##
+#M  DimensionsLoewyFactors( <G> )  . . . . . . dimension of the Loewy factors
+##
+InstallMethod( DimensionsLoewyFactors,
+    "for a group (that must be a finite p-group)",
+    true,
+    [ IsGroup ], 0,
+    function( G )
+
+    local   p,  J,  x,  P,  i,  s,  j;
+
+    # <G> must be a p-group
+    if not IsFinite( G ) or not IsPrimePowerInt( Size( G ) )  then
+      Error( "<G> must be a p-group" );
+    fi;
+
+    # get the prime and the Jennings series
+    p := FactorsInt( Size( G ) )[1];
+    J := JenningsSeries( G );
+
+    # construct the Jennings polynomial over the rationals
+    x := Indeterminate( Rationals );
+    P := One( x );
+    for i  in [ 1 .. Length(J)-1 ]  do
+        s := Zero( x );
+        for j  in [ 0 .. p-1 ]  do
+            s := s + x^(j*i);
+        od;
+        P := P * s^LogInt( Index( J[i], J[i+1] ), p );
+    od;
+
+    # the coefficients are the dimension of the loewy series
+    return CoefficientsOfUnivariatePolynomial( P );
+    end );
+
 
 #############################################################################
 ##
@@ -613,8 +654,9 @@ InstallMethod( FittingSubgroup, true, [ IsGroup and IsTrivial ], 0, IdFunc );
 InstallMethod( FittingSubgroup,
     "generic method for groups",
     true, [ IsGroup ], 0,
-    G -> SubgroupNC( G, Union( List( Set( FactorsInt( Size( G ) ) ),
-                         p -> GeneratorsOfGroup( PCore( G, p ) ) ) ) ) );
+    G -> SubgroupNC( G, Filtered(Union( List( Set( FactorsInt( Size( G ) ) ),
+                         p -> GeneratorsOfGroup( PCore( G, p ) ) ) ),
+			 p->p<>One(G))) );
 
 #############################################################################
 ##
@@ -716,15 +758,15 @@ InstallMethod( NrConjugacyClasses,
 ##
 InstallGlobalFunction( Omega, function( arg )
     local   G,  p,  n,  known;
-    
+
     G := arg[1];
     p := arg[2];
-    
+
     # <G> must be a <p>-group
     if Size( G ) <> p ^ LogInt( Size( G ), p )  then
         Error( "Omega: <G> must be a p-group" );
     fi;
-    
+
     if Length( arg ) = 3  then  n := arg[3];
                           else  n := 1;       fi;
 
@@ -793,7 +835,7 @@ InstallMethod( OmegaOp,
         for i in Difference(rl,[ml]) do
           AddRowVector( rel[i], rel[ml], -QuoInt(rel[i][mc],rel[ml][mc]) );
           # rel[i]:=rel[i]-QuoInt(rel[i][mc],rel[ml][mc])*rel[ml];
-        od;    
+        od;
         # find min entry
         m:=AbsInt(Maximum(rel[rl[1]]))+1;
         for i in rl do
@@ -835,48 +877,20 @@ InstallMethod( ComputedOmegas, true, [ IsGroup ], 0, G -> [  ] );
 ##
 #M  RadicalGroup( <G> ) . . . . . . . . . . . . . . . . .  radical of a group
 ##
-InstallMethod( RadicalGroup, true, [ IsGroup ], 0,
+InstallMethod( RadicalGroup,
+    "for a group",
+    true,
+    [ IsGroup ], 0,
     function ( G )
     Error( "sorry, cannot compute the radical of <G>" );
     end );
 
-InstallMethod( RadicalGroup, true, [ IsGroup and IsSolvableGroup ], 100,
+InstallMethod( RadicalGroup,
+    "for a group",
+    true,
+    [ IsGroup and IsSolvableGroup ], 100,
     IdFunc );
 #T ?
-
-#############################################################################
-##
-#M  OrdersClassRepresentatives( <G> )
-##
-InstallMethod( OrdersClassRepresentatives,
-    "generic method for groups",
-    true, [ IsGroup ], 0,
-    G -> List( ConjugacyClasses( G ), c -> Order( Representative( c ) ) ) );
-
-
-#############################################################################
-##
-#M  RationalClasses( <G> )
-##
-
-#############################################################################
-##
-#M  SizesCentralizers( <G> )
-##
-InstallMethod( SizesCentralizers,
-    "generic method for groups",
-    true, [ IsGroup ], 0,
-    G -> List( ConjugacyClasses( G ), c -> Size( G ) / Size( c ) ) );
-
-
-#############################################################################
-##
-#M  SizesConjugacyClasses( <G> )
-##
-InstallMethod( SizesConjugacyClasses,
-    "generic method for groups",
-    true, [ IsGroup ], 0,
-    G -> List( ConjugacyClasses( G ), Size ) );
 
 
 #############################################################################
@@ -921,6 +935,17 @@ InstallMethod( GeneratorsSmallest,
     Error( "panic, <G> not generated by its elements" );
     end );
 
+#############################################################################
+##
+#M  LargestElementGroup( <G> )
+##
+##  returns the largest element of <G> with respect to the ordering `\<' of
+##  the elements family.
+InstallMethod(LargestElementGroup,"use `EnumeratorSorted'",true,[IsGroup],0,
+function(G)
+  return EnumeratorSorted(G)[Size(G)];
+end);
+
 
 #############################################################################
 ##
@@ -943,7 +968,7 @@ InstallMethod( GeneratorsSmallest,
 ##
 ##  The component `ds' describes a series such that any composition series
 ##  through `ds' from <G> down to the residuum is a chief series.
-## 
+##
 InstallGlobalFunction( SupersolvableResiduumDefault, function( G )
 
     local ssr,         # supersolvable residuum
@@ -978,9 +1003,9 @@ InstallGlobalFunction( SupersolvableResiduumDefault, function( G )
           nullspace,   # generators of the eigenspace
           space,       # loop variable
           inter,       # intersection
-          tmp2,        # 
-          v,           # 
-          ve;          # 
+          tmp2,        #
+          v,           #
+          ve;          #
 
     ssr := DerivedSubgroup( G );
     ds  := [ G, ssr ];
@@ -1062,11 +1087,11 @@ InstallGlobalFunction( SupersolvableResiduumDefault, function( G )
               # All eigenvalues of `matrix' will be used.
               for eigenvalue in List( Filtered( Factors(
                     CharacteristicPolynomial( field, matrix ) ),
-                       x -> DegreeOfUnivariateLaurentPolynomial( x ) = 1 ),
+                       x -> DegreeOfLaurentPolynomial( x ) = 1 ),
                        y -> - CoefficientsOfUnivariatePolynomial( y )[1] ) do
 
                 nullspace:= NullspaceMat( matrix - eigenvalue*idm );
-                if not IsEmpty( nullspace ) then 
+                if not IsEmpty( nullspace ) then
                   for space in vsl do
                     inter:= SumIntersectionMat( space, nullspace )[2];
                     if not IsEmpty( inter ) then
@@ -1098,7 +1123,7 @@ InstallGlobalFunction( SupersolvableResiduumDefault, function( G )
 
                   # Construct a group element corresponding to
                   # the basis element of the submodule.
-                  ve:= PcElementByExponents( pcgs, v );
+                  ve:= PcElementByExponentsNC( pcgs, v );
                   Add( tmp2, PreImagesRepresentative( ph, ve ) );
 
                 od;
@@ -1109,12 +1134,12 @@ InstallGlobalFunction( SupersolvableResiduumDefault, function( G )
             fi;
           else
             Add( ds, PreImagesSet( dh,
-                         SubgroupNC( df, AsListSorted( gen ) ) ) );
+                         SubgroupNC( df, AsSSortedList( gen ) ) ) );
           fi;
         od;
 
         # Generate the new candidate.
-        ssr:= PreImagesSet( dh, SubgroupNC( df, AsListSorted( gen ) ) );
+        ssr:= PreImagesSet( dh, SubgroupNC( df, AsSSortedList( gen ) ) );
 
       until IsTrivial( ssr ) or oldssr = ssr;
 
@@ -1161,7 +1186,7 @@ function( G )
     primes := Set( List( weights, x -> x[3] ) );
     comp := List( primes, x -> false );
     for i in [1..Length( primes )] do
-        gens := spec{Filtered( [1..Length(spec)], 
+        gens := spec{Filtered( [1..Length(spec)],
                      x -> weights[x][3] <> primes[i] )};
         sub  := InducedPcgsByPcSequenceNC( spec, gens );
         comp[i] := SubgroupByPcgs( G, sub );
@@ -1192,7 +1217,7 @@ function( G )
     primes := Set( List( weights, x -> x[3] ) );
     comp := List( primes, x -> false );
     for i in [1..Length( primes )] do
-        gens := spec{Filtered( [1..Length(spec)], 
+        gens := spec{Filtered( [1..Length(spec)],
                            x -> weights[x][3] = primes[i] )};
         sub  := InducedPcgsByPcSequenceNC( spec, gens );
         comp[i] := SubgroupByPcgs( G, sub );
@@ -1223,7 +1248,7 @@ function( G )
     pis    := Combinations( primes );
     comp   := List( pis, x -> false );
     for i in [1..Length( pis )] do
-        gens := spec{Filtered( [1..Length(spec)], 
+        gens := spec{Filtered( [1..Length(spec)],
                            x -> weights[x][3] in pis[i] )};
         sub  := InducedPcgsByPcSequenceNC( spec, gens );
         comp[i] := SubgroupByPcgs( G, sub );
@@ -1271,15 +1296,15 @@ InstallMethod( UpperCentralSeriesOfGroup,
 ##
 InstallGlobalFunction( Agemo, function( arg )
     local   G,  p,  n,  known;
-    
+
     G := arg[1];
     p := arg[2];
-    
+
     # <G> must be a <p>-group
     if Size( G ) <> p ^ LogInt( Size( G ), p )  then
         Error( "Agemo: <G> must be a p-group" );
     fi;
-    
+
     if Length( arg ) = 3  then  n := arg[3];
                           else  n := 1;       fi;
 
@@ -1296,7 +1321,7 @@ InstallMethod( AgemoOp,
     function( G, p, n )
 
     local   C,  q;
-    
+
     q := p ^ n;
     # if <G> is abelian,  raise the generators to the q.th power
     if IsAbelian(G)  then
@@ -1378,7 +1403,7 @@ InstallGlobalFunction( ClosureGroupDefault, function( G, elm )
     # try to avoid adding an element to a group that already contains it
     if   elm in gens
       or elm^-1 in gens
-      or ( HasAsListSorted( G ) and elm in AsListSorted( G ) )
+      or ( HasAsSSortedList( G ) and elm in AsSSortedList( G ) )
       or elm = One( G )
     then
         return G;
@@ -1387,40 +1412,40 @@ InstallGlobalFunction( ClosureGroupDefault, function( G, elm )
     # make the closure group
     C:= GroupByGenerators( Concatenation( gens, [ elm ] ) );
     UseSubsetRelation( C, G );
-    
+
     # if the elements of <G> are known then extend this list
-    if HasAsListSorted( G ) then
+    if HasAsSSortedList( G ) then
 
         # if <G>^<elm> = <G> then <C> = <G> * <elm>
-        if ForAll( gens, gen -> gen ^ elm in AsListSorted( G ) )  then
+        if ForAll( gens, gen -> gen ^ elm in AsSSortedList( G ) )  then
             Info( InfoGroup, 2, "new generator normalizes" );
-            Celements := ShallowCopy( AsListSorted( G ) );
+            Celements := ShallowCopy( AsSSortedList( G ) );
             rep := elm;
-            while not rep in AsListSorted( G ) do
-                Append( Celements, AsListSorted( G ) * rep );
+            while not rep in AsSSortedList( G ) do
+                Append( Celements, AsSSortedList( G ) * rep );
                 rep := rep * elm;
             od;
-            SetAsListSorted( C, AsListSorted( Celements ) );
+            SetAsSSortedList( C, AsSSortedList( Celements ) );
             SetIsFinite( C, true );
             SetSize( C, Length( Celements ) );
 
         # otherwise use a Dimino step
         else
             Info( InfoGroup, 2, "new generator normalizes not" );
-            Celements := ShallowCopy( AsListSorted( G ) );
+            Celements := ShallowCopy( AsSSortedList( G ) );
             reps := [ One( G ) ];
             Info( InfoGroup, 2, "   |<cosets>| = ", Length(reps) );
             for rep  in reps  do
                 for gen  in GeneratorsOfGroup( C ) do
                     if not rep * gen in Celements  then
-                        Append( Celements, AsListSorted( G ) * (rep * gen) );
+                        Append( Celements, AsSSortedList( G ) * (rep * gen) );
                         Add( reps, rep * gen );
                         Info( InfoGroup, 2,
                               "   |<cosets>| = ", Length(reps) );
                     fi;
                 od;
             od;
-            SetAsListSorted( C, AsListSorted( Celements ) );
+            SetAsSSortedList( C, AsSSortedList( Celements ) );
             SetIsFinite( C, true );
             SetSize( C, Length( Celements ) );
 
@@ -1447,7 +1472,7 @@ InstallMethod( ClosureGroup,
     # try to avoid adding an element to a group that already contains it
     if   elm in gens
       or elm^-1 in gens
-      or ( HasAsListSorted( G ) and elm in AsListSorted( G ) )
+      or ( HasAsSSortedList( G ) and elm in AsSSortedList( G ) )
       or elm = One( G )  then
         return G;
     fi;
@@ -1455,7 +1480,7 @@ InstallMethod( ClosureGroup,
     # make the closure group
     C := GroupByGenerators( Concatenation( gens, [ elm ] ) );
     UseSubsetRelation( C, G );
-    
+
     # return the closure
     return C;
     end );
@@ -1495,20 +1520,20 @@ InstallMethod( ClosureGroup,
     end );
 
 InstallMethod( ClosureGroup,
-    "method for two groups, the bigger conatining the whole family",
-    IsIdenticalObj, [ IsGroup and IsWholeFamily, IsGroup ], 100,
+    "for two groups, the bigger conatining the whole family",
+    IsIdenticalObj,
+    [ IsGroup and IsWholeFamily, IsGroup ], 100,
     function( G, H )
     return G;
     end );
-    
+
 InstallMethod( ClosureGroup,
-    "method for group and element list",
+    "for group and element list",
     IsIdenticalObj,
-    [ IsGroup,
-      IsList and IsMultiplicativeElementWithInverseCollection ], 0,
+    [ IsGroup, IsCollection ], 0,
     function( G, gens )
     local   gen;
-    
+
     for gen  in gens  do
         G := ClosureGroup( G, gen );
     od;
@@ -1516,13 +1541,29 @@ InstallMethod( ClosureGroup,
 end );
 
 InstallMethod( ClosureGroup,
-    "method for group and empty element list",
+    "for group and empty element list",
     true,
     [ IsGroup,
       IsList and IsEmpty ], 0,
     function( G, nogens )
     return G;
 end );
+
+
+#############################################################################
+##
+#M  ClosureSubgroup( <G>, <obj> )
+##
+InstallMethod( ClosureSubgroup,
+    "for group with parent, and object",
+    true,
+    [ IsGroup and HasParent, IsObject ], 0,
+    function( G, obj )
+    obj:= ClosureGroup( G, obj );
+    SetParent( obj, Parent( G ) );
+    return obj;
+    end );
+
 
 #############################################################################
 ##
@@ -1559,6 +1600,7 @@ InstallOtherMethod( \^,
     0,
     ConjugateGroup );
 
+
 #############################################################################
 ##
 #M  ConjugateGroup( <G>, <g> )
@@ -1573,8 +1615,21 @@ InstallMethod( ConjugateGroup, "<G>, <g>", IsCollsElms,
     return H;
 end );
 
-ConjugateSubgroup := OperationSubdomain( "ConjugateSubgroup",
-                             ConjugateGroup, IsCollsElms );
+
+#############################################################################
+##
+#M  ConjugateSubgroup( <G>, <g> )
+##
+InstallMethod( ConjugateSubgroup,
+    "for group with parent, and group element",
+    IsCollsElms,
+    [ IsGroup and HasParent, IsMultiplicativeElementWithInverse ], 0,
+    function( G, g )
+    g:= ConjugateGroup( G, g );
+    SetParent( g, Parent( G ) );
+    return g;
+    end );
+
 
 #############################################################################
 ##
@@ -1688,30 +1743,48 @@ InstallMethod( IsNormalOp,
 
 #############################################################################
 ##
-#M  IsSubgroup( <G>, <U> )
+#F  IsSubgroup( <G>, <U> )
 ##
-InstallOtherMethod( IsSubgroup,
-    "generic method for two groups",
-    true, [ IsGroup, IsObject ], 0,
-    function( G, U ) return IsGroup( U ) and IsSubset( G, U ); end );
-#T necessary at all?
+InstallGlobalFunction( IsSubgroup,
+    function( G, U )
+    return IsGroup( U ) and IsSubset( G, U );
+    end );
+
 
 #############################################################################
 ##
-#F  RightTransversal( <G>, <U> )  . . . . . . . . . . . . . right transversal
+#R  IsRightTransversalRep( <obj> )  . . . . . . . . . . . . right transversal
 ##
-InstallMethod( PrintObj, true, [ IsRightTransversal ], 0,
-    function( cs )
+DeclareRepresentation( "IsRightTransversalRep",
+    IsAttributeStoringRep,
+    [ "group", "subgroup" ] );
+
+InstallMethod( PrintObj,
+    "for right transversal",
+    true,
+    [ IsList and IsRightTransversalRep ], 0,
+function( cs )
     Print( "RightTransversal( ", cs!.group, ", ", cs!.subgroup, " )" );
 end );
 
-InstallMethod( Length, true, [ IsRightTransversal ], 0,
+InstallMethod( ViewObj,
+    "for right transversal",
+    true,
+    [ IsList and IsRightTransversalRep ], 0,
+function( cs )
+    Print( "RightTransversal(");
+    View(cs!.group);
+    Print(",");
+    View(cs!.subgroup);
+    Print(")");
+end );
+
+InstallMethod( Length,
+    "for right transversal",
+    true,
+    [ IsList and IsRightTransversalRep ], 0,
     t -> Index( t!.group, t!.subgroup ) );
 
-#############################################################################
-##
-#M  IsSubnormal( <G>, <U> )
-##
 
 #############################################################################
 ##
@@ -1840,10 +1913,33 @@ InstallMethod( PCentralSeriesOp,
     return L;
     end );
 
+#############################################################################
+##
+#M  PClassPGroup( <G> )   . . . . . . . . . .  . . . . . . <p>-central series
+##
+InstallMethod( PClassPGroup,
+    "generic method for group",
+    true, [ IsPGroup ], 0,
+    function( G )
+
+    return Length( PCentralSeries( G, PrimePGroup( G ) ) ) - 1;
+    end );
 
 #############################################################################
 ##
-#M  PRumpOp( <G>, <p> )  
+#M  RankPGroup( <G> ) . . . . . . . . . . . .  . . . . . . <p>-central series
+##
+InstallMethod( RankPGroup,
+    "generic method for group",
+    true, [ IsPGroup ], 0,
+    function( G )
+
+    return Length( AbelianInvariants( G ) );
+    end );
+
+#############################################################################
+##
+#M  PRumpOp( <G>, <p> )
 ##
 InstallMethod( PRumpOp,
     "generic method for group and prime",
@@ -1913,6 +2009,18 @@ InstallMethod( SubnormalSeriesOp,
                 Length( S ) );
     return S;
     end );
+
+#############################################################################
+##
+#M  IsSubnormal( <G>, <U> )
+##
+InstallMethod( IsSubnormal,"generic method for two groups",IsIdenticalObj,
+  [IsGroup,IsGroup],0,
+function ( G, U )
+local s;
+  s:=SubnormalSeries(G,U);
+  return U=s[Length(s)];
+end);
 
 
 #############################################################################
@@ -2097,7 +2205,7 @@ EnumeratorOfGroup := function( G )
 
     # start with the trivial group and its element list
     H:= TrivialSubgroup( G );
-    SetAsListSorted( H, Immutable( [ One( G ) ] ) );
+    SetAsSSortedList( H, Immutable( [ One( G ) ] ) );
 
     # Add the generators one after the other.
     # We use a function that maintains the elements list for the closure.
@@ -2106,8 +2214,8 @@ EnumeratorOfGroup := function( G )
     od;
 
     # return the list of elements
-    Assert( 2, HasAsListSorted( H ) );
-    return AsListSorted( H );
+    Assert( 2, HasAsSSortedList( H ) );
+    return AsSSortedList( H );
 end;
 
 InstallMethod( Enumerator,
@@ -2178,12 +2286,14 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
 
     # test if <G> is a cyclic group of prime size
     if IsPrime( size )  then
-        return Concatenation( "Z(", String(size), ")" );
+        return rec(series:="Z",parameter:=size,
+	           name:=Concatenation( "Z(", String(size), ")" ));
     fi;
 
     # test if <G> is A(5) ~ A(1,4) ~ A(1,5)
     if size = 60  then
-        return Concatenation( "A(5) ",
+        return rec(series:="A",parameter:=5,
+	           name:=Concatenation( "A(5) ",
                             "~ A(1,4) = L(2,4) ",
                             "~ B(1,4) = O(3,4) ",
                             "~ C(1,4) = S(2,4) ",
@@ -2191,16 +2301,17 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
                             "~ A(1,5) = L(2,5) ",
                             "~ B(1,5) = O(3,5) ",
                             "~ C(1,5) = S(2,5) ",
-                            "~ 2A(1,5) = U(2,5)" );
+                            "~ 2A(1,5) = U(2,5)" ));
     fi;
 
     # test if <G> is A(6) ~ A(1,9)
     if size = 360  then
-        return Concatenation( "A(6) ",
+        return rec(series:="A",parameter:=6,
+		   name:=Concatenation( "A(6) ",
                             "~ A(1,9) = L(2,9) ",
                             "~ B(1,9) = O(3,9) ",
                             "~ C(1,9) = S(2,9) ",
-                            "~ 2A(1,9) = U(2,9)" );
+                            "~ 2A(1,9) = U(2,9)" ));
     fi;
 
     # test if <G> is either A(8) ~ A(3,2) ~ D(3,2) or A(2,4)
@@ -2208,12 +2319,13 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
 
         # check that <G> is a group
         if not IsGroup( G )  then
-            return Concatenation( "cannot decide from size alone between ",
+            return rec(name:=Concatenation(
+	                          "cannot decide from size alone between ",
                                   "A(8) ",
                                 "~ A(3,2) = L(4,2) ",
                                 "~ D(3,2) = O+(6,2) ",
                                 "and ",
-                                  "A(2,4) = L(3,4) " );
+                                  "A(2,4) = L(3,4) " ));
         fi;
 
         # compute the centralizer of an element of order 5
@@ -2225,11 +2337,13 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
 
         # the centralizer in A(8) has size 15, the one in A(2,4) has size ...
         if Size(C) = 15 then
-            return Concatenation( "A(8) ",
+            return rec(series:="A",parameter:=8,
+                       name:=Concatenation( "A(8) ",
                                 "~ A(3,2) = L(4,2) ",
-                                "~ D(3,2) = O+(6,2)" );
+                                "~ D(3,2) = O+(6,2)" ));
         else
-            return "A(2,4) = L(3,4)";
+            return rec(series:="L",parameter:=[3,4],
+                       name:="A(2,4) = L(3,4)");
         fi;
 
     fi;
@@ -2240,62 +2354,63 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
         n := n + 1;  size2 := size2 * n;
     until size <= size2;
     if size = size2  then
-        return Concatenation( "A(", String(n), ")" );
+        return rec(series:="A",parameter:=n,
+                   name:=Concatenation( "A(", String(n), ")" ));
     fi;
 
     # test if <G> is one of the sporadic simple groups
     if size = 2^4 * 3^2 * 5 * 11  then
-        return "M(11)";
+        return rec(series:="Spor",name:="M(11)");
     elif size = 2^6 * 3^3 * 5 * 11  then
-        return "M(12)";
+        return rec(series:="Spor",name:="M(12)");
     elif size = 2^3 * 3 * 5 * 7 * 11 * 19  then
-        return "J(1)";
+        return rec(series:="Spor",name:="J(1)");
     elif size = 2^7 * 3^2 * 5 * 7 * 11  then
-        return "M(22)";
+        return rec(series:="Spor",name:="M(22)");
     elif size = 2^7 * 3^3 * 5^2 * 7  then
-        return "HJ = J(2) = F(5-)";
+        return rec(series:="Spor",name:="HJ = J(2) = F(5-)");
     elif size = 2^7 * 3^2 * 5 * 7 * 11 * 23  then
-        return "M(23)";
+        return rec(series:="Spor",name:="M(23)");
     elif size = 2^9 * 3^2 * 5^3 * 7 * 11  then
-        return "HS";
+        return rec(series:="Spor",name:="HS");
     elif size = 2^7 * 3^5 * 5 * 17 * 19  then
-        return "J(3)";
+        return rec(series:="Spor",name:="J(3)");
     elif size = 2^10 * 3^3 * 5 * 7 * 11 * 23  then
-        return "M(24)";
+        return rec(series:="Spor",name:="M(24)");
     elif size = 2^7 * 3^6 * 5^3 * 7 * 11  then
-        return "Mc";
+        return rec(series:="Spor",name:="Mc");
     elif size = 2^10 * 3^3 * 5^2 * 7^3 * 17  then
-        return "He = F(7)";
+        return rec(series:="Spor",name:="He = F(7)");
     elif size = 2^14 * 3^3 * 5^3 * 7 * 13 * 29  then
-        return "Ru";
+        return rec(series:="Spor",name:="Ru");
     elif size = 2^13 * 3^7 * 5^2 * 7 * 11 * 13  then
-        return "Suz";
+        return rec(series:="Spor",name:="Suz");
     elif size = 2^9 * 3^4 * 5 * 7^3 * 11 * 19 * 31  then
-        return "ON";
+        return rec(series:="Spor",name:="ON");
     elif size = 2^10 * 3^7 * 5^3 * 7 * 11 * 23  then
-        return "Co(3)";
+        return rec(series:="Spor",name:="Co(3)");
     elif size = 2^18 * 3^6 * 5^3 * 7 * 11 * 23  then
-        return "Co(2)";
+        return rec(series:="Spor",name:="Co(2)");
     elif size = 2^17 * 3^9 * 5^2 * 7 * 11 * 13  then
-        return "Fi(22)";
+        return rec(series:="Spor",name:="Fi(22)");
     elif size = 2^14 * 3^6 * 5^6 * 7 * 11 * 19  then
-        return "HN = F(5) = F = F(5+)";
+        return rec(series:="Spor",name:="HN = F(5) = F = F(5+)");
     elif size = 2^8 * 3^7 * 5^6 * 7 * 11 * 31 * 37 * 67  then
-        return "Ly";
+        return rec(series:="Spor",name:="Ly");
     elif size = 2^15 * 3^10 * 5^3 * 7^2 * 13 * 19 * 31  then
-        return "Th = F(3) = E = F(3/3)";
+        return rec(series:="Spor",name:="Th = F(3) = E = F(3/3)");
     elif size = 2^18 * 3^13 * 5^2 * 7 * 11 * 13 * 17 * 23  then
-        return "Fi(23)";
+        return rec(series:="Spor",name:="Fi(23)");
     elif size = 2^21 * 3^9 * 5^4 * 7^2 * 11 * 13 * 23  then
-        return "Co(1) = F(2-)";
+        return rec(series:="Spor",name:="Co(1) = F(2-)");
     elif size = 2^21 * 3^3 * 5 * 7 * 11^3 * 23 * 29 * 31 * 37 * 43  then
-        return "J(4)";
+        return rec(series:="Spor",name:="J(4)");
     elif size = 2^21 * 3^16 * 5^2 * 7^3 * 11 * 13 * 17 * 23 * 29  then
-        return "Fi(24) = F(3+)";
+        return rec(series:="Spor",name:="Fi(24) = F(3+)");
     elif size = 2^41*3^13*5^6*7^2*11*13*17*19*23*31*47  then
-        return "B = F(2+)";
+        return rec(series:="Spor",name:="B = F(2+)");
     elif size = 2^46*3^20*5^9*7^6*11^2*13^3*17*19*23*29*31*41*47*59*71  then
-        return "M = F(1)";
+        return rec(series:="Spor",name:="M = F(1)");
     fi;
 
     # from now on we deal with groups of Lie-type
@@ -2306,47 +2421,51 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
 
     # test if <G> is the Chevalley group A(1,7) ~ A(2,2)
     if size = 168  then
-        return Concatenation( "A(1,7) = L(2,7) ",
+        return rec(series:="L",parameter:=[2,7],
+                   name:=Concatenation( "A(1,7) = L(2,7) ",
                             "~ B(1,7) = O(3,7) ",
                             "~ C(1,7) = S(2,7) ",
                             "~ 2A(1,7) = U(2,7) ",
-                            "~ A(2,2) = L(3,2)" );
+                            "~ A(2,2) = L(3,2)" ));
     fi;
 
     # test if <G> is the Chevalley group A(1,8), where p = 3 <> char.
     if size = 504  then
-        return Concatenation( "A(1,8) = L(2,8) ",
+        return rec(series:="L",parameter:=[2,8],
+	           name:=Concatenation( "A(1,8) = L(2,8) ",
                             "~ B(1,8) = O(3,8) ",
                             "~ C(1,8) = S(2,8) ",
-                            "~ 2A(1,8) = U(2,8)" );
+                            "~ 2A(1,8) = U(2,8)" ));
     fi;
 
     # test if <G> is a Chevalley group A(1,2^<k>-1), where p = 2 <> char.
     if    p = 2  and IsPrime(q-1)
       and size = (q-1) * ((q-1)^2-1) / Gcd(2,(q-1)-1)
     then
-        return Concatenation( "A(",  "1", ",", String(q-1), ") ",
+        return rec(series:="L",parameter:=[2,q-1],
+	           name:=Concatenation( "A(",  "1", ",", String(q-1), ") ",
                             "= L(",  "2", ",", String(q-1), ") ",
                             "~ B(",  "1", ",", String(q-1), ") ",
                             "= O(",  "3", ",", String(q-1), ") ",
                             "~ C(",  "1", ",", String(q-1), ") ",
                             "= S(",  "2", ",", String(q-1), ") ",
                             "~ 2A(", "1", ",", String(q-1), ") ",
-                            "= U(",  "2", ",", String(q-1), ")" );
+                            "= U(",  "2", ",", String(q-1), ")" ));
     fi;
 
     # test if <G> is a Chevalley group A(1,2^<k>), where p = 2^<k>+1 <> char.
     if    p <> 2  and IsPrimePowerInt( p-1 )
       and size = (p-1) * ((p-1)^2-1) / Gcd(2,(p-1)-1)
     then
-        return Concatenation( "A(",  "1", ",", String(p-1), ") ",
+        return rec(series:="L",parameter:=[2,p-1],
+	           name:=Concatenation( "A(",  "1", ",", String(p-1), ") ",
                             "= L(",  "2", ",", String(p-1), ") ",
                             "~ B(",  "1", ",", String(p-1), ") ",
                             "= O(",  "3", ",", String(p-1), ") ",
                             "~ C(",  "1", ",", String(p-1), ") ",
                             "= S(",  "2", ",", String(p-1), ") ",
                             "~ 2A(", "1", ",", String(p-1), ") ",
-                            "= U(",  "2", ",", String(p-1), ")" );
+                            "= U(",  "2", ",", String(p-1), ")" ));
     fi;
 
     # try to find <n> and <q> for size of A(n,q)
@@ -2365,29 +2484,32 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
     # non-simple: A(1,2) ~ S(3), A(1,3) ~ A(4),
     # exceptions: A(1,4) ~ A(1,5) ~ A(5), A(1,7) ~ A(2,2), A(1,9) ~ A(6)
     if n = 1  and size = size2  then
-        return Concatenation( "A(", "1", ",", String(q), ") ",
+        return rec(series:="L",parameter:=[2,q],
+	           name:=Concatenation( "A(", "1", ",", String(q), ") ",
                             "= L(", "2", ",", String(q), ") ",
                             "~ B(", "1", ",", String(q), ") ",
                             "= O(", "3", ",", String(q), ") ",
                             "~ C(", "1", ",", String(q), ") ",
                             "= S(", "2", ",", String(q), ") ",
                             "~ 2A(","1", ",", String(q), ") ",
-                            "= U(", "2", ",", String(q), ")" );
+                            "= U(", "2", ",", String(q), ")" ));
     fi;
 
     # test if <G> is a Chevalley group A(3,q) ~ D(3,q)
     # exceptions: A(3,2) ~ A(8)
     if n = 3  and size = size2  then
-        return Concatenation( "A(", "3", ",", String(q), ") ",
+        return rec(series:="L",parameter:=[4,q],
+	           name:=Concatenation( "A(", "3", ",", String(q), ") ",
                             "= L(", "4", ",", String(q), ") ",
                             "~ D(", "3", ",", String(q), ") ",
-                            "= O+(","6", ",", String(q), ") " );
+                            "= O+(","6", ",", String(q), ") " ));
     fi;
 
     # test if <G> is a Chevalley group A(n,q)
     if size = size2  then
-        return Concatenation( "A(", String(n),   ",", String(q), ") ",
-                            "= L(", String(n+1), ",", String(q), ") " );
+        return rec(series:="L",parameter:=[n+1,q],
+	           name:=Concatenation( "A(", String(n),   ",", String(q), ") ",
+                            "= L(", String(n+1), ",", String(q), ") " ));
     fi;
 
     # try to find <n> and <q> for size of B(n,q) = size of C(n,q)
@@ -2405,28 +2527,31 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
 
     # test if <G> is a Chevalley group B(2,3) ~ C(2,3) ~ 2A(3,2) ~ 2D(3,2)
     if n = 2  and q = 3  and size = size2  then
-        return Concatenation( "B(2,3) = O(5,3) ",
+        return rec(series:="B",parameter:=[2,3],
+	           name:=Concatenation( "B(2,3) = O(5,3) ",
                             "~ C(2,3) = S(4,3) ",
                             "~ 2A(3,2) = U(4,2) ",
-                            "~ 2D(3,2) = O-(6,2)" );
+                            "~ 2D(3,2) = O-(6,2)" ));
     fi;
 
     # test if <G> is a Chevalley group B(2,q) ~ C(2,q)
     # non-simple: B(2,2) ~ S(6)
     if n = 2  and size = size2  then
-        return Concatenation( "B(", "2", ",", String(q), ") ",
+        return rec(series:="B",parameter:=[2,q],
+	           name:=Concatenation( "B(", "2", ",", String(q), ") ",
                             "= O(", "5", ",", String(q), ") ",
                             "~ C(", "2", ",", String(q), ") ",
-                            "= S(", "4", ",", String(q), ")" );
+                            "= S(", "4", ",", String(q), ")" ));
     fi;
 
     # test if <G> is a Chevalley group B(n,2^m) ~ C(n,2^m)
     # non-simple: B(2,2) ~ S(6)
     if p = 2  and size = size2  then
-        return Concatenation( "B(", String(n),     ",", String(q), ") ",
+        return rec(series:="B",parameter:=[n,q],
+	           name:=Concatenation("B(",String(n),  ",", String(q), ") ",
                             "= O(", String(2*n+1), ",", String(q), ") ",
                             "~ C(", String(n),     ",", String(q), ") ",
-                            "= S(", String(2*n),   ",", String(q), ")" );
+                            "= S(", String(2*n),   ",", String(q), ")" ));
     fi;
 
     # test if <G> is a Chevalley group B(n,q) or C(n,q), 2 < n and q odd
@@ -2434,12 +2559,12 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
 
         # check that <G> is a group
         if not IsGroup( G )  then
-            return Concatenation( "cannot decide from size alone between ",
+            return rec(name:=Concatenation( "cannot decide from size alone between ",
                                   "B(", String(n),     ",", String(q), ") ",
                                 "= O(", String(2*n+1), ",", String(q), ") ",
                                 "and ",
                                   "C(", String(n),   ",", String(q), ") ",
-                                "= S(", String(2*n), ",", String(q), ")" );
+                                "= S(", String(2*n), ",", String(q), ")" ));
         fi;
 
         # find a <p>-central element and its centralizer
@@ -2450,11 +2575,13 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
         C := Centralizer(G,g);
 
         if Size(C) mod (q^(2*n-2)-1) <> 0 then
-            return Concatenation( "B(", String(n),     ",", String(q), ") ",
-                                "= O(", String(2*n+1), ",", String(q), ")" );
+            return rec(series:="B",parameter:=[n,q],
+	               name:=Concatenation("B(", String(n),",",String(q),") ",
+                                "= O(", String(2*n+1), ",", String(q), ")"));
         else
-            return Concatenation( "C(", String(n),   ",", String(q), ") ",
-                                "= S(", String(2*n), ",", String(q), ")" );
+            return rec(series:="C",parameter:=[n,q],
+	               name:=Concatenation( "C(",String(n),",",String(q),") ",
+                                "= S(", String(2*n), ",", String(q), ")" ));
         fi;
 
     fi;
@@ -2473,8 +2600,9 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
         until size <= size2;
     until size = size2  or n = 4;
     if size = size2  then
-        return Concatenation( "D(",  String(n),   ",", String(q), ") ",
-                            "= O+(", String(2*n), ",", String(q), ")" );
+        return rec(series:="D",parameter:=[n,q],
+	           name:=Concatenation("D(",String(n),",",String(q), ") ",
+                            "= O+(", String(2*n), ",", String(q), ")" ));
     fi;
 
     # test whether <G> is an exceptional Chevalley group E(6,q)
@@ -2485,7 +2613,8 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
                       *(q^6-1)*(q^5-1)*(q^2-1) / Gcd(3,q-1);
     until size <= size2;
     if size = size2 then
-        return Concatenation( "E(", "6", ",", String(q), ")" );
+        return rec(series:="E",parameter:=[6,q],
+	           name:=Concatenation( "E(", "6", ",", String(q), ")" ));
     fi;
 
     # test whether <G> is an exceptional Chevalley group E(7,q)
@@ -2496,7 +2625,8 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
                       *(q^8-1)*(q^6-1)*(q^2-1) / Gcd(2,q-1);
     until size <= size2;
     if size = size2  then
-        return Concatenation( "E(", "7", ",", String(q), ")" );
+        return rec(series:="E",parameter:=[7,q],
+	           name:=Concatenation( "E(", "7", ",", String(q), ")" ));
     fi;
 
     # test whether <G> is an exceptional Chevalley group E(8,q)
@@ -2507,7 +2637,8 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
                        *(q^14-1)*(q^12-1)*(q^8-1)*(q^2-1);
     until size <= size2;
     if size = size2  then
-        return Concatenation( "E(", "8", ",", String(q), ")" );
+        return rec(series:="E",parameter:=[8,q],
+	           name:=Concatenation( "E(", "8", ",", String(q), ")" ));
     fi;
 
     # test whether <G> is an exceptional Chevalley group F(4,q)
@@ -2517,7 +2648,8 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
         size2 := q^24 * (q^12-1)*(q^8-1)*(q^6-1)*(q^2-1);
     until size <= size2;
     if size = size2  then
-        return Concatenation( "F(4,", String(q), ")" );
+        return rec(series:="F",parameter:=q,
+	           name:=Concatenation( "F(4,", String(q), ")" ));
     fi;
 
     # test whether <G> is an exceptional Chevalley group G(2,q)
@@ -2528,12 +2660,14 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
         size2 := q^6 * (q^6-1)*(q^2-1);
     until size <= size2;
     if size = size2  then
-        return Concatenation( "G(", "2", ",", String(q), ")" );
+        return rec(series:="G",parameter:=q,
+	           name:=Concatenation( "G(", "2", ",", String(q), ")" ));
     fi;
 
     # test if <G> is 2A(2,3), where p = 2 <> char.
     if size = 3^3*(3^2-1)*(3^3+1)  then
-        return "2A(2,3) = U(3,3)";
+        return rec(series:="2A",parameter:=[2,3],
+	           name:="2A(2,3) = U(3,3)");
     fi;
 
     # try to find <n> and <q> for size of 2A(n,q)
@@ -2551,17 +2685,19 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
     # test if <G> is a Steinberg group 2A(3,q) ~ 2D(3,q)
     # excetions: 2A(3,2) ~ B(2,3) ~ C(2,3)
     if n = 3  and size = size2  then
-        return Concatenation( "2A(", "3", ",", String(q), ") ",
+        return rec(series:="2A",parameter:=[3,q],
+	           name:=Concatenation( "2A(", "3", ",", String(q), ") ",
                             "= U(",  "4", ",", String(q), ") ",
                             "~ 2D(", "3", ",", String(q), ") ",
-                            "= O-(", "6", ",", String(q), ")" );
+                            "= O-(", "6", ",", String(q), ")" ));
     fi;
 
     # test if <G> is a Steinberg group 2A(n,q)
     # non-simple: 2A(2,2) ~ 3^2 . Q(8)
     if size = size2  then
-        return Concatenation( "2A(", String(n),   ",", String(q), ") ",
-                            "= U(",  String(n+1), ",", String(q), ")" );
+        return rec(series:="2A",parameter:=[n,q],
+	           name:=Concatenation("2A(",String(n),",", String(q), ") ",
+                            "= U(",  String(n+1), ",", String(q), ")" ));
     fi;
 
     # test whether <G> is a Suzuki group 2B(2,q) = 2C(2,q) = Sz(q)
@@ -2572,9 +2708,10 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
         size2 := q^2 * (q^2+1)*(q-1);
     until size <= size2;
     if p = 2  and m mod 2 = 1  and size = size2  then
-        return Concatenation( "2B(", "2", ",", String(q), ") ",
+        return rec(series:="2B",parameter:=q,
+	           name:=Concatenation( "2B(", "2", ",", String(q), ") ",
                             "= 2C(", "2", ",", String(q), ") ",
-                            "= Sz(",           String(q), ")" );
+                            "= Sz(",           String(q), ")" ));
     fi;
 
     # test whether <G> is a Steinberg group 2D(n,q)
@@ -2590,8 +2727,9 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
         until size <= size2;
     until size = size2  or n = 4;
     if size = size2  then
-        return Concatenation( "2D(", String(n),   ",", String(q), ") ",
-                            "= O-(", String(2*n), ",", String(q), ")" );
+        return rec(series:="2D",parameter:=[n,q],
+	           name:=Concatenation("2D(",String(n),",", String(q), ") ",
+                            "= O-(", String(2*n), ",", String(q), ")" ));
     fi;
 
     # test whether <G> is a Steinberg group 3D4(q)
@@ -2601,7 +2739,8 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
         size2 := q^12 * (q^8+q^4+1)*(q^6-1)*(q^2-1);
     until size <= size2;
     if size = size2  then
-        return Concatenation( "3D(", "4", ",", String(q), ")" );
+        return rec(series:="3D",parameter:=q,
+	           name:=Concatenation( "3D(", "4", ",", String(q), ")" ));
     fi;
 
 
@@ -2613,12 +2752,14 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
                        *(q^6-1)*(q^5+1)*(q^2-1) / Gcd(3,q+1);
     until size <= size2;
     if size = size2  then
-        return Concatenation( "2E(", "6", ",", String(q), ")" );
+        return rec(series:="2E",parameter:=q,
+	           name:=Concatenation( "2E(", "6", ",", String(q), ")" ));
     fi;
 
     # test if <G> is the Ree group 2F(4,q)'
     if size = 2^12 * (2^6+1)*(2^4-1)*(2^3+1)*(2-1) / 2  then
-        return "2F(4,2) = Ree(2)' = Tits";
+        return rec(series:="2F",parameter:=2,
+	           name:="2F(4,2) = Ree(2)' = Tits");
     fi;
 
     # test whether <G> is a Ree group 2F(4,q)
@@ -2628,8 +2769,9 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
         size2 := q^12 * (q^6+1)*(q^4-1)*(q^3+1)*(q-1);
     until size <= size2;
     if p = 2  and 1 < m  and m mod 2 = 1  and size = size2  then
-        return Concatenation( "2F(", "4", ",", String(q), ") ",
-                           "= Ree(",           String(q), ")" );
+        return rec(series:="2F",parameter:=q,
+	           name:=Concatenation( "2F(", "4", ",", String(q), ") ",
+                           "= Ree(",           String(q), ")" ));
     fi;
 
     # test whether <G> is a Ree group 2G(2,q)
@@ -2639,12 +2781,13 @@ InstallGlobalFunction( IsomorphismTypeFiniteSimpleGroup, function (G)
         size2 := q^3 * (q^3+1)*(q-1);
     until size <= size2;
     if p = 3  and 1 < m  and m mod 2 = 1  and size = size2  then
-        return Concatenation( "2G(", "2", ",", String(q), ") ",
-                           "= Ree(",           String(q), ")" );
+        return rec(series:="2G",parameter:=q,
+	           name:=Concatenation( "2G(", "2", ",", String(q), ") ",
+                           "= Ree(",           String(q), ")" ));
     fi;
 
     # or a new simple group is found
-    return "A new simple group, whoaw";
+    Error( "A new simple group, whoaw" );
 end );
 
 
@@ -2716,62 +2859,116 @@ InstallMethod( ViewObj,
 
 #############################################################################
 ##
-#M  GroupByGenerators( <gens> ) . . . . . . . . . . . . . group by generators 
-#M  GroupByGenerators( <gens>, <id> )
+#M  GroupWithGenerators( <gens> ) . . . . . . . . group with given generators
+#M  GroupWithGenerators( <gens>, <id> ) . . . . . group with given generators
 ##
-InstallMethod( GroupByGenerators,
+InstallMethod( GroupWithGenerators,
     "generic method for collection",
     true, [ IsCollection ] , 0,
     function( gens )
-    local filter,G;
+    local G,fam,typ;
 
-    filter:=IsGroup and IsAttributeStoringRep;
+    fam:=FamilyObj(gens);
     if IsFinite(gens) then
-      filter:=filter and IsFinitelyGeneratedGroup;
+      if not IsBound(fam!.defaultFinitelyGeneratedGroupType) then
+	fam!.defaultFinitelyGeneratedGroupType:=
+	  NewType(fam,IsGroup and IsAttributeStoringRep
+		      and HasGeneratorsOfMagmaWithInverses
+		      and IsFinitelyGeneratedGroup);
+      fi;
+      typ:=fam!.defaultFinitelyGeneratedGroupType;
+    else
+      if not IsBound(fam!.defaultGroupType) then
+        fam!.defaultGroupType:=
+	  NewType(fam,IsGroup and IsAttributeStoringRep
+		      and HasGeneratorsOfMagmaWithInverses);
+      fi;
+      typ:=fam!.defaultGroupType;
     fi;
 
-    G:= Objectify( NewType( FamilyObj( gens ),filter), rec() );
-    SetGeneratorsOfMagmaWithInverses( G, AsList( gens ) );
-    RunGroupMethods( gens, G );
+    G:=rec();
+    ObjectifyWithAttributes(G,typ,GeneratorsOfMagmaWithInverses,AsList(gens));
+
     return G;
     end );
 
-InstallOtherMethod( GroupByGenerators,
-    "generic method for collection and element",
+InstallMethod( GroupWithGenerators,
+    "generic method for collection and identity element",
     IsCollsElms, [ IsCollection, IsMultiplicativeElementWithInverse ], 0,
     function( gens, id )
-    local filter,G;
+    local G,fam,typ;
 
-    filter:=IsGroup and IsAttributeStoringRep;
+    fam:=FamilyObj(gens);
     if IsFinite(gens) then
-      filter:=filter and IsFinitelyGeneratedGroup;
-    fi;
-
-    G:= Objectify( NewType( FamilyObj( gens ),filter), rec() );
-    SetGeneratorsOfMagmaWithInverses( G, AsList( gens ) );
-    SetOne( G, id );
-    if IsEmpty(gens)  then
-        RunGroupMethods( [id], G );
+      if not IsBound(fam!.defaultFinitelyGeneratedGroupWithOneType) then
+	fam!.defaultFinitelyGeneratedGroupWithOneType:=
+	  NewType(fam,IsGroup and IsAttributeStoringRep
+		      and HasGeneratorsOfMagmaWithInverses
+		      and IsFinitelyGeneratedGroup and HasOne);
+      fi;
+      typ:=fam!.defaultFinitelyGeneratedGroupWithOneType;
     else
-        RunGroupMethods( gens, G );
+      if not IsBound(fam!.defaultGroupWithOneType) then
+        fam!.defaultGroupWithOneType:=
+	  NewType(fam,IsGroup and IsAttributeStoringRep
+		      and HasGeneratorsOfMagmaWithInverses and HasOne);
+      fi;
+      typ:=fam!.defaultGroupWithOneType;
     fi;
-    return G;
-    end );
 
-InstallOtherMethod( GroupByGenerators,
+    G:=rec();
+    ObjectifyWithAttributes(G,typ,GeneratorsOfMagmaWithInverses,AsList(gens),
+                            One,id);
+
+    return G;
+end );
+
+InstallMethod( GroupWithGenerators,
     "method for empty list and element",
     true, [ IsList and IsEmpty, IsMultiplicativeElementWithInverse ], 0,
     function( empty, id )
-    local G;
-    G:= Objectify( NewType( CollectionsFamily( FamilyObj( id ) ),
-                            IsGroup and IsAttributeStoringRep and
-			    IsFinitelyGeneratedGroup),
-                   rec() );
-    SetGeneratorsOfMagmaWithInverses( G, [] );
-    SetOne( G, id );
-    RunGroupMethods( [id], G );
+    local G,fam,typ;
+
+    fam:= CollectionsFamily( FamilyObj( id ) );
+    if not IsBound( fam!.defaultFinitelyGeneratedGroupWithOneType ) then
+      fam!.defaultFinitelyGeneratedGroupWithOneType:=
+        NewType( fam, IsGroup and IsAttributeStoringRep
+                      and HasGeneratorsOfMagmaWithInverses
+                      and IsFinitelyGeneratedGroup and HasOne );
+    fi;
+    typ:= fam!.defaultFinitelyGeneratedGroupWithOneType;
+
+    G:= rec();
+    ObjectifyWithAttributes( G, typ,
+                             GeneratorsOfMagmaWithInverses, empty,
+                             One, id );
+
     return G;
     end );
+
+
+#############################################################################
+##
+#M  GroupByGenerators( <gens> ) . . . . . . . . . . . . . group by generators
+#M  GroupByGenerators( <gens>, <id> )
+##
+InstallMethod( GroupByGenerators,
+    "delegate to `GroupWithGenerators'",
+    true,
+    [ IsCollection ] , 0,
+    GroupWithGenerators );
+
+InstallMethod( GroupByGenerators,
+    "delegate to `GroupWithGenerators'",
+    IsCollsElms,
+    [ IsCollection, IsMultiplicativeElementWithInverse ], 0,
+    GroupWithGenerators );
+
+InstallMethod( GroupByGenerators,
+    "delegate to `GroupWithGenerators'",
+    true,
+    [ IsList and IsEmpty, IsMultiplicativeElementWithInverse ], 0,
+    GroupWithGenerators );
 
 
 #############################################################################
@@ -2787,6 +2984,7 @@ InstallMethod( IsCommutative,
 #############################################################################
 ##
 #F  Group( <gen>, ... )
+#F  Group( <gens> )
 #F  Group( <gens>, <id> )
 ##
 InstallGlobalFunction( Group, function( arg )
@@ -2832,7 +3030,7 @@ InstallMethod( PrimePowerComponents,
     0,
 
 function( g )
-    local o, f, p, x, q, r, gcd, split; 
+    local o, f, p, x, q, r, gcd, split;
 
     # catch the trivial case
     o := Order( g );
@@ -2874,7 +3072,7 @@ function( g, p )
     f := FactorsInt( o );
     x := Length( Filtered( f, x -> x = p ) );
     if x = 0 then return g^o; fi;
-    
+
     q := p ^ x;
     r := o / q;
     gcd := Gcdex( q, r );
@@ -2992,7 +3190,7 @@ end);
 
 #############################################################################
 ##
-#M  SmallGeneratingSet(<G>) 
+#M  SmallGeneratingSet(<G>)
 ##
 InstallMethod(SmallGeneratingSet,"generators subset",true,[IsGroup],0,
 function (G)
@@ -3017,7 +3215,20 @@ end);
 InstallMethod(\<,"groups by smallest generating sets",IsIdenticalObj,
   [IsGroup,IsGroup],0,
 function(a,b)
- return GeneratorsSmallest(a)<GeneratorsSmallest(b);
+local l,m;
+  l:=GeneratorsSmallest(a);
+  m:=GeneratorsSmallest(b);
+  # we now MUST pad the shorter list!
+  if Length(l)<Length(m) then
+    a:=LargestElementGroup(a);
+    l:=ShallowCopy(l);
+    while Length(l)<Length(m) do Add(l,a);od;
+  else
+    b:=LargestElementGroup(b);
+    m:=ShallowCopy(m);
+    while Length(m)<Length(l) do Add(m,b);od;
+  fi;
+  return l<m;
 end);
 
 
@@ -3085,7 +3296,7 @@ InstallGlobalFunction( PowerMapOfGroupWithInvariants,
               break;
             fi;
           od;
-  
+
           # The last candidate may be the right one.
           if not IsBound( map[i] ) then
             map[i]:= cand[ len ];
@@ -3149,20 +3360,27 @@ InstallMethod( PowerMapOfGroup,
 
 #############################################################################
 ##
-#M  KnowsHowToDecompose(<G>,<gens>)      test whether the group can decompose 
+#M  KnowsHowToDecompose(<G>,<gens>)      test whether the group can decompose
 ##                                       into the generators
 ##
-InstallMethod(KnowsHowToDecompose,"generic: just small groups",IsIdenticalObj,
-  [IsGroup,IsList],0,
+InstallMethod( KnowsHowToDecompose,"generic: just groups of order < 1000",
+    IsIdenticalObj, [ IsGroup, IsList ], 0,
 function(G,l)
   return Size(G)<1000;
 end);
 
-InstallOtherMethod(KnowsHowToDecompose,"group: use GeneratorsOfGroup",true,
-  [IsGroup],0,
-function(G)
-  return KnowsHowToDecompose(G,GeneratorsOfGroup(G));
+InstallOtherMethod( KnowsHowToDecompose,"trivial group",true,
+  [IsGroup,IsEmpty],0,
+function(G,l)
+  return true;
 end);
+
+InstallMethod( KnowsHowToDecompose,
+    "group: use GeneratorsOfGroup",
+    true,
+    [ IsGroup ], 0,
+    G -> KnowsHowToDecompose( G, GeneratorsOfGroup( G ) ) );
+
 
 #############################################################################
 ##
@@ -3256,8 +3474,43 @@ function( grp )
 
 end );
 
+#############################################################################
+##
+#M  ConjugateSubgroups( <G>, <U> )
+##
+InstallMethod(ConjugateSubgroups,"generic",IsIdenticalObj,[IsGroup,IsGroup],0,
+function(G,U)
+  return AsList(ConjugacyClassSubgroups(G,U));
+end);
+
+InstallTrueMethod( CanComputeSize, HasSize );
+
+InstallMethod( CanComputeIndex,"by default impossible",IsIdenticalObj,
+  [IsGroup,IsGroup],0,ReturnFalse);
+
+InstallMethod( CanComputeIndex,"if sizes can be computed",IsIdenticalObj,
+  [IsGroup and CanComputeSize,IsGroup and CanComputeSize],0,ReturnTrue);
+
+InstallMethod( CanComputeIsSubset,"if membership test works",IsIdenticalObj,
+  [IsDomain and CanEasilyTestMembership,IsGroup],0,ReturnTrue);
 
 #############################################################################
 ##
-#E  grp.gi  . . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#F  Factorization( <G>, <elm> )
+##
+InstallGlobalFunction(Factorization,function(G,elm)
+local F;
+  if not IsBound(G!.factFreeMap) then
+    F:=FreeGroup(List([1..Length(GeneratorsOfGroup(G))],
+                 i->Concatenation("x",String(i))));
+    G!.factFreeMap:=GroupGeneralMappingByImages(G,F,GeneratorsOfGroup(G),
+						    GeneratorsOfGroup(F));
+  fi;
+  return ImagesRepresentativeGMBIByElementsList(G!.factFreeMap,elm);
+end);
+
+
+#############################################################################
+##
+#E
 

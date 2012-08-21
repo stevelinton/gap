@@ -10,7 +10,8 @@ BUILD = ../../etc/convert.pl
 
 default: all
 
-all: ref/chapters.htm ext/chapters.htm tut/chapters.htm prg/chapters.htm
+all: ref/chapters.htm ext/chapters.htm tut/chapters.htm prg/chapters.htm \
+	theindex.htm
 
 ref/chapters.htm: ../ref/manual.dvi
 	$(BUILD) -c ../ref ref
@@ -24,6 +25,12 @@ tut/chapters.htm: ../tut/manual.dvi
 prg/chapters.htm: ../prg/manual.dvi
 	$(BUILD) -c ../prg prg
 
+theindex.htm: ref/chapters.htm tut/chapters.htm ext/chapters.htm \
+	prg/chapters.htm
+	chmod 755 allhtmlindex
+	chmod 755 onehtmlindex
+	./allhtmlindex
+
 ../ref/manual.dvi:
 	(cd ../ref;tex manual)
 
@@ -35,4 +42,13 @@ prg/chapters.htm: ../prg/manual.dvi
 
 ../prg/manual.dvi:
 	(cd ../prg;tex manual)
+
+webdoc: ../tut/manual.dvi ../ref/manual.dvi ../ext/manual.dvi ../prg/manual.dvi 
+	$(BUILD) -s ../tut tut
+	$(BUILD) -s ../ref ref
+	$(BUILD) -s ../ext ext
+	$(BUILD) -s ../prg prg
+	./allhtmlindex
+
+
 

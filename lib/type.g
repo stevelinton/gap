@@ -1,4 +1,4 @@
-#############################################################################
+;#############################################################################
 ##
 #W  type.g                      GAP library                  Martin Schoenert
 ##
@@ -44,6 +44,7 @@ BIND_GLOBAL( "DeclareCategoryKernel", function ( name, super, cat )
     if not IS_IDENTICAL_OBJ( cat, IS_OBJECT ) then
         ADD_LIST( CATS_AND_REPS, FLAG1_FILTER( cat ) );
         FILTERS[ FLAG1_FILTER( cat ) ] := cat;
+        IMM_FLAGS:= AND_FLAGS( IMM_FLAGS, FLAGS_FILTER( cat ) );
         INFO_FILTERS[ FLAG1_FILTER( cat ) ] := 1;
         RANK_FILTERS[ FLAG1_FILTER( cat ) ] := 1;
         InstallTrueMethod( super, cat );
@@ -58,12 +59,19 @@ end );
 ##
 BIND_GLOBAL( "NewCategory", function ( name, super )
     local   cat;
+
+    # Create the filter.
     cat := NEW_FILTER( name );
+    InstallTrueMethodNewFilter( super, cat );
+
+    # Do some administrational work.
     ADD_LIST( CATS_AND_REPS, FLAG1_FILTER( cat ) );
     FILTERS[ FLAG1_FILTER( cat ) ] := cat;
+    IMM_FLAGS:= AND_FLAGS( IMM_FLAGS, FLAGS_FILTER( cat ) );
     RANK_FILTERS[ FLAG1_FILTER( cat ) ] := 1;
     INFO_FILTERS[ FLAG1_FILTER( cat ) ] := 2;
-    InstallTrueMethodNewFilter( super, cat );
+
+    # Return the filter.
     return cat;
 end );
 
@@ -101,6 +109,7 @@ BIND_GLOBAL( "DeclareRepresentationKernel", function ( arg )
     fi;
     ADD_LIST( CATS_AND_REPS, FLAG1_FILTER( rep ) );
     FILTERS[ FLAG1_FILTER( rep ) ]       := rep;
+    IMM_FLAGS:= AND_FLAGS( IMM_FLAGS, FLAGS_FILTER( rep ) );
     RANK_FILTERS[ FLAG1_FILTER( rep ) ] := 1;
     INFO_FILTERS[ FLAG1_FILTER( rep ) ] := 3;
     InstallTrueMethod( arg[2], rep );
@@ -116,6 +125,7 @@ end );
 BIND_GLOBAL( "NewRepresentation", function ( arg )
     local   rep, filt;
 
+    # Do *not* create a new representation when the file is reread.
     if REREADING then
         for filt in CATS_AND_REPS do
             if NAME_FUNC(FILTERS[filt]) = arg[1] then
@@ -125,6 +135,8 @@ BIND_GLOBAL( "NewRepresentation", function ( arg )
             fi;
         od;
     fi;
+
+    # Create the filter.
     if LEN_LIST(arg) = 3  then
         rep := NEW_FILTER( arg[1] );
     elif LEN_LIST(arg) = 4  then
@@ -132,11 +144,16 @@ BIND_GLOBAL( "NewRepresentation", function ( arg )
     else
         Error("usage:NewRepresentation(<name>,<super>,<slots>[,<req>])");
     fi;
+    InstallTrueMethodNewFilter( arg[2], rep );
+
+    # Do some administrational work.
     ADD_LIST( CATS_AND_REPS, FLAG1_FILTER( rep ) );
     FILTERS[ FLAG1_FILTER( rep ) ] := rep;
+    IMM_FLAGS:= AND_FLAGS( IMM_FLAGS, FLAGS_FILTER( rep ) );
     RANK_FILTERS[ FLAG1_FILTER( rep ) ] := 1;
     INFO_FILTERS[ FLAG1_FILTER( rep ) ] := 4;
-    InstallTrueMethodNewFilter( arg[2], rep );
+
+    # Return the filter.
     return rep;
 end );
 
@@ -238,6 +255,7 @@ DeclareRepresentation( "IsFamilyDefaultRep",
                             IsComponentObjectRep,
 #T why not `IsAttributeStoringRep' ?
                             "NAME,REQ_FLAGS,IMP_FLAGS,TYPES,TYPES_LIST_FAM",
+#T add nTypes, HASH_SIZE
                             IsFamily );
 
 DeclareRepresentation( "IsTypeDefaultRep",
@@ -257,6 +275,8 @@ FamilyOfFamilies!.NAME          := "FamilyOfFamilies";
 FamilyOfFamilies!.REQ_FLAGS     := FLAGS_FILTER( IsFamily );
 FamilyOfFamilies!.IMP_FLAGS     := EMPTY_FLAGS;
 FamilyOfFamilies!.TYPES         := [];
+FamilyOfFamilies!.nTYPES          := 0;
+FamilyOfFamilies!.HASH_SIZE       := 100;
 FamilyOfFamilies!.TYPES_LIST_FAM:= [,,,,,,,,,,,,,,,,,,false]; # list with 18 holes
 
 NEW_TYPE_NEXT_ID := NEW_TYPE_NEXT_ID+1;
@@ -281,6 +301,8 @@ FamilyOfTypes!.NAME             := "FamilyOfTypes";
 FamilyOfTypes!.REQ_FLAGS        := FLAGS_FILTER( IsType   );
 FamilyOfTypes!.IMP_FLAGS        := EMPTY_FLAGS;
 FamilyOfTypes!.TYPES            := [];
+FamilyOfTypes!.nTYPES          := 0;
+FamilyOfTypes!.HASH_SIZE       := 100;
 FamilyOfTypes!.TYPES_LIST_FAM   := [,,,,,,,,,,,,,,,,,,false]; # list with 12 holes
 
 NEW_TYPE_NEXT_ID := NEW_TYPE_NEXT_ID+1;
@@ -381,7 +403,9 @@ BIND_GLOBAL( "NEW_FAMILY",
     family!.REQ_FLAGS       := req_filter;
     family!.IMP_FLAGS       := imp_filter;
     family!.TYPES           := [];
-    family!.TYPES_LIST_FAM  := [,,,,,,,,,,,,,,,,,,false]; # list with 12 holes
+    family!.nTYPES          := 0;
+    family!.HASH_SIZE       := 100;
+    family!.TYPES_LIST_FAM  := [,,,,,,,,,,,,,,,,,,false]; # list with 18 holes
     return family;
 end );
 
@@ -450,6 +474,7 @@ end );
 #M  PrintObj( <fam> )
 ##
 InstallOtherMethod( PRINT_OBJ,
+    "for a family",
     true,
     [ IsFamily ],
     0,
@@ -477,11 +502,11 @@ NEW_TYPE_CACHE_MISS  := 0;
 NEW_TYPE_CACHE_HIT   := 0;
 
 BIND_GLOBAL( "NEW_TYPE", function ( typeOfTypes, family, flags, data )
-    local   hash,  cache,  cached,  type;
+    local   hash,  cache,  cached,  type, ncache, ncl, t;
 
     # maybe it is in the type cache
-    hash  := HASH_FLAGS(flags) mod 3001 + 1;
     cache := family!.TYPES;
+    hash  := HASH_FLAGS(flags) mod family!.HASH_SIZE + 1;
     if IsBound( cache[hash] )  then
         cached := cache[hash];
         if IS_EQUAL_FLAGS( flags, cached![2] )  then
@@ -499,7 +524,7 @@ BIND_GLOBAL( "NEW_TYPE", function ( typeOfTypes, family, flags, data )
 
     # get next type id
     NEW_TYPE_NEXT_ID := NEW_TYPE_NEXT_ID + 1;
-    if TNUM_OBJ(NEW_TYPE_NEXT_ID)[1] <> 0  then
+    if TNUM_OBJ_INT(NEW_TYPE_NEXT_ID) <> 0  then
         Error( "too many types" );
     fi;
 
@@ -510,11 +535,26 @@ BIND_GLOBAL( "NEW_TYPE", function ( typeOfTypes, family, flags, data )
     type[POS_NUMB_TYPE] := NEW_TYPE_NEXT_ID;
 
     SET_TYPE_POSOBJ( type, typeOfTypes );
-    cache[hash] := type;
+    
+    # check the size of the cache before storing this type
+    if family!.nTYPES > family!.HASH_SIZE/3 then
+        ncache := [];
+        ncl := 3*family!.HASH_SIZE+1;
+        for t in cache do
+            ncache[ HASH_FLAGS(t![2]) mod ncl + 1] := t;
+        od;
+        family!.HASH_SIZE := ncl;
+        family!.TYPES := ncache;
+        ncache[HASH_FLAGS(flags) mod ncl + 1] := type;
+    else
+        cache[hash] := type;
+    fi;
+    family!.nTYPES := family!.nTYPES + 1;
 
     # return the type
     return type;
 end );
+
 
 
 BIND_GLOBAL( "NewType2", function ( typeOfTypes, family )
@@ -600,6 +640,7 @@ end );
 #M  PrintObj( <type> )
 ##
 InstallOtherMethod( PRINT_OBJ,
+    "for a type",
     true,
     [ IsType ],
     0,
@@ -771,6 +812,7 @@ BIND_GLOBAL( "SharedType", K -> K![ POS_DATA_TYPE ] );
 ##
 #F  TypeObj( <obj> )  . . . . . . . . . . . . . . . . . . . type of an object
 ##
+##  returns the type of the object <obj>. 
 BIND_GLOBAL( "TypeObj", TYPE_OBJ );
 
 
@@ -778,6 +820,7 @@ BIND_GLOBAL( "TypeObj", TYPE_OBJ );
 ##
 #F  FamilyObj( <obj> )  . . . . . . . . . . . . . . . . . family of an object
 ##
+##  returns the family of the object <obj>.
 BIND_GLOBAL( "FamilyObj", FAMILY_OBJ );
 
 
@@ -920,60 +963,154 @@ end );
 
 #############################################################################
 ##
-#F  InstallMethodsFunction2( <list> ) . . . . . . function to install methods
+#F  SetMultipleAttributes( <obj>, <attr1>, <val1>, <attr2>, <val2> ... )
 ##
-BIND_GLOBAL( "InstallMethodsFunction2", function( list )
-    return
-        function( to, from, func )
-            ADD_LIST( list, [ FLAGS_FILTER(to), FLAGS_FILTER(from), func ] );
-        end;
-end );
-
-
-#############################################################################
+##  This function should have the same net effect as 
 ##
-#F  RunMethodsFunction2( <list> ) . . . . func to run through install methods
+##  Setter( <attr1> )( <obj>, <val1> )
+##  Setter( <attr2> )( <obj>, <val2> )
+##   . . .
 ##
-BIND_GLOBAL( "RunMethodsFunction2", function( list )
+## but hopefully be faster, by amalgamating all the type changes
+##
+BIND_GLOBAL( "SetMultipleAttributes", function (arg)
+    local obj, type, flags, attr, val, i, extra, nfilt, nflags;
+    obj := arg[1];
+    if IsAttributeStoringRep(obj) then
+        extra := [];
+        type := TypeObj(obj);
+        flags := FlagsType( type);
+        nfilt := IS_OBJECT;
+        for i in [2,4..LEN_LIST(arg)-1] do
+            attr := arg[i];
+            val := arg[i+1];
+            if 0 <> FLAG1_FILTER(attr) then
 
-    return
-        function( sup, sub )
-            local   done,  fsup,  fsub,  i,  tmp;
-
-            done := [];
-            fsup := TypeObj(sup)![2];
-            fsub := TypeObj(sub)![2];
-
-            i := 1;
-            while i <= LEN_LIST(list)  do
-                if not i in done  then
-                    if IS_SUBSET_FLAGS( fsup, list[i][1] )  then
-                        if IS_SUBSET_FLAGS( fsub, list[i][2] )  then
-                            ADD_SET( done, i );
-                            list[i][3]( sup, sub );
-                            tmp := TypeObj(sub)![2];
-                            if tmp = fsub  then
-                                i := i + 1;
-                            else
-                                i := 1;
-                            fi;
-                        else
-                            i := i + 1;
-                        fi;
-                    else
-                        ADD_SET( done, i );
-                        i := i + 1;
-                    fi;
+                # `attr' is a property.
+                if val then
+                  nfilt:= nfilt and attr;  # (implies the property tester)
                 else
-                    i := i + 1;
+                  nfilt:= nfilt and Tester( attr );
                 fi;
-            od;
-        end;
-end );
 
+            elif LEN_LIST(METHODS_OPERATION( Setter(attr) , 2)) <> 12 then
+
+                # There are special setter methods for `attr',
+                # we have to call the setter explicitly.
+                ADD_LIST(extra, attr);
+                ADD_LIST(extra, val);
+
+            else
+
+                # We set the attribute value.
+                obj!.(NAME_FUNC(attr)) := IMMUTABLE_COPY_OBJ(val);
+                nfilt := nfilt and Tester(attr);
+
+            fi;
+        od;
+        nflags := FLAGS_FILTER(nfilt);
+        if not IS_SUBSET_FLAGS(flags, nflags) then
+            flags := WITH_IMPS_FLAGS(AND_FLAGS(flags, nflags));
+            ChangeTypeObj(NEW_TYPE(TypeOfTypes, 
+                    FamilyType(type), 
+                    flags , 
+                    DataType(type)),obj);
+        fi;
+        for i in [2,4..LEN_LIST(extra)] do
+            Setter(extra[i-1])(obj,extra[i]);
+        od;
+    else
+        extra := arg;
+        for i in [2,4..LEN_LIST(extra)] do
+            Setter(extra[i])(obj,extra[i+1]);
+        od;
+    fi;
+end);
 
 #############################################################################
 ##
+#F  ObjectifyWithAttributes( <obj>, <type>, <attr1>, <val1>, <attr2>, <val2> ... )
+##
+##  This function should have almost the same net effect as 
+##
+##  Objectify(  <type>, <obj> )
+##  Setter( <attr1> )( <obj>, <val1> )
+##  Setter( <attr2> )( <obj>, <val2> )
+##   . . .
+##
+## but hopefully be faster, by amalgamating all the type changes
+##
+##  The difference, is that type may already include the testers for
+##  the attributes passesd (if any of them are properties then the type
+## may also include their values). In this case, no new type will
+## be created at all.
+##
+BIND_GLOBAL( "IsAttributeStoringRepFlags", FLAGS_FILTER(IsAttributeStoringRep));
 
+BIND_GLOBAL( "INFO_OWA", Ignore );
+MAKE_READ_WRITE_GLOBAL( "INFO_OWA" );
+
+BIND_GLOBAL( "ObjectifyWithAttributes", function (arg)
+    local obj, type, flags, attr, val, i, extra,  nflags;
+    obj := arg[1];
+    type := arg[2];
+    flags := FlagsType( type);
+    extra := [];
+    
+    if not IS_SUBSET_FLAGS(
+               flags,
+               IsAttributeStoringRepFlags
+               ) then
+        extra := arg{[3..LEN_LIST(arg)]};
+        INFO_OWA( "#W ObjectifyWithAttributes called for non-attribute storing rep\n");
+        Objectify(type, obj);
+    else
+        nflags := EMPTY_FLAGS;
+        for i in [3,5..LEN_LIST(arg)-1] do
+            attr := arg[i];
+            val := arg[i+1];
+            
+            # This first case is the case of a property
+            if 0 <> FLAG1_FILTER(attr) then
+              if val then
+                nflags := AND_FLAGS(nflags, FLAGS_FILTER(attr));
+              else
+                nflags := AND_FLAGS(nflags, FLAGS_FILTER(Tester(attr)));
+              fi;
+                
+            # Now we have to check that no one has installed non-standard
+            # setter methods
+            elif LEN_LIST(METHODS_OPERATION( Setter(attr) , 2)) <> 12 then
+                ADD_LIST(extra, attr);
+                ADD_LIST(extra, val);
+                
+            # Otherwise we are dealing with a normal stored attribute
+            # so store it in the record and set the tester
+            else
+                obj.( NAME_FUNC(attr) ) := IMMUTABLE_COPY_OBJ(val);
+                nflags := AND_FLAGS(nflags, FLAGS_FILTER(Tester(attr)));
+            fi;
+        od;
+        if not IS_SUBSET_FLAGS(flags,nflags) then 
+            flags := WITH_IMPS_FLAGS(AND_FLAGS(flags, nflags));
+            Objectify( NEW_TYPE(TypeOfTypes, 
+                    FamilyType(type), 
+                    flags , 
+                    DataType(type)), obj);
+        else
+            Objectify( type, obj);
+        fi;
+    fi;
+    for i in [1,3..LEN_LIST(extra)-1] do
+        if (Tester(extra[i])(obj)) then
+            INFO_OWA("#W  Supplied type has tester of passed attribute with non-standard setter\n");
+            ResetFilterObj(obj, Tester(extra[i]));
+        fi;
+        Setter(extra[i])(obj,extra[i+1]);
+    od;
+end);
+
+#############################################################################
+##
 #E  type.g  . . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
 ##

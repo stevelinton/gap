@@ -6,7 +6,7 @@
 %%
 %Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 %%
-\Chapter{Mappings}
+\PreliminaryChapter{Mappings}
 
 \FileHeader{mapping}[1]
 
@@ -17,9 +17,10 @@
 \Declaration{IsEndoGeneralMapping}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Creating mappings}
+\Section{Creating Mappings}
 
 \Declaration{GeneralMappingByElements}
+\Declaration{MappingByFunction}
 
 \Declaration{CompositionMapping}
 \Declaration{CompositionMapping2}
@@ -30,8 +31,10 @@
 \Declaration{Embedding}
 \Declaration{Projection}
 
+\Declaration{RestrictedMapping}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Properties and Attributes of (general) mappings}
+\Section{Properties and Attributes of (General) Mappings}
 
 \Declaration{IsTotal}
 \Declaration{IsSingleValued}
@@ -47,7 +50,7 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Images under mappings}
+\Section{Images under Mappings}
 
 \Declaration{ImagesSource}
 \Declaration{ImagesRepresentative}
@@ -58,7 +61,7 @@
 \Declaration{Images}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Preimages under mappings}
+\Section{Preimages under Mappings}
 
 \Declaration{PreImagesRange}
 \Declaration{PreImagesElm}
@@ -69,7 +72,7 @@
 \Declaration{PreImages}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Structure preserving mappings}
+\Section{Structure Preserving Mappings}
 
 From an algebraical point of view, the most important mappings are those
 which preserve a structure. {\GAP} supports four types of such mappings:
@@ -103,7 +106,7 @@ which preserve a structure. {\GAP} supports four types of such mappings:
 \Declaration{CoKernelOfAdditiveGeneralMapping}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Linear mappings}
+\Section{Linear Mappings}
 
 \Declaration{RespectsScalarMultiplication}
 \Declaration{IsLeftModuleGeneralMapping}
@@ -121,7 +124,7 @@ which preserve a structure. {\GAP} supports four types of such mappings:
 \Declaration{IsFieldHomomorphism}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Technical matters}
+\Section{Technical Matters}
 
 \FileHeader{mapping}[2]
 

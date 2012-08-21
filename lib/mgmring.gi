@@ -63,7 +63,7 @@ InstallMethod( NormalizedElementOfMagmaRingModuloRelations,
 ##  is <zero>.
 ##  Note that <coeffs_and_words> is assumed to be sorted.
 ##
-FMRRemoveZero := function( coeffs_and_words, zero )
+BindGlobal( "FMRRemoveZero", function( coeffs_and_words, zero )
 
     local i,    # offset of old and new position
           lenw, # length of `words' and `coeff'
@@ -83,7 +83,7 @@ FMRRemoveZero := function( coeffs_and_words, zero )
       Unbind( coeffs_and_words[ pos ] );
     od;
     return coeffs_and_words;
-end;
+end );
 
 
 #############################################################################
@@ -103,6 +103,8 @@ InstallMethod( ElementOfMagmaRing,
     # Check that the data is admissible.
     if not IsBound( Fam!.defaultType ) then
       TryNextMethod();
+    elif IsEmpty( coeff ) and IsEmpty( words ) then
+      return Objectify( Fam!.defaultType, [ zerocoeff, [] ] );
     elif not IsIdenticalObj( FamilyObj( coeff ), Fam!.familyRing ) then
       Error( "<coeff> are not all in the correct domain" );
     elif not IsIdenticalObj( FamilyObj( words ), Fam!.familyMagma ) then
@@ -226,7 +228,7 @@ InstallMethod( \<,
         return false;
       fi;
     od;
-    return Length( x ) <= Length( y );
+    return Length( x ) < Length( y );
     end );
 
 
@@ -253,9 +255,9 @@ InstallMethod( \+,
 
 #############################################################################
 ##
-#M  AdditiveInverse( <x> )  . . . . . for magma ring element in default repr.
+#M  AdditiveInverseOp( <x> )  . . . . for magma ring element in default repr.
 ##
-InstallMethod( AdditiveInverse,
+InstallMethod( AdditiveInverseOp,
     "for free magma ring element",
     true,
     [ IsElementOfMagmaRingModuloRelations ], 0,
@@ -491,9 +493,9 @@ InstallMethod( \/,
 
 #############################################################################
 ##
-#M  Inverse( <elm> ) . . . . . . . . . . . .  inverse of a magma ring element
+#M  InverseOp( <elm> ) . . . . . . . . . . .  inverse of a magma ring element
 ##
-InstallOtherMethod( Inverse,
+InstallOtherMethod( InverseOp,
     "for free magma ring element",
     true,
     [ IsElementOfMagmaRingModuloRelations ], 0,
@@ -512,9 +514,9 @@ InstallOtherMethod( Inverse,
 
 #############################################################################
 ##
-#M  One( <elm> )
+#M  OneOp( <elm> )
 ##
-InstallMethod( One,
+InstallMethod( OneOp,
     "for magma ring element",
     true,
     [ IsElementOfMagmaRingModuloRelations ], 0,
@@ -532,9 +534,9 @@ InstallMethod( One,
 
 #############################################################################
 ##
-#M  Zero( <elm> )
+#M  ZeroOp( <elm> )
 ##
-InstallMethod( Zero,
+InstallMethod( ZeroOp,
     "for magma ring element",
     true,
     [ IsElementOfMagmaRingModuloRelations ], 0,
@@ -1395,8 +1397,14 @@ InstallMethod( PrepareNiceFreeLeftModule,
 
     zero:= Zero( V )![1];
     V!.zerocoeff  := zero;
-    V!.zerovector := List( monomials, x -> zero );
     V!.family     := ElementsFamily( FamilyObj( V ) );
+
+    # For the zero row vector, catch the case of empty `monomials' list.
+    if IsEmpty( monomials ) then
+      V!.zerovector := [ Zero( LeftActingDomain( V ) ) ];
+    else
+      V!.zerovector := List( monomials, x -> zero );
+    fi;
     end );
 
 
@@ -1442,6 +1450,12 @@ InstallMethod( UglyVector,
     function( V, r )
     if Length( r ) <> Length( V!.zerovector ) then
       return fail;
+    elif IsEmpty( V!.monomials ) then
+      if IsZero( r ) then
+        return Zero( V );
+      else
+        return fail;
+      fi;
     fi;
     return ElementOfMagmaRing( V!.family, V!.zerocoeff,
                r, V!.monomials );
@@ -1500,7 +1514,7 @@ InstallOtherMethod( LeftModuleByGenerators,
     [ IsRing, IsList and IsEmpty, IsElementOfFreeMagmaRing ], 0,
     function( F, empty, zero )
     local V;
-    V:= Objectify( NewType( FamilyObj( F ),
+    V:= Objectify( NewType( CollectionsFamily( FamilyObj( zero ) ),
                                 IsFreeLeftModule
                             and IsTrivial
                             and IsSpaceOfElementsOfFreeMagmaRingRep ),

@@ -40,7 +40,7 @@
 ##  First there is  the  partition as  a   finite  nonincreasing sequence  of
 ##  numbers which sum up  to  $n$.  This representation serves to  compute  a
 ##  complete  list of  partitions  of $n$   and is stored in  the   resulting
-##  table in the record field <classtext>.
+##  table as value of `ClassParameters'.
 ##
 ##  The most beautiful way to treat  Young  tableaux and hooks of  partitions
 ##  is their  representation  as beta-numbers.    A  beta-number   is a  set,
@@ -117,14 +117,16 @@ DeclareGlobalFunction( "CharValueSymmetric" );
 ##
 #V  CharTableSymmetric  . . . .  generic character table of symmetric groups.
 ##
-CharTableSymmetric := "2bdefined";
+DeclareGlobalVariable( "CharTableSymmetric",
+    "generic character table of symmetric groups" );
 
 
 #############################################################################
 ##
 #V  CharTableAlternating  . .  generic character table of alternating groups.
 ##
-CharTableAlternating := "2bdefined";
+DeclareGlobalVariable( "CharTableAlternating",
+    "generic character table of alternating groups" );
 
 
 #############################################################################
@@ -138,14 +140,16 @@ DeclareGlobalFunction( "CharValueWeylB" );
 ##
 #V  CharTableWeylB  . . . . generic character table of Weyl groups of type B.
 ##
-CharTableWeylB := "2bdefined";
+DeclareGlobalVariable( "CharTableWeylB",
+    "generic character table of Weyl groups of type B" );
 
 
 #############################################################################
 ##
 #V  CharTableWeylD  . . . . generic character table of Weyl groups of type D.
 ##
-CharTableWeylD := "2bdefined";
+DeclareGlobalVariable( "CharTableWeylD",
+    "generic character table of Weyl groups of type D" );
 
 
 #############################################################################
@@ -165,7 +169,5 @@ DeclareGlobalFunction( "CharTableWreathSymmetric" );
 
 #############################################################################
 ##
-#E  ctblsymm.gd . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-
-
+#E
 

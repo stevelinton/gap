@@ -148,15 +148,15 @@ gap> IsAssociative( l1 );
 false
 gap> Dimension( l1 );
 10
-gap> ucs:= UpperCentralSeriesOfAlgebra( l1 );
+gap> ucs:= LieUpperCentralSeries( l1 );
 [ <Lie algebra over Rationals, with 0 generators> ]
-gap> lcs:= LowerCentralSeriesOfAlgebra( l1 );
+gap> lcs:= LieLowerCentralSeries( l1 );
 [ <Lie algebra of dimension 10 over Rationals> ]
-gap> IsSolvableAlgebra( l1 );
+gap> IsLieSolvable( l1 );
 false
-gap> IsNilpotentAlgebra( l1 );
+gap> IsLieNilpotent( l1 );
 false
-gap> IsAbelianLieAlgebra( l1 );
+gap> IsLieAbelian( l1 );
 false
 gap> c:= LieCentre( l1 );
 <Lie algebra of dimension 0 over Rationals>
@@ -168,11 +168,11 @@ gap> s1:= Subalgebra( l1, [ gens[1] ] );
 <Lie algebra over Rationals, with 1 generators>
 gap> Dimension( s1 );
 1
-gap> IsSolvableAlgebra( s1 );
+gap> IsLieSolvable( s1 );
 true
-gap> IsNilpotentAlgebra( s1 );
+gap> IsLieNilpotent( s1 );
 true
-gap> IsAbelianLieAlgebra( s1 );
+gap> IsLieAbelian( s1 );
 true
 gap> LieCentre( s1 );
 <two-sided ideal in <Lie algebra of dimension 1 over Rationals>, (dimension 1
@@ -445,17 +445,17 @@ gap> IsAssociative( l2 );
 false
 gap> Dimension( l2 );
 15
-gap> ucs:= UpperCentralSeriesOfAlgebra( l2 );
+gap> ucs:= LieUpperCentralSeries( l2 );
 [ <two-sided ideal in <Lie algebra of dimension 15 over Rationals>,
       (dimension 1)>, <Lie algebra over Rationals, with 0 generators> ]
-gap> lcs:= LowerCentralSeriesOfAlgebra( l2 );
+gap> lcs:= LieLowerCentralSeries( l2 );
 [ <Lie algebra of dimension 15 over Rationals>, 
   <Lie algebra of dimension 14 over Rationals> ]
-gap> IsSolvableAlgebra( l2 );
+gap> IsLieSolvable( l2 );
 false
-gap> IsNilpotentAlgebra( l2 );
+gap> IsLieNilpotent( l2 );
 false
-gap> IsAbelianLieAlgebra( l2 );
+gap> IsLieAbelian( l2 );
 false
 gap> LieCentre( l2 );
 <two-sided ideal in <Lie algebra of dimension 15 over Rationals>, (dimension 1
@@ -471,11 +471,11 @@ gap> s2:= Subalgebra( l2, [ gens[1] ] );
 <Lie algebra over Rationals, with 1 generators>
 gap> Dimension( s2 );
 1
-gap> IsSolvableAlgebra( s2 );
+gap> IsLieSolvable( s2 );
 true
-gap> IsNilpotentAlgebra( s2 );
+gap> IsLieNilpotent( s2 );
 true
-gap> IsAbelianLieAlgebra( s2 );
+gap> IsLieAbelian( s2 );
 true
 gap> LieCentre( s2 );
 <two-sided ideal in <Lie algebra of dimension 1 over Rationals>, (dimension 1
@@ -607,16 +607,16 @@ gap> IsAssociative( l3 );
 false
 gap> Dimension( l3 );
 14
-gap> ucs:= UpperCentralSeriesOfAlgebra( l3 );
+gap> ucs:= LieUpperCentralSeries( l3 );
 [ <Lie algebra over Rationals, with 0 generators> ]
-gap> lcs:= LowerCentralSeriesOfAlgebra( l3 );
+gap> lcs:= LieLowerCentralSeries( l3 );
 [ <Lie algebra of dimension 14 over Rationals>, 
   <Lie algebra of dimension 10 over Rationals> ]
-gap> IsSolvableAlgebra( l3 );
+gap> IsLieSolvable( l3 );
 true
-gap> IsNilpotentAlgebra( l3 );
+gap> IsLieNilpotent( l3 );
 false
-gap> IsAbelianLieAlgebra( l3 );
+gap> IsLieAbelian( l3 );
 false
 gap> LieCentre( l3 );
 <Lie algebra of dimension 0 over Rationals>
@@ -628,11 +628,11 @@ gap> s3:= Subalgebra( l3, [ gens[1] ] );
 <Lie algebra over Rationals, with 1 generators>
 gap> Dimension( s3 );
 1
-gap> IsSolvableAlgebra( s3 );
+gap> IsLieSolvable( s3 );
 true
-gap> IsNilpotentAlgebra( s3 );
+gap> IsLieNilpotent( s3 );
 true
-gap> IsAbelianLieAlgebra( s3 );
+gap> IsLieAbelian( s3 );
 true
 gap> LieCentre( s3 );
 <two-sided ideal in <Lie algebra of dimension 1 over Rationals>, (dimension 1
@@ -732,7 +732,7 @@ true
 
 
 #############################################################################
-gap> STOP_TEST( "algsc.tst", 867313307 );
+gap> STOP_TEST( "algsc.tst", 668047471 );
 
 
 #############################################################################

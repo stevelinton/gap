@@ -68,7 +68,16 @@ local D,C,cl,pl;
           yetmats:=[],
           modulars:=[]
         );
-  D.classes:=ConjugacyClasses(G);
+
+  # Do not leave the computation of power maps to 'CharacterTable',
+  # since here we are in a better situation (use inverse map,use
+  # class identification,use the fact that all power maps for primes
+  # up to the maximal element order are computed).
+  C:=CharacterTable(G);
+
+  # Store the conjugacy classes compatibly with other information
+  # about the character table.
+  D.classes:= ConjugacyClasses( C );
   cl:=ShallowCopy(D.classes);
   D.classreps:=List(cl,Representative);
   D.klanz:=Length(cl);
@@ -82,14 +91,7 @@ local D,C,cl,pl;
   D.permlist:=pl;
   D.currentInverseClassNo:=0;
 
-  # Do not leave the computation of power maps to 'CharTableHead',
-  # since here we are in a better situation (use inverse map,use
-  # class identification,use the fact that all power maps for primes
-  # up to the maximal element order are computed).
-  C:=CharacterTable(G);
-  SetIdentifier(C,"Etaoin Shrdlu");
-
-  D.charTable:=C;
+  D.characterTable:=C;
   D.classiz:=SizesConjugacyClasses(C);
   D.centralizers:=SizesCentralizers(C);
   D.orders:=OrdersClassRepresentatives(C);
@@ -107,7 +109,7 @@ end);
 # DxPowerClass := function(D,nu,power)
 #   local p,primes,cl;
 #   cl:=nu;
-#   power:=power mod D.charTable.orders[cl];
+#   power:=power mod D.characterTable.orders[cl];
 #   if power=0 then
 #     return 1;
 #   elif power=1 then
@@ -115,11 +117,11 @@ end);
 #   else
 #     primes:=Factors(power);
 #     for p in primes do
-#       if not IsBound(D.charTable.powermap[p]) then
+#       if not IsBound(D.characterTable.powermap[p]) then
 #         return D.ClassElement(D,
 #           Representative(D.classes[nu])^power);
 #       else
-#         cl:=D.charTable.powermap[p][cl];
+#         cl:=D.characterTable.powermap[p][cl];
 #       fi;
 #     od;
 #     return cl;
@@ -138,10 +140,10 @@ local p,primes,i,cl,spr,j,allpowermaps,pm,ex;
   for i in [2..D.klanz] do
     p[i]:=D.ClassElement(D,D.classreps[i]^-1);
   od;
-  SetInverseClasses(D.charTable,p);
+  SetInverseClasses(D.characterTable,p);
   D.inversemap:=p;
 
-  allpowermaps:=ComputedPowerMaps(D.charTable);
+  allpowermaps:=ComputedPowerMaps(D.characterTable);
   allpowermaps[1]:=D.classrange;
   D.powermap:=allpowermaps;
 
@@ -157,7 +159,7 @@ local p,primes,i,cl,spr,j,allpowermaps,pm,ex;
   for p in primes do
     allpowermaps[p]:=List(D.classrange,i->ShallowCopy(D.classrange));
     allpowermaps[p][1]:=1;
-    #allpowermaps[p]:=InitPowerMap(D.charTable,p);
+    #allpowermaps[p]:=InitPowerMap(D.characterTable,p);
   od;
 
   for p in primes do
@@ -368,7 +370,7 @@ end;
 ##
 ##  This routine will do all handling,whenever characters have been found
 ##  by other means,than the Dixon/Schneider algorithm. First the routine
-##  checks,which characters are not new (this allows to include huge bulks
+##  checks,which characters are not new (this allows one to include huge bulks
 ##  of irreducibles got by tensoring). Then the characters are closed under
 ##  images of the CharacterMorphisms. Afterwards the character spaces are
 ##  stripped of the new characters,the characters are included as
@@ -587,7 +589,7 @@ end;
 #F   interactively to utilize partially computed spaces
 ##
 InstallGlobalFunction( SplitCharacters, function(D,l)
-local ml,nu,ret,r,p,v,alo,ofs,i,j,inv,b;
+local ml,nu,ret,r,p,v,alo,ofs,orb,i,j,inv,b;
   b:=Filtered(l,i->(i[1]>1) and (i[1]<D.prime/2));
   l:=Difference(l,b);
   ml:=List(b,i->List(i,D.modularMap));
@@ -598,7 +600,26 @@ local ml,nu,ret,r,p,v,alo,ofs,i,j,inv,b;
   ofs:=[];
   for r in D.raeume do
     # recreate all images
-    for i in Orbit(D.characterMorphisms,r,D.asCharacterMorphism) do
+    orb:=Orbit(D.characterMorphisms,r,
+      function(raum,el) 
+      local img;
+        img:=D.asCharacterMorphism(raum.base[1],el);
+	img:=First(D.raeume,
+	  function(i)
+	  local c;
+	    c:=Concatenation(List(i.base,ShallowCopy),[ShallowCopy(img)]);
+	    return RankMat(c)=Length(i.base);
+	  end);
+	if img=fail then
+	  img:=rec(base:=List(raum.base,i->D.asCharacterMorphism(i,el)),
+	           dim:=raum.dim);
+	fi;
+        return img; 
+      end);
+    for i in orb do
+      if not IsMutable(i) then
+        i:=ShallowCopy(i);
+      fi;
       b:=Concatenation(b,DxNiceBasis(D,i));
       Add(ofs,[alo+1..Length(b)]);
       alo:=Length(b);
@@ -677,7 +698,7 @@ SplitStep := function(D,bestMat)
   if ForAny(raeume,i->i.dim>1) then
     bestMatCol:=D.requiredCols[bestMat];
     bestMatSplit:=D.splitBases[bestMat];
-    M:= MutableNullMat( k, k, 0 );
+    M:= NullMat( k, k, 0 );
     Info(InfoCharacterTable,1,"Matrix ",bestMat,",Representative of Order ",
        Order(D.classreps[bestMat]),
        ",Centralizer: ",D.centralizers[bestMat]);
@@ -701,7 +722,7 @@ SplitStep := function(D,bestMat)
       dim:=raum.dim;
       # cut out the 'active part' for computation of an eigenbase
       activeCols:=DxActiveCols(D,raum);
-      N:= MutableNullMat( dim, dim, o );
+      N:= NullMat( dim, dim, o );
       for row in [1..dim] do
         Row:=base[row]*M;
         for col in [1..dim] do
@@ -1492,11 +1513,16 @@ local tm,tme,piso,gpcgs,gals,ord,l,l2,f,fgens,rws,hom,pow,pos,i,j,k,gen,
 
   # translate the gal-Relations:
   for i in [1..l] do
-    SetPower( rws, i, ImagesRepresentative( hom, gpcgs[i]^ord[i] ) );
-    for j in [i+1..l] do
-      SetCommutator( rws, j, i, ImagesRepresentative( hom,
-                                    Comm( gpcgs[j], gpcgs[i] ) ) );
-    od;
+      SetPower( rws, i, ObjByExponents( rws,
+              Concatenation(
+                      ExponentsOfPcElement( gpcgs, gpcgs[i]^ord[i] ),
+                      [1..l2] * 0 ) ) );
+      for j in [i+1..l] do
+          SetConjugate( rws, j, i, ObjByExponents( rws,
+                  Concatenation(
+                          ExponentsOfPcElement( gpcgs, gpcgs[j]^gpcgs[i] ),
+                          [1..l2] * 0 ) ) );
+      od;
   od;
 
   # correct the first and add last tme entries
@@ -1913,13 +1939,13 @@ local G,     # group
   D.field:=f;
   D.one:=One(f);
   D.z:=z;
-  r:=rec(base:=IdentityMat(k,D.one),dim:=k);
+  r:=rec(base:=Immutable( IdentityMat(k,D.one) ),dim:=k);
   D.raeume:=[r];
 
   # Galois group operating on the columns
-  ga:=Group(Set(List(Flat(GeneratorsPrimeResidues(
+  ga:= GroupByGenerators( Set( List( Flat( GeneratorsPrimeResidues(
                         Exponent(G)).generators),
-      i->PermList(List([1..k],j->PowerMap(D.charTable,i,j))))),());
+      i->PermList(List([1..k],j->PowerMap(D.characterTable,i,j))))),());
 
   D.galMorphisms:=ga;
   D.galoisOrbits:=List([1..k],i->Set(Orbit(ga,i)));
@@ -1927,7 +1953,7 @@ local G,     # group
   D.galOp:=[];
   D.irreducibles:=[];
 
-  M:= MutableIdentityMat(k);
+  M:= IdentityMat(k);
   for i in [1..k] do
     M[i][i]:=D.classiz[i] mod prime;
   od;
@@ -2025,7 +2051,7 @@ local C,p,u,irr;
   fi;
   Info(InfoCharacterTable,1,"Total:",Length(D.yetmats)," matrices,",
                  D.yetmats);
-  C:=D.charTable;
+  C:=D.characterTable;
 
   irr:=List(D.irreducibles,i->CharacterByValues(C,i));
 
@@ -2036,8 +2062,8 @@ local C,p,u,irr;
 
   # Throw away not any longer used components of the Dixon record.
   for u in Difference(RecNames(D),
-    ["ClassElement","centmulCandidates","centmulMults","charTable","classMap",
-    "facs","fingerprintCandidates",
+    ["ClassElement","centmulCandidates","centmulMults","characterTable",
+    "classMap","facs","fingerprintCandidates",
     "group","identification","ids","iscentral","klanz","name","operations",
     "replist","shorttests","uniques"])
     do
@@ -2047,10 +2073,12 @@ local C,p,u,irr;
   return irr;
 end );
 
+
 #############################################################################
+##
 #F  IrrDixonSchneider(<G>) . . . . .  character table of finite group G
 ##
-##  Compute the table of the irreducible characters of G,using the
+##  Compute the table of the irreducible characters of G, using the
 ##  Dixon/Schneider method.
 ##
 InstallGlobalFunction( IrrDixonSchneider, function(arg)
@@ -2065,7 +2093,7 @@ local G,k,C,D,opt;
 
   D:=DixonInit(G,opt);
   k:=D.klanz;
-  C:=D.charTable;
+  C:=D.characterTable;
 
   # iterierte Schleife
 
@@ -2077,7 +2105,9 @@ local G,k,C,D,opt;
   od;
 
   C:=DixontinI(D);
-  SetIrr(OrdinaryCharacterTable(G),C);
+  # SetIrr(OrdinaryCharacterTable(G),C);
+  # (if `IrrDixonSchneider' is called explicitly,
+  # we want to ignore the attribute)
   return C;
 
 end );
@@ -2094,16 +2124,53 @@ InstallMethod(Irr,"Dixon/Schneider",true,[IsGroup],0,
 ##
 #M  Irr( <G> ) . . via niceomorphism
 ##
-InstallMethod(Irr,"via niceomorphism",true,
-  [IsGroup and IsHandledByNiceMonomorphism],NICE_FLAGS,
-function(g)
-local c;
-  ConjugacyClasses(g);
-  c:=CharacterTable(g);
-  return List(Irr(NiceObject(g)),i->CharacterByValues(c,AsList(i)));
+##  We have to be careful about the ordering of conjugacy classes in the
+##  character tables of <G> and of its nice object.
+##
+InstallMethod( Irr,
+    "via niceomorphism",true,
+    [ IsGroup and IsHandledByNiceMonomorphism ], NICE_FLAGS,
+    function( G )
+    local tbl, ccl, nice, cclnice, monom, imgs, bijection, i, j, irr;
+
+    # Compute the conjugacy classes of the two tables.
+    tbl:= CharacterTable( G );
+    ccl:= ConjugacyClasses( tbl );
+    nice:= CharacterTable( NiceObject( G ) );
+    cclnice:= ShallowCopy( ConjugacyClasses( nice ) );
+
+    # Compute the identification of classes.
+    monom:= NiceMonomorphism( G );
+    imgs:= List( ccl,
+                 c -> ImagesRepresentative( monom, Representative( c ) ) );
+    bijection:= [];
+    for i in [ 1 .. Length( ccl ) ] do
+      for j in [ 1 .. Length( cclnice ) ] do
+        if IsBound( cclnice[j] ) and imgs[i] in cclnice[j] then
+          bijection[i]:= j;
+          Unbind( cclnice[j] );
+          break;
+        fi;
+      od;
+    od;
+    Assert( 1, IsCollection( bijection ) and IsEmpty( cclnice ) );
+    
+    # Compute the values of the irreducibles of the nice object.
+    irr:= List( Irr( nice ), ValuesOfClassFunction );
+
+    # Permute the character values.
+    irr:= List( irr, x -> x{ bijection } );
+
+    # Construct and return the irreducibles.
+    for i in irr do
+      MakeImmutable( i );
+    od;
+    return List( irr, x -> CharacterByValues( tbl, x ) );
 end);
+
 
 #############################################################################
 ##
-#E  ctblgrp.gi
+#E
 ##
+

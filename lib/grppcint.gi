@@ -81,7 +81,14 @@ GlasbyStabilizer := function( pcgs, A, B, pcgsS, pcgsR )
 
     pt := List( pcgsL, x -> Zero( f ) );
     Add( pt, One( f ) );
-    return Pcgs( Stabilizer( U, pt, A, matA, OnRight ) );
+    ConvertToVectorRep(pt);
+
+    # was: return Pcgs( Stabilizer( U, pt, A, matA, OnRight ) );
+    # we cannot simply return this pcgs here, as we cannot guarantee that
+    # the pcgs of this group will be compatible with the pcgs wrt. which we
+    # are computing.
+    #return InducedPcgs(pcgs, Stabilizer( U, pt, A, matA, OnRight ) );
+    return StabilizerPcgs(A, pt, matA, OnRight );
 end;
 
 
@@ -144,12 +151,11 @@ end;
 GlasbyIntersection := function( pcgs, pcgsH, pcgsK )
     local m, G, first, weights, avoid, A, B, i, start, next, HmN, KmN, 
           pcgsN, pcgsHmN, pcgsHF, pcgsKmN, pcgsKF, sum, pcgsS, pcgsR, C, D,
-          new, U, fam; 
+          new, U; 
 
     # compute a cgs for <H> and <K>
     G := GroupOfPcgs( pcgs );
     m := Length( pcgs );
-    fam := FamilyObj( OneOfPcgs( pcgs ) );
 
     # use the special pcgs
     first   := LGFirst( pcgs );
@@ -190,16 +196,14 @@ GlasbyIntersection := function( pcgs, pcgsH, pcgsK )
                 pcgsR := InducedPcgsByPcSequenceNC( pcgs, pcgsR );
                 C := GlasbyStabilizer( pcgs, A, B, pcgsS, pcgsR );
                 C := ShallowCopy( AsList( C ) );
-                B := Concatenation( B, pcgsN );
-                B := InducedPcgsByPcSequenceNC( pcgs, B );
-                D := GlasbyShift( C, B );
+                D := GlasbyShift( C, InducedPcgsByPcSequenceNC(pcgs, B) );
                 D := ShallowCopy( AsList( D ) );
             fi;
 
             # Now we can cover <C> and <D>.
             GlasbyCover( sum, C, D, pcgsK );
-            A := C;
-            B := D;
+            A := ShallowCopy( C );
+            B := ShallowCopy( D ) ;
         fi;
     od;
 
@@ -260,28 +264,29 @@ function( U, V )
     if home <> HomePcgs(V) then
         TryNextMethod();
     fi;
+
+    # check for trivial cases
+    if ForAll( Pcgs(U), x -> x in V ) then
+        return U;
+    elif ForAll( Pcgs(V), x -> x in U ) then
+        return V;
+    fi;
+    
+    G := GroupOfPcgs(home);
+    if Size(U) < GS_SIZE  then
+        return SubgroupNC( G, Filtered( AsList(U), x -> x in V and
+                                                   x <> Identity(V) ) );
+    elif Size(V) < GS_SIZE  then
+        return SubgroupNC( G, Filtered( AsList(V), x -> x in U  and
+                                                   x <> Identity(U) ) );
+    fi;
+
+    # compute nice pcgs's
     pcgs  := SpecialPcgs(home);
     pcgsU := InducedPcgsByGeneratorsNC( pcgs, GeneratorsOfGroup(U) );
     pcgsV := InducedPcgsByGeneratorsNC( pcgs, GeneratorsOfGroup(V) );
 
-    # check sizes and so on
-    if ForAll( pcgsU, x -> x in V ) then
-        return U;
-    elif ForAll( pcgsV, x -> x in U ) then
-        return V;
-    
-    elif Size(U) < GS_SIZE  then
-        return Subgroup( GroupOfPcgs(home), 
-                         Filtered( AsList(U), x -> x in V and
-                                                   x <> Identity(V) ) );
-    elif Size(V) < GS_SIZE  then
-        return Subgroup( GroupOfPcgs( home ), 
-                         Filtered( AsList(V), x -> x in U  and
-                                                   x <> Identity(U) ) );
-    fi;
-
     # test if one the groups is known to be normal
-    G := GroupOfPcgs(home);
     if IsNormal( G, U ) then
         return ZassenhausIntersection( pcgs, pcgsU, pcgsV );
     elif IsNormal( G, V ) then

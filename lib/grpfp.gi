@@ -8,6 +8,7 @@
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 ##
 ##  This file contains the methods for finitely presented groups (fp groups).
+##  Methods for subgroups of fp groups can also be found in `sgpres.gi'.
 ##
 ##  1. methods for elements of f.p. groups
 ##  2. methods for f.p. groups
@@ -20,16 +21,6 @@ Revision.grpfp_gi :=
 ##
 ##  1. methods for elements of f.p. groups
 ##
-
-#############################################################################
-##
-#R  IsPackedWordDefaultRep
-##
-#T replace 'ElementByRWSDefaultRep'?
-##
-DeclareRepresentation( "IsPackedWordDefaultRep",
-    IsPositionalObjectRep, [ 1 ] );
-
 
 #############################################################################
 ##
@@ -52,7 +43,7 @@ InstallMethod( ElementOfFpGroup,
 InstallMethod( PrintObj,
     "for an element of an f.p. group (default repres.)",
     true,
-    [ IsPackedWordDefaultRep ],
+    [ IsElementOfFpGroup and IsPackedElementDefaultRep ],
     0,
     function( obj )
     Print( obj![1] );
@@ -66,7 +57,7 @@ InstallMethod( PrintObj,
 InstallMethod( UnderlyingElement,
     "for an element of an f.p. group (default repres.)",
     true,
-    [ IsElementOfFpGroup and IsPackedWordDefaultRep ],
+    [ IsElementOfFpGroup and IsPackedElementDefaultRep ],
     0,
     obj -> obj![1] );
 
@@ -78,16 +69,16 @@ InstallMethod( UnderlyingElement,
 InstallMethod( ExtRepOfObj,
     "for an element of an f.p. group (default repres.)",
     true,
-    [ IsElementOfFpGroup and IsPackedWordDefaultRep ],
+    [ IsElementOfFpGroup and IsPackedElementDefaultRep ],
     0,
     obj -> ExtRepOfObj( obj![1] ) );
 
 
 #############################################################################
 ##
-#M  Inverse( <elm> )  . . . . . . . . . . . . . . . for element of f.p. group
+#M  InverseOp( <elm> )  . . . . . . . . . . . . . . for element of f.p. group
 ##
-InstallMethod( Inverse,
+InstallMethod( InverseOp,
     "for an element of an f.p. group",
     true,
     [ IsElementOfFpGroup ],
@@ -112,12 +103,12 @@ InstallOtherMethod( One,
 ##
 #M  One( <elm> )  . . . . . . . . . . . . . . . . . for element of f.p. group
 ##
-InstallMethod( One,
-    "for an f.p. group element",
-    true,
-    [ IsElementOfFpGroup ],
-    0,
-    obj -> One( FamilyObj( obj ) ) );
+InstallMethod( One, "for an f.p. group element", true, [ IsElementOfFpGroup ],
+    0, obj -> One( FamilyObj( obj ) ) );
+
+# a^0 calls OneOp, so we have to catch this as well.
+InstallMethod( OneOp, "for an f.p. group element", true, [ IsElementOfFpGroup ],
+    0, obj -> One( FamilyObj( obj ) ) );
 
 
 #############################################################################
@@ -171,31 +162,80 @@ local hom;
 	 end;
 end );
 
+#############################################################################
+##
+##  2. methods for f.p. groups
+##
+
+#############################################################################
+##
+#M  SubgroupOfWholeGroupByCosetTable(<fpfam>,<tab>)
+##
+InstallGlobalFunction(SubgroupOfWholeGroupByCosetTable,function(fam,tab)
+local S;
+  S := Objectify(NewType(fam,IsMagmaWithInverses and IsAttributeStoringRep ),
+        rec() ); 
+  SetParent(S,fam!.wholeGroup);
+  SetCosetTableInWholeGroup(S,tab);
+  return S;
+end);
+
+#############################################################################
+##
+#M  SubgroupOfWholeGroupByQuotientSubgroup(<fpfam>,<Q>,<U>)
+##
+InstallGlobalFunction(SubgroupOfWholeGroupByQuotientSubgroup,function(fam,Q,U)
+local S;
+  S := Objectify(NewType(fam, IsMagmaWithInverses and
+    IsSubgroupOfWholeGroupByQuotientRep and IsAttributeStoringRep ),
+        rec(quot:=Q,sub:=U) ); 
+  SetParent(S,fam!.wholeGroup);
+  SetIndexInWholeGroup(S,Index(Q,U));
+  # transfer normality information
+  if (HasIsNormalInParent(U) and Q=Parent(U)) or Size(U)=1 then
+    SetIsNormalInParent(S,true);
+  fi;
+  return S;
+end);
+
 
 #############################################################################
 ##
 #M  \in ( <elm>, <U> )  in subgroup of fp group
 ##
-InstallMethod( \in,
-  "subgroup of fp group",
-  IsElmsColls,
-  [ IsElementOfFpGroup,
-    IsSubgroupFpGroup ],
-  0,
+InstallMethod( \in, "subgroup of fp group", IsElmsColls,
+  [ IsElementOfFpGroup, IsSubgroupFpGroup ], 0,
 function(elm,U)
-local t,fg,i,p;
+local t,i,j,p,e,pos;
   t:=CosetTableInWholeGroup(U);
   elm:=UnderlyingElement(elm);
-  # build up generator list corresponding to coset table
-  fg:=[];
-  for i in FreeGeneratorsOfFpGroup(U) do
-    Add(fg,i);Add(fg,i^-1);
-  od;
+
   p:=1;
-  for i in [1..Length(elm)] do
-    p:=t[Position(fg,Subword(elm,i,i))][p];
+  for i in [1..NumberSyllables(elm)] do
+    e:=ExponentSyllable(elm,i);
+    if e<0 then
+      pos:=2*GeneratorSyllable(elm,i);
+      e:=-e;
+    else
+      pos:=2*GeneratorSyllable(elm,i)-1;
+    fi;
+    for j in [1..e] do
+      p:=t[pos][p];
+    od;
   od;
   return p=1;
+end);
+
+InstallMethod( \in, "subgroup of fp group by quotient rep", IsElmsColls,
+  [ IsElementOfFpGroup, 
+    IsSubgroupFpGroup and IsSubgroupOfWholeGroupByQuotientRep], 0,
+function(elm,U)
+  # transfer elm in factor
+  elm:=UnderlyingElement(elm);
+  elm:=MappedWord(elm,FreeGeneratorsOfFpGroup(Parent(U)),
+                  GeneratorsOfGroup(U!.quot));
+
+  return elm in U!.sub;
 end);
 
 
@@ -203,17 +243,61 @@ end);
 ##
 #M  \=( <U>, <V> )  . . . . . . . . .  for two subgroups of a f.p. group
 ##
-InstallMethod( \=,
-    "subgroups of fp group",
-    IsIdenticalObj,
-    [ IsSubgroupFpGroup,
-      IsSubgroupFpGroup ],
-    0,
-    function( left, right )
-      return ForAll(GeneratorsOfGroup(left),i->i in right)
-             and ForAll(GeneratorsOfGroup(right),i->i in left);
-    end );
+InstallMethod( \=, "subgroups of fp group", IsIdenticalObj,
+    [ IsSubgroupFpGroup, IsSubgroupFpGroup ], 0,
+function( left, right )
+  return IndexInWholeGroup(left)=IndexInWholeGroup(right)
+         and IsSubset(left,right) and IsSubset(right,left);
+end );
 
+#############################################################################
+##
+#M  IsSubset( <U>, <V> )  . . . . . . . . .  for two subgroups of a f.p. group
+##
+InstallMethod( IsSubset, "subgroups of fp group", IsIdenticalObj,
+    [ IsSubgroupFpGroup, IsSubgroupFpGroup ], 0,
+function(left,right)
+  return ForAll(GeneratorsOfGroup(right),i->i in left);
+end);
+
+InstallMethod(IsSubset,"subgroups of fp group by quot. rep",IsIdenticalObj,
+    [ IsSubgroupFpGroup and IsSubgroupOfWholeGroupByQuotientRep,
+      IsSubgroupFpGroup  and IsSubgroupOfWholeGroupByQuotientRep], 0,
+function(G,H)
+local d,A,B,e1,e2,Ag,Bg,s,sg,u,v;
+  A:=G!.quot;
+  B:=H!.quot;
+  # are we represented in the same quotient?
+  if GeneratorsOfGroup(A)=GeneratorsOfGroup(B) then
+    # we are, compare simply in the quotient
+    return IsSubset(G!.sub,H!.sub);
+  fi;
+
+  d:=DirectProduct(A,B);
+  e1:=Embedding(d,1);
+  e2:=Embedding(d,2);
+  Ag:=GeneratorsOfGroup(A);
+  Bg:=GeneratorsOfGroup(B);
+  # form the sdp
+  sg:=List([1..Length(Ag)],i->Image(e1,Ag[i])*Image(e2,Bg[i]));
+  s:=SubgroupNC(d,sg);
+
+  # the subgroup of H in this direct product
+  v:=PreImagesSet(Projection(d,2),H!.sub);
+  v:=Intersection(v,s);
+
+  # project in quotient of G
+  v:=ImagesSet(Projection(d,1),v);
+  return IsSubset(G!.sub,v);
+
+end);
+
+InstallMethod(IsNormalOp,"subgroups of fp group by quot. rep in full fp grp.",
+  IsIdenticalObj, [ IsSubgroupFpGroup and IsWholeFamily,
+      IsSubgroupFpGroup  and IsSubgroupOfWholeGroupByQuotientRep], 0,
+function(G,H)
+  return IsNormal(H!.quot,H!.sub);
+end);
 
 #############################################################################
 ##
@@ -234,15 +318,10 @@ InstallMethod( GeneratorsOfGroup,
 
 #############################################################################
 ##
-##  2. methods for f.p. groups
-##
-
-#############################################################################
-##
-#M  AbelianInvariants(<G>) . . . .  abelian invariants of an abelian fp group
+#M  AbelianInvariants( <G> ) . . . . . . . . . . . . . . . . . for a fp group
 ##
 InstallMethod( AbelianInvariants,
-    "for abelian invariants of an abelian finitely presented groups",
+    "for a finitely presented group",
     true,
     [ IsSubgroupFpGroup and IsGroupOfFamily ],
     0,
@@ -286,7 +365,7 @@ function( G )
     od;
 
     # diagonalize the matrix
-    DiagonalizeMat( mat );
+    DiagonalizeMat( Integers, mat );
 
     # return the abelian invariants
     return AbelianInvariantsOfList( DiagonalOfMat( mat ) );
@@ -295,10 +374,35 @@ end );
 
 #############################################################################
 ##
-#M  CommutatorFactorGroup( <G> )  . .  commutator factor group of an fp group
+#M  AbelianInvariants( <H> ) . . . . . . . . . . for a subgroup of a fp group
+##
+InstallMethod( AbelianInvariants,
+    "for a subgroup of a finitely presented group",
+    true,
+    [ IsSubgroupFpGroup ],
+    0,
+    function( H )
+
+    local G;
+
+    if IsGroupOfFamily( H ) then
+      TryNextMethod();
+    fi;
+
+    # Get the whole group `G' of `H'.
+    G:= FamilyObj( H )!.wholeGroup;
+
+    # Call the global function for subgroups of f.p. groups.
+    return AbelianInvariantsSubgroupFpGroup( G, H );
+    end );
+
+
+#############################################################################
+##
+#M  CommutatorFactorGroup( <G> )  . . . . . . . . . . . . .  for a f.p. group
 ##
 InstallMethod( CommutatorFactorGroup,
-    "for finitely presented groups",
+    "for a finitely presented group",
     true,
     [ IsSubgroupFpGroup and IsGroupOfFamily ],
     0,
@@ -339,6 +443,33 @@ end );
 
 #############################################################################
 ##
+#M  CommutatorFactorGroup( <G> ) . . . . . . . . for a subgroup of a fp group
+##
+InstallMethod( CommutatorFactorGroup,
+    "for a subgroup of a finitely presented group",
+    true,
+    [ IsSubgroupFpGroup ],
+    0,
+    function( H )
+
+    local G;
+
+    if IsGroupOfFamily( H ) then
+      TryNextMethod();
+    fi;
+
+    # Get the whole group `G' of `H'.
+    G:= FamilyObj( H )!.wholeGroup;
+
+    # Delegate to the method for the whole f.p. group.
+    return CommutatorFactorGroup(
+        FpGroupPresentation( PresentationSubgroup( G, H ) ) );
+#T better compute the abelian invariants and then call `AbelianGroup'?
+    end );
+
+
+#############################################################################
+##
 #M  CosetTable( <G>, <H> )  . . . . coset table of a finitely presented group
 ##
 InstallMethod( CosetTable,
@@ -373,7 +504,18 @@ end );
 ##    fsgens = preimages of the subgroup generators of H in F.
 ##
 InstallGlobalFunction( CosetTableFromGensAndRels,
-    function ( fgens, grels, fsgens )
+function ( fgens, grels, fsgens )
+  Info( InfoFpGroup, 1, "CosetTableFromGensAndRels called:" );
+  # catch trivial subgroup generators
+  if ForAny(fsgens,i->Length(i)=0) then
+    fsgens:=Filtered(fsgens,i->Length(i)>0);
+  fi;
+  # call the TC plugin
+  return TCENUM.CosetTableFromGensAndRels(fgens,grels,fsgens);
+end);
+
+# The library version
+GAPTCENUM.CosetTableFromGensAndRels := function ( fgens, grels, fsgens )
     local   next,  prev,            # next and previous coset on lists
             firstFree,  lastFree,   # first and last free coset
             firstDef,   lastDef,    # first and last defined coset
@@ -401,7 +543,6 @@ InstallGlobalFunction( CosetTableFromGensAndRels,
             nrinf;                  # number for next information message
 
     # give some information
-    Info( InfoFpGroup, 1, "CosetTableFromGensAndRels called:" );
     Info( InfoFpGroup, 2, "    defined deleted alive   maximal");
     nrdef := 1;
     nrmax := 1;
@@ -428,12 +569,14 @@ InstallGlobalFunction( CosetTableFromGensAndRels,
     for gen  in fgens  do
         g := ListWithIdenticalEntries( limit, 0 );
         Add( table, g );
-	g := ListWithIdenticalEntries( limit, 0 );
+        if not ( gen^2 in rels or gen^-2 in rels ) then
+            g := ListWithIdenticalEntries( limit, 0 );
+        fi;
         Add( table, g );
     od;
 
     # make the rows for the relators and distribute over relsGen
-    relsGen := RelsSortedByStartGen( fgens, rels, table );
+    relsGen := RelsSortedByStartGen( fgens, rels, table, true );
 
     # make the rows for the subgroup generators
     subgroup := [];
@@ -552,6 +695,13 @@ InstallGlobalFunction( CosetTableFromGensAndRels,
     Info( InfoFpGroup, 1, "\t", nrdef, "\t", nrdel, "\t", nrdef-nrdel, "\t",
           nrmax );
 
+    # separate pairs of identical table columns.                  
+    for i in [ 1 .. Length( fgens ) ] do                             
+        if IsIdenticalObj( table[2*i-1], table[2*i] ) then
+            table[2*i] := StructuralCopy( table[2*i-1] );       
+        fi;                                                                
+    od;
+
     # standardize the table
     StandardizeTable( table );
 
@@ -559,13 +709,16 @@ InstallGlobalFunction( CosetTableFromGensAndRels,
 #@@ H.cosetTable := table;
 #@@ return H.cosetTable;
     return table;
-end );
+end;
 
 
 #############################################################################
 ##
 #M  CosetTableInWholeGroup( <H> )  . . . . . .  coset table of an fp subgroup
 #M                                                         in its whole group
+##
+##  is equivalent to `CosetTable( <G>, <H> )' where <G> is the (unique)
+##  finitely presented group such that <H> is a subgroup of <G>.
 ##
 InstallMethod( CosetTableInWholeGroup,
     "for finitely presented groups",
@@ -596,6 +749,13 @@ function( H )
     return T;
 
 end );
+
+InstallMethod(CosetTableInWholeGroup,"ByQuoSubRep",true,
+  [IsSubgroupOfWholeGroupByQuotientRep],0,
+function(G)
+  # construct coset table
+  return CosetTableBySubgroup(G!.quot,G!.sub);
+end);
 
 
 #############################################################################
@@ -685,14 +845,14 @@ end );
 ##
 #M  FactorFreeGroupByRelators(<F>,<rels>) .  factor of free group by relators
 ##
-FactorFreeGroupByRelators := function( F, rels )
+BindGlobal( "FactorFreeGroupByRelators", function( F, rels )
     local G, fam, gens;
 
     # Create a new family.
     fam := NewFamily( "FamilyElementsFpGroup", IsElementOfFpGroup );
 
     # Create the default type for the elements.
-    fam!.defaultType := NewType( fam, IsPackedWordDefaultRep );
+    fam!.defaultType := NewType( fam, IsPackedElementDefaultRep );
 
     fam!.freeGroup := F;
     fam!.relators := Immutable( rels );
@@ -715,7 +875,7 @@ FactorFreeGroupByRelators := function( F, rels )
     fi;
 
     return G;
-end;
+end );
 
 
 #############################################################################
@@ -779,11 +939,8 @@ end);
 ##
 #M  Index( <G>,<H> )
 ##
-InstallMethod( IndexOp,
-    "for finitely presented groups",
-    true,
-    [ IsSubgroupFpGroup, IsSubgroupFpGroup ],
-    0,
+InstallMethod( IndexOp, "for finitely presented groups", true,
+    [ IsSubgroupFpGroup, IsSubgroupFpGroup ], 0,
 function(G,H)
   if not IsSubset(G,H) then
     Error("<H> must be a subset of <G>");
@@ -791,26 +948,147 @@ function(G,H)
   return IndexInWholeGroup(H)/IndexInWholeGroup(G);
 end);
 
+InstallMethod( IndexOp, "for finitely presented group in whole group", true,
+    [ IsSubgroupFpGroup and IsWholeFamily, IsSubgroupFpGroup ], 0,
+function(G,H)
+  return IndexInWholeGroup(H);
+end);
+
+InstallMethod( CanComputeIndex,"subgroups fp groups",IsIdenticalObj,
+  [IsGroup and HasIndexInWholeGroup,IsGroup and HasIndexInWholeGroup],
+  0,ReturnTrue);
+
+InstallMethod( CanComputeIndex,"subgroup of full fp groups",IsIdenticalObj,
+  [IsGroup and IsWholeFamily,IsGroup and HasIndexInWholeGroup],
+  0,ReturnTrue);
+
+InstallMethod( CanComputeIndex,"subgroup of full fp groups",IsIdenticalObj,
+  [IsGroup and IsWholeFamily,IsGroup and HasCosetTableInWholeGroup],
+  0,ReturnTrue);
+
 
 #############################################################################
 ##
 #M  IndexInWholeGroup( <H> )  . . . . . .  index of a subgroup in an fp group
 ##
-InstallMethod( IndexInWholeGroup,
-    "for finitely presented groups",
-    true,
-    [ IsSubgroupFpGroup ],
-    0,
-
+InstallMethod( IndexInWholeGroup, "for subgroups of fp groups", true,
+    [ IsSubgroupFpGroup ], 0,
 function( H )
-    local T;
+local T;
 
     # Get the coset table of <H> in its whole group.
     T := CosetTableInWholeGroup( H );
     return Length( T[1] );
-
 end );
 
+InstallMethod( IndexInWholeGroup, "for full fp group",true,
+    [ IsSubgroupFpGroup and IsWholeFamily ], 0, a->1);
+
+#############################################################################
+##
+#M  GeneratorsOfGroup
+##
+InstallMethod(GeneratorsOfGroup,"subgroup of fp group, by coset table",
+  true,[IsSubgroupFpGroup],0,
+function(U)
+local P,l,f;
+  P:=FamilyObj(U)!.wholeGroup;
+  f:=FreeGeneratorsOfFpGroup(P);
+  l:=SubgroupGeneratorsCosetTable(f,RelatorsOfFpGroup(P),
+       CosetTableInWholeGroup(U) );
+  l:=List(l,i->MappedWord(i,f,GeneratorsOfGroup(P)));
+  return l;
+end);
+
+#############################################################################
+##
+#M  ConjugateGroup(<U>,<g>)  U^g
+##
+InstallMethod(ConjugateGroup,"subgroups of fp group with coset table",
+  IsCollsElms, [IsSubgroupFpGroup and HasCosetTableInWholeGroup,
+	       IsMultiplicativeElementWithInverse],0,
+function(U,g)
+local V,t,w,wi,i,j,e,pos;
+  t:=CosetTableInWholeGroup(U);
+  if Length(t)<2 then
+    return U; # the whole group
+  fi;
+
+  # the image of g in the permutation group
+  w:=UnderlyingElement(g);
+  wi:=[1..Length(t[1])];
+  for i in [1..NumberSyllables(w)] do
+    e:=ExponentSyllable(w,i);
+    if e<0 then
+      pos:=2*GeneratorSyllable(w,i);
+      e:=-e;
+    else
+      pos:=2*GeneratorSyllable(w,i)-1;
+    fi;
+    for j in [1..e] do
+      wi:=t[pos]{wi}; # multiply permutations
+    od;
+  od;
+  w:=PermList(wi)^-1;
+  t:=List(t,i->OnTuples(i{wi},w));
+  StandardizeTable(t);
+  V:=SubgroupOfWholeGroupByCosetTable(FamilyObj(U),t);
+
+  if HasGeneratorsOfGroup(U) then
+    SetGeneratorsOfGroup(V,List(GeneratorsOfGroup(U),i->i^g));
+  fi;
+  return V;
+end);
+
+InstallMethod(ConjugateGroup,"subgroups of fp group by quotient",
+  IsCollsElms, [ IsSubgroupFpGroup and IsSubgroupOfWholeGroupByQuotientRep,
+	       IsMultiplicativeElementWithInverse],0,
+function(U,elm)
+  # transfer elm in factor
+  elm:=UnderlyingElement(elm);
+  elm:=MappedWord(elm,FreeGeneratorsOfFpGroup(Parent(U)),
+                  GeneratorsOfGroup(U!.quot));
+
+  return SubgroupOfWholeGroupByQuotientSubgroup(FamilyObj(U),U!.quot,
+    ConjugateGroup(U!.sub,elm));
+end);
+
+#############################################################################
+##
+#M  CoreOp(<U>,<V>)  . intersection of two fin. pres. groups
+##
+InstallMethod(CoreOp,"subgroups of fp group",IsIdenticalObj,
+  [IsSubgroupFpGroup,IsSubgroupFpGroup],0,
+function(V,U)
+local gens,i,D;
+  gens:=GeneratorsOfGroup(V);
+  i:=1;
+  while i<=Length(gens) do
+    D:=Intersection(U,U^gens[i]);
+    if IndexInWholeGroup(D)>IndexInWholeGroup(U) then
+      U:=D;
+      i:=1;
+    else
+      i:=i+1;
+    fi;
+  od;
+  return U;
+end);
+
+InstallMethod(CoreOp,"subgroups of fp group by quotient",IsIdenticalObj,
+  [IsSubgroupFpGroup,
+  IsSubgroupFpGroup and IsSubgroupOfWholeGroupByQuotientRep],0,
+function(V,U)
+local q,gens;
+  # map the generators of V in the quotient
+  gens:=GeneratorsOfGroup(V);
+  gens:=List(gens,UnderlyingElement);
+  q:=U!.quot;
+  gens:=List(gens,i->MappedWord(i,FreeGeneratorsOfFpGroup(Parent(U)),
+                                GeneratorsOfGroup(q)));
+  return SubgroupOfWholeGroupByQuotientSubgroup(FamilyObj(U),q,
+           Core(SubgroupNC(q,gens),U!.sub));
+end);
 
 #############################################################################
 ##
@@ -852,20 +1130,20 @@ function ( G, H )
     tableH := CosetTableInWholeGroup(H);
     nrcosH := Length( tableH[1] ) + 1;
 
-    if nrcosG<nrcosH then
-      if ForAll(GeneratorsOfGroup(H),i->i in G) then
+    if nrcosH<=nrcosG and HasGeneratorsOfGroup(G) then
+      if ForAll(GeneratorsOfGroup(G),i->i in H) then
         return G;
       fi;
-    elif nrcosH<nrcosG then
-      if ForAll(GeneratorsOfGroup(G),i->i in H) then
+    elif nrcosG<=nrcosH and HasGeneratorsOfGroup(H) then
+      if ForAll(GeneratorsOfGroup(H),i->i in G) then
         return H;
       fi;
     fi;
 
     pargens:=GeneratorsOfGroup(Fam!.wholeGroup);
-    freegens:=FreeGeneratorsOfFpGroup(G);
+    freegens:=FreeGeneratorsOfFpGroup(Fam!.wholeGroup);
     # initialize the table for the intersection
-    rels := RelatorRepresentatives( RelatorsOfFpGroup( G ) );
+    rels := RelatorRepresentatives( RelatorsOfFpGroup( Fam!.wholeGroup ) );
     nrgens := Length(freegens);
     table := [];
     for gen  in [ 1 .. nrgens ]  do
@@ -908,16 +1186,47 @@ function ( G, H )
         cos := cos + 1;
     od;
 
-    # now make the subgroup
-    I:=SubgroupGeneratorsCosetTable(freegens,rels, table );
-    I:=List(I,i->MappedWord(i,freegens,pargens));
-    I:=Subgroup(Fam!.wholeGroup,I);
-    SetCosetTableInWholeGroup(I,table);
-
-    # and return it
-    return I;
+    return SubgroupOfWholeGroupByCosetTable(Fam,table);
 end);
 
+InstallMethod(Intersection2,"whole fp group and subgroup",IsIdenticalObj,
+  [IsSubgroupFpGroup and IsWholeFamily,IsSubgroupFpGroup],0,
+function(a,b)
+  return b;
+end);
+
+InstallMethod(Intersection2,"subgroup of whole fp group",IsIdenticalObj,
+  [IsSubgroupFpGroup,IsSubgroupFpGroup and IsWholeFamily],0,
+function(a,b)
+  return a;
+end);
+
+InstallMethod(Intersection2,"subgroups of fp group by quotient",IsIdenticalObj,
+  [IsSubgroupFpGroup and IsSubgroupOfWholeGroupByQuotientRep,
+   IsSubgroupFpGroup and IsSubgroupOfWholeGroupByQuotientRep],0,
+function ( G, H )
+local d,A,B,e1,e2,Ag,Bg,s,sg,u,v;
+  A:=G!.quot;
+  B:=H!.quot;
+  d:=DirectProduct(A,B);
+  e1:=Embedding(d,1);
+  e2:=Embedding(d,2);
+  Ag:=GeneratorsOfGroup(A);
+  Bg:=GeneratorsOfGroup(B);
+  # form the sdp
+  sg:=List([1..Length(Ag)],i->Image(e1,Ag[i])*Image(e2,Bg[i]));
+  s:=SubgroupNC(d,sg);
+
+  # get both subgroups in the direct product via the projections
+  # instead of intersecting both preimages with s we only intersect the
+  # intersection
+  u:=PreImagesSet(Projection(d,1),G!.sub);
+  v:=PreImagesSet(Projection(d,2),H!.sub);
+  u:=Intersection(u,v);
+  u:=Intersection(u,s);
+
+  return SubgroupOfWholeGroupByQuotientSubgroup(FamilyObj(G),s,u);
+end);
 
 #############################################################################
 ##
@@ -1004,14 +1313,22 @@ end );
 ##
 #M  IsomorphismFpGroup( G )
 ##
-InstallMethod( IsomorphismFpGroup,
-               "for perm groups",
-               true,
-               [IsPermGroup],
-               0,
+InstallMethod( IsomorphismFpGroup, "for perm groups", true, [IsPermGroup], 0,
 function( G )
     return IsomorphismFpGroupByCompositionSeries( G, "F" );
 end );
+
+InstallOtherMethod( IsomorphismFpGroup, "for perm groups, name", true,
+  [IsPermGroup,IsString], 0,
+function( G,s )
+    return IsomorphismFpGroupByCompositionSeries( G, s );
+end );
+
+InstallOtherMethod( IsomorphismFpGroup,"for simple permutation groups",true,
+  [IsPermGroup and IsSimpleGroup,IsString],0,
+function(G,str)
+  return IsomorphismFpGroupByGenerators( G, SmallGeneratingSet(G), str );
+end);
 
 
 #############################################################################
@@ -1019,10 +1336,8 @@ end );
 #M  IsomorphismFpGroupByCompositionSeries( G, str )
 ##
 InstallMethod( IsomorphismFpGroupByCompositionSeries,
-               "for permutation groups",
-               true,
-               [IsPermGroup, IsString],
-               0,
+               "for permutation groups", true,
+               [IsPermGroup, IsString], 0,
 function( G, str )
     local l, H, gensH, iso, F, gensF, imgsF, relatorsF, free, n, k, N, M,
           hom, preiH, c, new, T, gensT, E, gensE, imgsE, relatorsE, rel,
@@ -1039,7 +1354,6 @@ function( G, str )
 
     # set up
     H := series[l-1];
-    gensH := SmallGeneratingSet( H );
     # if IsPrime( Size( H ) ) then
     #     gensH := Filtered( GeneratorsOfGroup( H ),
     #                        x -> Order(x)=Size(H) ){[1]};
@@ -1047,7 +1361,13 @@ function( G, str )
     #     gensH := Set( GeneratorsOfGroup( H ) );
     #     gensH := Filtered( gensH, x -> x <> One(H) );
     # fi;
-    iso := IsomorphismFpGroupByGenerators( H, gensH, str );
+
+    IsSimpleGroup(H); #ensure H knows to be simple, thus the call to
+    # `IsomorphismFpGroup' will not yield an infinite recursion.
+    IsNaturalAlternatingGroup(H); # We have quite often a factor A_n for
+    # which GAP knows better presentations. Thus this test is worth doing.
+    iso := IsomorphismFpGroup( H,str );
+
     F := FreeGroupOfFpGroup( Image( iso ) );
     gensF := GeneratorsOfGroup( F );
     imgsF := iso!.generators;
@@ -1061,9 +1381,9 @@ function( G, str )
         # get composition factor
         N := series[k];
         M := series[k+1];
-        hom := NaturalHomomorphismByNormalSubgroupInParent( M );
+	# do not call `InParent'-- rather safe than sorry.
+        hom := NaturalHomomorphismByNormalSubgroup(N, M );
         H := Image( hom );
-        gensH := SmallGeneratingSet( H );
         # if IsPrime( Size( H ) ) then
         #     gensH := Filtered( GeneratorsOfGroup( H ),
         #                        x -> Order(x)=Size(H) ){[1]};
@@ -1071,11 +1391,17 @@ function( G, str )
         #     gensH := Set( GeneratorsOfGroup( H ) );
         #     gensH := Filtered( gensH, x -> x <> One(H) );
         # fi;
+
+	# compute presentation of H
+	IsSimpleGroup(H);
+	IsNaturalAlternatingGroup(H);
+	new:=IsomorphismFpGroup(H,"@");
+	gensH:=List(GeneratorsOfGroup(Image(new)),
+	              i->PreImagesRepresentative(new,i));
         preiH := List( gensH, x -> PreImagesRepresentative( hom, x ) );
+
         c     := Length( gensH );
 
-        # compute presentation of H
-        new := IsomorphismFpGroupByGenerators( H, gensH, "g" );
         T   := Image( new );
         gensT := GeneratorsOfGroup( FreeGroupOfFpGroup( T ) );
 
@@ -1136,6 +1462,7 @@ function( G, str )
     SetKernelOfMultiplicativeGeneralMapping( iso, TrivialSubgroup( G ) );
     return iso;
 end );
+
 
 InstallOtherMethod( IsomorphismFpGroupByCompositionSeries,
                     "for perm groups",
@@ -1311,7 +1638,7 @@ end);
 #M  KernelOfMultiplicativeGeneralMapping( <hom> )
 ##
 InstallMethod( KernelOfMultiplicativeGeneralMapping,
-  "map from fp group or free group",
+  "map from fp group or free group to perm group",
   true, [ IsFromFpGroupStdGensGeneralMappingByImages
 	  and IsToPermGroupGeneralMappingByImages ],0,
 function(hom)
@@ -1319,36 +1646,74 @@ local f,p,t,orbs,o,cor,i,j,k,u,e,frg;
 
   f:=Source(hom);
   frg:=FreeGeneratorsOfFpGroup(f);
-  p:=Range(hom);
+  p:=Subgroup(Range(hom),List(GeneratorsOfGroup(f),i->Image(hom,i)));
   # construct coset table
   t:=[];
   orbs:=Orbits(p,MovedPoints(p));
   cor:=f;
 
   for o in orbs do
-    # form coset table
-    for i in hom!.genimages do
-      for j in [1,-1] do
-	e:=i^j;
-	Add(t,List(o,k->Position(o,k^e)));
-      od;
-    od;
-    StandardizeTable(t);
-
-    # get subgroup generators
-    u:=SubgroupGeneratorsCosetTable(frg,
-               ElementsFamily(RelatorsOfFpGroup(f)),t);
-
-    # map them to f
-    u:=List(u,i->MappedWord(i,frg,hom!.generators));
-
-    u:=Subgroup(f,u);
-    SetCosetTableInWholeGroup(u,t);
+    u:=SubgroupOfWholeGroupByQuotientSubgroup(FamilyObj(f),
+         p,Core(p,Stabilizer(p,o[1])));
     cor:=Intersection(cor,u);
   od;
-  cor:=Core(f,cor);
+
+  if IsIdenticalObj(cor,f) then # in case we get a wrong parent
+    SetIsNormalInParent(cor,true);
+  fi;
   return cor;
 end);
+
+#############################################################################
+##
+#M  KernelOfMultiplicativeGeneralMapping( <hom> )
+##
+InstallMethod( KernelOfMultiplicativeGeneralMapping,
+  "map from fp group or free group to arbitrary finite group",
+  true, [ IsFromFpGroupStdGensGeneralMappingByImages ],0,
+function(hom)
+local p,s;
+
+  s:=Source(hom);
+  p:=Subgroup(Range(hom),List(GeneratorsOfGroup(s),i->Image(hom,i)));
+  if not IsFinite(p) then
+    TryNextMethod();
+  fi;
+
+  return SubgroupOfWholeGroupByQuotientSubgroup(
+           FamilyObj(s),p,TrivialSubgroup(p));
+end);
+
+#############################################################################
+##
+#M  PreImagesSet( <hom> )
+##
+InstallMethod( PreImagesSet,
+  "map from fp group or free group to arbitrary finite group",
+  CollFamRangeEqFamElms,
+  [ IsFromFpGroupStdGensHomomorphismByImages,IsGroup ],0,
+function(hom,u)
+local s,p;
+  s:=Source(hom);
+  p:=Subgroup(Range(hom),List(GeneratorsOfGroup(s),i->Image(hom,i)));
+
+  return SubgroupOfWholeGroupByQuotientSubgroup(
+           FamilyObj(s),p,u);
+end);
+
+# this method is not ready (we would have to test that hom!.generators are
+# the schreier generators) 26-2-99, AH
+# InstallMethod( PreImagesSet, "map from subgroup of fp group",
+#   CollFamRangeEqFamElms,
+#   [ IsFromFpGroupHomomorphismByImages,IsGroup ],0,
+# function(hom,u)
+# local s,a,t;
+#   s:=Source(hom);
+#   t:=CosetTableInWholeGroup(s);
+#   a:=CosetTable(Image(hom),u);
+#   # now tensor the coset tables
+#
+# end);
 
 
 #############################################################################
@@ -1356,11 +1721,12 @@ end);
 #M  LowIndexSubgroupsFpGroup(<G>,<H>,<index>[,<excluded>]) . . find subgroups
 #M                               of small index in a finitely presented group
 ##
-InstallGlobalFunction( LowIndexSubgroupsFpGroup, function ( arg )
+BindGlobal( "DoLowIndexSubgroupsFpGroup", function ( arg )
     local   G,          # parent group
             ggens,      # generators of G
             fgens,      # generators of associated free group
             grels,      # relators of G
+            involutions, # indices of involutory gens of G
             hgens,      # generators of H
             fhgens,     # their preimages in the free group of G
             H,          # subgroup to be included in all resulting subgroups
@@ -1430,6 +1796,7 @@ InstallGlobalFunction( LowIndexSubgroupsFpGroup, function ( arg )
     ggens := GeneratorsOfGroup( G );
     fgens := FreeGeneratorsOfFpGroup( G );
     grels := RelatorsOfFpGroup( G );
+    involutions := IndicesInvolutaryGenerators( G );
     hgens := GeneratorsOfGroup( H );
     fhgens := List( hgens, gen -> UnderlyingElement( gen ) );
 
@@ -1453,10 +1820,12 @@ InstallGlobalFunction( LowIndexSubgroupsFpGroup, function ( arg )
     nrgens := 2 * Length( fgens ) + 1;
     nrcos := 1;
     table := [];
-    for gen  in fgens  do
+    for i in [ 1 .. Length( fgens ) ] do
         g := ListWithIdenticalEntries( index, 0 );
         Add( table, g );
-	g := ListWithIdenticalEntries( index, 0 );
+        if not i in involutions then
+	    g := ListWithIdenticalEntries( index, 0 );
+        fi;
         Add( table, g );
     od;
 
@@ -1481,11 +1850,12 @@ InstallGlobalFunction( LowIndexSubgroupsFpGroup, function ( arg )
                 Add( excludeWords, word );
             fi;
         od;
-        excludeWords := RelsSortedByStartGen( fgens, excludeWords, table );
+        excludeWords := RelsSortedByStartGen(
+            fgens, excludeWords, table, false );
     fi;
 
     # make the rows for the relators and distribute over relsGen
-    relsGen := RelsSortedByStartGen( fgens, rels, table );
+    relsGen := RelsSortedByStartGen( fgens, rels, table, true );
 
     # make the rows for the subgroup generators
     subgroup := [];
@@ -1932,6 +2302,114 @@ InstallGlobalFunction( LowIndexSubgroupsFpGroup, function ( arg )
     return subs;
 end );
 
+InstallMethod(LowIndexSubgroupsFpGroup, "subgroups of full fp group",
+  IsFamFamX,
+  [IsSubgroupFpGroup and IsWholeFamily,IsSubgroupFpGroup,IsPosInt],0,
+  DoLowIndexSubgroupsFpGroup);
+
+InstallOtherMethod(LowIndexSubgroupsFpGroup,
+  "subgroups of full fp group, with exclusion list", IsFamFamXY,
+  [IsSubgroupFpGroup and IsWholeFamily,IsSubgroupFpGroup,IsPosInt,IsList],0,
+  DoLowIndexSubgroupsFpGroup);
+
+InstallMethod(LowIndexSubgroupsFpGroup, "subgroups of fp group",
+  IsFamFamX, [IsSubgroupFpGroup,IsSubgroupFpGroup,IsPosInt],0,
+function(G,H,ind)
+local fpi,u,l,i,a;
+  fpi:=IsomorphismFpGroup(G);
+  u:=LowIndexSubgroupsFpGroup(Range(fpi),Image(fpi,H),ind);
+
+  l:=[];
+  for i in u do
+    a:=PreImagesSet(fpi,i);
+    SetIndexInWholeGroup(a,IndexInWholeGroup(G)*IndexInWholeGroup(i));
+    Add(l,a);
+  od;
+  return l;
+end);
+
+
+#############################################################################
+##
+#M  NormalizerOp(<G>,<H>)
+##
+InstallMethod(NormalizerOp,"subgroups of fp group: add stabilizing cosets",
+  IsIdenticalObj,[IsSubgroupFpGroup,IsSubgroupFpGroup],0,
+function ( G, H )
+local   N,          # normalizer of <H> in <G>, result
+	pargens,    # parent generators
+	table,      # coset table of <H> in its parent
+	nrcos,      # number of cosets in the table
+	nrgens,     # 2*(number of generators of <H>s parent)+1
+	iseql,      # true if coset <c> normalizes <H>
+	r, s,       # renumbering of the coset table and its inverse
+	c, d, e,    # coset loop variables
+	g, h;       # generator loop variables
+
+  # handle the case the <H> is contained in <G>
+  if not ((HasIsWholeFamily(G) and IsWholeFamily(G)) or IsSubset(G,H)) then
+    TryNextMethod();
+  fi;
+
+  # first we need the coset table of <H>
+  table := CosetTableInWholeGroup(H);
+  pargens:=GeneratorsOfGroup(FamilyObj(G)!.wholeGroup);
+  nrcos := Length( table[1] );
+  nrgens := 2*Length( pargens ) + 1;
+
+  # find the cosets of <H> in its parent whose elements normalize <H>
+  N := H;
+  for c  in [ 2 .. nrcos ]  do
+
+    # test if the renumbered table is equal to the original table
+    r := 0 * [ 1 .. nrcos ];
+    s := 0 * [ 1 .. nrcos ];
+    r[c] := 1;  s[1] := c;
+    e := 1;
+    iseql := true;
+    d := 1;
+    while d <= nrcos  and iseql  do
+      g := 1;
+      while g < nrgens  and iseql  do
+	if r[ table[g][s[d]] ] = 0  then
+	  e := e + 1;
+	  r[ table[g][s[d]] ] := e;
+	  s[ e ] := table[g][s[d]];
+	fi;
+	iseql := (r[ table[g][s[d]] ] = table[g][d]);
+	g := g + 2;
+      od;
+      d := d + 1;
+    od;
+
+    # add the representative of this coset if it normalizes
+    if iseql  then
+      r := One(G);
+      d := c;
+      while d <> 1  do
+	g := nrgens - 1;
+	h := nrgens - 1;
+	while 0 < g  do
+	  if table[g][d] <= table[h][d]  then
+	    h := g;
+	  fi;
+	  g := g - 2;
+	od;
+	r := pargens[ h/2 ] * r;
+	d := table[h][d];
+      od;
+      if r in G  and not r in N  then
+	N := ClosureSubgroup( N, r );
+	CosetTableInWholeGroup(N);
+      fi;
+    fi;
+
+  od;
+
+  # return the normalizer
+  return N;
+end);
+
 
 #############################################################################
 ##
@@ -1946,8 +2424,9 @@ InstallOtherMethod( MappedWord, true,
 ##
 #F  MostFrequentGeneratorFpGroup( <G> ) . . . . . . . most frequent generator
 ##
-##  'MostFrequentGeneratorFpGroup'  returns the  first of those generators of
-##  the given finitely  presented group  which occurs most frequently  in the
+##  is an internal function which is used in some applications of coset
+##  table methods. It returns the first of those generators of the given
+##  finitely presented group <G> which occur most frequently in the
 ##  relators.
 ##
 InstallGlobalFunction( MostFrequentGeneratorFpGroup, function ( G )
@@ -2105,8 +2584,9 @@ InstallGlobalFunction( RelatorRepresentatives, function ( rels )
             od;
 
             # if the relator is new, add it to the representatives
+	    min:=Immutable([ Length( min ), min ] );
             if not min in reps  then
-                AddSet( reps, [ Length( min ), min ] );
+                AddSet( reps,min);
             fi;
 
         fi;
@@ -2153,9 +2633,10 @@ local g,r;
   return Filtered([1..Length(g)],i->g[i]^2 in r or g[i]^-2 in r);
 end);
 
+
 #############################################################################
 ##
-#F  RelsSortedByStartGen( <gens>, <rels>, <table> )
+#F  RelsSortedByStartGen( <gens>, <rels>, <table> [, <ignore> ] )
 #F                                         relators sorted by start generator
 ##
 ##  'RelsSortedByStartGen'  is a  subroutine of the  Felsch Todd-Coxeter  and
@@ -2165,25 +2646,36 @@ end);
 ##  conjugating or inverting given relators.  The relators are represented as
 ##  lists of the coset table columns corresponding to the generators and,  in
 ##  addition, as lists of the respective column numbers.
+##                            
+##  Square relators  will be ignored  if ignore = true.  The default value of
+##  ignore is false.
 ##
 InstallGlobalFunction( RelsSortedByStartGen, function ( arg )
-    local   gens,                       # group generators
-            rels,                       # relators
-            table,                      # coset table
-            relsGen,                    # resulting list
-            rel, cyc,                   # one relator and cyclic permutation
-            length, extleng,            # length and extended length of rel
-            base, base2,                # base length of rel
-            gen,                        # one generator in rel
-            nums, invnums,              # numbers list and inverse
-            cols, invcols,              # columns list and inverse
-            p, p1, p2,                  # positions of generators
-            i, j, k;                    # loop variables
+local   gens,                   # group generators
+	gennums,		# indices of generators
+	rels,                   # relators
+	table,                  # coset table
+	ignore,                 # if true, ignore square relators
+	relsGen,                # resulting list
+	rel, cyc,               # one relator and cyclic permutation
+	length, extleng,        # length and extended length of rel
+	base, base2,            # base length of rel
+	gen,                    # one generator in rel
+	exp,		 	# syllable exponent
+	es,		 	# exponents sum
+	nums, invnums,          # numbers list and inverse
+	cols, invcols,          # columns list and inverse
+	p, p1, p2,              # positions of generators
+	i, j, k;                # loop variables
 
     # get the arguments
     gens := arg[1];
+    gennums:=
+      List(gens,i->GeneratorSyllable(i,1)); # the indices of the generators
     rels := arg[2];
     table := arg[3];
+    ignore := false;
+    if  Length( arg ) > 3 then  ignore := arg[4];  fi;
 
     # check that the table has the right number of columns
     if 2 * Length(gens) <> Length(table) then
@@ -2194,7 +2686,11 @@ InstallGlobalFunction( RelsSortedByStartGen, function ( arg )
     relsGen := [ ]; relsGen[2*Length(gens)] := 0;
     for i  in [ 1 .. Length(gens) ]  do
         relsGen[ 2*i-1 ] := [];
-	relsGen[ 2*i ] := [];
+        if not IsIdenticalObj( table[ 2*i-1 ], table[ 2*i ] )  then
+            relsGen[ 2*i ] := [];
+        else
+            relsGen[ 2*i ] := relsGen[ 2*i-1 ];
+        fi;
     od;
 
     # now loop over all parent group relators
@@ -2203,51 +2699,96 @@ InstallGlobalFunction( RelsSortedByStartGen, function ( arg )
         # get the length and the basic length of relator rel
         length := Length( rel );
         base := 1;
-        cyc := rel ^ Subword( rel, base, base );
-        while cyc <> rel do
+
+#        cyc := rel ^ Subword( rel, base, base );
+#        while cyc <> rel do
+#            base := base + 1;
+#            cyc := cyc ^ Subword( rel, base, base );
+#        od;
+
+	# work in ext. rep.
+	es:=ExtRepOfObj(rel);
+
+	# conjugate with first generator
+	cyc:=ShallowCopy(es);
+	p:=SignInt(cyc[2]);
+	if cyc[1]=cyc[Length(cyc)-1] then
+	  cyc[Length(cyc)]:=cyc[Length(cyc)]+p;
+	else
+	  Append(cyc,[cyc[1],p]);
+	fi;
+	cyc[2]:=cyc[2]-p;
+	if cyc[2]=0 then
+	  cyc:=cyc{[3..Length(cyc)]};
+	fi;
+
+        while cyc <> es do
             base := base + 1;
-            cyc := cyc ^ Subword( rel, base, base );
+	    p:=SignInt(cyc[2]);
+	    if cyc[1]=cyc[Length(cyc)-1] then
+	      cyc[Length(cyc)]:=cyc[Length(cyc)]+p;
+	    else
+	      Append(cyc,[cyc[1],p]);
+	    fi;
+	    cyc[2]:=cyc[2]-p;
+	    if cyc[2]=0 then
+	      cyc:=cyc{[3..Length(cyc)]};
+	    fi;
+
         od;
 
-	# initialize the columns and numbers lists corresponding to the
-	# current relator
-	base2 := 2 * base;
-	extleng := 2 * ( base + length ) - 1;
-	nums    := [ ]; nums[extleng]    := 0;
-	cols    := [ ]; cols[extleng]    := 0;
-	invnums := [ ]; invnums[extleng] := 0;
-	invcols := [ ]; invcols[extleng] := 0;
+	# ignore square relators
+	if length <> 2 or base <> 1 or not ignore then
 
-	# compute the lists
-	i := 0;  j := 1;  k := base2 + 3;
-	while i < base do
-	    i := i + 1;  j := j + 2;  k := k - 2;
-	    gen := Subword( rel, i, i );
-	    p := Position( gens, gen );
-	    if p = fail then
-		p := Position( gens, gen^-1 );
-		p1 := 2 * p;
-		p2 := 2 * p - 1;
-	    else
-		p1 := 2 * p - 1;
-		p2 := 2 * p;
-	    fi;
-	    nums[j]   := p1;         invnums[k-1] := p1;
-	    nums[j-1] := p2;         invnums[k]   := p2;
-	    cols[j]   := table[p1];  invcols[k-1] := table[p1];
-	    cols[j-1] := table[p2];  invcols[k]   := table[p2];
-	    Add( relsGen[p1], [ nums, cols, j ] );
-	    Add( relsGen[p2], [ invnums, invcols, k ] );
-	od;
+	    # initialize the columns and numbers lists corresponding to the
+	    # current relator
+	    base2 := 2 * base;
+	    extleng := 2 * ( base + length ) - 1;
+	    nums    := [ ]; nums[extleng]    := 0;
+	    cols    := [ ]; cols[extleng]    := 0;
+	    invnums := [ ]; invnums[extleng] := 0;
+	    invcols := [ ]; invcols[extleng] := 0;
 
-	while j < extleng do
-	    j := j + 1;
-	    nums[j] := nums[j-base2];  invnums[j] := invnums[j-base2];
-	    cols[j] := cols[j-base2];  invcols[j] := invcols[j-base2];
-	od;
+	    # compute the lists
+	    i := 0; # number of current syllable
+	    j := 1;  k := base2 + 3;
+	    es:=0; # exponent index in word
+	    while es < base do
+		i:=i+1;
+		gen:=GeneratorSyllable(rel,i);
+		p:=Position(gennums,gen);
+		exp:=ExponentSyllable(rel,i);
+		if exp<0 then
+		    p1:=2*p;
+		    p2:=2*p-1;
+		    exp:=-exp;
+		else
+		    p1:=2*p-1;
+		    p2:=2*p;
+		fi;
 
-	nums[1] := length;          invnums[1] := length;
-	cols[1] := 2 * length - 3;  invcols[1] := cols[1];
+		while exp>0 and es<base do
+		    j := j + 2;  k := k - 2;
+		    nums[j]   := p1;         invnums[k-1] := p1;
+		    nums[j-1] := p2;         invnums[k]   := p2;
+		    cols[j]   := table[p1];  invcols[k-1] := table[p1];
+		    cols[j-1] := table[p2];  invcols[k]   := table[p2];
+		    Add( relsGen[p1], [ nums, cols, j ] );
+		    Add( relsGen[p2], [ invnums, invcols, k ] );
+		    exp:=exp-1;
+		    es:=es+1;
+	       od;
+	    od;
+
+	    while j < extleng do
+		j := j + 1;
+		nums[j] := nums[j-base2];  invnums[j] := invnums[j-base2];
+		cols[j] := cols[j-base2];  invcols[j] := invcols[j-base2];
+	    od;
+
+	    nums[1] := length;          invnums[1] := length;
+	    cols[1] := 2 * length - 3;  invcols[1] := cols[1];
+        fi;
     od;
 
     # return the list
@@ -2331,7 +2872,8 @@ local t,p,H,gens;
 
   # handle free and trivial group
   if 0 = Length( FreeGeneratorsOfFpGroup( G )) then
-    return GroupHomomorphismByImagesNC(G,Group(),[],[]);
+    return GroupHomomorphismByImagesNC( G, GroupByGenerators( [], () ),
+                                        [], [] );
   fi;
 
   # try action on cosets of cyclic subgroups
@@ -2341,27 +2883,26 @@ local t,p,H,gens;
   gens:=Concatenation([t],Filtered(gens,i->not IsIdenticalObj(i,t)));
 
   repeat
-    t:=AugmentedCosetTableMtc(G,Subgroup(G,[MostFrequentGeneratorFpGroup(G)]),
-			      1, "@" );
+    t:=AugmentedCosetTableMtc(G,Subgroup(G,gens{[1]}), 1, "@" );
     if t.exponent=infinity then
       Error("<G> must be finite");
     fi;
 
     p:=List(t.cosetTable{[1,3..Length(t.cosetTable)-1]},PermList);
 
-    H:=Group(p);
+    H:= GroupByGenerators( p );
     # compute stabilizer chain with size info.
     StabChain(H,rec(limit:=t.exponent*Length(t.cosetTable)));
 
     gens:=gens{[2..Length(gens)]};
-  until Size(H)=t.exponent*Length(t.cosetTable) or Length(gens)=0;
+  until Size(H)=t.exponent*Length(t.cosetTable[1]) or Length(gens)=0;
 
-  if Size(H)<t.exponent*Length(t.cosetTable) then
+  if Size(H)<t.exponent*Length(t.cosetTable[1]) then
     # we will need the regular action
     t:=CosetTableFromGensAndRels(FreeGeneratorsOfFpGroup(G),
 				RelatorsOfFpGroup(G),[]);
     p:=List(t{[1,3..Length(t)-1]},PermList);
-    H:=Group(p);
+    H:= GroupByGenerators( p );
     SetSize(H,Length(t[1]));
   fi;
 
@@ -2389,7 +2930,8 @@ local t;
                                RelatorsOfFpGroup(G),
 			       List(GeneratorsOfGroup(U),UnderlyingElement));
   t:=List(t{[1,3..Length(t)-1]},PermList);
-  return GroupHomomorphismByImagesNC(G,Group(t),GeneratorsOfGroup(G),t);
+  return GroupHomomorphismByImagesNC( G, GroupByGenerators( t ),
+                                      GeneratorsOfGroup( G ), t );
 end);
 
 
@@ -2420,6 +2962,7 @@ InstallGlobalFunction( SubgroupGeneratorsCosetTable,
     nrgens := 2 * Length( freegens ) + 1;
     gens := [];
 
+    table:=List(table,ShallowCopy);
     # make all entries in the table negative
     for cos  in [ 1 .. Length( table[1] ) ]  do
         for gen  in table  do
@@ -2559,5 +3102,5 @@ end);
 
 #############################################################################
 ##
-#E  grpfp.gi  . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

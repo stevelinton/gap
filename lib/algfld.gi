@@ -5,7 +5,7 @@
 #H  @(#)$Id$
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
-#Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  (C) 1999 School Math and Comp. Sci., University of St.  Andrews, Scotland
 ##
 ##  This file contains the methods for algebraic elements and their families
 ##
@@ -63,7 +63,9 @@ InstallMethod(AlgebraicElementsFamily,"generic",true,
   [IsField,IsUnivariatePolynomial],0,
 function(f,p)
 local fam,i;
-  if not IsIrreducibleRingElement(PolynomialRing(f),p) then
+  if not
+  IsIrreducibleRingElement(PolynomialRing(f,
+             [IndeterminateNumberOfLaurentPolynomial(p)]),p) then
     Error("<p> must be irreducible over f");
   fi;
   fam:=AlgebraicElementsFamilies(p);
@@ -85,12 +87,13 @@ local fam,i;
   fam!.baseOne:=One(f);
   fam!.poly:=p;
   fam!.polCoeffs:=CoefficientsOfUnivariatePolynomial(p);
-  fam!.deg:=DOULP(p);
-  i:=List([1..DOULP(p)],i->fam!.baseZero);
+  fam!.deg:=DegreeOfLaurentPolynomial(p);
+  i:=List([1..DegreeOfLaurentPolynomial(p)],i->fam!.baseZero);
   i[2]:=fam!.baseOne;
   fam!.primitiveElm:=ObjByExtRep(fam,i);
 
   SetIsUFDFamily(fam,true);
+  SetCoefficientsFamily(fam,FamilyObj(One(f)));
 
   # and set one and zero
   SetZero(fam,ObjByExtRep(fam,Zero(f)));
@@ -110,7 +113,7 @@ InstallMethod(AlgebraicExtension,"generic",true,
 function(f,p)
 local e,fam;
 
-  if DOULP(p)<=1 then
+  if DegreeOfLaurentPolynomial(p)<=1 then
     return f;
   fi;
 
@@ -121,11 +124,12 @@ local e,fam;
   e!.definingPolynomial:=p;
   e!.extFam:=fam;
   SetCharacteristic(e,Characteristic(f));
-  SetDegreeOverPrimeField(e,DOULP(p)*DegreeOverPrimeField(f));
+  SetDegreeOverPrimeField(e,DegreeOfLaurentPolynomial(p)*DegreeOverPrimeField(f));
   SetLeftActingDomain(e,f);
   SetGeneratorsOfField(e,[fam!.primitiveElm]);
   SetIsPrimeField(e,false);
   SetPrimitiveElement(e,fam!.primitiveElm);
+  SetRootOfDefiningPolynomial(e,fam!.primitiveElm);
 
   if HasIsFinite(f) then
     if IsFinite(f) then
@@ -148,6 +152,13 @@ local e,fam;
 
   return e;
 end);
+
+#############################################################################
+##
+#M  FieldExtension     generically default on `AlgebraicExtension'.
+##
+InstallMethod(FieldExtension,"generic",true,
+  [IsField,IsUnivariatePolynomial],0,AlgebraicExtension);
 
 #############################################################################
 ##
@@ -202,7 +213,7 @@ end);
 
 #############################################################################
 ##
-#F  AlgExtElm      A 'nicer' ObjByExtRep, that shrinks/grows a list to the 
+#F  AlgExtElm      A `nicer' ObjByExtRep, that shrinks/grows a list to the 
 ##                 correct length and tries to get to the BaseField
 ##                 representation
 ##
@@ -290,7 +301,7 @@ function(a,b)
   return ObjByExtRep(FamilyObj(a),a![1]+b![1]);
 end);
 
-InstallMethod(\+,"AlgElm+FElm",true,[IsAlgExtRep,IsRingElement],0,
+InstallMethod(\+,"AlgElm+FElm",IsCoeffsElms,[IsAlgExtRep,IsRingElement],0,
 function(a,b)
 local fam;
   fam:=FamilyObj(a);
@@ -299,7 +310,7 @@ local fam;
   return ObjByExtRep(fam,a);
 end);
 
-InstallMethod(\+,"FElm+AlgElm",true,[IsRingElement,IsAlgExtRep],0,
+InstallMethod(\+,"FElm+AlgElm",IsElmsCoeffs,[IsRingElement,IsAlgExtRep],0,
 function(a,b)
 local fam;
   fam:=FamilyObj(b);
@@ -308,13 +319,13 @@ local fam;
   return ObjByExtRep(fam,b);
 end);
 
-InstallMethod(\+,"BFElm+FElm",true,[IsAlgBFRep,IsRingElement],0,
+InstallMethod(\+,"BFElm+FElm",IsCoeffsElms,[IsAlgBFRep,IsRingElement],0,
 function(a,b)
   b:=a![1]+b;
   return AlgExtElm(FamilyObj(a),b);
 end);
 
-InstallMethod(\+,"FElm+BFElm",true,[IsRingElement,IsAlgBFRep],0,
+InstallMethod(\+,"FElm+BFElm",IsElmsCoeffs,[IsRingElement,IsAlgBFRep],0,
 function(a,b)
   a:=b![1]+a;
   return AlgExtElm(FamilyObj(b),a);
@@ -322,14 +333,14 @@ end);
 
 #############################################################################
 ##
-#M  AdditiveInverse
+#M  AdditiveInverseOp
 ##
-InstallMethod(AdditiveInverse,"AlgElm",true,[IsAlgExtRep],0,
+InstallMethod( AdditiveInverseOp, "AlgElm",true,[IsAlgExtRep],0,
 function(a)
   return ObjByExtRep(FamilyObj(a),-a![1]);
 end);
 
-InstallMethod(AdditiveInverse,"BFElm",true,[IsAlgBFRep],0,
+InstallMethod( AdditiveInverseOp, "BFElm",true,[IsAlgBFRep],0,
 function(a)
   return ObjByExtRep(FamilyObj(a),-a![1]);
 end);
@@ -364,7 +375,7 @@ function(a,b)
   return ObjByExtRep(FamilyObj(a),a![1]*b![1]);
 end);
 
-InstallMethod(\*,"Alg*FElm",true,[IsAlgebraicElement,IsRingElement],0,
+InstallMethod(\*,"Alg*FElm",IsCoeffsElms,[IsAlgebraicElement,IsRingElement],0,
 function(a,b)
 local fam;
   fam:=FamilyObj(a);
@@ -372,7 +383,7 @@ local fam;
   return AlgExtElm(fam,b);
 end);
 
-InstallMethod(\*,"FElm*Alg",true,[IsRingElement,IsAlgebraicElement],0,
+InstallMethod(\*,"FElm*Alg",IsElmsCoeffs,[IsRingElement,IsAlgebraicElement],0,
 function(a,b)
 local fam;
   fam:=FamilyObj(b);
@@ -392,9 +403,9 @@ end);
 
 #############################################################################
 ##
-#M  Inverse
+#M  InverseOp
 ##
-InstallMethod(Inverse,"AlgElm",true,[IsAlgExtRep],0,
+InstallMethod( InverseOp, "AlgElm",true,[IsAlgExtRep],0,
 function(a)
 local i,fam,f,g,t,h,rf,rg,rh,z;
   fam:=FamilyObj(a);
@@ -429,10 +440,11 @@ local i,fam,f,g,t,h,rf,rg,rh,z;
     #  t:=t-1;
     #od;
   od;
+  rf:=1/f[Length(f)]*rf;
   return AlgExtElm(fam,rf);
 end);
 
-InstallMethod(Inverse,"BFElm",true,[IsAlgBFRep],0,
+InstallMethod( InverseOp, "BFElm",true,[IsAlgBFRep],0,
 function(a)
   return ObjByExtRep(FamilyObj(a),Inverse(a![1]));
 end);
@@ -662,7 +674,7 @@ end);
 #local fam,p;
 #  fam:=FamilyObj(One(f));
 #  p:=MinimalPolynomial(f,e);
-#  return p^(fam!.deg/DOULP(p));
+#  return p^(fam!.deg/DegreeOfLaurentPolynomial(p));
 #end);
 
 #############################################################################
@@ -702,6 +714,27 @@ local fam,l;
   fam:=e!.extFam;
   l:=List([1..fam!.deg],i->Random(fam!.baseField));
   return AlgExtElm(fam,l);
+end);
+
+#############################################################################
+##
+#F  MaxNumeratorCoeffAlgElm(<a>)
+##
+InstallMethod(MaxNumeratorCoeffAlgElm,"rational",true,[IsRat],0,
+function(e)
+  return AbsInt(NumeratorRat(e));
+end);
+
+InstallMethod(MaxNumeratorCoeffAlgElm,"algebraic element",true,
+  [IsAlgebraicElement and IsAlgBFRep],0,
+function(e)
+  return MaxNumeratorCoeffAlgElm(e![1]);
+end);
+
+InstallMethod(MaxNumeratorCoeffAlgElm,"algebraic element",true,
+  [IsAlgebraicElement and IsAlgExtRep],0,
+function(e)
+  return Maximum(List(e![1],MaxNumeratorCoeffAlgElm));
 end);
 
 #############################################################################

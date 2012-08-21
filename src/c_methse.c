@@ -1,7 +1,6 @@
 /* C file produced by GAC */
-#include "compiled.h"
-
 #ifndef AVOID_PRECOMPILED
+#include "compiled.h"
 
 /* global variables used in handlers */
 static GVar G_NAME__FUNC;
@@ -117,10 +116,12 @@ static Obj  HdlrFunc2 (
  Obj t_7 = 0;
  Obj t_8 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 0 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -158,6 +159,7 @@ static Obj  HdlrFunc2 (
    C_SUM( t_4, t_5, INTOBJ_INT(2) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -177,10 +179,12 @@ static Obj  HdlrFunc2 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -205,10 +209,12 @@ static Obj  HdlrFunc3 (
  Obj t_10 = 0;
  Obj t_11 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 1 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -262,6 +268,7 @@ static Obj  HdlrFunc3 (
    C_SUM( t_4, t_5, INTOBJ_INT(3) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -281,10 +288,12 @@ static Obj  HdlrFunc3 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -312,10 +321,12 @@ static Obj  HdlrFunc4 (
  Obj t_12 = 0;
  Obj t_13 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 2 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -385,6 +396,7 @@ static Obj  HdlrFunc4 (
    C_SUM( t_4, t_5, INTOBJ_INT(4) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -404,10 +416,12 @@ static Obj  HdlrFunc4 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -437,10 +451,12 @@ static Obj  HdlrFunc5 (
  Obj t_13 = 0;
  Obj t_14 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 3 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -526,6 +542,7 @@ static Obj  HdlrFunc5 (
    C_SUM( t_4, t_5, INTOBJ_INT(5) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -545,10 +562,12 @@ static Obj  HdlrFunc5 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -580,10 +599,12 @@ static Obj  HdlrFunc6 (
  Obj t_14 = 0;
  Obj t_15 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 4 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -686,6 +707,7 @@ and methods[8 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1] ) then 
    C_SUM( t_4, t_5, INTOBJ_INT(6) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -705,10 +727,12 @@ and methods[8 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1] ) then 
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -742,10 +766,12 @@ static Obj  HdlrFunc7 (
  Obj t_15 = 0;
  Obj t_16 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 5 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -864,6 +890,7 @@ static Obj  HdlrFunc7 (
    C_SUM( t_4, t_5, INTOBJ_INT(7) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -883,10 +910,12 @@ static Obj  HdlrFunc7 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -923,6 +952,7 @@ static Obj  HdlrFunc8 (
  Obj t_16 = 0;
  Obj t_17 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  CHECK_NR_ARGS( 7, args )
  a_operation = ELM_PLIST( args, 1 );
  a_type1 = ELM_PLIST( args, 2 );
@@ -932,9 +962,10 @@ static Obj  HdlrFunc8 (
  a_type5 = ELM_PLIST( args, 6 );
  a_type6 = ELM_PLIST( args, 7 );
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 6 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -1069,6 +1100,7 @@ static Obj  HdlrFunc8 (
    C_SUM( t_4, t_5, INTOBJ_INT(8) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -1088,10 +1120,12 @@ static Obj  HdlrFunc8 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -1104,10 +1138,12 @@ static Obj  HdlrFunc9 (
  Obj t_1 = 0;
  Obj t_2 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* Error( "not supported yet" ); */
  t_1 = GF_Error;
@@ -1115,10 +1151,12 @@ static Obj  HdlrFunc9 (
  CALL_1ARGS( t_1, t_2 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -1141,10 +1179,12 @@ static Obj  HdlrFunc10 (
  Obj t_7 = 0;
  Obj t_8 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 0 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -1189,6 +1229,7 @@ static Obj  HdlrFunc10 (
     C_SUM( t_4, t_5, INTOBJ_INT(2) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -1220,10 +1261,12 @@ static Obj  HdlrFunc10 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -1250,10 +1293,12 @@ static Obj  HdlrFunc11 (
  Obj t_10 = 0;
  Obj t_11 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 1 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -1314,6 +1359,7 @@ static Obj  HdlrFunc11 (
     C_SUM( t_4, t_5, INTOBJ_INT(3) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -1345,10 +1391,12 @@ static Obj  HdlrFunc11 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -1378,10 +1426,12 @@ static Obj  HdlrFunc12 (
  Obj t_12 = 0;
  Obj t_13 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 2 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -1458,6 +1508,7 @@ static Obj  HdlrFunc12 (
     C_SUM( t_4, t_5, INTOBJ_INT(4) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -1489,10 +1540,12 @@ static Obj  HdlrFunc12 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -1524,10 +1577,12 @@ static Obj  HdlrFunc13 (
  Obj t_13 = 0;
  Obj t_14 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 3 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -1620,6 +1675,7 @@ static Obj  HdlrFunc13 (
     C_SUM( t_4, t_5, INTOBJ_INT(5) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -1651,10 +1707,12 @@ static Obj  HdlrFunc13 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -1688,10 +1746,12 @@ static Obj  HdlrFunc14 (
  Obj t_14 = 0;
  Obj t_15 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 4 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -1801,6 +1861,7 @@ and methods[8 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1] ) then 
     C_SUM( t_4, t_5, INTOBJ_INT(6) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -1832,10 +1893,12 @@ and methods[8 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1] ) then 
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -1872,6 +1935,7 @@ static Obj  HdlrFunc15 (
  Obj t_15 = 0;
  Obj t_16 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  CHECK_NR_ARGS( 7, args )
  a_operation = ELM_PLIST( args, 1 );
  a_k = ELM_PLIST( args, 2 );
@@ -1881,9 +1945,10 @@ static Obj  HdlrFunc15 (
  a_type4 = ELM_PLIST( args, 6 );
  a_type5 = ELM_PLIST( args, 7 );
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 5 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -2009,6 +2074,7 @@ static Obj  HdlrFunc15 (
     C_SUM( t_4, t_5, INTOBJ_INT(7) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -2040,10 +2106,12 @@ static Obj  HdlrFunc15 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -2082,6 +2150,7 @@ static Obj  HdlrFunc16 (
  Obj t_16 = 0;
  Obj t_17 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  CHECK_NR_ARGS( 8, args )
  a_operation = ELM_PLIST( args, 1 );
  a_k = ELM_PLIST( args, 2 );
@@ -2092,9 +2161,10 @@ static Obj  HdlrFunc16 (
  a_type5 = ELM_PLIST( args, 7 );
  a_type6 = ELM_PLIST( args, 8 );
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 6 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -2236,6 +2306,7 @@ static Obj  HdlrFunc16 (
     C_SUM( t_4, t_5, INTOBJ_INT(8) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -2267,10 +2338,12 @@ static Obj  HdlrFunc16 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -2283,10 +2356,12 @@ static Obj  HdlrFunc17 (
  Obj t_1 = 0;
  Obj t_2 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* Error( "not supported yet" ); */
  t_1 = GF_Error;
@@ -2294,10 +2369,12 @@ static Obj  HdlrFunc17 (
  CALL_1ARGS( t_1, t_2 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -2318,10 +2395,12 @@ static Obj  HdlrFunc18 (
  Obj t_7 = 0;
  Obj t_8 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 0 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -2370,6 +2449,7 @@ static Obj  HdlrFunc18 (
    C_SUM( t_4, t_5, INTOBJ_INT(2) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -2389,10 +2469,12 @@ static Obj  HdlrFunc18 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -2417,10 +2499,12 @@ static Obj  HdlrFunc19 (
  Obj t_10 = 0;
  Obj t_11 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 1 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -2485,6 +2569,7 @@ static Obj  HdlrFunc19 (
    C_SUM( t_4, t_5, INTOBJ_INT(3) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -2504,10 +2589,12 @@ static Obj  HdlrFunc19 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -2535,10 +2622,12 @@ static Obj  HdlrFunc20 (
  Obj t_12 = 0;
  Obj t_13 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 2 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -2619,6 +2708,7 @@ static Obj  HdlrFunc20 (
    C_SUM( t_4, t_5, INTOBJ_INT(4) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -2638,10 +2728,12 @@ static Obj  HdlrFunc20 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -2671,10 +2763,12 @@ static Obj  HdlrFunc21 (
  Obj t_13 = 0;
  Obj t_14 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 3 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -2771,6 +2865,7 @@ static Obj  HdlrFunc21 (
    C_SUM( t_4, t_5, INTOBJ_INT(5) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -2790,10 +2885,12 @@ static Obj  HdlrFunc21 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -2825,10 +2922,12 @@ static Obj  HdlrFunc22 (
  Obj t_14 = 0;
  Obj t_15 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 4 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -2942,6 +3041,7 @@ and methods[8 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1] ) then 
    C_SUM( t_4, t_5, INTOBJ_INT(6) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -2961,10 +3061,12 @@ and methods[8 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1] ) then 
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -2998,10 +3100,12 @@ static Obj  HdlrFunc23 (
  Obj t_15 = 0;
  Obj t_16 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 5 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -3131,6 +3235,7 @@ static Obj  HdlrFunc23 (
    C_SUM( t_4, t_5, INTOBJ_INT(7) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -3150,10 +3255,12 @@ static Obj  HdlrFunc23 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -3190,6 +3297,7 @@ static Obj  HdlrFunc24 (
  Obj t_16 = 0;
  Obj t_17 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  CHECK_NR_ARGS( 7, args )
  a_operation = ELM_PLIST( args, 1 );
  a_type1 = ELM_PLIST( args, 2 );
@@ -3199,9 +3307,10 @@ static Obj  HdlrFunc24 (
  a_type5 = ELM_PLIST( args, 6 );
  a_type6 = ELM_PLIST( args, 7 );
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 6 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -3347,6 +3456,7 @@ static Obj  HdlrFunc24 (
    C_SUM( t_4, t_5, INTOBJ_INT(8) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -3366,10 +3476,12 @@ static Obj  HdlrFunc24 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -3382,10 +3494,12 @@ static Obj  HdlrFunc25 (
  Obj t_1 = 0;
  Obj t_2 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* Error( "not supported yet" ); */
  t_1 = GF_Error;
@@ -3393,10 +3507,12 @@ static Obj  HdlrFunc25 (
  CALL_1ARGS( t_1, t_2 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -3419,10 +3535,12 @@ static Obj  HdlrFunc26 (
  Obj t_7 = 0;
  Obj t_8 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 0 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -3478,6 +3596,7 @@ static Obj  HdlrFunc26 (
     C_SUM( t_4, t_5, INTOBJ_INT(2) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -3509,10 +3628,12 @@ static Obj  HdlrFunc26 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -3539,10 +3660,12 @@ static Obj  HdlrFunc27 (
  Obj t_10 = 0;
  Obj t_11 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 1 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -3614,6 +3737,7 @@ static Obj  HdlrFunc27 (
     C_SUM( t_4, t_5, INTOBJ_INT(3) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -3645,10 +3769,12 @@ static Obj  HdlrFunc27 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -3678,10 +3804,12 @@ static Obj  HdlrFunc28 (
  Obj t_12 = 0;
  Obj t_13 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 2 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -3769,6 +3897,7 @@ static Obj  HdlrFunc28 (
     C_SUM( t_4, t_5, INTOBJ_INT(4) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -3800,10 +3929,12 @@ static Obj  HdlrFunc28 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -3835,10 +3966,12 @@ static Obj  HdlrFunc29 (
  Obj t_13 = 0;
  Obj t_14 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 3 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -3942,6 +4075,7 @@ static Obj  HdlrFunc29 (
     C_SUM( t_4, t_5, INTOBJ_INT(5) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -3973,10 +4107,12 @@ static Obj  HdlrFunc29 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -4010,10 +4146,12 @@ static Obj  HdlrFunc30 (
  Obj t_14 = 0;
  Obj t_15 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 4 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -4134,6 +4272,7 @@ and methods[8 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1] ) then 
     C_SUM( t_4, t_5, INTOBJ_INT(6) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -4165,10 +4304,12 @@ and methods[8 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1] ) then 
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -4205,6 +4346,7 @@ static Obj  HdlrFunc31 (
  Obj t_15 = 0;
  Obj t_16 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  CHECK_NR_ARGS( 7, args )
  a_operation = ELM_PLIST( args, 1 );
  a_k = ELM_PLIST( args, 2 );
@@ -4214,9 +4356,10 @@ static Obj  HdlrFunc31 (
  a_type4 = ELM_PLIST( args, 6 );
  a_type5 = ELM_PLIST( args, 7 );
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 5 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -4353,6 +4496,7 @@ static Obj  HdlrFunc31 (
     C_SUM( t_4, t_5, INTOBJ_INT(7) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -4384,10 +4528,12 @@ static Obj  HdlrFunc31 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -4426,6 +4572,7 @@ static Obj  HdlrFunc32 (
  Obj t_16 = 0;
  Obj t_17 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  CHECK_NR_ARGS( 8, args )
  a_operation = ELM_PLIST( args, 1 );
  a_k = ELM_PLIST( args, 2 );
@@ -4436,9 +4583,10 @@ static Obj  HdlrFunc32 (
  a_type5 = ELM_PLIST( args, 7 );
  a_type6 = ELM_PLIST( args, 8 );
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 6 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -4591,6 +4739,7 @@ static Obj  HdlrFunc32 (
     C_SUM( t_4, t_5, INTOBJ_INT(8) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -4622,10 +4771,12 @@ static Obj  HdlrFunc32 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -4638,10 +4789,12 @@ static Obj  HdlrFunc33 (
  Obj t_1 = 0;
  Obj t_2 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* Error( "not supported yet" ); */
  t_1 = GF_Error;
@@ -4649,10 +4802,12 @@ static Obj  HdlrFunc33 (
  CALL_1ARGS( t_1, t_2 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -4681,10 +4836,12 @@ static Obj  HdlrFunc34 (
  Obj t_10 = 0;
  Obj t_11 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* type := TypeObj( obj ); */
  t_2 = GF_TypeObj;
@@ -4822,6 +4979,7 @@ static Obj  HdlrFunc34 (
    if ( t_3 ) {
     
     /* return erg; */
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return l_erg;
     
@@ -4840,10 +4998,12 @@ static Obj  HdlrFunc34 (
  CALL_1ARGS( t_1, t_2 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -4864,10 +5024,12 @@ static Obj  HdlrFunc35 (
  Obj t_7 = 0;
  Obj t_8 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 0 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -4905,6 +5067,7 @@ static Obj  HdlrFunc35 (
    C_SUM( t_4, t_5, INTOBJ_INT(2) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -4924,10 +5087,12 @@ static Obj  HdlrFunc35 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -4951,10 +5116,12 @@ static Obj  HdlrFunc36 (
  Obj t_9 = 0;
  Obj t_10 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 1 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -5006,6 +5173,7 @@ static Obj  HdlrFunc36 (
    C_SUM( t_4, t_5, INTOBJ_INT(3) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -5025,10 +5193,12 @@ static Obj  HdlrFunc36 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -5056,10 +5226,12 @@ static Obj  HdlrFunc37 (
  Obj t_12 = 0;
  Obj t_13 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 2 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -5127,6 +5299,7 @@ static Obj  HdlrFunc37 (
    C_SUM( t_4, t_5, INTOBJ_INT(4) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -5146,10 +5319,12 @@ static Obj  HdlrFunc37 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -5179,10 +5354,12 @@ static Obj  HdlrFunc38 (
  Obj t_13 = 0;
  Obj t_14 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 3 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -5266,6 +5443,7 @@ static Obj  HdlrFunc38 (
    C_SUM( t_4, t_5, INTOBJ_INT(5) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -5285,10 +5463,12 @@ static Obj  HdlrFunc38 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -5320,10 +5500,12 @@ static Obj  HdlrFunc39 (
  Obj t_14 = 0;
  Obj t_15 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 4 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -5424,6 +5606,7 @@ and methods[8 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1] ) then */
    C_SUM( t_4, t_5, INTOBJ_INT(6) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -5443,10 +5626,12 @@ and methods[8 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1] ) then */
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -5480,10 +5665,12 @@ static Obj  HdlrFunc40 (
  Obj t_15 = 0;
  Obj t_16 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 5 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -5600,6 +5787,7 @@ static Obj  HdlrFunc40 (
    C_SUM( t_4, t_5, INTOBJ_INT(7) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -5619,10 +5807,12 @@ static Obj  HdlrFunc40 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -5659,6 +5849,7 @@ static Obj  HdlrFunc41 (
  Obj t_16 = 0;
  Obj t_17 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  CHECK_NR_ARGS( 7, args )
  a_operation = ELM_PLIST( args, 1 );
  a_flags1 = ELM_PLIST( args, 2 );
@@ -5668,9 +5859,10 @@ static Obj  HdlrFunc41 (
  a_type5 = ELM_PLIST( args, 6 );
  a_type6 = ELM_PLIST( args, 7 );
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 6 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -5803,6 +5995,7 @@ static Obj  HdlrFunc41 (
    C_SUM( t_4, t_5, INTOBJ_INT(8) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -5822,10 +6015,12 @@ static Obj  HdlrFunc41 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -5838,10 +6033,12 @@ static Obj  HdlrFunc42 (
  Obj t_1 = 0;
  Obj t_2 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* Error( "not supported yet" ); */
  t_1 = GF_Error;
@@ -5849,10 +6046,12 @@ static Obj  HdlrFunc42 (
  CALL_1ARGS( t_1, t_2 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -5875,10 +6074,12 @@ static Obj  HdlrFunc43 (
  Obj t_7 = 0;
  Obj t_8 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 0 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -5923,6 +6124,7 @@ static Obj  HdlrFunc43 (
     C_SUM( t_4, t_5, INTOBJ_INT(2) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -5954,10 +6156,12 @@ static Obj  HdlrFunc43 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -5983,10 +6187,12 @@ static Obj  HdlrFunc44 (
  Obj t_9 = 0;
  Obj t_10 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 1 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -6045,6 +6251,7 @@ static Obj  HdlrFunc44 (
     C_SUM( t_4, t_5, INTOBJ_INT(3) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -6076,10 +6283,12 @@ static Obj  HdlrFunc44 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -6109,10 +6318,12 @@ static Obj  HdlrFunc45 (
  Obj t_12 = 0;
  Obj t_13 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 2 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -6187,6 +6398,7 @@ static Obj  HdlrFunc45 (
     C_SUM( t_4, t_5, INTOBJ_INT(4) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -6218,10 +6430,12 @@ static Obj  HdlrFunc45 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -6253,10 +6467,12 @@ static Obj  HdlrFunc46 (
  Obj t_13 = 0;
  Obj t_14 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 3 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -6347,6 +6563,7 @@ static Obj  HdlrFunc46 (
     C_SUM( t_4, t_5, INTOBJ_INT(5) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -6378,10 +6595,12 @@ static Obj  HdlrFunc46 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -6415,10 +6634,12 @@ static Obj  HdlrFunc47 (
  Obj t_14 = 0;
  Obj t_15 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 4 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -6526,6 +6747,7 @@ and methods[8 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1] ) then */
     C_SUM( t_4, t_5, INTOBJ_INT(6) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -6557,10 +6779,12 @@ and methods[8 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1] ) then */
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -6597,6 +6821,7 @@ static Obj  HdlrFunc48 (
  Obj t_15 = 0;
  Obj t_16 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  CHECK_NR_ARGS( 7, args )
  a_operation = ELM_PLIST( args, 1 );
  a_k = ELM_PLIST( args, 2 );
@@ -6606,9 +6831,10 @@ static Obj  HdlrFunc48 (
  a_type4 = ELM_PLIST( args, 6 );
  a_type5 = ELM_PLIST( args, 7 );
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 5 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -6732,6 +6958,7 @@ static Obj  HdlrFunc48 (
     C_SUM( t_4, t_5, INTOBJ_INT(7) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -6763,10 +6990,12 @@ static Obj  HdlrFunc48 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -6805,6 +7034,7 @@ static Obj  HdlrFunc49 (
  Obj t_16 = 0;
  Obj t_17 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  CHECK_NR_ARGS( 8, args )
  a_operation = ELM_PLIST( args, 1 );
  a_k = ELM_PLIST( args, 2 );
@@ -6815,9 +7045,10 @@ static Obj  HdlrFunc49 (
  a_type5 = ELM_PLIST( args, 7 );
  a_type6 = ELM_PLIST( args, 8 );
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 6 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -6957,6 +7188,7 @@ static Obj  HdlrFunc49 (
     C_SUM( t_4, t_5, INTOBJ_INT(8) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -6988,10 +7220,12 @@ static Obj  HdlrFunc49 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -7004,10 +7238,12 @@ static Obj  HdlrFunc50 (
  Obj t_1 = 0;
  Obj t_2 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* Error( "not supported yet" ); */
  t_1 = GF_Error;
@@ -7015,10 +7251,12 @@ static Obj  HdlrFunc50 (
  CALL_1ARGS( t_1, t_2 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -7039,10 +7277,12 @@ static Obj  HdlrFunc51 (
  Obj t_7 = 0;
  Obj t_8 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 0 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -7091,6 +7331,7 @@ static Obj  HdlrFunc51 (
    C_SUM( t_4, t_5, INTOBJ_INT(2) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -7110,10 +7351,12 @@ static Obj  HdlrFunc51 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -7137,10 +7380,12 @@ static Obj  HdlrFunc52 (
  Obj t_9 = 0;
  Obj t_10 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 1 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -7203,6 +7448,7 @@ static Obj  HdlrFunc52 (
    C_SUM( t_4, t_5, INTOBJ_INT(3) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -7222,10 +7468,12 @@ static Obj  HdlrFunc52 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -7253,10 +7501,12 @@ static Obj  HdlrFunc53 (
  Obj t_12 = 0;
  Obj t_13 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 2 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -7335,6 +7585,7 @@ static Obj  HdlrFunc53 (
    C_SUM( t_4, t_5, INTOBJ_INT(4) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -7354,10 +7605,12 @@ static Obj  HdlrFunc53 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -7387,10 +7640,12 @@ static Obj  HdlrFunc54 (
  Obj t_13 = 0;
  Obj t_14 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 3 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -7485,6 +7740,7 @@ static Obj  HdlrFunc54 (
    C_SUM( t_4, t_5, INTOBJ_INT(5) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -7504,10 +7760,12 @@ static Obj  HdlrFunc54 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -7539,10 +7797,12 @@ static Obj  HdlrFunc55 (
  Obj t_14 = 0;
  Obj t_15 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 4 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -7654,6 +7914,7 @@ and methods[8 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1] ) then */
    C_SUM( t_4, t_5, INTOBJ_INT(6) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -7673,10 +7934,12 @@ and methods[8 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1] ) then */
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -7710,10 +7973,12 @@ static Obj  HdlrFunc56 (
  Obj t_15 = 0;
  Obj t_16 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 5 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -7841,6 +8106,7 @@ static Obj  HdlrFunc56 (
    C_SUM( t_4, t_5, INTOBJ_INT(7) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -7860,10 +8126,12 @@ static Obj  HdlrFunc56 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -7900,6 +8168,7 @@ static Obj  HdlrFunc57 (
  Obj t_16 = 0;
  Obj t_17 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  CHECK_NR_ARGS( 7, args )
  a_operation = ELM_PLIST( args, 1 );
  a_flags1 = ELM_PLIST( args, 2 );
@@ -7909,9 +8178,10 @@ static Obj  HdlrFunc57 (
  a_type5 = ELM_PLIST( args, 6 );
  a_type6 = ELM_PLIST( args, 7 );
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 6 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -8055,6 +8325,7 @@ static Obj  HdlrFunc57 (
    C_SUM( t_4, t_5, INTOBJ_INT(8) )
    CHECK_INT_SMALL_POS( t_4 )
    C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+   RES_BRK_CURR_STAT();
    SWITCH_TO_OLD_FRAME(oldFrame);
    return t_3;
    
@@ -8074,10 +8345,12 @@ static Obj  HdlrFunc57 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -8090,10 +8363,12 @@ static Obj  HdlrFunc58 (
  Obj t_1 = 0;
  Obj t_2 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* Error( "not supported yet" ); */
  t_1 = GF_Error;
@@ -8101,10 +8376,12 @@ static Obj  HdlrFunc58 (
  CALL_1ARGS( t_1, t_2 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -8127,10 +8404,12 @@ static Obj  HdlrFunc59 (
  Obj t_7 = 0;
  Obj t_8 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 0 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -8186,6 +8465,7 @@ static Obj  HdlrFunc59 (
     C_SUM( t_4, t_5, INTOBJ_INT(2) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -8217,10 +8497,12 @@ static Obj  HdlrFunc59 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -8246,10 +8528,12 @@ static Obj  HdlrFunc60 (
  Obj t_9 = 0;
  Obj t_10 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 1 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -8319,6 +8603,7 @@ static Obj  HdlrFunc60 (
     C_SUM( t_4, t_5, INTOBJ_INT(3) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -8350,10 +8635,12 @@ static Obj  HdlrFunc60 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -8383,10 +8670,12 @@ static Obj  HdlrFunc61 (
  Obj t_12 = 0;
  Obj t_13 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 2 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -8472,6 +8761,7 @@ static Obj  HdlrFunc61 (
     C_SUM( t_4, t_5, INTOBJ_INT(4) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -8503,10 +8793,12 @@ static Obj  HdlrFunc61 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -8538,10 +8830,12 @@ static Obj  HdlrFunc62 (
  Obj t_13 = 0;
  Obj t_14 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 3 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -8643,6 +8937,7 @@ static Obj  HdlrFunc62 (
     C_SUM( t_4, t_5, INTOBJ_INT(5) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -8674,10 +8969,12 @@ static Obj  HdlrFunc62 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -8711,10 +9008,12 @@ static Obj  HdlrFunc63 (
  Obj t_14 = 0;
  Obj t_15 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 4 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -8833,6 +9132,7 @@ and methods[8 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1] ) then */
     C_SUM( t_4, t_5, INTOBJ_INT(6) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -8864,10 +9164,12 @@ and methods[8 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1] ) then */
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -8904,6 +9206,7 @@ static Obj  HdlrFunc64 (
  Obj t_15 = 0;
  Obj t_16 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  CHECK_NR_ARGS( 7, args )
  a_operation = ELM_PLIST( args, 1 );
  a_k = ELM_PLIST( args, 2 );
@@ -8913,9 +9216,10 @@ static Obj  HdlrFunc64 (
  a_type4 = ELM_PLIST( args, 6 );
  a_type5 = ELM_PLIST( args, 7 );
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 5 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -9050,6 +9354,7 @@ static Obj  HdlrFunc64 (
     C_SUM( t_4, t_5, INTOBJ_INT(7) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -9081,10 +9386,12 @@ static Obj  HdlrFunc64 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -9123,6 +9430,7 @@ static Obj  HdlrFunc65 (
  Obj t_16 = 0;
  Obj t_17 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  CHECK_NR_ARGS( 8, args )
  a_operation = ELM_PLIST( args, 1 );
  a_k = ELM_PLIST( args, 2 );
@@ -9133,9 +9441,10 @@ static Obj  HdlrFunc65 (
  a_type5 = ELM_PLIST( args, 7 );
  a_type6 = ELM_PLIST( args, 8 );
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* methods := METHODS_OPERATION( operation, 6 ); */
  t_2 = GF_METHODS__OPERATION;
@@ -9286,6 +9595,7 @@ static Obj  HdlrFunc65 (
     C_SUM( t_4, t_5, INTOBJ_INT(8) )
     CHECK_INT_SMALL_POS( t_4 )
     C_ELM_LIST_FPL( t_3, l_methods, INT_INTOBJ(t_4) )
+    RES_BRK_CURR_STAT();
     SWITCH_TO_OLD_FRAME(oldFrame);
     return t_3;
     
@@ -9317,10 +9627,12 @@ static Obj  HdlrFunc65 (
  CALL_3ARGS( t_1, t_2, t_3, t_4 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -9333,10 +9645,12 @@ static Obj  HdlrFunc66 (
  Obj t_1 = 0;
  Obj t_2 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* Error( "not supported yet" ); */
  t_1 = GF_Error;
@@ -9344,10 +9658,12 @@ static Obj  HdlrFunc66 (
  CALL_1ARGS( t_1, t_2 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -9359,10 +9675,12 @@ static Obj  HdlrFunc1 (
  Obj t_1 = 0;
  Obj t_2 = 0;
  Bag oldFrame;
+ OLD_BRK_CURR_STAT
  
- /* restoring old stack frame */
- oldFrame = CurrLVars;
- SWITCH_TO_OLD_FRAME(ENVI_FUNC(self));
+ /* allocate new stack frame */
+ SWITCH_TO_NEW_FRAME(self,0,0,oldFrame);
+ REM_BRK_CURR_STAT();
+ SET_BRK_CURR_STAT(0);
  
  /* Revision.methsel_g := "@(#)$Id$"; */
  t_1 = GC_Revision;
@@ -9370,7 +9688,17 @@ static Obj  HdlrFunc1 (
  C_NEW_STRING( t_2, 59, "@(#)$Id$" )
  ASS_REC( t_1, R_methsel__g, t_2 );
  
- /* METHOD_0ARGS := function ... end; */
+ /* METHOD_0ARGS := function ( operation )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 0 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 4 ]  do
+          if methods[4 * (i - 1) + 1](  )  then
+              return methods[4 * (i - 1) + 2];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 0 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[2], NargFunc[2], NamsFunc[2], HdlrFunc2 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9378,7 +9706,17 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_METHOD__0ARGS, t_1 );
  
- /* METHOD_1ARGS := function ... end; */
+ /* METHOD_1ARGS := function ( operation, type1 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 1 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 5 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[5 * (i - 1) + 2] ) and methods[5 * (i - 1) + 1]( type1![1] )  then
+              return methods[5 * (i - 1) + 3];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 1 argument" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[3], NargFunc[3], NamsFunc[3], HdlrFunc3 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9386,7 +9724,17 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_METHOD__1ARGS, t_1 );
  
- /* METHOD_2ARGS := function ... end; */
+ /* METHOD_2ARGS := function ( operation, type1, type2 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 2 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 6 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[6 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[6 * (i - 1) + 3] ) and methods[6 * (i - 1) + 1]( type1![1], type2![1] )  then
+              return methods[6 * (i - 1) + 4];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 2 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[4], NargFunc[4], NamsFunc[4], HdlrFunc4 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9394,7 +9742,18 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_METHOD__2ARGS, t_1 );
  
- /* METHOD_3ARGS := function ... end; */
+ /* METHOD_3ARGS := function ( operation, type1, type2, type3 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 3 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 7 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[7 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[7 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[7 * (i - 1) + 4] ) and methods[7 * (i - 1) + 1]( type1![1], type2![1], type3![1] )
+               then
+              return methods[7 * (i - 1) + 5];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 3 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[5], NargFunc[5], NamsFunc[5], HdlrFunc5 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9402,7 +9761,18 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_METHOD__3ARGS, t_1 );
  
- /* METHOD_4ARGS := function ... end; */
+ /* METHOD_4ARGS := function ( operation, type1, type2, type3, type4 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 4 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 8 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[8 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[8 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[8 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[8 * (i - 1) + 5] ) 
+              and methods[8 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1] )  then
+              return methods[8 * (i - 1) + 6];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 4 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[6], NargFunc[6], NamsFunc[6], HdlrFunc6 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9410,7 +9780,18 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_METHOD__4ARGS, t_1 );
  
- /* METHOD_5ARGS := function ... end; */
+ /* METHOD_5ARGS := function ( operation, type1, type2, type3, type4, type5 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 5 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 9 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[9 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[9 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[9 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[9 * (i - 1) + 5] ) 
+                and IS_SUBSET_FLAGS( type5![2], methods[9 * (i - 1) + 6] ) and methods[9 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1], type5![1] )  then
+              return methods[9 * (i - 1) + 7];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 5 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[7], NargFunc[7], NamsFunc[7], HdlrFunc7 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9418,7 +9799,18 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_METHOD__5ARGS, t_1 );
  
- /* METHOD_6ARGS := function ... end; */
+ /* METHOD_6ARGS := function ( operation, type1, type2, type3, type4, type5, type6 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 6 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 10 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[10 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[10 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[10 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[10 * (i - 1) + 5] ) 
+                  and IS_SUBSET_FLAGS( type5![2], methods[10 * (i - 1) + 6] ) and IS_SUBSET_FLAGS( type6![2], methods[10 * (i - 1) + 7] ) and methods[10 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1], type5![1], type6![1] )  then
+              return methods[10 * (i - 1) + 8];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 6 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[8], NargFunc[8], NamsFunc[8], HdlrFunc8 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9426,7 +9818,10 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_METHOD__6ARGS, t_1 );
  
- /* METHOD_XARGS := function ... end; */
+ /* METHOD_XARGS := function ( arg )
+      Error( "not supported yet" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[9], NargFunc[9], NamsFunc[9], HdlrFunc9 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9434,7 +9829,22 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_METHOD__XARGS, t_1 );
  
- /* NEXT_METHOD_0ARGS := function ... end; */
+ /* NEXT_METHOD_0ARGS := function ( operation, k )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 0 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 4 ]  do
+          if methods[4 * (i - 1) + 1](  )  then
+              if k = j  then
+                  return methods[4 * (i - 1) + 2];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 0 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[10], NargFunc[10], NamsFunc[10], HdlrFunc10 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9442,7 +9852,22 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__METHOD__0ARGS, t_1 );
  
- /* NEXT_METHOD_1ARGS := function ... end; */
+ /* NEXT_METHOD_1ARGS := function ( operation, k, type1 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 1 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 5 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[5 * (i - 1) + 2] ) and methods[5 * (i - 1) + 1]( type1![1] )  then
+              if k = j  then
+                  return methods[5 * (i - 1) + 3];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 1 argument" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[11], NargFunc[11], NamsFunc[11], HdlrFunc11 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9450,7 +9875,22 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__METHOD__1ARGS, t_1 );
  
- /* NEXT_METHOD_2ARGS := function ... end; */
+ /* NEXT_METHOD_2ARGS := function ( operation, k, type1, type2 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 2 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 6 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[6 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[6 * (i - 1) + 3] ) and methods[6 * (i - 1) + 1]( type1![1], type2![1] )  then
+              if k = j  then
+                  return methods[6 * (i - 1) + 4];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 2 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[12], NargFunc[12], NamsFunc[12], HdlrFunc12 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9458,7 +9898,23 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__METHOD__2ARGS, t_1 );
  
- /* NEXT_METHOD_3ARGS := function ... end; */
+ /* NEXT_METHOD_3ARGS := function ( operation, k, type1, type2, type3 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 3 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 7 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[7 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[7 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[7 * (i - 1) + 4] ) and methods[7 * (i - 1) + 1]( type1![1], type2![1], type3![1] )
+               then
+              if k = j  then
+                  return methods[7 * (i - 1) + 5];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 3 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[13], NargFunc[13], NamsFunc[13], HdlrFunc13 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9466,7 +9922,23 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__METHOD__3ARGS, t_1 );
  
- /* NEXT_METHOD_4ARGS := function ... end; */
+ /* NEXT_METHOD_4ARGS := function ( operation, k, type1, type2, type3, type4 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 4 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 8 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[8 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[8 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[8 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[8 * (i - 1) + 5] ) 
+              and methods[8 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1] )  then
+              if k = j  then
+                  return methods[8 * (i - 1) + 6];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 4 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[14], NargFunc[14], NamsFunc[14], HdlrFunc14 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9474,7 +9946,23 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__METHOD__4ARGS, t_1 );
  
- /* NEXT_METHOD_5ARGS := function ... end; */
+ /* NEXT_METHOD_5ARGS := function ( operation, k, type1, type2, type3, type4, type5 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 5 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 9 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[9 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[9 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[9 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[9 * (i - 1) + 5] ) 
+                and IS_SUBSET_FLAGS( type5![2], methods[9 * (i - 1) + 6] ) and methods[9 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1], type5![1] )  then
+              if k = j  then
+                  return methods[9 * (i - 1) + 7];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 5 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[15], NargFunc[15], NamsFunc[15], HdlrFunc15 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9482,7 +9970,23 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__METHOD__5ARGS, t_1 );
  
- /* NEXT_METHOD_6ARGS := function ... end; */
+ /* NEXT_METHOD_6ARGS := function ( operation, k, type1, type2, type3, type4, type5, type6 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 6 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 10 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[10 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[10 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[10 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[10 * (i - 1) + 5] ) 
+                  and IS_SUBSET_FLAGS( type5![2], methods[10 * (i - 1) + 6] ) and IS_SUBSET_FLAGS( type6![2], methods[10 * (i - 1) + 7] ) and methods[10 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1], type5![1], type6![1] )  then
+              if k = j  then
+                  return methods[10 * (i - 1) + 8];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 6 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[16], NargFunc[16], NamsFunc[16], HdlrFunc16 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9490,7 +9994,10 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__METHOD__6ARGS, t_1 );
  
- /* NEXT_METHOD_XARGS := function ... end; */
+ /* NEXT_METHOD_XARGS := function ( arg )
+      Error( "not supported yet" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[17], NargFunc[17], NamsFunc[17], HdlrFunc17 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9498,7 +10005,18 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__METHOD__XARGS, t_1 );
  
- /* VMETHOD_0ARGS := function ... end; */
+ /* VMETHOD_0ARGS := function ( operation )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 0 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 4 ]  do
+          if methods[4 * (i - 1) + 1](  )  then
+              Print( "#I  ", methods[4 * (i - 1) + 4], "\n" );
+              return methods[4 * (i - 1) + 2];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 0 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[18], NargFunc[18], NamsFunc[18], HdlrFunc18 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9506,7 +10024,18 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_VMETHOD__0ARGS, t_1 );
  
- /* VMETHOD_1ARGS := function ... end; */
+ /* VMETHOD_1ARGS := function ( operation, type1 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 1 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 5 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[5 * (i - 1) + 2] ) and methods[5 * (i - 1) + 1]( type1![1] )  then
+              Print( "#I  ", methods[5 * (i - 1) + 5], "\n" );
+              return methods[5 * (i - 1) + 3];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 1 argument" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[19], NargFunc[19], NamsFunc[19], HdlrFunc19 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9514,7 +10043,18 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_VMETHOD__1ARGS, t_1 );
  
- /* VMETHOD_2ARGS := function ... end; */
+ /* VMETHOD_2ARGS := function ( operation, type1, type2 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 2 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 6 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[6 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[6 * (i - 1) + 3] ) and methods[6 * (i - 1) + 1]( type1![1], type2![1] )  then
+              Print( "#I  ", methods[6 * (i - 1) + 6], "\n" );
+              return methods[6 * (i - 1) + 4];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 2 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[20], NargFunc[20], NamsFunc[20], HdlrFunc20 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9522,7 +10062,19 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_VMETHOD__2ARGS, t_1 );
  
- /* VMETHOD_3ARGS := function ... end; */
+ /* VMETHOD_3ARGS := function ( operation, type1, type2, type3 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 3 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 7 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[7 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[7 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[7 * (i - 1) + 4] ) and methods[7 * (i - 1) + 1]( type1![1], type2![1], type3![1] )
+               then
+              Print( "#I  ", methods[7 * (i - 1) + 7], "\n" );
+              return methods[7 * (i - 1) + 5];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 3 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[21], NargFunc[21], NamsFunc[21], HdlrFunc21 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9530,7 +10082,19 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_VMETHOD__3ARGS, t_1 );
  
- /* VMETHOD_4ARGS := function ... end; */
+ /* VMETHOD_4ARGS := function ( operation, type1, type2, type3, type4 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 4 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 8 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[8 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[8 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[8 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[8 * (i - 1) + 5] ) 
+              and methods[8 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1] )  then
+              Print( "#I  ", methods[8 * (i - 1) + 8], "\n" );
+              return methods[8 * (i - 1) + 6];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 4 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[22], NargFunc[22], NamsFunc[22], HdlrFunc22 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9538,7 +10102,19 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_VMETHOD__4ARGS, t_1 );
  
- /* VMETHOD_5ARGS := function ... end; */
+ /* VMETHOD_5ARGS := function ( operation, type1, type2, type3, type4, type5 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 5 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 9 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[9 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[9 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[9 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[9 * (i - 1) + 5] ) 
+                and IS_SUBSET_FLAGS( type5![2], methods[9 * (i - 1) + 6] ) and methods[9 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1], type5![1] )  then
+              Print( "#I  ", methods[9 * (i - 1) + 9], "\n" );
+              return methods[9 * (i - 1) + 7];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 5 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[23], NargFunc[23], NamsFunc[23], HdlrFunc23 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9546,7 +10122,19 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_VMETHOD__5ARGS, t_1 );
  
- /* VMETHOD_6ARGS := function ... end; */
+ /* VMETHOD_6ARGS := function ( operation, type1, type2, type3, type4, type5, type6 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 6 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 10 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[10 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[10 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[10 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[10 * (i - 1) + 5] ) 
+                  and IS_SUBSET_FLAGS( type5![2], methods[10 * (i - 1) + 6] ) and IS_SUBSET_FLAGS( type6![2], methods[10 * (i - 1) + 7] ) and methods[10 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1], type5![1], type6![1] )  then
+              Print( "#I  ", methods[10 * (i - 1) + 10], "\n" );
+              return methods[10 * (i - 1) + 8];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 6 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[24], NargFunc[24], NamsFunc[24], HdlrFunc24 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9554,7 +10142,10 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_VMETHOD__6ARGS, t_1 );
  
- /* VMETHOD_XARGS := function ... end; */
+ /* VMETHOD_XARGS := function ( arg )
+      Error( "not supported yet" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[25], NargFunc[25], NamsFunc[25], HdlrFunc25 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9562,7 +10153,23 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_VMETHOD__XARGS, t_1 );
  
- /* NEXT_VMETHOD_0ARGS := function ... end; */
+ /* NEXT_VMETHOD_0ARGS := function ( operation, k )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 0 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 4 ]  do
+          if methods[4 * (i - 1) + 1](  )  then
+              if k = j  then
+                  Print( "#I  trying next: ", methods[4 * (i - 1) + 4], "\n" );
+                  return methods[4 * (i - 1) + 2];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 0 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[26], NargFunc[26], NamsFunc[26], HdlrFunc26 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9570,7 +10177,23 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__VMETHOD__0ARGS, t_1 );
  
- /* NEXT_VMETHOD_1ARGS := function ... end; */
+ /* NEXT_VMETHOD_1ARGS := function ( operation, k, type1 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 1 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 5 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[5 * (i - 1) + 2] ) and methods[5 * (i - 1) + 1]( type1![1] )  then
+              if k = j  then
+                  Print( "#I  trying next: ", methods[5 * (i - 1) + 5], "\n" );
+                  return methods[5 * (i - 1) + 3];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 1 argument" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[27], NargFunc[27], NamsFunc[27], HdlrFunc27 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9578,7 +10201,23 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__VMETHOD__1ARGS, t_1 );
  
- /* NEXT_VMETHOD_2ARGS := function ... end; */
+ /* NEXT_VMETHOD_2ARGS := function ( operation, k, type1, type2 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 2 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 6 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[6 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[6 * (i - 1) + 3] ) and methods[6 * (i - 1) + 1]( type1![1], type2![1] )  then
+              if k = j  then
+                  Print( "#I  trying next: ", methods[6 * (i - 1) + 6], "\n" );
+                  return methods[6 * (i - 1) + 4];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 2 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[28], NargFunc[28], NamsFunc[28], HdlrFunc28 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9586,7 +10225,24 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__VMETHOD__2ARGS, t_1 );
  
- /* NEXT_VMETHOD_3ARGS := function ... end; */
+ /* NEXT_VMETHOD_3ARGS := function ( operation, k, type1, type2, type3 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 3 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 7 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[7 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[7 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[7 * (i - 1) + 4] ) and methods[7 * (i - 1) + 1]( type1![1], type2![1], type3![1] )
+               then
+              if k = j  then
+                  Print( "#I  trying next: ", methods[7 * (i - 1) + 7], "\n" );
+                  return methods[7 * (i - 1) + 5];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 3 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[29], NargFunc[29], NamsFunc[29], HdlrFunc29 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9594,7 +10250,24 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__VMETHOD__3ARGS, t_1 );
  
- /* NEXT_VMETHOD_4ARGS := function ... end; */
+ /* NEXT_VMETHOD_4ARGS := function ( operation, k, type1, type2, type3, type4 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 4 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 8 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[8 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[8 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[8 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[8 * (i - 1) + 5] ) 
+              and methods[8 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1] )  then
+              if k = j  then
+                  Print( "#I  trying next: ", methods[8 * (i - 1) + 8], "\n" );
+                  return methods[8 * (i - 1) + 6];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 4 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[30], NargFunc[30], NamsFunc[30], HdlrFunc30 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9602,7 +10275,24 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__VMETHOD__4ARGS, t_1 );
  
- /* NEXT_VMETHOD_5ARGS := function ... end; */
+ /* NEXT_VMETHOD_5ARGS := function ( operation, k, type1, type2, type3, type4, type5 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 5 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 9 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[9 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[9 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[9 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[9 * (i - 1) + 5] ) 
+                and IS_SUBSET_FLAGS( type5![2], methods[9 * (i - 1) + 6] ) and methods[9 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1], type5![1] )  then
+              if k = j  then
+                  Print( "#I  trying next: ", methods[9 * (i - 1) + 9], "\n" );
+                  return methods[9 * (i - 1) + 7];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 5 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[31], NargFunc[31], NamsFunc[31], HdlrFunc31 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9610,7 +10300,24 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__VMETHOD__5ARGS, t_1 );
  
- /* NEXT_VMETHOD_6ARGS := function ... end; */
+ /* NEXT_VMETHOD_6ARGS := function ( operation, k, type1, type2, type3, type4, type5, type6 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 6 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 10 ]  do
+          if IS_SUBSET_FLAGS( type1![2], methods[10 * (i - 1) + 2] ) and IS_SUBSET_FLAGS( type2![2], methods[10 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[10 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[10 * (i - 1) + 5] ) 
+                  and IS_SUBSET_FLAGS( type5![2], methods[10 * (i - 1) + 6] ) and IS_SUBSET_FLAGS( type6![2], methods[10 * (i - 1) + 7] ) and methods[10 * (i - 1) + 1]( type1![1], type2![1], type3![1], type4![1], type5![1], type6![1] )  then
+              if k = j  then
+                  Print( "#I  trying next: ", methods[10 * (i - 1) + 10], "\n" );
+                  return methods[10 * (i - 1) + 8];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 6 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[32], NargFunc[32], NamsFunc[32], HdlrFunc32 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9618,7 +10325,10 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__VMETHOD__6ARGS, t_1 );
  
- /* NEXT_VMETHOD_XARGS := function ... end; */
+ /* NEXT_VMETHOD_XARGS := function ( arg )
+      Error( "not supported yet" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[33], NargFunc[33], NamsFunc[33], HdlrFunc33 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9626,7 +10336,28 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__VMETHOD__XARGS, t_1 );
  
- /* AttributeValueNotSet := function ... end; */
+ /* AttributeValueNotSet := function ( attr, obj )
+      local  type, fam, methods, i, flag, erg;
+      type := TypeObj( obj );
+      fam := FamilyObj( obj );
+      methods := METHODS_OPERATION( attr, 1 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 5 ]  do
+          flag := true;
+          flag := flag and IS_SUBSET_FLAGS( type![2], methods[5 * (i - 1) + 2] );
+          if flag  then
+              flag := flag and methods[5 * (i - 1) + 1]( fam );
+          fi;
+          if flag  then
+              attr := methods[5 * (i - 1) + 3];
+              erg := attr( obj );
+              if not IS_IDENTICAL_OBJ( erg, TRY_NEXT_METHOD )  then
+                  return erg;
+              fi;
+          fi;
+      od;
+      Error( "No applicable method found for attribute" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[34], NargFunc[34], NamsFunc[34], HdlrFunc34 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9634,7 +10365,17 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_AttributeValueNotSet, t_1 );
  
- /* CONSTRUCTOR_0ARGS := function ... end; */
+ /* CONSTRUCTOR_0ARGS := function ( operation )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 0 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 4 ]  do
+          if methods[4 * (i - 1) + 1](  )  then
+              return methods[4 * (i - 1) + 2];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 0 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[35], NargFunc[35], NamsFunc[35], HdlrFunc35 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9642,7 +10383,17 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_CONSTRUCTOR__0ARGS, t_1 );
  
- /* CONSTRUCTOR_1ARGS := function ... end; */
+ /* CONSTRUCTOR_1ARGS := function ( operation, flags1 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 1 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 5 ]  do
+          if IS_SUBSET_FLAGS( methods[5 * (i - 1) + 2], flags1 ) and methods[5 * (i - 1) + 1]( flags1 )  then
+              return methods[5 * (i - 1) + 3];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 1 argument" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[36], NargFunc[36], NamsFunc[36], HdlrFunc36 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9650,7 +10401,17 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_CONSTRUCTOR__1ARGS, t_1 );
  
- /* CONSTRUCTOR_2ARGS := function ... end; */
+ /* CONSTRUCTOR_2ARGS := function ( operation, flags1, type2 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 2 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 6 ]  do
+          if IS_SUBSET_FLAGS( methods[6 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[6 * (i - 1) + 3] ) and methods[6 * (i - 1) + 1]( flags1, type2![1] )  then
+              return methods[6 * (i - 1) + 4];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 2 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[37], NargFunc[37], NamsFunc[37], HdlrFunc37 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9658,7 +10419,17 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_CONSTRUCTOR__2ARGS, t_1 );
  
- /* CONSTRUCTOR_3ARGS := function ... end; */
+ /* CONSTRUCTOR_3ARGS := function ( operation, flags1, type2, type3 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 3 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 7 ]  do
+          if IS_SUBSET_FLAGS( methods[7 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[7 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[7 * (i - 1) + 4] ) and methods[7 * (i - 1) + 1]( flags1, type2![1], type3![1] )  then
+              return methods[7 * (i - 1) + 5];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 3 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[38], NargFunc[38], NamsFunc[38], HdlrFunc38 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9666,7 +10437,18 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_CONSTRUCTOR__3ARGS, t_1 );
  
- /* CONSTRUCTOR_4ARGS := function ... end; */
+ /* CONSTRUCTOR_4ARGS := function ( operation, flags1, type2, type3, type4 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 4 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 8 ]  do
+          if IS_SUBSET_FLAGS( methods[8 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[8 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[8 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[8 * (i - 1) + 5] ) 
+              and methods[8 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1] )  then
+              return methods[8 * (i - 1) + 6];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 4 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[39], NargFunc[39], NamsFunc[39], HdlrFunc39 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9674,7 +10456,18 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_CONSTRUCTOR__4ARGS, t_1 );
  
- /* CONSTRUCTOR_5ARGS := function ... end; */
+ /* CONSTRUCTOR_5ARGS := function ( operation, flags1, type2, type3, type4, type5 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 5 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 9 ]  do
+          if IS_SUBSET_FLAGS( methods[9 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[9 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[9 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[9 * (i - 1) + 5] ) 
+                and IS_SUBSET_FLAGS( type5![2], methods[9 * (i - 1) + 6] ) and methods[9 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1], type5![1] )  then
+              return methods[9 * (i - 1) + 7];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 5 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[40], NargFunc[40], NamsFunc[40], HdlrFunc40 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9682,7 +10475,18 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_CONSTRUCTOR__5ARGS, t_1 );
  
- /* CONSTRUCTOR_6ARGS := function ... end; */
+ /* CONSTRUCTOR_6ARGS := function ( operation, flags1, type2, type3, type4, type5, type6 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 6 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 10 ]  do
+          if IS_SUBSET_FLAGS( methods[10 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[10 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[10 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[10 * (i - 1) + 5] ) 
+                  and IS_SUBSET_FLAGS( type5![2], methods[10 * (i - 1) + 6] ) and IS_SUBSET_FLAGS( type6![2], methods[10 * (i - 1) + 7] ) and methods[10 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1], type5![1], type6![1] )  then
+              return methods[10 * (i - 1) + 8];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 6 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[41], NargFunc[41], NamsFunc[41], HdlrFunc41 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9690,7 +10494,10 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_CONSTRUCTOR__6ARGS, t_1 );
  
- /* CONSTRUCTOR_XARGS := function ... end; */
+ /* CONSTRUCTOR_XARGS := function ( arg )
+      Error( "not supported yet" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[42], NargFunc[42], NamsFunc[42], HdlrFunc42 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9698,7 +10505,22 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_CONSTRUCTOR__XARGS, t_1 );
  
- /* NEXT_CONSTRUCTOR_0ARGS := function ... end; */
+ /* NEXT_CONSTRUCTOR_0ARGS := function ( operation, k )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 0 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 4 ]  do
+          if methods[4 * (i - 1) + 1](  )  then
+              if k = j  then
+                  return methods[4 * (i - 1) + 2];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 0 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[43], NargFunc[43], NamsFunc[43], HdlrFunc43 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9706,7 +10528,22 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__CONSTRUCTOR__0ARGS, t_1 );
  
- /* NEXT_CONSTRUCTOR_1ARGS := function ... end; */
+ /* NEXT_CONSTRUCTOR_1ARGS := function ( operation, k, flags1 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 1 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 5 ]  do
+          if IS_SUBSET_FLAGS( methods[5 * (i - 1) + 2], flags1 ) and methods[5 * (i - 1) + 1]( flags1 )  then
+              if k = j  then
+                  return methods[5 * (i - 1) + 3];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 1 argument" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[44], NargFunc[44], NamsFunc[44], HdlrFunc44 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9714,7 +10551,22 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__CONSTRUCTOR__1ARGS, t_1 );
  
- /* NEXT_CONSTRUCTOR_2ARGS := function ... end; */
+ /* NEXT_CONSTRUCTOR_2ARGS := function ( operation, k, flags1, type2 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 2 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 6 ]  do
+          if IS_SUBSET_FLAGS( methods[6 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[6 * (i - 1) + 3] ) and methods[6 * (i - 1) + 1]( flags1, type2![1] )  then
+              if k = j  then
+                  return methods[6 * (i - 1) + 4];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 2 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[45], NargFunc[45], NamsFunc[45], HdlrFunc45 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9722,7 +10574,22 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__CONSTRUCTOR__2ARGS, t_1 );
  
- /* NEXT_CONSTRUCTOR_3ARGS := function ... end; */
+ /* NEXT_CONSTRUCTOR_3ARGS := function ( operation, k, flags1, type2, type3 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 3 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 7 ]  do
+          if IS_SUBSET_FLAGS( methods[7 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[7 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[7 * (i - 1) + 4] ) and methods[7 * (i - 1) + 1]( flags1, type2![1], type3![1] )  then
+              if k = j  then
+                  return methods[7 * (i - 1) + 5];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 3 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[46], NargFunc[46], NamsFunc[46], HdlrFunc46 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9730,7 +10597,23 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__CONSTRUCTOR__3ARGS, t_1 );
  
- /* NEXT_CONSTRUCTOR_4ARGS := function ... end; */
+ /* NEXT_CONSTRUCTOR_4ARGS := function ( operation, k, flags1, type2, type3, type4 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 4 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 8 ]  do
+          if IS_SUBSET_FLAGS( methods[8 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[8 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[8 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[8 * (i - 1) + 5] ) 
+              and methods[8 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1] )  then
+              if k = j  then
+                  return methods[8 * (i - 1) + 6];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 4 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[47], NargFunc[47], NamsFunc[47], HdlrFunc47 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9738,7 +10621,23 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__CONSTRUCTOR__4ARGS, t_1 );
  
- /* NEXT_CONSTRUCTOR_5ARGS := function ... end; */
+ /* NEXT_CONSTRUCTOR_5ARGS := function ( operation, k, flags1, type2, type3, type4, type5 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 5 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 9 ]  do
+          if IS_SUBSET_FLAGS( methods[9 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[9 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[9 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[9 * (i - 1) + 5] ) 
+                and IS_SUBSET_FLAGS( type5![2], methods[9 * (i - 1) + 6] ) and methods[9 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1], type5![1] )  then
+              if k = j  then
+                  return methods[9 * (i - 1) + 7];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 5 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[48], NargFunc[48], NamsFunc[48], HdlrFunc48 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9746,7 +10645,23 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__CONSTRUCTOR__5ARGS, t_1 );
  
- /* NEXT_CONSTRUCTOR_6ARGS := function ... end; */
+ /* NEXT_CONSTRUCTOR_6ARGS := function ( operation, k, flags1, type2, type3, type4, type5, type6 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 6 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 10 ]  do
+          if IS_SUBSET_FLAGS( methods[10 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[10 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[10 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[10 * (i - 1) + 5] ) 
+                  and IS_SUBSET_FLAGS( type5![2], methods[10 * (i - 1) + 6] ) and IS_SUBSET_FLAGS( type6![2], methods[10 * (i - 1) + 7] ) and methods[10 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1], type5![1], type6![1] )  then
+              if k = j  then
+                  return methods[10 * (i - 1) + 8];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 6 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[49], NargFunc[49], NamsFunc[49], HdlrFunc49 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9754,7 +10669,10 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__CONSTRUCTOR__6ARGS, t_1 );
  
- /* NEXT_CONSTRUCTOR_XARGS := function ... end; */
+ /* NEXT_CONSTRUCTOR_XARGS := function ( arg )
+      Error( "not supported yet" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[50], NargFunc[50], NamsFunc[50], HdlrFunc50 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9762,7 +10680,18 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__CONSTRUCTOR__XARGS, t_1 );
  
- /* VCONSTRUCTOR_0ARGS := function ... end; */
+ /* VCONSTRUCTOR_0ARGS := function ( operation )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 0 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 4 ]  do
+          if methods[4 * (i - 1) + 1](  )  then
+              Print( "#I  ", methods[4 * (i - 1) + 4], "\n" );
+              return methods[4 * (i - 1) + 2];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 0 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[51], NargFunc[51], NamsFunc[51], HdlrFunc51 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9770,7 +10699,18 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_VCONSTRUCTOR__0ARGS, t_1 );
  
- /* VCONSTRUCTOR_1ARGS := function ... end; */
+ /* VCONSTRUCTOR_1ARGS := function ( operation, flags1 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 1 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 5 ]  do
+          if IS_SUBSET_FLAGS( methods[5 * (i - 1) + 2], flags1 ) and methods[5 * (i - 1) + 1]( flags1 )  then
+              Print( "#I  ", methods[5 * (i - 1) + 5], "\n" );
+              return methods[5 * (i - 1) + 3];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 1 argument" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[52], NargFunc[52], NamsFunc[52], HdlrFunc52 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9778,7 +10718,18 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_VCONSTRUCTOR__1ARGS, t_1 );
  
- /* VCONSTRUCTOR_2ARGS := function ... end; */
+ /* VCONSTRUCTOR_2ARGS := function ( operation, flags1, type2 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 2 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 6 ]  do
+          if IS_SUBSET_FLAGS( methods[6 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[6 * (i - 1) + 3] ) and methods[6 * (i - 1) + 1]( flags1, type2![1] )  then
+              Print( "#I  ", methods[6 * (i - 1) + 6], "\n" );
+              return methods[6 * (i - 1) + 4];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 2 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[53], NargFunc[53], NamsFunc[53], HdlrFunc53 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9786,7 +10737,18 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_VCONSTRUCTOR__2ARGS, t_1 );
  
- /* VCONSTRUCTOR_3ARGS := function ... end; */
+ /* VCONSTRUCTOR_3ARGS := function ( operation, flags1, type2, type3 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 3 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 7 ]  do
+          if IS_SUBSET_FLAGS( methods[7 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[7 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[7 * (i - 1) + 4] ) and methods[7 * (i - 1) + 1]( flags1, type2![1], type3![1] )  then
+              Print( "#I  ", methods[7 * (i - 1) + 7], "\n" );
+              return methods[7 * (i - 1) + 5];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 3 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[54], NargFunc[54], NamsFunc[54], HdlrFunc54 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9794,7 +10756,19 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_VCONSTRUCTOR__3ARGS, t_1 );
  
- /* VCONSTRUCTOR_4ARGS := function ... end; */
+ /* VCONSTRUCTOR_4ARGS := function ( operation, flags1, type2, type3, type4 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 4 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 8 ]  do
+          if IS_SUBSET_FLAGS( methods[8 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[8 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[8 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[8 * (i - 1) + 5] ) 
+              and methods[8 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1] )  then
+              Print( "#I  ", methods[8 * (i - 1) + 8], "\n" );
+              return methods[8 * (i - 1) + 6];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 4 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[55], NargFunc[55], NamsFunc[55], HdlrFunc55 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9802,7 +10776,19 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_VCONSTRUCTOR__4ARGS, t_1 );
  
- /* VCONSTRUCTOR_5ARGS := function ... end; */
+ /* VCONSTRUCTOR_5ARGS := function ( operation, flags1, type2, type3, type4, type5 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 5 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 9 ]  do
+          if IS_SUBSET_FLAGS( methods[9 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[9 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[9 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[9 * (i - 1) + 5] ) 
+                and IS_SUBSET_FLAGS( type5![2], methods[9 * (i - 1) + 6] ) and methods[9 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1], type5![1] )  then
+              Print( "#I  ", methods[9 * (i - 1) + 9], "\n" );
+              return methods[9 * (i - 1) + 7];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 5 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[56], NargFunc[56], NamsFunc[56], HdlrFunc56 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9810,7 +10796,19 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_VCONSTRUCTOR__5ARGS, t_1 );
  
- /* VCONSTRUCTOR_6ARGS := function ... end; */
+ /* VCONSTRUCTOR_6ARGS := function ( operation, flags1, type2, type3, type4, type5, type6 )
+      local  methods, i;
+      methods := METHODS_OPERATION( operation, 6 );
+      for i  in [ 1 .. LEN_LIST( methods ) / 10 ]  do
+          if IS_SUBSET_FLAGS( methods[10 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[10 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[10 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[10 * (i - 1) + 5] ) 
+                  and IS_SUBSET_FLAGS( type5![2], methods[10 * (i - 1) + 6] ) and IS_SUBSET_FLAGS( type6![2], methods[10 * (i - 1) + 7] ) and methods[10 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1], type5![1], type6![1] )  then
+              Print( "#I  ", methods[10 * (i - 1) + 10], "\n" );
+              return methods[10 * (i - 1) + 8];
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 6 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[57], NargFunc[57], NamsFunc[57], HdlrFunc57 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9818,7 +10816,10 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_VCONSTRUCTOR__6ARGS, t_1 );
  
- /* VCONSTRUCTOR_XARGS := function ... end; */
+ /* VCONSTRUCTOR_XARGS := function ( arg )
+      Error( "not supported yet" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[58], NargFunc[58], NamsFunc[58], HdlrFunc58 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9826,7 +10827,23 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_VCONSTRUCTOR__XARGS, t_1 );
  
- /* NEXT_VCONSTRUCTOR_0ARGS := function ... end; */
+ /* NEXT_VCONSTRUCTOR_0ARGS := function ( operation, k )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 0 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 4 ]  do
+          if methods[4 * (i - 1) + 1](  )  then
+              if k = j  then
+                  Print( "#I  trying next: ", methods[4 * (i - 1) + 4], "\n" );
+                  return methods[4 * (i - 1) + 2];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 0 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[59], NargFunc[59], NamsFunc[59], HdlrFunc59 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9834,7 +10851,23 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__VCONSTRUCTOR__0ARGS, t_1 );
  
- /* NEXT_VCONSTRUCTOR_1ARGS := function ... end; */
+ /* NEXT_VCONSTRUCTOR_1ARGS := function ( operation, k, flags1 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 1 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 5 ]  do
+          if IS_SUBSET_FLAGS( methods[5 * (i - 1) + 2], flags1 ) and methods[5 * (i - 1) + 1]( flags1 )  then
+              if k = j  then
+                  Print( "#I  trying next: ", methods[5 * (i - 1) + 5], "\n" );
+                  return methods[5 * (i - 1) + 3];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 1 argument" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[60], NargFunc[60], NamsFunc[60], HdlrFunc60 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9842,7 +10875,23 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__VCONSTRUCTOR__1ARGS, t_1 );
  
- /* NEXT_VCONSTRUCTOR_2ARGS := function ... end; */
+ /* NEXT_VCONSTRUCTOR_2ARGS := function ( operation, k, flags1, type2 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 2 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 6 ]  do
+          if IS_SUBSET_FLAGS( methods[6 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[6 * (i - 1) + 3] ) and methods[6 * (i - 1) + 1]( flags1, type2![1] )  then
+              if k = j  then
+                  Print( "#I  trying next: ", methods[6 * (i - 1) + 6], "\n" );
+                  return methods[6 * (i - 1) + 4];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 2 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[61], NargFunc[61], NamsFunc[61], HdlrFunc61 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9850,7 +10899,23 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__VCONSTRUCTOR__2ARGS, t_1 );
  
- /* NEXT_VCONSTRUCTOR_3ARGS := function ... end; */
+ /* NEXT_VCONSTRUCTOR_3ARGS := function ( operation, k, flags1, type2, type3 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 3 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 7 ]  do
+          if IS_SUBSET_FLAGS( methods[7 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[7 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[7 * (i - 1) + 4] ) and methods[7 * (i - 1) + 1]( flags1, type2![1], type3![1] )  then
+              if k = j  then
+                  Print( "#I  trying next: ", methods[7 * (i - 1) + 7], "\n" );
+                  return methods[7 * (i - 1) + 5];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 3 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[62], NargFunc[62], NamsFunc[62], HdlrFunc62 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9858,7 +10923,24 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__VCONSTRUCTOR__3ARGS, t_1 );
  
- /* NEXT_VCONSTRUCTOR_4ARGS := function ... end; */
+ /* NEXT_VCONSTRUCTOR_4ARGS := function ( operation, k, flags1, type2, type3, type4 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 4 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 8 ]  do
+          if IS_SUBSET_FLAGS( methods[8 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[8 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[8 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[8 * (i - 1) + 5] ) 
+              and methods[8 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1] )  then
+              if k = j  then
+                  Print( "#I  trying next: ", methods[8 * (i - 1) + 8], "\n" );
+                  return methods[8 * (i - 1) + 6];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 4 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[63], NargFunc[63], NamsFunc[63], HdlrFunc63 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9866,7 +10948,24 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__VCONSTRUCTOR__4ARGS, t_1 );
  
- /* NEXT_VCONSTRUCTOR_5ARGS := function ... end; */
+ /* NEXT_VCONSTRUCTOR_5ARGS := function ( operation, k, flags1, type2, type3, type4, type5 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 5 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 9 ]  do
+          if IS_SUBSET_FLAGS( methods[9 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[9 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[9 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[9 * (i - 1) + 5] ) 
+                and IS_SUBSET_FLAGS( type5![2], methods[9 * (i - 1) + 6] ) and methods[9 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1], type5![1] )  then
+              if k = j  then
+                  Print( "#I  trying next: ", methods[9 * (i - 1) + 9], "\n" );
+                  return methods[9 * (i - 1) + 7];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 5 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[64], NargFunc[64], NamsFunc[64], HdlrFunc64 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9874,7 +10973,24 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__VCONSTRUCTOR__5ARGS, t_1 );
  
- /* NEXT_VCONSTRUCTOR_6ARGS := function ... end; */
+ /* NEXT_VCONSTRUCTOR_6ARGS := function ( operation, k, flags1, type2, type3, type4, type5, type6 )
+      local  methods, i, j;
+      methods := METHODS_OPERATION( operation, 6 );
+      j := 0;
+      for i  in [ 1 .. LEN_LIST( methods ) / 10 ]  do
+          if IS_SUBSET_FLAGS( methods[10 * (i - 1) + 2], flags1 ) and IS_SUBSET_FLAGS( type2![2], methods[10 * (i - 1) + 3] ) and IS_SUBSET_FLAGS( type3![2], methods[10 * (i - 1) + 4] ) and IS_SUBSET_FLAGS( type4![2], methods[10 * (i - 1) + 5] ) 
+                  and IS_SUBSET_FLAGS( type5![2], methods[10 * (i - 1) + 6] ) and IS_SUBSET_FLAGS( type6![2], methods[10 * (i - 1) + 7] ) and methods[10 * (i - 1) + 1]( flags1, type2![1], type3![1], type4![1], type5![1], type6![1] )  then
+              if k = j  then
+                  Print( "#I  trying next: ", methods[10 * (i - 1) + 10], "\n" );
+                  return methods[10 * (i - 1) + 8];
+              else
+                  j := j + 1;
+              fi;
+          fi;
+      od;
+      Error( "no method found for operation ", NAME_FUNC( operation ), " with 6 arguments" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[65], NargFunc[65], NamsFunc[65], HdlrFunc65 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9882,7 +10998,10 @@ static Obj  HdlrFunc1 (
  CHANGED_BAG( CurrLVars );
  AssGVar( G_NEXT__VCONSTRUCTOR__6ARGS, t_1 );
  
- /* NEXT_VCONSTRUCTOR_XARGS := function ... end; */
+ /* NEXT_VCONSTRUCTOR_XARGS := function ( arg )
+      Error( "not supported yet" );
+      return;
+  end; */
  t_1 = NewFunction( NameFunc[66], NargFunc[66], NamsFunc[66], HdlrFunc66 );
  ENVI_FUNC( t_1 ) = CurrLVars;
  t_2 = NewBag( T_BODY, 0 );
@@ -9891,10 +11010,12 @@ static Obj  HdlrFunc1 (
  AssGVar( G_NEXT__VCONSTRUCTOR__XARGS, t_1 );
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
  
  /* return; */
+ RES_BRK_CURR_STAT();
  SWITCH_TO_OLD_FRAME(oldFrame);
  return 0;
 }
@@ -9917,139 +11038,139 @@ static Int InitKernel ( StructInitInfo * module )
  InitFopyGVar( "FamilyObj", &GF_FamilyObj );
  
  /* information for the functions */
- InitGlobalBag( &DefaultName, "methsel.g:DefaultName(22351317)" );
- InitHandlerFunc( HdlrFunc1, "methsel.g:HdlrFunc1(22351317)" );
- InitGlobalBag( &(NameFunc[1]), "methsel.g:NameFunc[1](22351317)" );
- InitHandlerFunc( HdlrFunc2, "methsel.g:HdlrFunc2(22351317)" );
- InitGlobalBag( &(NameFunc[2]), "methsel.g:NameFunc[2](22351317)" );
- InitHandlerFunc( HdlrFunc3, "methsel.g:HdlrFunc3(22351317)" );
- InitGlobalBag( &(NameFunc[3]), "methsel.g:NameFunc[3](22351317)" );
- InitHandlerFunc( HdlrFunc4, "methsel.g:HdlrFunc4(22351317)" );
- InitGlobalBag( &(NameFunc[4]), "methsel.g:NameFunc[4](22351317)" );
- InitHandlerFunc( HdlrFunc5, "methsel.g:HdlrFunc5(22351317)" );
- InitGlobalBag( &(NameFunc[5]), "methsel.g:NameFunc[5](22351317)" );
- InitHandlerFunc( HdlrFunc6, "methsel.g:HdlrFunc6(22351317)" );
- InitGlobalBag( &(NameFunc[6]), "methsel.g:NameFunc[6](22351317)" );
- InitHandlerFunc( HdlrFunc7, "methsel.g:HdlrFunc7(22351317)" );
- InitGlobalBag( &(NameFunc[7]), "methsel.g:NameFunc[7](22351317)" );
- InitHandlerFunc( HdlrFunc8, "methsel.g:HdlrFunc8(22351317)" );
- InitGlobalBag( &(NameFunc[8]), "methsel.g:NameFunc[8](22351317)" );
- InitHandlerFunc( HdlrFunc9, "methsel.g:HdlrFunc9(22351317)" );
- InitGlobalBag( &(NameFunc[9]), "methsel.g:NameFunc[9](22351317)" );
- InitHandlerFunc( HdlrFunc10, "methsel.g:HdlrFunc10(22351317)" );
- InitGlobalBag( &(NameFunc[10]), "methsel.g:NameFunc[10](22351317)" );
- InitHandlerFunc( HdlrFunc11, "methsel.g:HdlrFunc11(22351317)" );
- InitGlobalBag( &(NameFunc[11]), "methsel.g:NameFunc[11](22351317)" );
- InitHandlerFunc( HdlrFunc12, "methsel.g:HdlrFunc12(22351317)" );
- InitGlobalBag( &(NameFunc[12]), "methsel.g:NameFunc[12](22351317)" );
- InitHandlerFunc( HdlrFunc13, "methsel.g:HdlrFunc13(22351317)" );
- InitGlobalBag( &(NameFunc[13]), "methsel.g:NameFunc[13](22351317)" );
- InitHandlerFunc( HdlrFunc14, "methsel.g:HdlrFunc14(22351317)" );
- InitGlobalBag( &(NameFunc[14]), "methsel.g:NameFunc[14](22351317)" );
- InitHandlerFunc( HdlrFunc15, "methsel.g:HdlrFunc15(22351317)" );
- InitGlobalBag( &(NameFunc[15]), "methsel.g:NameFunc[15](22351317)" );
- InitHandlerFunc( HdlrFunc16, "methsel.g:HdlrFunc16(22351317)" );
- InitGlobalBag( &(NameFunc[16]), "methsel.g:NameFunc[16](22351317)" );
- InitHandlerFunc( HdlrFunc17, "methsel.g:HdlrFunc17(22351317)" );
- InitGlobalBag( &(NameFunc[17]), "methsel.g:NameFunc[17](22351317)" );
- InitHandlerFunc( HdlrFunc18, "methsel.g:HdlrFunc18(22351317)" );
- InitGlobalBag( &(NameFunc[18]), "methsel.g:NameFunc[18](22351317)" );
- InitHandlerFunc( HdlrFunc19, "methsel.g:HdlrFunc19(22351317)" );
- InitGlobalBag( &(NameFunc[19]), "methsel.g:NameFunc[19](22351317)" );
- InitHandlerFunc( HdlrFunc20, "methsel.g:HdlrFunc20(22351317)" );
- InitGlobalBag( &(NameFunc[20]), "methsel.g:NameFunc[20](22351317)" );
- InitHandlerFunc( HdlrFunc21, "methsel.g:HdlrFunc21(22351317)" );
- InitGlobalBag( &(NameFunc[21]), "methsel.g:NameFunc[21](22351317)" );
- InitHandlerFunc( HdlrFunc22, "methsel.g:HdlrFunc22(22351317)" );
- InitGlobalBag( &(NameFunc[22]), "methsel.g:NameFunc[22](22351317)" );
- InitHandlerFunc( HdlrFunc23, "methsel.g:HdlrFunc23(22351317)" );
- InitGlobalBag( &(NameFunc[23]), "methsel.g:NameFunc[23](22351317)" );
- InitHandlerFunc( HdlrFunc24, "methsel.g:HdlrFunc24(22351317)" );
- InitGlobalBag( &(NameFunc[24]), "methsel.g:NameFunc[24](22351317)" );
- InitHandlerFunc( HdlrFunc25, "methsel.g:HdlrFunc25(22351317)" );
- InitGlobalBag( &(NameFunc[25]), "methsel.g:NameFunc[25](22351317)" );
- InitHandlerFunc( HdlrFunc26, "methsel.g:HdlrFunc26(22351317)" );
- InitGlobalBag( &(NameFunc[26]), "methsel.g:NameFunc[26](22351317)" );
- InitHandlerFunc( HdlrFunc27, "methsel.g:HdlrFunc27(22351317)" );
- InitGlobalBag( &(NameFunc[27]), "methsel.g:NameFunc[27](22351317)" );
- InitHandlerFunc( HdlrFunc28, "methsel.g:HdlrFunc28(22351317)" );
- InitGlobalBag( &(NameFunc[28]), "methsel.g:NameFunc[28](22351317)" );
- InitHandlerFunc( HdlrFunc29, "methsel.g:HdlrFunc29(22351317)" );
- InitGlobalBag( &(NameFunc[29]), "methsel.g:NameFunc[29](22351317)" );
- InitHandlerFunc( HdlrFunc30, "methsel.g:HdlrFunc30(22351317)" );
- InitGlobalBag( &(NameFunc[30]), "methsel.g:NameFunc[30](22351317)" );
- InitHandlerFunc( HdlrFunc31, "methsel.g:HdlrFunc31(22351317)" );
- InitGlobalBag( &(NameFunc[31]), "methsel.g:NameFunc[31](22351317)" );
- InitHandlerFunc( HdlrFunc32, "methsel.g:HdlrFunc32(22351317)" );
- InitGlobalBag( &(NameFunc[32]), "methsel.g:NameFunc[32](22351317)" );
- InitHandlerFunc( HdlrFunc33, "methsel.g:HdlrFunc33(22351317)" );
- InitGlobalBag( &(NameFunc[33]), "methsel.g:NameFunc[33](22351317)" );
- InitHandlerFunc( HdlrFunc34, "methsel.g:HdlrFunc34(22351317)" );
- InitGlobalBag( &(NameFunc[34]), "methsel.g:NameFunc[34](22351317)" );
- InitHandlerFunc( HdlrFunc35, "methsel.g:HdlrFunc35(22351317)" );
- InitGlobalBag( &(NameFunc[35]), "methsel.g:NameFunc[35](22351317)" );
- InitHandlerFunc( HdlrFunc36, "methsel.g:HdlrFunc36(22351317)" );
- InitGlobalBag( &(NameFunc[36]), "methsel.g:NameFunc[36](22351317)" );
- InitHandlerFunc( HdlrFunc37, "methsel.g:HdlrFunc37(22351317)" );
- InitGlobalBag( &(NameFunc[37]), "methsel.g:NameFunc[37](22351317)" );
- InitHandlerFunc( HdlrFunc38, "methsel.g:HdlrFunc38(22351317)" );
- InitGlobalBag( &(NameFunc[38]), "methsel.g:NameFunc[38](22351317)" );
- InitHandlerFunc( HdlrFunc39, "methsel.g:HdlrFunc39(22351317)" );
- InitGlobalBag( &(NameFunc[39]), "methsel.g:NameFunc[39](22351317)" );
- InitHandlerFunc( HdlrFunc40, "methsel.g:HdlrFunc40(22351317)" );
- InitGlobalBag( &(NameFunc[40]), "methsel.g:NameFunc[40](22351317)" );
- InitHandlerFunc( HdlrFunc41, "methsel.g:HdlrFunc41(22351317)" );
- InitGlobalBag( &(NameFunc[41]), "methsel.g:NameFunc[41](22351317)" );
- InitHandlerFunc( HdlrFunc42, "methsel.g:HdlrFunc42(22351317)" );
- InitGlobalBag( &(NameFunc[42]), "methsel.g:NameFunc[42](22351317)" );
- InitHandlerFunc( HdlrFunc43, "methsel.g:HdlrFunc43(22351317)" );
- InitGlobalBag( &(NameFunc[43]), "methsel.g:NameFunc[43](22351317)" );
- InitHandlerFunc( HdlrFunc44, "methsel.g:HdlrFunc44(22351317)" );
- InitGlobalBag( &(NameFunc[44]), "methsel.g:NameFunc[44](22351317)" );
- InitHandlerFunc( HdlrFunc45, "methsel.g:HdlrFunc45(22351317)" );
- InitGlobalBag( &(NameFunc[45]), "methsel.g:NameFunc[45](22351317)" );
- InitHandlerFunc( HdlrFunc46, "methsel.g:HdlrFunc46(22351317)" );
- InitGlobalBag( &(NameFunc[46]), "methsel.g:NameFunc[46](22351317)" );
- InitHandlerFunc( HdlrFunc47, "methsel.g:HdlrFunc47(22351317)" );
- InitGlobalBag( &(NameFunc[47]), "methsel.g:NameFunc[47](22351317)" );
- InitHandlerFunc( HdlrFunc48, "methsel.g:HdlrFunc48(22351317)" );
- InitGlobalBag( &(NameFunc[48]), "methsel.g:NameFunc[48](22351317)" );
- InitHandlerFunc( HdlrFunc49, "methsel.g:HdlrFunc49(22351317)" );
- InitGlobalBag( &(NameFunc[49]), "methsel.g:NameFunc[49](22351317)" );
- InitHandlerFunc( HdlrFunc50, "methsel.g:HdlrFunc50(22351317)" );
- InitGlobalBag( &(NameFunc[50]), "methsel.g:NameFunc[50](22351317)" );
- InitHandlerFunc( HdlrFunc51, "methsel.g:HdlrFunc51(22351317)" );
- InitGlobalBag( &(NameFunc[51]), "methsel.g:NameFunc[51](22351317)" );
- InitHandlerFunc( HdlrFunc52, "methsel.g:HdlrFunc52(22351317)" );
- InitGlobalBag( &(NameFunc[52]), "methsel.g:NameFunc[52](22351317)" );
- InitHandlerFunc( HdlrFunc53, "methsel.g:HdlrFunc53(22351317)" );
- InitGlobalBag( &(NameFunc[53]), "methsel.g:NameFunc[53](22351317)" );
- InitHandlerFunc( HdlrFunc54, "methsel.g:HdlrFunc54(22351317)" );
- InitGlobalBag( &(NameFunc[54]), "methsel.g:NameFunc[54](22351317)" );
- InitHandlerFunc( HdlrFunc55, "methsel.g:HdlrFunc55(22351317)" );
- InitGlobalBag( &(NameFunc[55]), "methsel.g:NameFunc[55](22351317)" );
- InitHandlerFunc( HdlrFunc56, "methsel.g:HdlrFunc56(22351317)" );
- InitGlobalBag( &(NameFunc[56]), "methsel.g:NameFunc[56](22351317)" );
- InitHandlerFunc( HdlrFunc57, "methsel.g:HdlrFunc57(22351317)" );
- InitGlobalBag( &(NameFunc[57]), "methsel.g:NameFunc[57](22351317)" );
- InitHandlerFunc( HdlrFunc58, "methsel.g:HdlrFunc58(22351317)" );
- InitGlobalBag( &(NameFunc[58]), "methsel.g:NameFunc[58](22351317)" );
- InitHandlerFunc( HdlrFunc59, "methsel.g:HdlrFunc59(22351317)" );
- InitGlobalBag( &(NameFunc[59]), "methsel.g:NameFunc[59](22351317)" );
- InitHandlerFunc( HdlrFunc60, "methsel.g:HdlrFunc60(22351317)" );
- InitGlobalBag( &(NameFunc[60]), "methsel.g:NameFunc[60](22351317)" );
- InitHandlerFunc( HdlrFunc61, "methsel.g:HdlrFunc61(22351317)" );
- InitGlobalBag( &(NameFunc[61]), "methsel.g:NameFunc[61](22351317)" );
- InitHandlerFunc( HdlrFunc62, "methsel.g:HdlrFunc62(22351317)" );
- InitGlobalBag( &(NameFunc[62]), "methsel.g:NameFunc[62](22351317)" );
- InitHandlerFunc( HdlrFunc63, "methsel.g:HdlrFunc63(22351317)" );
- InitGlobalBag( &(NameFunc[63]), "methsel.g:NameFunc[63](22351317)" );
- InitHandlerFunc( HdlrFunc64, "methsel.g:HdlrFunc64(22351317)" );
- InitGlobalBag( &(NameFunc[64]), "methsel.g:NameFunc[64](22351317)" );
- InitHandlerFunc( HdlrFunc65, "methsel.g:HdlrFunc65(22351317)" );
- InitGlobalBag( &(NameFunc[65]), "methsel.g:NameFunc[65](22351317)" );
- InitHandlerFunc( HdlrFunc66, "methsel.g:HdlrFunc66(22351317)" );
- InitGlobalBag( &(NameFunc[66]), "methsel.g:NameFunc[66](22351317)" );
+ InitGlobalBag( &DefaultName, "../lib/methsel.g:DefaultName(22351317)" );
+ InitHandlerFunc( HdlrFunc1, "../lib/methsel.g:HdlrFunc1(22351317)" );
+ InitGlobalBag( &(NameFunc[1]), "../lib/methsel.g:NameFunc[1](22351317)" );
+ InitHandlerFunc( HdlrFunc2, "../lib/methsel.g:HdlrFunc2(22351317)" );
+ InitGlobalBag( &(NameFunc[2]), "../lib/methsel.g:NameFunc[2](22351317)" );
+ InitHandlerFunc( HdlrFunc3, "../lib/methsel.g:HdlrFunc3(22351317)" );
+ InitGlobalBag( &(NameFunc[3]), "../lib/methsel.g:NameFunc[3](22351317)" );
+ InitHandlerFunc( HdlrFunc4, "../lib/methsel.g:HdlrFunc4(22351317)" );
+ InitGlobalBag( &(NameFunc[4]), "../lib/methsel.g:NameFunc[4](22351317)" );
+ InitHandlerFunc( HdlrFunc5, "../lib/methsel.g:HdlrFunc5(22351317)" );
+ InitGlobalBag( &(NameFunc[5]), "../lib/methsel.g:NameFunc[5](22351317)" );
+ InitHandlerFunc( HdlrFunc6, "../lib/methsel.g:HdlrFunc6(22351317)" );
+ InitGlobalBag( &(NameFunc[6]), "../lib/methsel.g:NameFunc[6](22351317)" );
+ InitHandlerFunc( HdlrFunc7, "../lib/methsel.g:HdlrFunc7(22351317)" );
+ InitGlobalBag( &(NameFunc[7]), "../lib/methsel.g:NameFunc[7](22351317)" );
+ InitHandlerFunc( HdlrFunc8, "../lib/methsel.g:HdlrFunc8(22351317)" );
+ InitGlobalBag( &(NameFunc[8]), "../lib/methsel.g:NameFunc[8](22351317)" );
+ InitHandlerFunc( HdlrFunc9, "../lib/methsel.g:HdlrFunc9(22351317)" );
+ InitGlobalBag( &(NameFunc[9]), "../lib/methsel.g:NameFunc[9](22351317)" );
+ InitHandlerFunc( HdlrFunc10, "../lib/methsel.g:HdlrFunc10(22351317)" );
+ InitGlobalBag( &(NameFunc[10]), "../lib/methsel.g:NameFunc[10](22351317)" );
+ InitHandlerFunc( HdlrFunc11, "../lib/methsel.g:HdlrFunc11(22351317)" );
+ InitGlobalBag( &(NameFunc[11]), "../lib/methsel.g:NameFunc[11](22351317)" );
+ InitHandlerFunc( HdlrFunc12, "../lib/methsel.g:HdlrFunc12(22351317)" );
+ InitGlobalBag( &(NameFunc[12]), "../lib/methsel.g:NameFunc[12](22351317)" );
+ InitHandlerFunc( HdlrFunc13, "../lib/methsel.g:HdlrFunc13(22351317)" );
+ InitGlobalBag( &(NameFunc[13]), "../lib/methsel.g:NameFunc[13](22351317)" );
+ InitHandlerFunc( HdlrFunc14, "../lib/methsel.g:HdlrFunc14(22351317)" );
+ InitGlobalBag( &(NameFunc[14]), "../lib/methsel.g:NameFunc[14](22351317)" );
+ InitHandlerFunc( HdlrFunc15, "../lib/methsel.g:HdlrFunc15(22351317)" );
+ InitGlobalBag( &(NameFunc[15]), "../lib/methsel.g:NameFunc[15](22351317)" );
+ InitHandlerFunc( HdlrFunc16, "../lib/methsel.g:HdlrFunc16(22351317)" );
+ InitGlobalBag( &(NameFunc[16]), "../lib/methsel.g:NameFunc[16](22351317)" );
+ InitHandlerFunc( HdlrFunc17, "../lib/methsel.g:HdlrFunc17(22351317)" );
+ InitGlobalBag( &(NameFunc[17]), "../lib/methsel.g:NameFunc[17](22351317)" );
+ InitHandlerFunc( HdlrFunc18, "../lib/methsel.g:HdlrFunc18(22351317)" );
+ InitGlobalBag( &(NameFunc[18]), "../lib/methsel.g:NameFunc[18](22351317)" );
+ InitHandlerFunc( HdlrFunc19, "../lib/methsel.g:HdlrFunc19(22351317)" );
+ InitGlobalBag( &(NameFunc[19]), "../lib/methsel.g:NameFunc[19](22351317)" );
+ InitHandlerFunc( HdlrFunc20, "../lib/methsel.g:HdlrFunc20(22351317)" );
+ InitGlobalBag( &(NameFunc[20]), "../lib/methsel.g:NameFunc[20](22351317)" );
+ InitHandlerFunc( HdlrFunc21, "../lib/methsel.g:HdlrFunc21(22351317)" );
+ InitGlobalBag( &(NameFunc[21]), "../lib/methsel.g:NameFunc[21](22351317)" );
+ InitHandlerFunc( HdlrFunc22, "../lib/methsel.g:HdlrFunc22(22351317)" );
+ InitGlobalBag( &(NameFunc[22]), "../lib/methsel.g:NameFunc[22](22351317)" );
+ InitHandlerFunc( HdlrFunc23, "../lib/methsel.g:HdlrFunc23(22351317)" );
+ InitGlobalBag( &(NameFunc[23]), "../lib/methsel.g:NameFunc[23](22351317)" );
+ InitHandlerFunc( HdlrFunc24, "../lib/methsel.g:HdlrFunc24(22351317)" );
+ InitGlobalBag( &(NameFunc[24]), "../lib/methsel.g:NameFunc[24](22351317)" );
+ InitHandlerFunc( HdlrFunc25, "../lib/methsel.g:HdlrFunc25(22351317)" );
+ InitGlobalBag( &(NameFunc[25]), "../lib/methsel.g:NameFunc[25](22351317)" );
+ InitHandlerFunc( HdlrFunc26, "../lib/methsel.g:HdlrFunc26(22351317)" );
+ InitGlobalBag( &(NameFunc[26]), "../lib/methsel.g:NameFunc[26](22351317)" );
+ InitHandlerFunc( HdlrFunc27, "../lib/methsel.g:HdlrFunc27(22351317)" );
+ InitGlobalBag( &(NameFunc[27]), "../lib/methsel.g:NameFunc[27](22351317)" );
+ InitHandlerFunc( HdlrFunc28, "../lib/methsel.g:HdlrFunc28(22351317)" );
+ InitGlobalBag( &(NameFunc[28]), "../lib/methsel.g:NameFunc[28](22351317)" );
+ InitHandlerFunc( HdlrFunc29, "../lib/methsel.g:HdlrFunc29(22351317)" );
+ InitGlobalBag( &(NameFunc[29]), "../lib/methsel.g:NameFunc[29](22351317)" );
+ InitHandlerFunc( HdlrFunc30, "../lib/methsel.g:HdlrFunc30(22351317)" );
+ InitGlobalBag( &(NameFunc[30]), "../lib/methsel.g:NameFunc[30](22351317)" );
+ InitHandlerFunc( HdlrFunc31, "../lib/methsel.g:HdlrFunc31(22351317)" );
+ InitGlobalBag( &(NameFunc[31]), "../lib/methsel.g:NameFunc[31](22351317)" );
+ InitHandlerFunc( HdlrFunc32, "../lib/methsel.g:HdlrFunc32(22351317)" );
+ InitGlobalBag( &(NameFunc[32]), "../lib/methsel.g:NameFunc[32](22351317)" );
+ InitHandlerFunc( HdlrFunc33, "../lib/methsel.g:HdlrFunc33(22351317)" );
+ InitGlobalBag( &(NameFunc[33]), "../lib/methsel.g:NameFunc[33](22351317)" );
+ InitHandlerFunc( HdlrFunc34, "../lib/methsel.g:HdlrFunc34(22351317)" );
+ InitGlobalBag( &(NameFunc[34]), "../lib/methsel.g:NameFunc[34](22351317)" );
+ InitHandlerFunc( HdlrFunc35, "../lib/methsel.g:HdlrFunc35(22351317)" );
+ InitGlobalBag( &(NameFunc[35]), "../lib/methsel.g:NameFunc[35](22351317)" );
+ InitHandlerFunc( HdlrFunc36, "../lib/methsel.g:HdlrFunc36(22351317)" );
+ InitGlobalBag( &(NameFunc[36]), "../lib/methsel.g:NameFunc[36](22351317)" );
+ InitHandlerFunc( HdlrFunc37, "../lib/methsel.g:HdlrFunc37(22351317)" );
+ InitGlobalBag( &(NameFunc[37]), "../lib/methsel.g:NameFunc[37](22351317)" );
+ InitHandlerFunc( HdlrFunc38, "../lib/methsel.g:HdlrFunc38(22351317)" );
+ InitGlobalBag( &(NameFunc[38]), "../lib/methsel.g:NameFunc[38](22351317)" );
+ InitHandlerFunc( HdlrFunc39, "../lib/methsel.g:HdlrFunc39(22351317)" );
+ InitGlobalBag( &(NameFunc[39]), "../lib/methsel.g:NameFunc[39](22351317)" );
+ InitHandlerFunc( HdlrFunc40, "../lib/methsel.g:HdlrFunc40(22351317)" );
+ InitGlobalBag( &(NameFunc[40]), "../lib/methsel.g:NameFunc[40](22351317)" );
+ InitHandlerFunc( HdlrFunc41, "../lib/methsel.g:HdlrFunc41(22351317)" );
+ InitGlobalBag( &(NameFunc[41]), "../lib/methsel.g:NameFunc[41](22351317)" );
+ InitHandlerFunc( HdlrFunc42, "../lib/methsel.g:HdlrFunc42(22351317)" );
+ InitGlobalBag( &(NameFunc[42]), "../lib/methsel.g:NameFunc[42](22351317)" );
+ InitHandlerFunc( HdlrFunc43, "../lib/methsel.g:HdlrFunc43(22351317)" );
+ InitGlobalBag( &(NameFunc[43]), "../lib/methsel.g:NameFunc[43](22351317)" );
+ InitHandlerFunc( HdlrFunc44, "../lib/methsel.g:HdlrFunc44(22351317)" );
+ InitGlobalBag( &(NameFunc[44]), "../lib/methsel.g:NameFunc[44](22351317)" );
+ InitHandlerFunc( HdlrFunc45, "../lib/methsel.g:HdlrFunc45(22351317)" );
+ InitGlobalBag( &(NameFunc[45]), "../lib/methsel.g:NameFunc[45](22351317)" );
+ InitHandlerFunc( HdlrFunc46, "../lib/methsel.g:HdlrFunc46(22351317)" );
+ InitGlobalBag( &(NameFunc[46]), "../lib/methsel.g:NameFunc[46](22351317)" );
+ InitHandlerFunc( HdlrFunc47, "../lib/methsel.g:HdlrFunc47(22351317)" );
+ InitGlobalBag( &(NameFunc[47]), "../lib/methsel.g:NameFunc[47](22351317)" );
+ InitHandlerFunc( HdlrFunc48, "../lib/methsel.g:HdlrFunc48(22351317)" );
+ InitGlobalBag( &(NameFunc[48]), "../lib/methsel.g:NameFunc[48](22351317)" );
+ InitHandlerFunc( HdlrFunc49, "../lib/methsel.g:HdlrFunc49(22351317)" );
+ InitGlobalBag( &(NameFunc[49]), "../lib/methsel.g:NameFunc[49](22351317)" );
+ InitHandlerFunc( HdlrFunc50, "../lib/methsel.g:HdlrFunc50(22351317)" );
+ InitGlobalBag( &(NameFunc[50]), "../lib/methsel.g:NameFunc[50](22351317)" );
+ InitHandlerFunc( HdlrFunc51, "../lib/methsel.g:HdlrFunc51(22351317)" );
+ InitGlobalBag( &(NameFunc[51]), "../lib/methsel.g:NameFunc[51](22351317)" );
+ InitHandlerFunc( HdlrFunc52, "../lib/methsel.g:HdlrFunc52(22351317)" );
+ InitGlobalBag( &(NameFunc[52]), "../lib/methsel.g:NameFunc[52](22351317)" );
+ InitHandlerFunc( HdlrFunc53, "../lib/methsel.g:HdlrFunc53(22351317)" );
+ InitGlobalBag( &(NameFunc[53]), "../lib/methsel.g:NameFunc[53](22351317)" );
+ InitHandlerFunc( HdlrFunc54, "../lib/methsel.g:HdlrFunc54(22351317)" );
+ InitGlobalBag( &(NameFunc[54]), "../lib/methsel.g:NameFunc[54](22351317)" );
+ InitHandlerFunc( HdlrFunc55, "../lib/methsel.g:HdlrFunc55(22351317)" );
+ InitGlobalBag( &(NameFunc[55]), "../lib/methsel.g:NameFunc[55](22351317)" );
+ InitHandlerFunc( HdlrFunc56, "../lib/methsel.g:HdlrFunc56(22351317)" );
+ InitGlobalBag( &(NameFunc[56]), "../lib/methsel.g:NameFunc[56](22351317)" );
+ InitHandlerFunc( HdlrFunc57, "../lib/methsel.g:HdlrFunc57(22351317)" );
+ InitGlobalBag( &(NameFunc[57]), "../lib/methsel.g:NameFunc[57](22351317)" );
+ InitHandlerFunc( HdlrFunc58, "../lib/methsel.g:HdlrFunc58(22351317)" );
+ InitGlobalBag( &(NameFunc[58]), "../lib/methsel.g:NameFunc[58](22351317)" );
+ InitHandlerFunc( HdlrFunc59, "../lib/methsel.g:HdlrFunc59(22351317)" );
+ InitGlobalBag( &(NameFunc[59]), "../lib/methsel.g:NameFunc[59](22351317)" );
+ InitHandlerFunc( HdlrFunc60, "../lib/methsel.g:HdlrFunc60(22351317)" );
+ InitGlobalBag( &(NameFunc[60]), "../lib/methsel.g:NameFunc[60](22351317)" );
+ InitHandlerFunc( HdlrFunc61, "../lib/methsel.g:HdlrFunc61(22351317)" );
+ InitGlobalBag( &(NameFunc[61]), "../lib/methsel.g:NameFunc[61](22351317)" );
+ InitHandlerFunc( HdlrFunc62, "../lib/methsel.g:HdlrFunc62(22351317)" );
+ InitGlobalBag( &(NameFunc[62]), "../lib/methsel.g:NameFunc[62](22351317)" );
+ InitHandlerFunc( HdlrFunc63, "../lib/methsel.g:HdlrFunc63(22351317)" );
+ InitGlobalBag( &(NameFunc[63]), "../lib/methsel.g:NameFunc[63](22351317)" );
+ InitHandlerFunc( HdlrFunc64, "../lib/methsel.g:HdlrFunc64(22351317)" );
+ InitGlobalBag( &(NameFunc[64]), "../lib/methsel.g:NameFunc[64](22351317)" );
+ InitHandlerFunc( HdlrFunc65, "../lib/methsel.g:HdlrFunc65(22351317)" );
+ InitGlobalBag( &(NameFunc[65]), "../lib/methsel.g:NameFunc[65](22351317)" );
+ InitHandlerFunc( HdlrFunc66, "../lib/methsel.g:HdlrFunc66(22351317)" );
+ InitGlobalBag( &(NameFunc[66]), "../lib/methsel.g:NameFunc[66](22351317)" );
  
  /* return success */
  return 0;
@@ -10060,6 +11181,7 @@ static Int InitKernel ( StructInitInfo * module )
 static Int InitLibrary ( StructInitInfo * module )
 {
  Obj func1;
+ Obj body1;
  
  /* Complete Copy/Fopy registration */
  UpdateCopyFopyInfo();
@@ -10350,6 +11472,9 @@ static Int InitLibrary ( StructInitInfo * module )
  func1 = NewFunction(NameFunc[1],NargFunc[1],NamsFunc[1],HdlrFunc1);
  ENVI_FUNC( func1 ) = CurrLVars;
  CHANGED_BAG( CurrLVars );
+ body1 = NewBag( T_BODY, 0);
+ BODY_FUNC( func1 ) = body1;
+ CHANGED_BAG( func1 );
  CALL_0ARGS( func1 );
  
  /* return success */
@@ -10651,7 +11776,7 @@ static Int PostRestore ( StructInitInfo * module )
 /* <name> returns the description of this module */
 static StructInitInfo module = {
  /* type        = */ 2,
- /* name        = */ "methsel.g",
+ /* name        = */ "GAPROOT/lib/methsel.g",
  /* revision_c  = */ 0,
  /* revision_h  = */ 0,
  /* version     = */ 0,
@@ -10669,6 +11794,5 @@ StructInitInfo * Init__methsel ( void )
  return &module;
 }
 
-#endif
-
 /* compiled code ends here */
+#endif

@@ -13,7 +13,6 @@
 Revision.pcgsmodu_gd :=
     "@(#)$Id$";
 
-
 #############################################################################
 ##
 #O  ModuloPcgsByPcSequenceNC( <home>, <pcs>, <modulo> )
@@ -35,9 +34,6 @@ DeclareOperation(
 ##
 #O  ModuloPcgs( <G>, <N> )
 ##
-##  returns a pcgs for <G> modulo <N> (in elements of <G>).
-##  <N> must be a normal subgroup of <G> but not necessarily solvable.
-##  If $<G>/<N>$ is not solvable, it returns `fail'.
 DeclareOperation( "ModuloPcgs", [ IsGroup, IsGroup ] );
 
 
@@ -55,9 +51,7 @@ DeclareAttribute(
 ##
 #A  DenominatorOfModuloPcgs( <pcgs> )
 ##
-##  returns a generating set for the denominator of the modulo pcgs <pcgs>. If
-##  <pcgs> was created using the `mod' operator it returns the pcgs modulo
-##  which <pcgs> was taken.
+##  returns a generating set for the denominator of the modulo pcgs <pcgs>. 
 DeclareAttribute( "DenominatorOfModuloPcgs", IsModuloPcgs );
 
 
@@ -66,10 +60,16 @@ DeclareAttribute( "DenominatorOfModuloPcgs", IsModuloPcgs );
 ##
 #A  NumeratorOfModuloPcgs( <pcgs> )
 ##
-##  returns a generating set for the numerator of the modulo pcgs <pcgs>. If
-##  <pcgs> was created using the `mod' operator it returns the pcgs which
-##  was taken modulo.
+##  returns a generating set for the numerator of the modulo pcgs <pcgs>.
 DeclareAttribute( "NumeratorOfModuloPcgs", IsModuloPcgs );
+
+#############################################################################
+##
+#P  IsNumeratorParentPcgsFamilyPcgs( <mpcgs> )
+##
+##  This property indicates that the numerator of the modulo pcgs <mpcgs> is
+##  induced with respect to a family pcgs.
+DeclareProperty( "IsNumeratorParentPcgsFamilyPcgs", IsModuloPcgs );
 
 
 #############################################################################

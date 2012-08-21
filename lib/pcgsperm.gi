@@ -247,8 +247,8 @@ InstallGlobalFunction( ExtendSeriesPermGroup, function(
             
             # Form  all necessary  commutators with  <t>   and for elementary
             # abelian factors also a <p>th power.
-            if cent  then  T := ListSorted( GeneratorsOfGroup( G ) );
-                     else  T := ListSorted( X );                       fi;
+            if cent  then  T := SSortedList( GeneratorsOfGroup( G ) );
+                     else  T := SSortedList( X );                       fi;
             done := false;
             while not done  and  ( not IsEmpty( T )  or  elab <> false )  do
                 if not IsEmpty( T )  then
@@ -350,11 +350,11 @@ InstallGlobalFunction(TryPcgsPermGroup,function( G, cent, desc, elab )
 
 	      # ensure compatible bases
 
-	      # compute a new stab chain without touching th stab chain
+	      # compute a new stab chain without touching the stab chain
 	      # stored in S
 	      #T this is less than satisficial but I don't see how otherwise
 	      #T to avoid those %$#@ side effects. AH
-	      U:=StabChainOp(Group(GeneratorsOfGroup(S),()),
+	      U:= StabChainOp( GroupByGenerators( GeneratorsOfGroup(S),() ),
 	                     rec(base:=BaseOfGroup(G[1]),size:=Size(S)));
 	    else
 	      U := StabChainBaseStrongGenerators( BaseStabChain( U ),
@@ -508,8 +508,7 @@ local series,G,i;
 end;
 
 InstallMethod(NormalSeriesByPcgs,"perm group rep",true,
-   [IsPcgs and IsPcgsPermGroupRep],0,
-NorSerPermPcgs);
+   [IsPcgs and IsPcgsPermGroupRep],0, NorSerPermPcgs);
 
 InstallOtherMethod(NormalSeriesByPcgs,"perm group modulo rep",true,
   [IsModuloPcgsPermGroupRep],0,
@@ -725,7 +724,7 @@ InstallGlobalFunction( SolvableNormalClosurePermGroup, function( G, H )
     series := [ U ];
     
     # The derived length of <G> is at most (5 log_3(deg(<G>)))/2 (Dixon).
-    bound := Int( LogInt( NrMovedPoints( G ) ^ 5, 3 ) / 2 );
+    bound := Int( LogInt( Maximum(1,NrMovedPoints( G ) ^ 5), 3 ) / 2 );
     if     HasSize( G )
        and Length( FactorsInt( Size( G ) ) ) < bound  then
         bound := Length( FactorsInt( Size( G ) ) );
@@ -1069,12 +1068,17 @@ end );
 ##
 #M  NaturalHomomorphismByNormalSubgroup( <G>, <N> ) . .  for solvable factors
 ##
+NH_TRYPCGS_LIMIT:=30000;
 InstallMethod( NaturalHomomorphismByNormalSubgroupOp,
   "try solvable factor for permutation groups",
   IsIdenticalObj, [ IsPermGroup, IsPermGroup ], 0,
     function( G, N )
     local   map,  pcgs,  A;
     
+    if Minimum(Index(G,N),NrMovedPoints(G))>NH_TRYPCGS_LIMIT then
+      TryNextMethod();
+    fi;
+
     # Make  a pcgs   based on  an  elementary   abelian series (good  for  ag
     # routines).
     pcgs := TryPcgsPermGroup( [ G, N ], false, false, true );

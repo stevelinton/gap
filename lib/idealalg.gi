@@ -7,7 +7,8 @@
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 ##
-##  This file contains methods for ideals in algebras and algebras-with-one.
+##  This file contains methods for (left/right/two-sided) ideals
+##  in algebras and algebras-with-one.
 ##
 Revision.idealalg_gi :=
     "@(#)$Id$";
@@ -325,13 +326,13 @@ InstallMethod( RightIdealByGenerators,
 ##  We need methods to compute algebra or left module generators from the
 ##  known (left/right/two-sided) ideal generators.
 ##  For that, we use `MutableBasisOfClosureUnderAction' in the case that the
-##  acting algebra is associative,
+##  acting algebra is known to be associative,
 ##  and `MutableBasisOfIdealInNonassociativeAlgebra' otherwise.
 ##
 ##  Note that by the call to `UseBasis', afterwards left module generators
 ##  are known, also if `GeneratorsOfLeftOperatorRing' had been called.
 ##
-LeftModuleGeneratorsForIdealFromGenerators := function( I, Igens, R )
+LeftModuleGeneratorsForIdealFromGenerators := function( I, Igens, R, side )
 
     local F,        # left acting domain of `I'
           maxdim,   # upper bound for the dimension of `I'
@@ -358,7 +359,7 @@ LeftModuleGeneratorsForIdealFromGenerators := function( I, Igens, R )
       mb:= MutableBasisOfClosureUnderAction(
                F,
                GeneratorsOfLeftOperatorRing( R ),
-               "both",
+               side,
                Igens,
                \*,
                Zero( I ),
@@ -372,7 +373,7 @@ LeftModuleGeneratorsForIdealFromGenerators := function( I, Igens, R )
                GeneratorsOfLeftModule( R ),
                Igens,
                Zero( I ),
-               "both",
+               side,
                maxdim );
 
     fi;
@@ -390,7 +391,7 @@ InstallMethod( GeneratorsOfLeftModule,
     [ IsFLMLOR and HasGeneratorsOfTwoSidedIdeal ], 0,
     I -> LeftModuleGeneratorsForIdealFromGenerators( I,
              GeneratorsOfTwoSidedIdeal( I ),
-             LeftActingRingOfIdeal( I ) ) );
+             LeftActingRingOfIdeal( I ), "both" ) );
 
 InstallMethod( GeneratorsOfLeftModule,
     "for FLMLOR with known left ideal generators",
@@ -399,7 +400,7 @@ InstallMethod( GeneratorsOfLeftModule,
     RankFilter( HasGeneratorsOfTwoSidedIdeal ),
     I -> LeftModuleGeneratorsForIdealFromGenerators( I,
              GeneratorsOfLeftIdeal( I ),
-             LeftActingRingOfIdeal( I ) ) );
+             LeftActingRingOfIdeal( I ), "left" ) );
 
 InstallMethod( GeneratorsOfLeftModule,
     "for FLMLOR with known right ideal generators",
@@ -408,7 +409,7 @@ InstallMethod( GeneratorsOfLeftModule,
     RankFilter( HasGeneratorsOfTwoSidedIdeal ),
     I -> LeftModuleGeneratorsForIdealFromGenerators( I,
              GeneratorsOfRightIdeal( I ),
-             RightActingRingOfIdeal( I ) ) );
+             RightActingRingOfIdeal( I ), "right" ) );
 
 
 InstallMethod( GeneratorsOfLeftOperatorRing,
@@ -417,7 +418,7 @@ InstallMethod( GeneratorsOfLeftOperatorRing,
     [ IsFLMLOR and HasGeneratorsOfTwoSidedIdeal ], 0,
     I -> LeftModuleGeneratorsForIdealFromGenerators( I,
              GeneratorsOfTwoSidedIdeal( I ),
-             LeftActingRingOfIdeal( I ) ) );
+             LeftActingRingOfIdeal( I ), "both" ) );
 
 InstallMethod( GeneratorsOfLeftOperatorRing,
     "for FLMLOR with known left ideal generators",
@@ -426,7 +427,7 @@ InstallMethod( GeneratorsOfLeftOperatorRing,
     RankFilter( HasGeneratorsOfTwoSidedIdeal ),
     I -> LeftModuleGeneratorsForIdealFromGenerators( I,
              GeneratorsOfLeftIdeal( I ),
-             LeftActingRingOfIdeal( I ) ) );
+             LeftActingRingOfIdeal( I ), "left" ) );
 
 InstallMethod( GeneratorsOfLeftOperatorRing,
     "for FLMLOR with known right ideal generators",
@@ -435,7 +436,7 @@ InstallMethod( GeneratorsOfLeftOperatorRing,
     RankFilter( HasGeneratorsOfTwoSidedIdeal ),
     I -> LeftModuleGeneratorsForIdealFromGenerators( I,
              GeneratorsOfRightIdeal( I ),
-             RightActingRingOfIdeal( I ) ) );
+             RightActingRingOfIdeal( I ), "right" ) );
 
 
 #############################################################################
@@ -527,6 +528,5 @@ InstallMethod( IsFiniteDimensional,
 
 #############################################################################
 ##
-#E  idealalg.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-
+#E
 

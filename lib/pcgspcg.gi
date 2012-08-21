@@ -40,7 +40,8 @@ InstallMethod( PcgsByPcSequenceNC,
     0,
 
 function( efam, pcs )
-    local   rws,  pfa,  pcgs,  pag,  id,  g,  dg,  i,  new,  ord;
+    local   rws,  pfa,  pcgs,  pag,  id,  g,  dg,  i,  new,
+    ord,codepths,pagpow,sorco;
 
     # quick check
     if not IsIdenticalObj( efam, ElementsFamily(FamilyObj(pcs)) )  then
@@ -59,9 +60,13 @@ function( efam, pcs )
         SetIsFamilyPcgs( pcgs, true );
         SetRelativeOrders( pcgs, RelativeOrders(rws) );
 
+
+#T We should not use `InducedPcgs' because `PcgsByPcSequence' is guaranteed
+#T to return a new, noninduced pcgs each time! AH
     # otherwise check if we can used an induced system
-    elif IsSSortedList( List( pcs, x -> DepthOfPcElement(pfa,x) ) )  then
-        pcgs := InducedPcgsByPcSequenceNC( pfa, pcs );
+#    elif IsSSortedList( List( pcs, x -> DepthOfPcElement(pfa,x) ) )  then
+#        pcgs := InducedPcgsByPcSequenceNC( pfa, pcs );
+
 
     # make an unsorted pcgs
     else
@@ -89,9 +94,39 @@ function( efam, pcs )
                 ord[i]  := RelativeOrderOfPcElement( pfa, g );
             fi;
      	od;
+	if not IsHomogeneousList(ord) then
+	  Error("not all relative orders given");
+	fi;
         pcgs!.sortedPcSequence := pag;
         pcgs!.newDepths        := new;
         pcgs!.sortingPcgs      := pfa;
+
+	# Precompute the leading coeffs and the powers of pag up to the
+	# relative order
+        pagpow:=[];
+	sorco:=[];
+	for i in [1..Length(pag)] do
+	  if IsBound(pag[i]) then
+	    pagpow[i]:=
+	      List([1..RelativeOrderOfPcElement(pfa,pag[i])-1],j->pag[i]^j);
+	    sorco[i]:=LeadingExponentOfPcElement(pfa,pag[i]);
+	  fi;
+	od;
+	pcgs!.sortedPcSeqPowers:=pagpow;
+        pcgs!.sortedPcSequenceLeadCoeff:=sorco;
+
+	# codepths[i]: the minimum pcgs-depth that can be implied by pag-depth i
+	codepths:=[];
+	for dg in [1..Length(new)] do
+	  g:=Length(new)+1;
+	  for i in [dg..Length(new)] do
+	    if IsBound(new[i]) and new[i]<g then
+	      g:=new[i];
+	    fi;
+	  od;
+	  codepths[dg]:=g;
+	od;
+	pcgs!.minimumCodepths:=codepths;
         SetRelativeOrders( pcgs, ord );
 
     fi;
@@ -209,7 +244,6 @@ end );
 
 #############################################################################
 ##
-
 #M  DepthOfPcElement( <fam-pcgs>, <elm> )
 ##
 InstallMethod( DepthOfPcElement,
@@ -279,10 +313,118 @@ function( pcgs, elm )
 
 end );
 
+# methods for `PcElementByExponent' that use the family pcgs directly
+#############################################################################
+##
+#M  PcElementByExponentsNC( <family pcgs>, <list> )
+##
+InstallMethod( PcElementByExponentsNC,
+    "family pcgs",
+    true,
+    [ IsPcgs and IsFamilyPcgs,
+      IsRowVector and IsCyclotomicCollection ],
+    0,
+
+function( pcgs, list )
+local i;
+  for i in list do if i<0 then Error("wrong exponents");fi;od;
+  return ObjByVector(TypeObj(OneOfPcgs(pcgs)),list);
+end );
+
+InstallMethod( PcElementByExponentsNC,
+    "family pcgs, FFE",
+    true,
+    [ IsPcgs and IsFamilyPcgs,
+      IsRowVector and IsFFECollection ],
+    0,
+
+function( pcgs, list )
+  list:=IntVecFFE(list);
+  return ObjByVector(TypeObj(OneOfPcgs(pcgs)),list);
+end );
 
 #############################################################################
 ##
+#M  PcElementByExponentsNC( <family pcgs induced>, <list> )
+##
+InstallMethod( PcElementByExponentsNC,
+    "subset induced wrt family pcgs",
+    true,
+    [ IsPcgs and IsParentPcgsFamilyPcgs and IsSubsetInducedPcgsRep
+      and IsPrimeOrdersPcgs, IsRowVector and IsCyclotomicCollection ],
+    0,
 
+function( pcgs, list )
+local exp;
+  for exp in list do if exp<0 then Error("wrong exponents");fi;od;
+  exp:=ShallowCopy(pcgs!.parentZeroVector);
+  exp{pcgs!.depthsInParent}:=list;
+  return ObjByVector(TypeObj(OneOfPcgs(pcgs)),exp);
+end);
+
+#############################################################################
+##
+#M  PcElementByExponentsNC( <family pcgs induced>, <list> )
+##
+InstallMethod( PcElementByExponentsNC,
+    "subset induced wrt family pcgs, FFE",
+    true,
+    [ IsPcgs and IsParentPcgsFamilyPcgs and IsSubsetInducedPcgsRep
+      and IsPrimeOrdersPcgs, IsRowVector and IsFFECollection ],
+    0,
+
+function( pcgs, list )
+local exp;
+  list:=IntVecFFE(list);
+  exp:=ShallowCopy(pcgs!.parentZeroVector);
+  exp{pcgs!.depthsInParent}:=list;
+  return ObjByVector(TypeObj(OneOfPcgs(pcgs)),exp);
+end);
+
+#############################################################################
+##
+#M  PcElementByExponentsNC( <family pcgs modulo>, <list> )
+##
+InstallMethod( PcElementByExponentsNC,
+    "modulo subset induced wrt family pcgs",
+    true,
+    [ IsModuloPcgs and IsModuloTailPcgsRep and
+      IsSubsetInducedNumeratorModuloTailPcgsRep and IsPrimeOrdersPcgs
+      and IsNumeratorParentPcgsFamilyPcgs,
+      IsRowVector and IsCyclotomicCollection ],
+    0,
+
+function( pcgs, list )
+local exp;
+  for exp in list do if exp<0 then Error("wrong exponents");fi;od;
+  exp:=ShallowCopy(pcgs!.parentZeroVector);
+  exp{pcgs!.parentSubmap}:=list;
+  return ObjByVector(TypeObj(OneOfPcgs(pcgs)),exp);
+end);
+
+#############################################################################
+##
+#M  PcElementByExponentsNC( <family pcgs modulo>, <list> )
+##
+InstallMethod( PcElementByExponentsNC,
+    "modulo subset induced wrt family pcgs, FFE",
+    true,
+    [ IsModuloPcgs and IsModuloTailPcgsRep and
+      IsSubsetInducedNumeratorModuloTailPcgsRep and IsPrimeOrdersPcgs
+      and IsNumeratorParentPcgsFamilyPcgs,
+      IsRowVector and IsFFECollection ],
+    0,
+
+function( pcgs, list )
+local exp;
+  list:=IntVecFFE(list);
+  exp:=ShallowCopy(pcgs!.parentZeroVector);
+  exp{pcgs!.parentSubmap}:=list;
+  return ObjByVector(TypeObj(OneOfPcgs(pcgs)),exp);
+end);
+
+#############################################################################
+##
 #M  CanonicalPcElement( <igs>, <8bits-word> )
 ##
 InstallMethod( CanonicalPcElement,
@@ -315,14 +457,61 @@ InstallMethod( DepthOfPcElement,
 #M  ExponentOfPcElement( <8bits-pcgs>, <elm> )
 ##
 InstallMethod( ExponentOfPcElement,
-    "family pcgs (8bits)",
-    function(a,b,c) return IsCollsElms(a,b); end,
+    "family pcgs (8bits)",IsCollsElmsX,
     [ IsPcgs and IsFamilyPcgs,
       IsMultiplicativeElementWithInverseByRws and Is8BitsPcWordRep,
       IsPosInt ],
     100,
     8Bits_ExponentOfPcElement );
 
+#############################################################################
+##
+#M  ExponentsOfPcElement( <8bits-pcgs>, <elm> )
+##
+InstallMethod( ExponentsOfPcElement, "family pcgs/8 bit",IsCollsElms,
+     [ IsPcgs and IsFamilyPcgs, Is8BitsPcWordRep ], 
+     # in `pcgspcg' there is a value 100 method that is worse than we are
+     200,
+function ( pcgs, elm )
+    local  exp, rep, i;
+    exp := ListWithIdenticalEntries( Length( pcgs ), 0 );
+    rep := 8Bits_ExtRepOfObj( elm );
+    for i  in [ 1, 3 .. Length( rep ) - 1 ]  do
+        exp[rep[i]] := rep[i + 1];
+    od;
+    return exp;
+end);
+
+#############################################################################
+##
+#M  ExponentsOfPcElement( <8bits-pcgs>, <elm>,<range> )
+##
+InstallOtherMethod( ExponentsOfPcElement, "family pcgs/8 bit",IsCollsElmsX,
+     [ IsPcgs and IsFamilyPcgs, Is8BitsPcWordRep,IsList ], 
+     # in `pcgspcg' there is a value 100 method that is worse than we are
+     200,
+function( pcgs, elm,range )
+local   exp,  rep,  i,rp,lr;
+    lr:=Length(range);
+    exp := ListWithIdenticalEntries( lr, 0 );
+    rep := 8Bits_ExtRepOfObj(elm);
+    rp:=1; # position in range
+    # assume the ext rep is always ordered.
+    for i  in [ 1, 3 .. Length(rep)-1 ]  do
+      # do we have to get up through the range?
+      while rp<=lr and range[rp]<rep[i] do
+        rp:=rp+1;
+      od;
+      if rp>lr then
+        break; # we have reached the end of the range
+      fi;
+      if rep[i]=range[rp] then
+        exp[rp] := rep[i+1];
+        rp:=rp+1;
+        fi;
+    od;
+    return exp;
+end );
 
 #############################################################################
 ##
@@ -330,7 +519,7 @@ InstallMethod( ExponentOfPcElement,
 ##
 InstallMethod( HeadPcElementByNumber,
     "family pcgs (8bits)",
-    function(a,b,c) return IsCollsElms(a,b); end,
+    IsCollsElmsX,
     [ IsPcgs and IsFamilyPcgs,
       IsMultiplicativeElementWithInverseByRws and Is8BitsPcWordRep,
       IsInt ],
@@ -356,7 +545,6 @@ InstallMethod( LeadingExponentOfPcElement,
 
 #############################################################################
 ##
-
 #M  CanonicalPcElement( <igs>, <16bits-word> )
 ##
 InstallMethod( CanonicalPcElement,
@@ -389,14 +577,61 @@ InstallMethod( DepthOfPcElement,
 #M  ExponentOfPcElement( <16bits-pcgs>, <elm> )
 ##
 InstallMethod( ExponentOfPcElement,
-    "family pcgs (16bits)",
-    function(a,b,c) return IsCollsElms(a,b); end,
+    "family pcgs (16bits)",IsCollsElmsX,
     [ IsPcgs and IsFamilyPcgs,
       IsMultiplicativeElementWithInverseByRws and Is16BitsPcWordRep,
       IsPosInt ],
     100,
     16Bits_ExponentOfPcElement );
 
+#############################################################################
+##
+#M  ExponentsOfPcElement( <16bits-pcgs>, <elm> )
+##
+InstallMethod( ExponentsOfPcElement, "family pcgs/16 bit",IsCollsElms,
+     [ IsPcgs and IsFamilyPcgs, Is16BitsPcWordRep ], 
+     # in `pcgspcg' there is a value 100 method that is worse than we are
+     200,
+function ( pcgs, elm )
+    local  exp, rep, i;
+    exp := ListWithIdenticalEntries( Length( pcgs ), 0 );
+    rep := 16Bits_ExtRepOfObj( elm );
+    for i  in [ 1, 3 .. Length( rep ) - 1 ]  do
+        exp[rep[i]] := rep[i + 1];
+    od;
+    return exp;
+end);
+
+#############################################################################
+##
+#M  ExponentsOfPcElement( <16bits-pcgs>, <elm>,<range> )
+##
+InstallOtherMethod( ExponentsOfPcElement, "family pcgs/16 bit",IsCollsElmsX,
+     [ IsPcgs and IsFamilyPcgs, Is16BitsPcWordRep,IsList ], 
+     # in `pcgspcg' there is a value 100 method that is worse than we are
+     200,
+function( pcgs, elm,range )
+local   exp,  rep,  i,rp,lr;
+    lr:=Length(range);
+    exp := ListWithIdenticalEntries( lr, 0 );
+    rep := 16Bits_ExtRepOfObj(elm);
+    rp:=1; # position in range
+    # assume the ext rep is always ordered.
+    for i  in [ 1, 3 .. Length(rep)-1 ]  do
+      # do we have to get up through the range?
+      while rp<=lr and range[rp]<rep[i] do
+        rp:=rp+1;
+      od;
+      if rp>lr then
+        break; # we have reached the end of the range
+      fi;
+      if rep[i]=range[rp] then
+        exp[rp] := rep[i+1];
+        rp:=rp+1;
+        fi;
+    od;
+    return exp;
+end );
 
 #############################################################################
 ##
@@ -404,7 +639,7 @@ InstallMethod( ExponentOfPcElement,
 ##
 InstallMethod( HeadPcElementByNumber,
     "family pcgs (16bits)",
-    function(a,b,c) return IsCollsElms(a,b); end,
+    IsCollsElmsX,
     [ IsPcgs and IsFamilyPcgs,
       IsMultiplicativeElementWithInverseByRws and Is16BitsPcWordRep,
       IsInt ],
@@ -464,12 +699,61 @@ InstallMethod( DepthOfPcElement,
 ##
 InstallMethod( ExponentOfPcElement,
     "family pcgs (32bits)",
-    function(a,b,c) return IsCollsElms(a,b); end,
+    IsCollsElmsX,
     [ IsPcgs and IsFamilyPcgs,
       IsMultiplicativeElementWithInverseByRws and Is32BitsPcWordRep,
       IsPosInt ],
     100,
     32Bits_ExponentOfPcElement );
+
+#############################################################################
+##
+#M  ExponentsOfPcElement( <32bits-pcgs>, <elm> )
+##
+InstallMethod( ExponentsOfPcElement, "family pcgs/32 bit",IsCollsElms,
+     [ IsPcgs and IsFamilyPcgs, Is32BitsPcWordRep ], 
+     # in `pcgspcg' there is a value 100 method that is worse than we are
+     200,
+function ( pcgs, elm )
+    local  exp, rep, i;
+    exp := ListWithIdenticalEntries( Length( pcgs ), 0 );
+    rep := 32Bits_ExtRepOfObj( elm );
+    for i  in [ 1, 3 .. Length( rep ) - 1 ]  do
+        exp[rep[i]] := rep[i + 1];
+    od;
+    return exp;
+end);
+
+#############################################################################
+##
+#M  ExponentsOfPcElement( <32bits-pcgs>, <elm>,<range> )
+##
+InstallOtherMethod( ExponentsOfPcElement, "family pcgs/32 bit",IsCollsElmsX,
+     [ IsPcgs and IsFamilyPcgs, Is32BitsPcWordRep,IsList ], 
+     # in `pcgspcg' there is a value 100 method that is worse than we are
+     200,
+function( pcgs, elm,range )
+local   exp,  rep,  i,rp,lr;
+    lr:=Length(range);
+    exp := ListWithIdenticalEntries( lr, 0 );
+    rep := 32Bits_ExtRepOfObj(elm);
+    rp:=1; # position in range
+    # assume the ext rep is always ordered.
+    for i  in [ 1, 3 .. Length(rep)-1 ]  do
+      # do we have to get up through the range?
+      while rp<=lr and range[rp]<rep[i] do
+        rp:=rp+1;
+      od;
+      if rp>lr then
+        break; # we have reached the end of the range
+      fi;
+      if rep[i]=range[rp] then
+        exp[rp] := rep[i+1];
+        rp:=rp+1;
+        fi;
+    od;
+    return exp;
+end );
 
 
 #############################################################################
@@ -478,7 +762,7 @@ InstallMethod( ExponentOfPcElement,
 ##
 InstallMethod( HeadPcElementByNumber,
     "family pcgs (32bits)",
-    function(a,b,c) return IsCollsElms(a,b); end,
+    IsCollsElmsX,
     [ IsPcgs and IsFamilyPcgs,
       IsMultiplicativeElementWithInverseByRws and Is32BitsPcWordRep,
       IsInt ],
@@ -504,7 +788,6 @@ InstallMethod( LeadingExponentOfPcElement,
 
 #############################################################################
 ##
-
 #M  DepthOfPcElement( <unsorted-pcgs>, <elm> )
 ##
 InstallMethod( DepthOfPcElement,
@@ -550,45 +833,70 @@ end );
 ##
 InstallMethod( ExponentOfPcElement,
     "unsorted pcgs",
-    function(a,b,c) return IsCollsElms(a,b); end,
+    IsCollsElmsX,
     [ IsPcgs and IsUnsortedPcgsRep,
       IsObject,
       IsPosInt ],
     0,
 
 function( pcgs, elm, pos )
-    local   pfa,  pcs,  new,  dep,  id,  g,  dg,  ll,  lr,  ord, led;
+    local   pfa,  pcs,  new,  dep,  id,  g,  dg,  ll,  lr,  ord,
+            led,pcsl,relords,pcspow,codepths,step;
 
-    pfa := pcgs!.sortingPcgs;
-    pcs := pcgs!.sortedPcSequence;
-    new := pcgs!.newDepths;
     id  := OneOfPcgs(pcgs);
-
     # if <elm> is the identity return the null
     if elm = id  then
         return 0;
     fi;
+
+    pfa := pcgs!.sortingPcgs;
+    relords:=RelativeOrders(pfa);
+    pcs := pcgs!.sortedPcSequence;
+    pcsl:= pcgs!.sortedPcSequenceLeadCoeff;
+    pcspow := pcgs!.sortedPcSeqPowers;
+    new := pcgs!.newDepths;
+    codepths:=pcgs!.minimumCodepths;
         
     # sift element through the sorted system
+    step:=0; # the index in pcgs up to which we have already computed exponents
     while elm <> id  do
+	#compute the next depth `dep' at which we have an exponent in pcgs.
         g   := elm;
         dep := Length(pcgs)+1;
         while g <> id  do
+	    # do this by stepping down in pag
             dg := DepthOfPcElement( pfa, g );
-            if IsBound(pcs[dg])  then
+
+	    if codepths[dg]>dep then
+	      # once we have reached pfa-depth dg, we cannot acchieve `dep'
+	      # any longer. So we may stop the descent through pfa here
+	      g:=id;
+            elif IsBound(pcs[dg])  then
                 ll  := LeadingExponentOfPcElement( pfa, g );
-                lr  := LeadingExponentOfPcElement( pfa, pcs[dg] );
-                ord := RelativeOrderOfPcElement( pfa, g );
+                #lr  := LeadingExponentOfPcElement( pfa, pcs[dg]);
+                lr  := pcsl[dg]; # precomputed value
+                #ord := RelativeOrderOfPcElement( pfa, g );
+		# the relative order is of course the rel. ord. in pfa
+		# at depth dg.
+		ord:=relords[dg];
                 ll  := (ll/lr mod ord);
-                g   := LeftQuotient( pcs[dg]^ll, g );
+                #g   := LeftQuotient( pcs[dg]^ll, g ); 
+                g   := LeftQuotient( pcspow[dg][ll], g ); #precomputed
+
                 if new[dg] < dep  then
                     dep := new[dg];
                     led := ll;
+		    if dep<=step+1 then
+		      # this is the minimum possible pcgs-depth at this
+		      # point
+		      g:=id;
+		    fi;
                 fi;
             else
                 Error( "<elm> must lie in group defined by <pcgs>" );
             fi;
         od;
+	step:=dep;
         if dep = pos  then
             return led;
         fi;
@@ -611,44 +919,149 @@ InstallMethod( ExponentsOfPcElement,
 
 function( pcgs, elm )
     local   pfa,  pcs,  new,  dep,  id,  exp,  g,  dg,  ll,  lr,  ord,  
-            led;
+            led,pcsl,relords,pcspow,codepths,step;
 
-    pfa := pcgs!.sortingPcgs;
-    pcs := pcgs!.sortedPcSequence;
-    new := pcgs!.newDepths;
     id  := OneOfPcgs(pcgs);
-    exp := List( pcgs, x -> 0 );
+    exp := ListWithIdenticalEntries(Length(pcgs),0);
 
     # if <elm> is the identity return the null vector
     if elm = id  then
         return exp;
     fi;
-        
+
+    pfa := pcgs!.sortingPcgs;
+    relords:=RelativeOrders(pfa);
+    pcs := pcgs!.sortedPcSequence;
+    pcsl:= pcgs!.sortedPcSequenceLeadCoeff;
+    pcspow := pcgs!.sortedPcSeqPowers;
+    new := pcgs!.newDepths;
+    codepths:=pcgs!.minimumCodepths;
+
     # sift element through the sorted system
+    step:=0; # the index in pcgs up to which we have already computed exponents
     while elm <> id  do
+	#compute the next depth `dep' at which we have an exponent in pcgs.
         g   := elm;
         dep := Length(pcgs)+1;
         while g <> id  do
+	    # do this by stepping down in pag
             dg := DepthOfPcElement( pfa, g );
-            if IsBound(pcs[dg])  then
+	    if codepths[dg]>dep then
+	      # once we have reached pfa-depth dg, we cannot acchieve `dep'
+	      # any longer. So we may stop the descent through pfa here
+	      g:=id;
+            elif IsBound(pcs[dg])  then
                 ll  := LeadingExponentOfPcElement( pfa, g );
-                lr  := LeadingExponentOfPcElement( pfa, pcs[dg] );
-                ord := RelativeOrderOfPcElement( pfa, g );
+                #lr  := LeadingExponentOfPcElement( pfa, pcs[dg]);
+                lr  := pcsl[dg]; # precomputed value
+                #ord := RelativeOrderOfPcElement( pfa, g );
+		# the relative order is of course the rel. ord. in pfa
+		# at depth dg.
+		ord:=relords[dg];
                 ll  := (ll/lr mod ord);
-                g   := LeftQuotient( pcs[dg]^ll, g );
+                #g   := LeftQuotient( pcs[dg]^ll, g ); 
+                g   := LeftQuotient( pcspow[dg][ll], g ); #precomputed
                 if new[dg] < dep  then
                     dep := new[dg];
                     led := ll;
+		    if dep<=step+1 then
+		      # this is the minimum possible pcgs-depth at this
+		      # point
+		      g:=id;
+		    fi;
                 fi;
             else
                 Error( "<elm> must lie in group defined by <pcgs>" );
             fi;
         od;
         exp[dep] := led;
+	step:=dep;
         elm := LeftQuotient( pcgs[dep]^led, elm );
     od;
     return exp;
 end );
+
+#############################################################################
+##
+#M  ExponentsOfPcElement( <unsorted-pcgs>, <elm>, <range> )
+##
+
+InstallOtherMethod( ExponentsOfPcElement,
+    "unsorted pcgs/range",
+    IsCollsElmsX,
+    [ IsPcgs and IsUnsortedPcgsRep,
+      IsObject,IsList ],
+    0,
+function( pcgs, elm,range )
+    local   pfa,  pcs,  new,  dep,  id,  exp,  g,  dg,  ll,  lr,  ord,  
+            led,pcsl,max,step,codepths,pcspow,relords;
+
+    id  := OneOfPcgs(pcgs);
+    exp := ListWithIdenticalEntries(Length(pcgs),0);
+
+    # if <elm> is the identity return the null vector
+    if elm = id or Length(range)=0  then
+        return exp{range};
+    fi;
+
+    max:=Maximum(range);
+    pfa := pcgs!.sortingPcgs;
+    relords:=RelativeOrders(pfa);
+    pcs := pcgs!.sortedPcSequence;
+    pcsl:= pcgs!.sortedPcSequenceLeadCoeff;
+    pcspow := pcgs!.sortedPcSeqPowers;
+    new := pcgs!.newDepths;
+    codepths:=pcgs!.minimumCodepths;
+        
+    # sift element through the sorted system
+    step:=0; # the index in pcgs up to which we have already computed exponents
+    while elm <> id  do
+	#compute the next depth `dep' at which we have an exponent in pcgs.
+        g   := elm;
+        dep := Length(pcgs)+1;
+        while g <> id  do
+	    # do this by stepping down in pag
+            dg := DepthOfPcElement( pfa, g );
+
+	    if codepths[dg]>dep then
+	      # once we have reached pfa-depth dg, we cannot acchieve `dep'
+	      # any longer. So we may stop the descent through pfa here
+	      g:=id;
+            elif IsBound(pcs[dg])  then
+                ll  := LeadingExponentOfPcElement( pfa, g );
+                #lr  := LeadingExponentOfPcElement( pfa, pcs[dg]);
+                lr  := pcsl[dg]; # precomputed value
+                #ord := RelativeOrderOfPcElement( pfa, g );
+		# the relative order is of course the rel. ord. in pfa
+		# at depth dg.
+		ord:=relords[dg];
+                ll  := (ll/lr mod ord);
+                #g   := LeftQuotient( pcs[dg]^ll, g ); 
+                g   := LeftQuotient( pcspow[dg][ll], g ); #precomputed
+                if new[dg] < dep  then
+                    dep := new[dg];
+                    led := ll;
+		    if dep<=step+1 then
+		      # this is the minimum possible pcgs-depth at this
+		      # point
+		      g:=id;
+		    fi;
+                fi;
+            else
+                Error( "<elm> must lie in group defined by <pcgs>" );
+            fi;
+        od;
+
+        exp[dep] := led;
+	step:=dep;
+	if dep>=max then
+	  # we have found all exponents, may stop
+	  break;
+	fi;
+        elm := LeftQuotient( pcgs[dep]^led, elm );
+    od;
+    return exp{range};
+end);
 
 
 #############################################################################
@@ -663,28 +1076,45 @@ InstallMethod( LeadingExponentOfPcElement,
     0,
 
 function( pcgs, elm )
-    local   pfa,  pcs,  new,  dep,  id,  dg,  ll,  lr,  ord,  led;
+    local   pfa,  pcs,  new,  dep,  id,  dg,  ll,  lr,  ord, led,pcsl,
+            relords,pcspow,codepths,step;
 
-    pfa := pcgs!.sortingPcgs;
-    pcs := pcgs!.sortedPcSequence;
-    new := pcgs!.newDepths;
-    dep := Length(pcgs)+1;
     id  := OneOfPcgs(pcgs);
-
     # if <elm> is the identity return fail
     if elm = id  then
         return fail;
     fi;
-        
+
+    pfa := pcgs!.sortingPcgs;
+    relords:=RelativeOrders(pfa);
+    pcs := pcgs!.sortedPcSequence;
+    pcsl:= pcgs!.sortedPcSequenceLeadCoeff;
+    pcspow := pcgs!.sortedPcSeqPowers;
+    new := pcgs!.newDepths;
+    codepths:=pcgs!.minimumCodepths;
+    dep := Length(pcgs)+1;
+
     # sift element through the sorted system
     while elm <> id  do
+	# do this by stepping down in pag
         dg := DepthOfPcElement( pfa, elm );
-        if IsBound(pcs[dg])  then
+
+	if codepths[dg]>dep then
+	  # once we have reached pfa-depth dg, we cannot acchieve `dep'
+	  # any longer. So we may stop the descent through pfa here
+	  elm:=id;
+	elif IsBound(pcs[dg])  then
             ll  := LeadingExponentOfPcElement( pfa, elm );
-            lr  := LeadingExponentOfPcElement( pfa, pcs[dg] );
-            ord := RelativeOrderOfPcElement( pfa, elm );
-            ll  := (ll/lr mod ord);
-            elm := LeftQuotient( pcs[dg]^ll, elm );
+	    #lr  := LeadingExponentOfPcElement( pfa, pcs[dg]);
+	    lr  := pcsl[dg]; # precomputed value
+	    #ord := RelativeOrderOfPcElement( pfa, elm );
+	    # the relative order is of course the rel. ord. in pfa
+	    # at depth dg.
+	    ord:=relords[dg];
+	    ll  := (ll/lr mod ord);
+	    #elm := LeftQuotient( pcs[dg]^ll, elm); 
+	    elm := LeftQuotient( pcspow[dg][ll], elm ); #precomputed
+
             if new[dg] < dep  then
                 dep := new[dg];
                 led := ll;

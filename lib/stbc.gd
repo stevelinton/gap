@@ -1,6 +1,7 @@
 #############################################################################
 ##
 #W  stbc.gd                     GAP library                    Heiko Thei"sen
+#W                                                               'Akos Seress
 ##
 #H  @(#)$Id$
 ##
@@ -128,7 +129,7 @@ DeclareGlobalVariable( "DefaultStabChainOptions",
 ##
 #A  BaseOfGroup(<G>)
 ##
-##  returns a base to <G>. There is *no* guarantee that a stabilizer chain
+##  returns a base of <G>. There is *no* guarantee that a stabilizer chain
 ##  stored in the group corresponds to this base!
 ##
 DeclareAttribute( "BaseOfGroup", IsPermGroup );
@@ -194,7 +195,7 @@ DeclareGlobalFunction( "StrongGeneratorsStabChain" );
 ##
 #F  GroupStabChain([<G>,] <C> )
 ##
-##  creates a group (subgroup of <G>) form the stabilizer chain <C>.
+##  creates a group (subgroup of <G>) from the stabilizer chain <C>.
 DeclareGlobalFunction( "GroupStabChain" );
 
 #############################################################################
@@ -220,6 +221,14 @@ DeclareGlobalFunction( "ListStabChain" );
 ##  returns the orbit of <pnt> under the group described by the stabilizer
 ##  chain <S>.
 DeclareGlobalFunction( "OrbitStabChain" );
+
+#############################################################################
+##
+#F  ElementsStabChain( <S> )
+##
+##  returns a list of all elements of the group described by the stabilizer
+##  chain <S>.
+DeclareGlobalFunction( "ElementsStabChain" );
 
 #############################################################################
 ##
@@ -249,7 +258,7 @@ DeclareGlobalFunction( "ChangeStabChain" );
 #F  ExtendStabChain( <C>, <base> )
 ##
 ##  extends the stabilizer chain <C> to be adapted to <base>. This function
-##  just calls 'ChangeStabChain'
+##  just calls `ChangeStabChain' with parameter `reduced' set to $-1$.
 DeclareGlobalFunction( "ExtendStabChain" );
 
 #############################################################################
@@ -282,8 +291,8 @@ DeclareGlobalFunction( "ConjugateStabChain" );
 ##
 #F  RemoveStabChain( <S> )
 ##
-##  <S> must be a stabilizer record in a stabilizer chain. This chain thes
-##  is cut off at <S> by changing the entries in <S>. This cane be used to
+##  <S> must be a stabilizer record in a stabilizer chain. This chain then
+##  is cut off at <S> by changing the entries in <S>. This can be used to
 ##  remove trailing trivial steps.
 DeclareGlobalFunction( "RemoveStabChain" );
 
@@ -311,11 +320,43 @@ DeclareGlobalFunction( "SiftedPermutation" );
 DeclareGlobalFunction(
     "MinimalElementCosetStabChain" );
 
+#############################################################################
+##
+#F  SCMinSmaGens(<G>,<S>,<emptyset>,<identity element>,<flag>)
+##
+##  This function computes a stabilizer chain for a minimal base image and 
+##  a smallest generating set wrt. this base for a permutation
+##  group.
+##
+##  <G> must be a permutation group and <S> a mutable stabilizer chain for
+##  <G> that defines a base <bas>. Let <mbas> the smallest image (OnTuples)
+##  of <G>. Then this operation changes <S> to a stabilizer chain wrt.
+##  <mbas>.
+##  The arguments <emptyset> and <identity element> are needed
+##  only for the recursion.
+##
+##  The function returns a record whose component `gens' is a list whose
+##  first element is the smallest element wrt. <bas>. (i.e. an element which
+##  maps <bas> to <mbas>. If <flag> is `true', `gens' is  the smallest
+##  generating set wrt. <bas>. (If <flag> is `false' this will not be
+##  computed.)
+DeclareGlobalFunction("SCMinSmaGens");
+
+#############################################################################
+##
+#F  LargestElementStabChain(<S>,<id>)
+##
+##  This function returns the element that maps the base represented by <S>
+##  to the largest possible base image.
+##  The second argument must be an identity element (used to start the
+##  recursion)
+DeclareGlobalFunction("LargestElementStabChain");
+
 DeclareCategory( "IsPermOnEnumerator",
     IsMultiplicativeElementWithInverse and IsPerm );
 
 DeclareOperation( "PermOnEnumerator",
-    [ IsEnumerator, IsObject ] );
+    [ IsList, IsObject ] );
 
 
 DeclareGlobalFunction( "DepthSchreierTrees" );

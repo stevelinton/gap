@@ -243,10 +243,10 @@ InstallGlobalFunction( SmithNormalFormSQ, function( M )
 	end;
 
     # here starts the main function
-	P := MutableIdentityMat( Length( M ) );
+	P := IdentityMat( Length( M ) );
 	M := ShallowCopy( M );
-	Q := MutableIdentityMat( Length( M[1] ) );
-	I := MutableIdentityMat( Length( M[1] ) );
+	Q := IdentityMat( Length( M[1] ) );
+	I := IdentityMat( Length( M[1] ) );
 
 	for pos in [ 1..Minimum( Length( M ), Length( M[1] ) ) ] do
 	    if minimum() <> 0 then
@@ -435,9 +435,9 @@ InstallGlobalFunction( LiftEpimorphismSQ, function( epi, M, c )
     mtil := [];
     for w in epi.imgs do
         e := ExponentsOfPcElement( pcgsG, w );
-        g := PcElementByExponents( pcgsH, htil, e );
+        g := PcElementByExponentsNC( pcgsH, htil, e );
         Add( gtil, g );
-        m := IdentityMat( d, M.field );
+        m := Immutable( IdentityMat( d, M.field ) );
         for i in [1..n] do
             m := m * M.generators[i]^e[i];
         od;
@@ -458,7 +458,8 @@ InstallGlobalFunction( LiftEpimorphismSQ, function( epi, M, c )
         Append( V, v );
    
         # left hand side
-        mats := List( [1..r], x -> NullMat( d, d, M.field ) );
+        mats := ListWithIdenticalEntries( r,
+                    Immutable( NullMat( d, d, M.field ) ) );
         for i in [1..l] do
             g := Subword( rel, i, i );
             j := Position( gensf, g );
@@ -494,7 +495,7 @@ InstallGlobalFunction( LiftEpimorphismSQ, function( epi, M, c )
     elms := [];
     for i in [1..r] do
         sub := sol{[d*(i-1)+1..d*i]}; 
-        elm := PcElementByExponents( pcgsN, sub );
+        elm := PcElementByExponentsNC( pcgsN, sub );
         Add( elms, elm );
     od;
     imgs := List( [1..r], x -> gtil[x] * elms[x] ) ;
@@ -516,7 +517,7 @@ InstallGlobalFunction( LiftEpimorphismSQ, function( epi, M, c )
         elms := [];
         for i in [1..r] do
             sub := new{[d*(i-1)+1..d*i]}; 
-            elm := PcElementByExponents( pcgsN, sub );
+            elm := PcElementByExponentsNC( pcgsN, sub );
             Add( elms, elm );
         od;
         imgs := List( [1..r], x -> gtil[x] * elms[x] );

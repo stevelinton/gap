@@ -15,11 +15,11 @@
 ##  $M$ is linearly independent over $R$.
 ##  Addition, subtraction and multiplication are the obvious ones.
 ##
-##  A more general construction allows to create magma rings that are not
+##  A more general construction allows one to create magma rings that are not
 ##  free on the magma but arise by factoring out certain identities.
 ##  Finitely presented algebras arise that way, but also free Lie algebras.
 ##
-##  *Note* that the arithmetic allows to create elements with coefficients
+##  *Note* that the arithmetic allows one to create elements with coefficients
 ##  in the whole family of $R$, and words in the whole family of $M$.
 ##  Also the multiplication with elements in the family of $R$ is allowed.
 ##
@@ -42,7 +42,7 @@
 #T (cannot be the ordering of magma elements)
 ##
 ##  In order to treat elements of free magma rings uniformly, the attribute
-##  `CoefficientsAndMagmaElements' is introduced that allows to take an
+##  `CoefficientsAndMagmaElements' is introduced that allows one to take an
 ##  element into pieces.
 ##  The element constructor is `FreeMagmaRingElement', it constructs an
 ##  element from a given lists of coefficients and magma elements.
@@ -94,7 +94,7 @@ DeclareCategory( "IsElementOfFreeMagmaRing",
 
 #############################################################################
 ##
-#C  IsFamilyElementOfFreeMagmaRing( <Fam> )
+#C  IsElementOfFreeMagmaRingFamily( <Fam> )
 ##
 ##  Elements of families in this category have trivial normalisation, i.e.,
 ##  efficient methods for `\=' and `\<'.

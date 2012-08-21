@@ -17,6 +17,18 @@ Revision.basismut_gi :=
 
 #############################################################################
 ##
+#M  ShallowCopy( <MB> ) . . . . . . . . . . . . . . . . . for a mutable basis
+##
+InstallMethod( ShallowCopy,
+    "generic method for mutable basis",
+    true,
+    [ IsMutableBasis ], 0,
+    MB -> ShallowCopy( BasisVectors( MB ) ) );
+
+
+
+#############################################################################
+##
 #M  NrBasisVectors( <MB> )  . . . . . . . . . . . . . . . for a mutable basis
 ##
 ##  The default method constructs the basis vctors, and returns the length of
@@ -34,14 +46,50 @@ InstallMethod( NrBasisVectors,
 
 #############################################################################
 ##
+#M  ImmutableBasis( <MB>, <V> )
+##
+##  This method is needed for the case that one wants to construct a basis
+##  of <V>, and successive closures of mutable bases are needed to get a
+##  mutable basis; from this one then creates the immutable basis,
+##  and wants the object <V> to be the underlying module.
+##
+InstallOtherMethod( ImmutableBasis,
+    "for mutable basis, and free left module",
+    IsIdenticalObj,
+    [ IsMutableBasis, IsFreeLeftModule ], 0,
+    function( MB, V )
+
+    local B, vectors;
+
+    B:= ImmutableBasis( MB );
+
+    if not IsIdenticalObj( UnderlyingLeftModule( B ), V ) then
+
+      # If `V' does not know left module generators yet,
+      # we store them now,
+      # in order to avoid unnecessary work in `BasisByGeneratorsNC'.
+      # (If `V' is a FLMLOR handled via nice bases,
+      # the call of `NiceFreeLeftModule' might cause a second computation
+      # of these generators.)
+      vectors:= BasisVectors( B );
+      UseBasis( V, vectors );  # store left module generators
+
+      B:= BasisByGeneratorsNC( V, vectors );
+
+    fi;
+    return B;
+    end );
+
+
+#############################################################################
+##
 #R  IsMutableBasisByImmutableBasisRep( <B> )
 ##
 ##  The default case of a mutable basis stores an immutable basis,
 ##  and constructs a new one whenever the mutable basis is changed.
 ##
-DeclareRepresentation(
-    "IsMutableBasisByImmutableBasisRep",
-    IsComponentObjectRep and IsMutable,
+DeclareRepresentation( "IsMutableBasisByImmutableBasisRep",
+    IsComponentObjectRep,
     [ "immutableBasis", "leftActingDomain" ] );
 
 
@@ -69,6 +117,7 @@ InstallMethod( MutableBasisByGenerators,
 
     return Objectify( NewType( FamilyObj( vectors ),
                                    IsMutableBasis
+                               and IsMutable
                                and IsMutableBasisByImmutableBasisRep ),
                       B );
     end );
@@ -89,6 +138,7 @@ InstallOtherMethod( MutableBasisByGenerators,
 
     return Objectify( NewType( CollectionsFamily( FamilyObj( zero ) ),
                                    IsMutableBasis
+                               and IsMutable
                                and IsMutableBasisByImmutableBasisRep ),
                       B );
     end );
@@ -146,7 +196,8 @@ InstallOtherMethod( BasisVectors,
 InstallMethod( CloseMutableBasis,
     "for mutable basis represented by an immutable basis, and vector",
     IsCollsElms,
-    [ IsMutableBasis and IsMutableBasisByImmutableBasisRep, IsVector ], 0,
+    [ IsMutableBasis and IsMutable and IsMutableBasisByImmutableBasisRep,
+      IsVector ], 0,
     function( MB, v )
     local V, B, vectors;
     B:= MB!.immutableBasis;
@@ -189,7 +240,7 @@ InstallMethod( ImmutableBasis,
 #R  IsMutableBasisViaNiceMutableBasisRep( <B> )
 ##
 DeclareRepresentation( "IsMutableBasisViaNiceMutableBasisRep",
-    IsComponentObjectRep and IsMutable,
+    IsComponentObjectRep,
     [ "leftModule", "niceMutableBasis", "zero" ] );
 
 
@@ -229,6 +280,7 @@ InstallGlobalFunction( MutableBasisViaNiceMutableBasisMethod2,
 
     return Objectify( NewType( FamilyObj( vectors ),
                                    IsMutableBasis
+                               and IsMutable
                                and IsMutableBasisViaNiceMutableBasisRep ),
                       B );
 end );
@@ -269,6 +321,7 @@ InstallGlobalFunction( MutableBasisViaNiceMutableBasisMethod3,
 
     return Objectify( NewType( CollectionsFamily( FamilyObj( zero ) ),
                                    IsMutableBasis
+                               and IsMutable
                                and IsMutableBasisViaNiceMutableBasisRep ),
                       B );
 end );
@@ -359,7 +412,8 @@ InstallMethod( NrBasisVectors,
 InstallMethod( CloseMutableBasis,
     "for mutable basis repres. by a nice mutable basis, and vector",
     IsCollsElms,
-    [ IsMutableBasis and IsMutableBasisViaNiceMutableBasisRep, IsVector ], 0,
+    [ IsMutableBasis and IsMutable and IsMutableBasisViaNiceMutableBasisRep,
+      IsVector ], 0,
     function( MB, v )
     local R, M;
     if IsBound( MB!.niceMutableBasis ) then
@@ -437,5 +491,5 @@ InstallMethod( ImmutableBasis,
 
 #############################################################################
 ##
-#E  basismut.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

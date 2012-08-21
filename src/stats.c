@@ -1262,6 +1262,17 @@ UInt            ExecBreak (
     return 4;
 }
 
+/****************************************************************************
+**
+*F  ExecEmpty( <stat> ) . . . . . execute an empty statement
+**
+**  Does nothing
+*/
+UInt ExecEmpty( Stat stat )
+{
+  return 0;
+}
+
 
 /****************************************************************************
 **
@@ -1481,7 +1492,16 @@ UInt ExecIntrStat (
 
     /* and now for something completely different                          */
     SET_BRK_CURR_STAT( stat );
-    ErrorReturnVoid( "user interrupt", 0L, 0L, "you can return" );
+
+    if ( SyStorOverrun != 0 ) {
+      SyStorOverrun = 0; /* reset */
+      ErrorReturnVoid(
+        "exceeded the permitted memory (`-o' command line option)",
+	0L, 0L, "you can return" );
+    }
+    else {
+      ErrorReturnVoid( "user interrupt", 0L, 0L, "you can return" );
+    }
 
     /* continue at the interrupted statement                               */
     return EXEC_STAT( stat );
@@ -1754,6 +1774,16 @@ void            PrintBreak (
 
 /****************************************************************************
 **
+*F  PrintEmpty(<stat>)
+**
+*/
+void             PrintEmpty( Stat stat )
+{
+  Pr( ";", 0L, 0L);
+}
+
+/****************************************************************************
+**
 *F  PrintInfo(<stat>)  . . . . . . . . . . . . . . . print an info-statement
 **
 **  'PrintInfo' prints the info-statement <stat>.
@@ -1931,7 +1961,12 @@ static Int InitKernel (
     ExecStatFuncs [ T_ASSERT_3ARGS   ] = ExecAssert3Args;
     ExecStatFuncs [ T_RETURN_OBJ     ] = ExecReturnObj;
     ExecStatFuncs [ T_RETURN_VOID    ] = ExecReturnVoid;
+    ExecStatFuncs [ T_EMPTY          ] = ExecEmpty;
 
+    /* install printers for non-statements                                */
+    for ( i = 0; i < sizeof(PrintStatFuncs)/sizeof(PrintStatFuncs[0]); i++ ) {
+        PrintStatFuncs[i] = PrintUnknownStat;
+    }
     /* install printing functions for compound statements                  */
     PrintStatFuncs[ T_SEQ_STAT       ] = PrintSeqStat;
     PrintStatFuncs[ T_SEQ_STAT2      ] = PrintSeqStat;
@@ -1962,6 +1997,7 @@ static Int InitKernel (
     PrintStatFuncs[ T_ASSERT_3ARGS   ] = PrintAssert3Args;
     PrintStatFuncs[ T_RETURN_OBJ     ] = PrintReturnObj;
     PrintStatFuncs[ T_RETURN_VOID    ] = PrintReturnVoid;
+    PrintStatFuncs[ T_EMPTY          ] = PrintEmpty;
 
     /* return success                                                      */
     return 0;

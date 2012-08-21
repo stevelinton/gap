@@ -65,8 +65,9 @@ end);
 InstallGlobalFunction(InducedAutomorphism,function(epi,aut)
 local f;
   f:=Range(epi);
-  if IsInnerAutomorphismRep(aut) and aut!.conjugator in Source(epi) then
-    aut:=InnerAutomorphism(f,Image(epi,aut!.conjugator));
+  if IsConjugatorAutomorphismRep(aut) 
+    and ConjugatorInnerAutomorphism(aut) in Source(epi) then
+    aut:=ConjugatorAutomorphism(f,Image(epi,ConjugatorInnerAutomorphism(aut)));
   else
     aut:= GroupHomomorphismByImagesNC(f,f,GeneratorsOfGroup(f),
 				   List(GeneratorsOfGroup(f),
@@ -126,7 +127,7 @@ local g,op,a,pcgs,ma,mat,d,f,i,j,new,newmat,id,p,dodim,compldim,compl,dims;
     dodim:=Maximum(dodim);
 
     # enumerate spaces
-    id:=IdentityMat(d, 1);
+    id:= Immutable( IdentityMat(d, 1) );
     ma:=[[],[id[1]]];
     # the complements to ma
     if d>1 then
@@ -180,7 +181,12 @@ local g,op,a,pcgs,ma,mat,d,f,i,j,new,newmat,id,p,dodim,compldim,compl,dims;
     # convert to grps (noting also the triv. one)
     new:=[];
     for i in ma do
-      a:=Subgroup(Parent(g),List(i,j->Product([1..d],k->pcgs[k]^j[k])));
+      #a:=SubgroupNC(Parent(g),List(i,j->Product([1..d],k->pcgs[k]^j[k])));
+      a:=SubgroupNC(Parent(g),List(i,j->PcElementByExponentsNC(pcgs,j)));
+#      a:=MySubgroupNC(Parent(g),List(i,j->PcElementByExponentsNC(pcgs,j)),
+#                      IsFinite and IsSubsetLocallyFiniteGroup and
+#		      IsSupersolvableGroup and IsNilpotentGroup and
+#		      IsCommutative and IsElementaryAbelian);
       SetSize(a,p^Length(i));
       Add(new,a);
     od;
@@ -195,6 +201,7 @@ local g,op,a,pcgs,ma,mat,d,f,i,j,new,newmat,id,p,dodim,compldim,compl,dims;
       for j in pcgs do
 	Add(mat,ExponentsOfPcElement(pcgs,Image(i,j))*One(f));
       od;
+      ConvertToMatrixRep(mat);
       Add(ma,mat);
     od;
 
@@ -203,8 +210,9 @@ local g,op,a,pcgs,ma,mat,d,f,i,j,new,newmat,id,p,dodim,compldim,compl,dims;
 
     ma:=[];
     for i in mat do
-      Add(ma,Subgroup(Parent(g),
-		      List(i,j->Product([1..d],k->pcgs[k]^IntFFE(j[k])))));
+      Add(ma,SubgroupNC(Parent(g),
+		      List(i,j->PcElementByExponentsNC(pcgs,j))));
+		      #List(i,j->Product([1..d],k->pcgs[k]^IntFFE(j[k])))));
     od;
   fi;
   return ma;
@@ -212,7 +220,7 @@ end);
 
 #############################################################################
 ##
-#F  ActionSubmodulsElementaryAbelianGroup(<P>,<G>[,<dims>])  submodules
+#F  ActionSubspacesElementaryAbelianGroup(<P>,<G>[,<dims>])
 ##
 ##  compute the permutation action of <P> on the subspaces of the
 ##  elementary abelian subgroup <G> of <P>. Returns
@@ -224,7 +232,7 @@ end);
 ##
 InstallGlobalFunction(ActionSubspacesElementaryAbelianGroup,function(arg)
 local P,g,op,act,a,pcgs,ma,mat,d,f,i,j,new,newmat,id,p,dodim,compldim,compl,
-      dims,Pgens,Pcgens,Pu,Pc,perms;
+      dims,Pgens,Pcgens,Pu,Pc,perms,one;
 
   P:=arg[1];
   g:=arg[2];
@@ -238,6 +246,7 @@ local P,g,op,act,a,pcgs,ma,mat,d,f,i,j,new,newmat,id,p,dodim,compldim,compl,
   d:=Length(pcgs);
   p:=RelativeOrderOfPcElement(pcgs,pcgs[1]);
   f:=GF(p);
+  one:=One(f);
   if Length(arg)=2 then
     dims:=[0..d];
   else
@@ -268,17 +277,23 @@ local P,g,op,act,a,pcgs,ma,mat,d,f,i,j,new,newmat,id,p,dodim,compldim,compl,
     for j in pcgs do
       Add(mat,ExponentsOfPcElement(pcgs,j^i)*One(f));
     od;
+    ConvertToMatrixRep(mat);
     Add(op,mat);
   od;
 
   # and action on canonical bases
-  act:=function(bas,m)
-    bas:=bas*m;
-    bas:=List(bas,ShallowCopy);
-    TriangulizeMat(bas);
-    bas:=List(bas,IntVecFFE);
-    return bas;
-  end;
+  #act:=function(bas,m)
+  #  bas:=bas*m;
+  #  bas:=List(bas,ShallowCopy);
+  #  TriangulizeMat(bas);
+  #  bas:=List(bas,IntVecFFE);
+  #  return bas;
+  #end;
+  if p=2 then
+    act:=OnSubspacesByCanonicalBasisGF2;
+  else
+    act:=OnSubspacesByCanonicalBasis;
+  fi;
 
   # enumerate subspaces
   # check which dimensions we'll need
@@ -297,7 +312,7 @@ local P,g,op,act,a,pcgs,ma,mat,d,f,i,j,new,newmat,id,p,dodim,compldim,compl,
   dodim:=Maximum(dodim);
 
   # enumerate spaces
-  id:=IdentityMat(d, 1);
+  id:= Immutable( IdentityMat(d, one) );
   ma:=[[],[id[1]]];
   # the complements to ma
   if d>1 then
@@ -306,7 +321,7 @@ local P,g,op,act,a,pcgs,ma,mat,d,f,i,j,new,newmat,id,p,dodim,compldim,compl,
     compl:=[];
   fi;
   if d>2 then
-    Add(compl,NullspaceMat(TransposedMat(id{[1]})));
+    Add(compl,List(NullspaceMat(TransposedMat(id{[1]})),ShallowCopy));
   fi;
   for i in [2..d] do
     new:=[];
@@ -322,7 +337,7 @@ local P,g,op,act,a,pcgs,ma,mat,d,f,i,j,new,newmat,id,p,dodim,compldim,compl,
 	  fi;
 	else
 	  # possible extension number d
-	  a:=CoefficientsQadic(j,p);
+	  a:=CoefficientsQadic(j,p)*one;
 	  newmat:=List(mat,ShallowCopy);
 	  for j in [1..Length(a)] do
 	      newmat[j][i]:=a[j];
@@ -334,8 +349,8 @@ local P,g,op,act,a,pcgs,ma,mat,d,f,i,j,new,newmat,id,p,dodim,compldim,compl,
 
 	  # note complements if necc.
 	  if Length(newmat) in compldim then
-	    Add(compl,List(NullspaceMat(TransposedMat(newmat*One(f))),
-			   i->List(i,IntFFE)));
+	    a:=List(NullspaceMat(TransposedMat(newmat)),ShallowCopy);
+	    Add(compl,a);
 	  fi;
 	fi;
       od;
@@ -352,11 +367,14 @@ local P,g,op,act,a,pcgs,ma,mat,d,f,i,j,new,newmat,id,p,dodim,compldim,compl,
   perms:=List(Pgens,i->());
   new:=[];
   for i in dims do
-    mat:=Filtered(ma,j->Length(j)=i);
+    mat:=Set(Filtered(ma,j->Length(j)=i));
+    #Error();
     # compute action on mat
     if i>0 and i<d then
       for j in [1..Length(Pgens)] do
-	a:=Permutation(op[j],mat,act);
+	#a:=Permutation(op[j],mat,act);
+	a:=List([1..Length(mat)],k->PositionSorted(mat,act(mat[k],op[j])));
+	a:=PermList(a);
 	perms[j]:=perms[j]*a^MappingPermListList([1..Length(mat)],
 				[Length(new)+1..Length(new)+Length(mat)]);
       od;
@@ -368,17 +386,18 @@ local P,g,op,act,a,pcgs,ma,mat,d,f,i,j,new,newmat,id,p,dodim,compldim,compl,
   # convert to grps
   new:=[];
   for i in ma do
-    a:=Subgroup(Parent(g),List(i,j->Product([1..d],k->pcgs[k]^j[k])));
+    #a:=SubgroupNC(Parent(g),List(i,j->Product([1..d],k->pcgs[k]^j[k])));
+    a:=SubgroupNC(Parent(g),List(i,j->PcElementByExponentsNC(pcgs,j)));
     SetSize(a,p^Length(i));
     Add(new,a);
   od;
-  ma:=Group(perms,());
-  SetSize(ma,Index(P,Pc));
+
+  ma:= GroupByGenerators( perms, () );
 
   op:=GroupHomomorphismByImagesNC(P,ma,Concatenation(Pcgens,Pgens),
     Concatenation(List(Pcgens,i->()),perms));
-  Assert(1,Size(P)=Size(KernelOfMultiplicativeGeneralMapping(op))
-                   *Size(Image(op)));
+#  Assert(1,Size(P)=Size(KernelOfMultiplicativeGeneralMapping(op))
+#                   *Size(Image(op)));
   return [new,op];
 
 end);
@@ -432,8 +451,11 @@ local g,	# group
       ophom,	# perm action of f on B (or false if not computed)
       a,	# preimg. of group over n
       no,	# N_f(a)
-      aop,	# a^ophom, no^ophom
-      nohom,	# ophom\rest no
+#      aop,	# a^ophom
+#      nohom,	# ophom\rest no
+      oppcgs,	# acting pcgs
+      oppcgsimg,# images under ophom
+      ex,	# external set/orbits
       bs,	# b\in B normal under a, reps
       bsp,	# bs index
       bsnorms,	# respective normalizers
@@ -479,7 +501,6 @@ local g,	# group
       opr,	# operation on complements
       xo;	# xternal orbits
 
-
   g:=arg[1];
   if Length(arg)>1 and IsRecord(arg[Length(arg)]) then
     opt:=arg[Length(arg)];
@@ -502,22 +523,27 @@ local g,	# group
   # get automorphisms and compute their normalizer, if applicable
   if IsBound(opt.actions) then
     func:=opt.actions;
-    hom2:=Filtered(func,IsInnerAutomorphismRep);
-    hom2:=List(hom2,i->i!.conjugator);
+    hom2:=Filtered(func,i->IsConjugatorAutomorphismRep(i) and
+			   IsInnerAutomorphism(i));
+    hom2:=List(hom2,ConjugatorInnerAutomorphism);
 
     if IsBound(opt.funcnorm) then
       # get the func. normalizer
       funcnorm:=opt.funcnorm;
       b:=g;
     else
-      funcs:=Group(Filtered(func,i->not IsInnerAutomorphismRep(i)),
+      funcs:= GroupByGenerators( Filtered( func,
+                  i -> not (IsConjugatorAutomorphismRep(i) and
+					 IsInnerAutomorphism(i))),
 		   IdentityMapping(g));
       if Size(funcs)=1 then
 	func:=hom2;
 	b:=Parent(g);
       elif IsSolvableGroup(funcs) then
 	a:=IsomorphismPcGroup(funcs);
-	b:=SemidirectProduct(Image(a),InverseGeneralMapping(a),g);
+	hom:=InverseGeneralMapping(a);
+	IsTotal(hom); IsSingleValued(hom); # to be sure (should be set anyway)
+	b:=SemidirectProduct(Image(a),hom,g);
 	hom:=Embedding(b,1);
 	funcs:=List(GeneratorsOfGroup(funcs),i->Image(hom,Image(a,i)));
 	isom:=Embedding(b,2);
@@ -529,7 +555,7 @@ local g,	# group
       fi;
 
       # get the normalizer of <func>
-      funcnorm:=Normalizer(g,Subgroup(b,func));
+      funcnorm:=Normalizer(g,SubgroupNC(b,func));
       func:=List(func,i->InnerAutomorphism(b,i));
     fi;
 
@@ -627,9 +653,16 @@ local g,	# group
 
       ngrps:=[];
       ngrpsnorms:=[];
-      for j in Orbits(Image(ophom),[1..Length(B)]) do
-        Add(ngrps,B[j[1]]);
-	Add(ngrpsnorms,PreImage(ophom,Stabilizer(Image(ophom),j[1])));
+      oppcgs:=Pcgs(Source(ophom));
+      oppcgsimg:=List(oppcgs,i->Image(ophom,i));
+      ex:=[1..Length(B)];
+      IsSSortedList(ex);
+      ex:=ExternalSet(Source(ophom),ex,oppcgs,oppcgsimg,OnPoints);
+      ex:=ExternalOrbitsStabilizers(ex);
+
+      for j in ex do
+        Add(ngrps,B[Representative(j)]);
+	Add(ngrpsnorms,StabilizerOfExternalSet(j));
 #	Assert(1,Normalizer(f,B[j[1]])=ngrpsnorms[Length(ngrps)]);
       od;
 
@@ -675,8 +708,11 @@ local g,	# group
 
 	# we have to extend with those b in B, that are normal in a
 	if ophom<>false then
-	  aop:=Image(ophom,a);
-	  bs:=GeneratorsOfGroup(aop);
+	  #aop:=Image(ophom,a);
+	  #SetIsSolvableGroup(aop,true);
+
+	  bs:=List(SmallGeneratingSet(a),i->Image(ophom,i));
+
 	  bsp:=Filtered([1..Length(B)],i->ForAll(bs,j->i^j=i)
 	                                 and Size(B[i])<Size(n));
 	  bs:=B{bsp};
@@ -691,7 +727,7 @@ local g,	# group
 	  # conjugates lie in a and are normal under a
 	  for k in Filtered(t,i->not i in no) do
 	    bs:=Union(bs,Filtered(List(B,i->ConjugateSubgroup(i,k^(-1))),
-		  i->IsSubgroup(a,i) and IsNormal(a,i) and Size(i)<Size(n) ));
+		  i->IsSubset(a,i) and IsNormal(a,i) and Size(i)<Size(n) ));
 	  od;
 	fi;
 
@@ -700,25 +736,34 @@ local g,	# group
 	  Info(InfoPcSubgroup,2,"  ",Length(bs)," subgroups lead to ");
 	  if bsp<>false then
 	    bsp:=Filtered(bsp,j->consider(no,a,n,B[j],e[i])<>false);
+	    IsSSortedList(bsp);
 	    bs:=bsp; # to get the 'Info' right
 	  else
-	    bs:=Filtered(bs,j->consider(a,n,j,e[i])<>false);
+	    bs:=Filtered(bs,j->consider(no,a,n,j,e[i])<>false);
 	  fi;
 	  Info(InfoPcSubgroup,2,Length(bs)," valid ones");
 	fi;
 
 	if ophom<>false then
-	  nohom:=List(GeneratorsOfGroup(no),i->Image(ophom,i));
-	  aop:=Subgroup(Image(ophom),nohom);
-	  nohom:=GroupHomomorphismByImagesNC(no,aop,
-	                                     GeneratorsOfGroup(no),nohom);
-	  bs:=[];
-	  bsnorms:=[];
-	  for bpos in Orbits(aop,bsp) do
-	    Add(bs,B[bpos[1]]);
-	    Add(bsnorms,PreImage(nohom,Stabilizer(aop,bpos[1])));
+	  #nohom:=List(GeneratorsOfGroup(no),i->Image(ophom,i));
+	  #aop:=SubgroupNC(Image(ophom),nohom);
+	  #nohom:=GroupHomomorphismByImagesNC(no,aop,
+	  #                                   GeneratorsOfGroup(no),nohom);
+
+	  if Length(bsp)>0 then
+	    oppcgs:=Pcgs(no);
+	    oppcgsimg:=List(oppcgs,i->Image(ophom,i));
+	    ex:=ExternalSet(no,bsp,oppcgs,oppcgsimg,OnPoints);
+	    ex:=ExternalOrbitsStabilizers(ex);
+
+	    bs:=[];
+	    bsnorms:=[];
+	    for bpos in ex do
+	      Add(bs,B[Representative(bpos)]);
+	      Add(bsnorms,StabilizerOfExternalSet(bpos));
 #	    Assert(1,Normalizer(no,B[bpos[1]])=bsnorms[Length(bsnorms)]);
-	  od;
+	    od;
+          fi;
 
 	else
 	  # fuse under the action of no and compute the local normalizers
@@ -783,7 +828,7 @@ Assert(1,ForAll(bs,i->ForAll(efunc,j->Image(j,i)=i)));
 	      fi;
 	      com:=Enumerator(VectorSpace(field,com.factorspace,
 	                                       Zero(z.oneCocycles)));
-	      Info(InfoPcSubgroup,2,"  ",Length(com),
+	      Info(InfoPcSubgroup,3,"  ",Length(com),
 	           " local complement classes");
 
 	      # compute fusion
@@ -849,7 +894,7 @@ Assert(1,ForAll(bs,i->ForAll(efunc,j->Image(j,i)=i)));
                 conj:=LinearOperationLayer(a,GeneratorsOfGroup(a),nag);
 
                 idmat:=conj[1]^0;
-		mat:=Group(conj,idmat);
+		mat:= GroupByGenerators( conj, idmat );
 		chom:= GroupHomomorphismByImagesNC(a,mat,
 		        GeneratorsOfGroup(a),conj);
 
@@ -948,7 +993,7 @@ Assert(1,ForAll(bs,i->ForAll(efunc,j->Image(j,i)=i)));
 		      Assert(1,ForAll(efunc,i->Image(i,l)=l));
 		      l:=rec(representative:=l);
 		      if comnorms<>fail then
-			if not IsBound(comnorms[kp]) then
+			if IsBound(comnorms[kp]) then
 			  l.normalizer:=ConjugateSubgroup(comnorms[kp],found);
 			else
 			  l.normalizer:=ConjugateSubgroup(
@@ -1075,7 +1120,7 @@ end);
 #############################################################################
 ##
 #F  SizeConsiderFunction(<size>)  returns auxiliary function for
-##  'SubgroupsSolvableGroup' that allows to discard all subgroups whose
+##  'SubgroupsSolvableGroup' that allows one to discard all subgroups whose
 ##  size is not divisible by <size>
 ##
 InstallGlobalFunction(SizeConsiderFunction,function(size)
@@ -1087,7 +1132,7 @@ end);
 #############################################################################
 ##
 #F  ExactSizeConsiderFunction(<size>)  returns auxiliary function for
-##  'SubgroupsSolvableGroup' that allows to discard all subgroups whose
+##  'SubgroupsSolvableGroup' that allows one to discard all subgroups whose
 ##  size is not <size>
 ##
 InstallGlobalFunction(ExactSizeConsiderFunction,function(size)

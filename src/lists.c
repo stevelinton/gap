@@ -1942,7 +1942,7 @@ void            PrintPathList (
 **  The macro  `SET_FILT_LIST' is  used  to  set  the filter  for a  list  by
 **  changing its type number.
 */
-Int SetFiltListTNums [ LAST_REAL_TNUM ] [ LAST_FN ];
+UInt SetFiltListTNums [ LAST_REAL_TNUM ] [ LAST_FN ];
 
 
 /****************************************************************************
@@ -1957,7 +1957,7 @@ Int SetFiltListTNums [ LAST_REAL_TNUM ] [ LAST_FN ];
 **  The macro `RESET_FILT_LIST' is used  to  set  the filter  for a  list  by
 **  changing its type number.
 */
-Int ResetFiltListTNums [ LAST_REAL_TNUM ] [ LAST_FN ];
+UInt ResetFiltListTNums [ LAST_REAL_TNUM ] [ LAST_FN ];
 
 
 /****************************************************************************
@@ -1978,12 +1978,11 @@ Int HasFiltListTNums [ LAST_REAL_TNUM ] [ LAST_FN ];
 **
 **  The macro `CLEAR_PROPS_LIST' is used to clear all properties of a list.
 */
-Int ClearFiltsTNums [ LAST_REAL_TNUM ];
+UInt ClearFiltsTNums [ LAST_REAL_TNUM ];
 
 
 /****************************************************************************
 **
-
 *F  FuncSET_FILTER_LIST( <self>, <list>, <filter> ) . . . . . . .  set filter
 */
 Obj FuncSET_FILTER_LIST (

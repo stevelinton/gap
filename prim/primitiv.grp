@@ -1074,7 +1074,7 @@ PG := function ( n )
         Add( gens, PGGens[entry[i]] );
     od;
 
-    G := Group( gens, () );
+    G := GroupByGenerators( gens, () );
     SetNrMovedPoints          ( G, entry[1]                   );
     SetSize                   ( G, entry[2]                   );
     Setter( TransitivityAttr )( G, entry[3]                   );

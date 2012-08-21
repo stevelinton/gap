@@ -110,7 +110,7 @@
 #endif
 
 #ifndef SY_STOR_MIN
-# if SYS_MAC_MPW || SYS_MAC_SYC || SYS_TOS_GCC2
+# if SYS_MAC_MPW || SYS_TOS_GCC2
 #  define SY_STOR_MIN   0
 # else
 #  define SY_STOR_MIN   8 * 1024 * 1024
@@ -313,14 +313,20 @@ const char * Revision_system_h =
 
 /****************************************************************************
 **
-*V  SYS_MAC_SYC . . . . . . . . . . . . . . . . . . . . . . . . MAC using SYC
+*V  SYS_MAC_MWC . . . . . . . . . . . . . . . . . . .  Mac using Metrowerks C
 */
-#ifdef SYS_IS_MAC_SYC
-# define SYS_MAC_SYC    1
+#ifdef SYS_IS_MAC_MWC
+# define SYS_MAC_MWC    1
 #else
-# define SYS_MAC_SYC    0
+# define SYS_MAC_MWC    0
 #endif
 
+#if SYS_MAC_MWC  /* on the Mac, fputs does not work. Print error messages 
+					using WriteToLog */
+# define FPUTS_TO_STDERR(str) 	WriteToLog (str)
+#else 
+# define FPUTS_TO_STDERR(str) fputs (str, stderr)
+#endif
 
 /****************************************************************************
 **
@@ -500,6 +506,12 @@ extern Char SyCompileName [256];
 */
 extern Char SyCompileOutput [256];
 
+/****************************************************************************
+**
+*V  SyCompileOptions . . . . . . . . . . . . . . . . . with these options
+*/
+extern Char SyCompileOptions [256];
+
 
 /****************************************************************************
 **
@@ -566,6 +578,12 @@ extern Char SyGapRootPaths [MAX_GAP_DIRS] [256];
 **  For UNIX this list contains 'LIBNAME/init.g' and '$HOME/.gaprc'.
 */
 extern Char SyInitfiles [16] [256];
+
+/****************************************************************************
+**
+*V  SyGapRCFilename . . . . . . . . . . . . . . . filename of the gaprc file
+*/
+extern Char SyGapRCFilename [256];
 
 
 /****************************************************************************
@@ -655,6 +673,16 @@ extern UInt SyQuiet;
 */
 extern Char * SyRestoring;
 
+/****************************************************************************
+**
+*V  SyInitializing                               set to 1 during library init
+**
+**  `SyInitializing' is set to 1 during the library intialization phase of
+**  startup. It supresses some ebhaviours that may not be possible so early
+**  such as homogeneity tests in the plist code.
+*/
+
+extern UInt SyInitializing;
 
 /****************************************************************************
 **
@@ -670,6 +698,7 @@ extern Char * SyRestoring;
 **  Put in this package because the command line processing takes place here.
 */
 extern Int SyStorMax;
+extern Int SyStorOverrun;
 
 
 /****************************************************************************

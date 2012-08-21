@@ -12,6 +12,12 @@
 Revision.matblock_gd :=
     "@(#)$Id$";
 
+#1
+##  Block matrices are a special representation of matrices which can save a
+##  lot of memory if large matrices have a block structure with lots of zero
+##  blocks. {\GAP} uses the representation `IsBlockMatrixRep' to store block
+##  matrices.
+##  \indextt{IsBlockMatrixRep}
 
 #############################################################################
 ##
@@ -37,6 +43,8 @@ DeclareGlobalFunction( "BlockMatrix" );
 ##
 #F  MatrixByBlockMatrix( <blockmat> ) . . . create matrix from (block) matrix
 ##
+##  returns an (ordinary) matrix that is equal to the block matrix
+##  <blockmat>.
 DeclareGlobalFunction( "MatrixByBlockMatrix" );
 
 
@@ -44,7 +52,8 @@ DeclareGlobalFunction( "MatrixByBlockMatrix" );
 ##
 #F  AsBlockMatrix( <m>, <nrb>, <ncb> )  . . . create block matrix from matrix
 ##
-##  The resulting block matrix has <nrb> row blocks and <ncb> column blocks.
+##  returns a block matrix with <nrb> row blocks and <ncb> column blocks
+##  which is equal to the ordinary matrix <m>.
 ##
 DeclareGlobalFunction( "AsBlockMatrix" );
 

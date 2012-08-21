@@ -75,10 +75,10 @@ InstallMethod( Units,
     "for a finite field",
     true,
     [ IsField and IsFinite ], 0,
-    F -> Group( PrimitiveRoot( F ) ) );
+    F -> GroupByGenerators( [ PrimitiveRoot( F ) ] ) );
 
 InstallTrueMethod( IsHandledByNiceMonomorphism,
-        IsGroup and IsFFECollection );
+    IsGroup and IsFFECollection );
 
 
 #############################################################################
@@ -633,7 +633,8 @@ InstallMethod( GaloisGroup,
     "for a finite field",
     true,
     [ IsField and IsFinite ], 0,
-    F -> Group( FrobeniusAutomorphismI( F, Size( LeftActingDomain(F) ) ) ) );
+    F -> GroupByGenerators(
+            [ FrobeniusAutomorphismI( F, Size( LeftActingDomain(F) ) ) ] ) );
 
 
 #############################################################################

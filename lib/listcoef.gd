@@ -13,61 +13,85 @@ Revision.listcoef_gd :=
 ##  The following operations all perform arithmetic on row vectors.
 ##  given as homogeneous lists of the same length, containing
 ##  elements of a commutative ring.
+##
+##  There are two reasons for using (for example) `AddRowVector( v,w )'
+##  in preference to `v := v + w'. Firstly, the result of `v + w' will 
+##  be an immutable vector, which may not be what is required. Secondly
+##  `AddRowVector' changes its first argument in-place, rather than allocating
+##  a new vector to hold the result, and may thus produce less garbage
+##
 
 #############################################################################
 ##
-#O  AddRowVector( <dst>, <src>, <mul> [,<from>, <to>] )
+#O  AddRowVector( <dst>, <src>, [ <mul> [,<from>, <to>]] )
 ##
 ##  Adds the product of <src> and <mul> to <dst>, changing <dst>.
-##  If <from> and <to> are given only the index range `[<from>..<to>]' is
-##  affected.
+##  If <from> and <to> are given then only the index range `[<from>..<to>]' is
+##  guaranteed to be affected. Other indices MAY be affected, if it is 
+##  more convenient to do so. Even when <from> and <to> are given,
+##  <dst> and <src> must be row vectors of the *same* length
+##
+##  If <mul> is not given either then this Operation simply adds <src> to <dst>
+##
 DeclareOperation(
     "AddRowVector",
-    [ IsList, IsList, IsMultiplicativeElement, IsPosInt,
+    [ IsMutable and IsList, IsList, IsMultiplicativeElement, IsPosInt,
       IsPosInt ] );
-
 
 #############################################################################
 ##
-#O  LeftShiftRowVector( <list>, <shift> )
+#O  AddCoeffs( <list1>, <poss1>, <list2>, <poss2>, <mul> )
+#O  AddCoeffs( <list1>, <list2>, <mul> )
+#O  AddCoeffs( <list1>, <list2> )
 ##
-##  changes <list> by assigning
-##  `<list>[i]:=<list>[i+<shift>]' and removing the last <shift> entries of
-##  the result.
+##  `AddCoeffs' adds the entries  of `<list2>{<poss2>}', multiplied by the
+##  scalar <mul>, to
+##  `<list1>{<poss1>}'.  Non-existing  entries  in  <list1> are assumed  to  be
+##  zero.  The position of the right-most non-zero element is returned.
+##
+##  If the ranges <poss1> and <poss2> are not given, they are assumed to
+##  span the whole vectors. If the scalar <mul> is omitted, one is used as a
+##  default.
+##
+##  Note  that it is  the responsibility  of the  caller  to ensure  that the
+##  <list2> has elements at position <poss2> and that the result (in <list1>)
+##  will be a dense list.
+##
+##  The function is free to remove trailing (right-most) zeros.
+##
 DeclareOperation(
-    "LeftShiftRowVector",
-    [ IsList, IsPosInt ] );
+    "AddCoeffs",
+        [ IsMutable and IsList, 
+          IsList, IsList, IsList, IsMultiplicativeElement ] );
 
 
 #############################################################################
 ##
 #O  MultRowVector( <list1>, <poss1>, <list2>, <poss2>, <mul> )
+#O  MultRowVector( <list>, <mul> )
 ##
+##  The five-argument version of this Operation replaces
+##  `<list1>[<poss1>[<i>]]' by `<mul>*<list2>[<poss2>[<i>]]' for <i>
+##  between 1 and `Length(<poss1>)'
+##
+##  The two-argument version simply multiplies each element of <list>, 
+##  in-place, by <mul>
+
 DeclareOperation(
     "MultRowVector",
-    [ IsList, IsList, IsList, IsList, IsMultiplicativeElement ] );
-
-
-#############################################################################
-##
-#O  RightShiftRowVector( <list>, <shift>, <fill> )
-##
-##  changes <list> by assigning
-##  `<list>[i+<shift>]:=<list>[i]' and filling the <shift> training entries
-##  with <fill>.
-DeclareOperation(
-    "RightShiftRowVector",
-    [ IsList, IsPosInt, IsObject ] );
-
+        [ IsMutable and IsList, 
+          IsList, IsList, IsList, IsMultiplicativeElement ] );
 
 #############################################################################
 ##
-#O  ShrinkRowVector( <list> )
+#O  CoeffsMod( <list1>, [<len1>,] <mod> )
 ##
+##  returns the coefficient list obtained by reducing the entries in <list1>
+##  modulo <mod>. After reducing it shrinks the list to remove trailing
+##  zeroes.
 DeclareOperation(
-    "ShrinkRowVector",
-    [ IsList ] );
-
+    "CoeffsMod",
+    [ IsList, IsInt, IsInt ] );
 
 #2
 ##  The following operations all perform arithmetic on univariate
@@ -76,45 +100,19 @@ DeclareOperation(
 ##  elements of a commutative ring.
 ##  Not all input lists may be empty.
 ##
-##  If length parameter <len> are not given, they are set to the length of
-##  the corresponding list by default.
 ##  In the following descriptions we will always assume that <list1> is the
 ##  coefficient list of the polynomial <pol1> and so forth.
+##  If length parameter <leni> is not given, it is set to the length of
+##  <listi> by default.
 
 #############################################################################
 ##
-#O  AddCoeffs( <list1>, <poss1>, <list2>, <poss2>, <mul> )   add coefficients
+#O  MultCoeffs( <list1>, <list2>[, <len2>], <list3>[, <len3>] )
 ##
-##  `AddCoeffs' adds the entries  of <list2>{<poss2>} multiplied by <mul> to
-##  <list1>{<poss1>}.  Non-existing  entries  in  <list1> are assumed  to  be
-##  zero.  The position of the right-most non-zero elemented is returned.
-##
-##  Note  that it is  the responsibility  of the  caller  to ensure  that the
-##  <list2> has elements at position <poss2> and that the result (in <list1>)
-##  is a dense list.
-##
-##  The function is free to remove trailing (right-most) zeros.
-##
-DeclareOperation(
-    "AddCoeffs",
-    [ IsList, IsList, IsList, IsList, IsMultiplicativeElement ] );
-
-
-#############################################################################
-##
-#O  CoeffsMod( <list1>, [<len1>,] <mod> )
-##
-##  returns the coefficient list obtained by reducing the entries in <list1>
-##  modulo <mod>.
-DeclareOperation(
-    "CoeffsMod",
-    [ IsList, IsInt, IsInt ] );
-
-
-#############################################################################
-##
-#O  MultCoeffs( <list1>, <list2>, <len2>, <list3>, <len3> )
-##
+##  Let <pol2> (and <pol3>) be polynomials given by the first <len2> (<len3>)
+##  entries of the coefficient list <list2> (<list3>).
+##  If <len2> and <len3> are omitted, they default to the lengths of <list2>
+##  and <list3>.
 ##  This operation changes <list1> to the coefficient list of the product
 ##  of <pol2> with <pol3>.
 ##  This operation changes <list1> which therefore must be a mutable list.
@@ -122,14 +120,17 @@ DeclareOperation(
 ##  result but is not guaranteed to remove trailing zeroes.
 DeclareOperation(
     "MultCoeffs",
-    [ IsList, IsList, IsInt, IsList, IsInt ] );
-
+    [ IsMutable and IsList, IsList, IsInt, IsList, IsInt ] );
 
 #############################################################################
 ##
 #O  PowerModCoeffs( <list1>, [<len1>,] <exp>, <list2> [,<len2>] )
 ##
-##  returns the coefficient list of the remainder when dividing
+##  Let <pol1> (and <pol2>) be polynomials given by the first <len1> (<len2>)
+##  entries of the coefficient list <list3> (<list2>).
+##  If <len1> and <len2> are omitted, they default to the lengths of <list1>
+##  and <list2>.
+##  This operation returns the coefficient list of the remainder when dividing
 ##  `<pol1>^<exp>' by <pol2>. The operation reduces coefficients already
 ##  while computing powers and therefore avoids an explosion in list length.
 DeclareOperation(
@@ -141,7 +142,12 @@ DeclareOperation(
 ##
 #O  ProductCoeffs( <list1>, [<len1>,] <list2> [,<len2>] )
 ##
-##  returns the coefficient list of the product of <pol1> and <pol2>.
+##  Let <pol1> (and <pol2>) be polynomials given by the first <len1> (<len2>)
+##  entries of the coefficient list <list3> (<list2>).
+##  If <len1> and <len2> are omitted, they default to the lengths of <list1>
+##  and <list2>.
+##  This operation returns the coefficient list of the product of <pol1> and
+##  <pol2>.
 DeclareOperation(
     "ProductCoeffs",
     [ IsList, IsInt, IsList, IsInt ] );
@@ -158,7 +164,7 @@ DeclareOperation(
 ##  result but is not guaranteed to remove trailing zeroes.
 DeclareOperation(
     "ReduceCoeffs",
-    [ IsList, IsInt, IsList, IsInt ] );
+    [ IsMutable and IsList, IsInt, IsList, IsInt ] );
 
 
 #############################################################################
@@ -172,9 +178,12 @@ DeclareOperation(
 ##  result but is not guaranteed to remove trailing zeroes.
 DeclareOperation(
     "ReduceCoeffsMod",
-    [ IsList, IsInt, IsList, IsInt, IsInt ] );
+    [ IsMutable and IsList, IsInt, IsList, IsInt, IsInt ] );
 
 
+#3
+##  The following functions change coefficient lists by shifting or
+##  trimming.
 
 #############################################################################
 ##
@@ -184,7 +193,7 @@ DeclareOperation(
 ##  number of elements removed at the beginning.
 DeclareOperation(
     "RemoveOuterCoeffs",
-    [ IsList, IsObject ] );
+    [ IsMutable and IsList, IsObject ] );
 
 
 #############################################################################
@@ -198,6 +207,28 @@ DeclareOperation(
     "ShiftedCoeffs",
     [ IsList, IsInt ] );
 
+#############################################################################
+##
+#O  LeftShiftRowVector( <list>, <shift> )
+##
+##  changes <list> by assigning
+##  `<list>[i]:=<list>[i+<shift>]' and removing the last <shift> entries of
+##  the result.
+DeclareOperation(
+    "LeftShiftRowVector",
+    [ IsMutable and IsList, IsPosInt ] );
+
+#############################################################################
+##
+#O  RightShiftRowVector( <list>, <shift>, <fill> )
+##
+##  changes <list> by assigning
+##  `<list>[i+<shift>]:=<list>[i]' and filling the <shift> training entries
+##  with <fill>.
+DeclareOperation(
+    "RightShiftRowVector",
+    [ IsMutable and IsList, IsPosInt, IsObject ] );
+
 
 #############################################################################
 ##
@@ -207,12 +238,21 @@ DeclareOperation(
 ##  non-zero entry, that is the length of <list> after the operation.
 DeclareOperation(
     "ShrinkCoeffs",
-    [ IsList ] );
+    [ IsMutable and IsList ] );
 
 
-#3
-##  The following functions perform operations on FFE vectors considered as
-##  code words.
+#############################################################################
+##
+#O  ShrinkRowVector( <list> )
+##
+DeclareOperation(
+    "ShrinkRowVector",
+    [ IsMutable and IsList ] );
+
+
+#4
+##  The following functions perform operations on Finite fields vectors
+##  considered as code words in a linear code.
 
 #############################################################################
 ##

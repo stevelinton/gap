@@ -39,7 +39,7 @@ InstallGlobalFunction( SubspaceVectorSpaceGroup, function( N, p, gens )
     cg := rec( matrix         := [  ],
                needed         := [  ],
                baseComplement := ShallowCopy( ran ),
-               projection     := MutableIdentityMat( r, one ),
+               projection     := IdentityMat( r, one ),
                commutator     := 0,
                centralizer    := 0,
                dimensionN     := r,
@@ -153,7 +153,7 @@ InstallGlobalFunction( KernelHcommaC, function( N, h, C )
     for i  in [ N!.subspace.commutator + 1 .. 
                 N!.subspace.commutator + N!.subspace.centralizer ]  do
         v := N!.subspace.matrix[ i ];
-        tmp[ i - N!.subspace.commutator ] := PcElementByExponents( C,
+        tmp[ i - N!.subspace.commutator ] := PcElementByExponentsNC( C,
                  v{ [ N!.subspace.dimensionN + 1 ..
                       N!.subspace.dimensionN + N!.subspace.dimensionC ] } );
     od;
@@ -244,7 +244,7 @@ InstallGlobalFunction( CentralStepRatClPGroup,
             c.galoisGroup!.operators := [  ];
             Add( classes, c );
             for v  in OneDimSubspacesTransversal( GF( p ) ^ Length( N ) )  do
-                c := rec( representative := PcElementByExponents( N, v ),
+                c := rec( representative := PcElementByExponentsNC( N, v ),
                              centralizer := G,
                              galoisGroup := gal );
                 Add( classes, c );
@@ -326,7 +326,7 @@ InstallGlobalFunction( CentralStepRatClPGroup,
                 fi;
                 v := v * K!.subspace.inverse;
                 for i  in [ 1 .. Length( r ) ]  do
-                    reps[ i ] := PcElementByExponents
+                    reps[ i ] := PcElementByExponentsNC
                         ( K, K{ K!.subspace.baseComplement }, r[ i ] );
                     exps[ i ] := WordVector( GeneratorsOfGroup( preimage )
                         { K!.subspace.needed }, One( preimage ), v[ i ] );
@@ -402,7 +402,7 @@ InstallGlobalFunction( CentralStepRatClPGroup,
 #Assert(2,LeftQuotient(h^Int(preimage),h^operator)*N!.subspace.projection in
 #	 GroupByPcgs(N));
 
-            v := PcElementByExponents( N, N{ N!.subspace.baseComplement },
+            v := PcElementByExponentsNC( N, N{ N!.subspace.baseComplement },
                  ExponentsOfPcElement( N, LeftQuotient( h ^ Int( preimage ),
                          h ^ operator ) ) * N!.subspace.projection );
             opr := function( k, l )
@@ -415,7 +415,7 @@ InstallGlobalFunction( CentralStepRatClPGroup,
             if IsBound( cl.candidates )  then
                 conj := [  ];
                 for c  in candexps  do
-                    orb := ExternalOrbit( xset, PcElementByExponents( N,
+                    orb := ExternalOrbit( xset, PcElementByExponentsNC( N,
                                    N{ N!.subspace.baseComplement }, c ) );
                     Add( reps, CanonicalRepresentativeOfExternalSet( orb ) );
                     i := Size( cyc ) / Order( OperatorOfExternalSet( orb ) );
@@ -495,8 +495,8 @@ InstallGlobalFunction( CentralStepClEANS, function( home,H, U, N, cl )
                 DenominatorOfModuloPcgs( N!.capH );
     N!.CmodL := ExtendedPcgs( DenominatorOfModuloPcgs( N!.capH ),
                         KernelHcommaC( N, h, N!.CmodK ) );
-    C := SubgroupNC( H, N!.CmodL );
-    
+    C := SubgroupByPcgs( H, N!.CmodL );
+
     classes := [  ];
     if IsBound( cl.candidates )  then
         gens := N!.CmodK{ N!.subspace.needed };
@@ -507,7 +507,7 @@ InstallGlobalFunction( CentralStepClEANS, function( home,H, U, N, cl )
                 w := exp * N!.subspace.projection;
                 exp{ N!.subspace.baseComplement } :=
                   w - exp{ N!.subspace.baseComplement };
-                c := rec( representative := h * PcElementByExponents
+                c := rec( representative := h * PcElementByExponentsNC
                              ( N, N{ N!.subspace.baseComplement }, w ),
                           centralizer := C,
                           operator := WordVector( gens,
@@ -525,7 +525,7 @@ InstallGlobalFunction( CentralStepClEANS, function( home,H, U, N, cl )
     else
         gens := N{ N!.subspace.baseComplement };
         for w  in field ^ Length( gens )  do
-            c := rec( representative := h * PcElementByExponents( N,gens,w ),
+            c := rec( representative := h * PcElementByExponentsNC( N,gens,w ),
                          centralizer := C );
             Add( classes, c );
         od;
@@ -550,12 +550,12 @@ InstallGlobalFunction( CorrectConjugacyClass,
     od;
     comm := comm * N!.subspace.inverse;
     for s  in [ 1 .. Length( comm ) ]  do
-        stab[ s ] := stab[ s ] / PcElementByExponents
+        stab[ s ] := stab[ s ] / PcElementByExponentsNC
           ( N!.capH, N!.capH{ N!.subspace.needed }, comm[ s ] );
     od;
     stab := ExtendedPcgs( cNh, stab );
-    C := SubgroupNC( H, stab );
-#    SetInducedPcgsWrtHomePcgs( C, stab );
+    C := SubgroupByPcgs( H, stab );
+
     cl := rec( representative := h * n,
                   centralizer := C );
     return cl;
@@ -610,8 +610,10 @@ InstallGlobalFunction( GeneralStepClEANS, function( home, H, U, N, cl )
                                   ( N, Comm( h, c ) ) * N!.subspace.projection,
                                   [ One( field ) ] );
         fi;
+	ConvertToMatrixRep(M);
         Add( imgs, M );
     od;
+
     xset := ExternalSet( C, aff, gens, imgs );
 
     classes := [  ];
@@ -626,9 +628,12 @@ InstallGlobalFunction( GeneralStepClEANS, function( home, H, U, N, cl )
         for ca  in cl.candidates  do
             n := ExponentsOfPcElement( N, LeftQuotient( h, ca ) ) *
                  One( field );
+	    ConvertToVectorRep(n);
             k := n * N!.subspace.projection;
-            orb := ExternalOrbit( xset, Concatenation( k, [ One( field ) ] ) );
-            rep := PcElementByExponents( N, N{ N!.subspace.baseComplement },
+            orb := Concatenation( k, [ One( field ) ]);
+	    ConvertToVectorRep(orb);
+            orb := ExternalOrbit( xset, orb );
+            rep := PcElementByExponentsNC( N, N{ N!.subspace.baseComplement },
                       Rep( orb ){ ran } );
             pos := Position( cls, rep );
             if pos = fail  then
@@ -646,13 +651,13 @@ InstallGlobalFunction( GeneralStepClEANS, function( home, H, U, N, cl )
             n := ShallowCopy( -n );
             n{ N!.subspace.baseComplement } :=
               k + n{ N!.subspace.baseComplement };
-            c.operator := PcElementByExponents( N, N{ N!.subspace.needed },
+            c.operator := PcElementByExponentsNC( N, N{ N!.subspace.needed },
                                    n * N!.subspace.inverse );
             # Now (h.n)^c.operator = h.k
             if IsIdenticalObj(Rep,CanonicalRepresentativeOfExternalSet) then
                 c.operator := c.operator * OperatorOfExternalSet( orb );
                 # Now (h.n)^c.operator = h.rep mod [h,N]
-                k := PcElementByExponents( N, N{ N!.subspace.needed },
+                k := PcElementByExponentsNC( N, N{ N!.subspace.needed },
                      ExponentsOfPcElement( N, LeftQuotient
                              ( c.representative, ca ^ c.operator ) ) *
                              N!.subspace.inverse );
@@ -664,7 +669,7 @@ InstallGlobalFunction( GeneralStepClEANS, function( home, H, U, N, cl )
         
     else
         for orb  in ExternalOrbitsStabilizers( xset )  do
-            rep := PcElementByExponents( N, N{ N!.subspace.baseComplement },
+            rep := PcElementByExponentsNC( N, N{ N!.subspace.baseComplement },
                            Representative( orb ){ ran } );
             c := CorrectConjugacyClass( home, H, U, h, rep,
                          StabilizerOfExternalSet( orb ), N, cNh );
@@ -910,7 +915,7 @@ local  G,  home,  # the group and the home pcgs
         
         # Find a team of candidates with same image under <modK>.
         cl:=cls[pos];
-        cl.representative:=PcElementByExponents(mK,
+        cl.representative:=PcElementByExponentsNC(mK,
           ExponentsOfPcElement(mK, cl.representative));
         cl.candidates:=[];
         team:=[];
@@ -977,9 +982,9 @@ local  G,  home,  # the group and the home pcgs
       newcls:=[];
       for cl  in cls  do
         if IsBound(cl.power) then  # construct the power tree
-          cl.representative:=PcElementByExponents(mK,
+          cl.representative:=PcElementByExponentsNC(mK,
             ExponentsOfPcElement(mK, cl.representative));
-          cl.power.representative:=PcElementByExponents(mK,
+          cl.power.representative:=PcElementByExponentsNC(mK,
             ExponentsOfPcElement(mK, cl.power.representative));
         fi;
         new:=CentralStepRatClPGroup(home, G, N, mK, mL, cl);
@@ -1036,6 +1041,9 @@ local  G,  home,  # the group and the home pcgs
 
     if InfoLevel(InfoClasses)>1 then
       c:=Collected(List(cls,i->Size(i.centralizer)));
+      if not IsBound( divi ) then
+        divi:=DivisorsInt(Size(G));
+      fi;
       c:=Concatenation(c,List(divi,i->[i,0])); # to cope with `First'
       Info(InfoClasses,2,List(divi,i->First(c,j->j[1]=i)[2]));
     fi;
@@ -1273,7 +1281,7 @@ end);
 #                    
 #                    # Find a team of candidates with same image under <modK>.
 #                    cl := cls[ pos ];
-#                    cl.representative := PcElementByExponents( mK,
+#                    cl.representative := PcElementByExponentsNC( mK,
 #                        ExponentsOfPcElement( mK, cl.representative ) );
 #                    cl.candidates := [  ];
 #                    team := [  ];
@@ -1349,9 +1357,9 @@ end);
 #                newcls := [  ];
 #                for cl  in cls  do
 #                    if IsBound( cl.power )  then  # construct the power tree
-#                        cl.representative := PcElementByExponents( mK,
+#                        cl.representative := PcElementByExponentsNC( mK,
 #                            ExponentsOfPcElement( mK, cl.representative ) );
-#                        cl.power.representative := PcElementByExponents( mK,
+#                        cl.power.representative := PcElementByExponentsNC( mK,
 #                            ExponentsOfPcElement( mK, cl.power.representative ) );
 #                    fi;
 #                    new := CentralStepRatClPGroup( H, N, mK, mL, cl );

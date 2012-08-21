@@ -25,6 +25,12 @@
 Revision.ctadmin_tbd :=
     "@(#)$Id$";
 
+#############################################################################
+##
+## tell GAP about the component
+##
+DeclareComponent("tbl","1.0");
+
 
 #############################################################################
 ##
@@ -356,10 +362,9 @@ DeclareGlobalFunction( "BrauerTree" );
 
 #############################################################################
 ##
-#F  BrauerTable( <name>, <ordtbl> )
+#F  BrauerTable( <ordtbl>, <p> )
 ##
-##  is the Brauer table with name <name> and corresponding ordinary table
-##  <ordtbl>.
+##  is the <p>-modular Brauer table of the ordinary library table <ordtbl>.
 ##
 DeclareGlobalFunction( "BrauerTable" );
 
@@ -537,6 +542,17 @@ DeclareTableConstructor( "ConstructGS3" );
 
 #############################################################################
 ##
+#F  ConstructGS3Info( <tbl2>, <tbl3>, <tbls3> )
+##
+##  returns a record with the components `ind2', `ind3', `ext', and `perm',
+##  which describe the construction of <tbls3> from the tables <tbl2> and
+##  <tbl3> with `ConstructGS3'.
+##
+DeclareGlobalFunction( "ConstructGS3Info" );
+
+
+#############################################################################
+##
 #F  ConstructPermuted( <tbl>, <libnam>, <tblnam>, <prmclasses>, <prmchars> )
 ##
 ##  The library table <tbl> is completed with help of the library table with
@@ -606,16 +622,6 @@ DeclareGlobalFunction( "UnpackedCll" );
 ##       d. root
 ##
 DeclareGlobalFunction( "CllToClf" );
-
-
-#############################################################################
-##
-#F  AddDecMats( <modtbl> )
-##
-##  stores decomposition matrices of blocks in the `block' component of
-##  the Brauer table <modtbl>
-##
-DeclareGlobalFunction( "AddDecMats" );
 
 
 #############################################################################

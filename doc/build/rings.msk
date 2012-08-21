@@ -6,7 +6,31 @@
 %%
 %Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 %%
-\Chapter{Rings}
+\PreliminaryChapter{Rings}
+
+This chapter deals with domains that are additive groups closed under
+multiplication `\*'.
+Such a domain, if `\*' and `+' are distributive,
+is called a *ring* in {\GAP}.
+Each division ring, field (see~"Fields and Division Rings"),
+or algebra (see~"Algebras") is a ring,
+important examples are the integers (see~"Integers") and matrix rings.
+%(see~"???").
+
+residue class rings ?
+
+
+In the case of a *ring-with-one*, additional multiplicative structure is
+present, see~"IsRingWithOne".
+
+Several functions for ring elements, such as `IsPrime' ("IsPrime") and
+`Factors' ("Factors"), are defined only relative to a ring <R>,
+which can be entered as an optional argument;
+if <R> is omitted then a *default ring* is formed from the ring elements
+given as arguments, see~"DefaultRing".
+
+
+hier!
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{Generating Rings}
@@ -28,6 +52,9 @@
 \Declaration{ClosureRing}
 
 \Declaration{Quotient}
+
+\Declaration{Zero}
+\Declaration{AdditiveInverse}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{Rings With One}
@@ -61,7 +88,7 @@
 \Declaration{IsAssociated}
 \Declaration{Associates}
 \Declaration{StandardAssociate}
-\Declaration{IsIrreducible}
+\Declaration{IsIrreducibleRingElement}
 \Declaration{IsPrime}
 \Declaration{Factors}
 

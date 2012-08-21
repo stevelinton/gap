@@ -85,7 +85,9 @@ InstallGlobalFunction( COAffineBlocks, function( S, Spcgs,mats )
     od;
     v:=v*one;
     w:=ShallowCopy( v );
+    ConvertToVectorRep(w);
     v:=Concatenation(v,[one]);
+    ConvertToVectorRep(v);
     O:=OrbitStabilizer( S,v, Spcgs,mats);
     for v  in O.orbit  do
         n:=1;
@@ -177,7 +179,7 @@ InstallGlobalFunction( CONextCocycles, function( cor, ocr, S )
   # If  the  one  cohomology  group  is trivial, there is only one class of
   # complements.  Correct  the  blockstabilizer and return. If we only want
   # normal complements, this case cannot happen, as cobounds are trivial.
-  SN:=Subgroup( S, Filtered(GeneratorsOfGroup(S),i-> not i in N));
+  SN:=SubgroupNC( S, Filtered(GeneratorsOfGroup(S),i-> not i in N));
   if Dimension(ocr.oneCoboundaries)=Dimension(ocr.oneCocycles)  then
       Info(InfoComplement,2,"CONextCocycles: H^1 is trivial" );
       K:=ocr.complement;
@@ -400,7 +402,7 @@ InstallGlobalFunction( CONextCentral, function( cor, ocr, S )
   # If  the  one  cohomology  group  is trivial, there is only one class of
   # complements.  Correct  the  blockstabilizer and return. If we only want
   # normal complements, this cannot happen, as the cobounds are trivial.
-  SN:=Subgroup( S, Filtered(GeneratorsOfGroup(S),i-> not i in N));
+  SN:=SubgroupNC( S, Filtered(GeneratorsOfGroup(S),i-> not i in N));
   if Dimension(ocr.oneCoboundaries)=Dimension(ocr.oneCocycles)  then
       Info(InfoComplement,2,"CONextCocycles: H^1 is trivial" );
       K:=ocr.complement;
@@ -584,7 +586,7 @@ local   L,  p,  C,  ocr;
       if IsBound(cor.condition) and not cor.condition(cor, K)  then
 	return [];
       fi;
-      S:=Subgroup( S, Filtered(GeneratorsOfGroup(S),i->not i in M));
+      S:=SubgroupNC( S, Filtered(GeneratorsOfGroup(S),i->not i in M));
       S:=CONextCentralizer( ocr,
 	InducedPcgs(cor.pcgs,S), K );
       return [rec( complement:=K, centralizer:=S )];
@@ -787,7 +789,7 @@ Assert(1,cor.pcgs=cor.hpcgs[nr+1]);
   Info(InfoComplement,1,"  starting search, time=",Runtime()-time);
   found:=false;
   nextStep( TrivialSubgroup( FG[1] ),
-            Subgroup( FG[1], cor.generators ), 1 );
+            SubgroupNC( FG[1], cor.generators ), 1 );
 
   # some timings
   Info(InfoComplement,1,"Complements: ",Length(C)," complement(s) found, ",
@@ -817,43 +819,54 @@ local   H, E,  cor,  a,  i,  fun2,pcgs,home;
   pcgs:=home;
   # Get the elementary abelian series through <N>.
   E:=ElementaryAbelianSeries( [G,N,TrivialSubgroup(G)] );
-  E:=Filtered(E,i->IsSubgroup(N,i));
+  E:=Filtered(E,i->IsSubset(N,i));
 
   # we require that the subgroups of E are subgroups of the Pcgs-Series
 
   if Length(InducedPcgs(home,G))<Length(home) # G is not the top group
      # nt not in series
      or ForAny(E,i->Size(i)>1 and
-       not i=Subgroup(G,home{[DepthOfPcElement(home,
+       not i=SubgroupNC(G,home{[DepthOfPcElement(home,
                                     InducedPcgs(home,i)[1])..Length(home)]}))
      then
+
     Info(InfoComplement,2,"Computing better pcgs" );
     # create a better pcgs
-#T It should be possible to use the other pcgs instead of computing a new pc
-#T group! AH
+
     pcgs:=InducedPcgs(home,G) mod InducedPcgs(home,N);
     for i in [2..Length(E)] do
       pcgs:=Concatenation(pcgs,
          InducedPcgs(home,E[i-1]) mod InducedPcgs(home,E[i]));
     od;
-    pcgs:=PcgsByPcSequenceCons(IsPcgsDefaultRep,
-      IsPcgs and IsPrimeOrdersPcgs,FamilyObj(One(G)),pcgs);
-    H:=GroupByPcgs(pcgs);
-    home:=pcgs; # this is our new home pcgs
-    a:=GroupHomomorphismByImagesNC(G,H,pcgs,GeneratorsOfGroup(H));
-    E:=List(E,i->Image(a,i));
-    if IsFunction(fun) then
-      fun2:=function(x)
-	      return fun(PreImage(a,x));
-            end;
+
+    if not IsPcGroup(G) then
+      # for non-pc groups arbitrary pcgs may become unfeasibly slow, so
+      # convert to a pc group in this case
+      pcgs:=PcgsByPcSequenceCons(IsPcgsDefaultRep,
+	IsPcgs and IsPrimeOrdersPcgs,FamilyObj(One(G)),pcgs);
+      H:=GroupByPcgs(pcgs);
+      home:=pcgs; # this is our new home pcgs
+      a:=GroupHomomorphismByImagesNC(G,H,pcgs,GeneratorsOfGroup(H));
+      E:=List(E,i->Image(a,i));
+      if IsFunction(fun) then
+	fun2:=function(x)
+		return fun(PreImage(a,x));
+	      end;
+      else
+	pcgs:=home;
+	fun2:=fun;
+      fi;
+      Info(InfoComplement,2,"transfer back" );
+      return List( COComplementsMain( H, Image(a,N), all, fun2 ), x -> rec(
+	    complement :=PreImage( a, x.complement ),
+	      centralizer:=PreImage( a, x.centralizer ) ) );
     else
-      pcgs:=home;
-      fun2:=fun;
+      pcgs:=PcgsByPcSequenceNC(FamilyObj(home[1]),pcgs);
+      IsPrimeOrdersPcgs(pcgs); # enforce setting
+      H:= GroupByGenerators( pcgs );
+      home:=pcgs;
     fi;
-    Info(InfoComplement,2,"transfer back" );
-    return List( COComplementsMain( H, Image(a,N), all, fun2 ), x -> rec(
-          complement :=PreImage( a, x.complement ),
-            centralizer:=PreImage( a, x.centralizer ) ) );
+
   fi;
 
   # if <G> and <N> are coprime <G> splits over <N>

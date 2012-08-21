@@ -340,7 +340,7 @@ gap> ImmutableBasis( mb );
 SemiEchelonBasis( <vector space of dimension 2 over Rationals>,
 [ [ 1, 2, 3, 4 ], [ 0, 0, 0, 1 ] ] )
 
-gap> STOP_TEST( "vspcrow.tst", 24208100 );
+gap> STOP_TEST( "vspcrow.tst", 28208100 );
 
 
 #############################################################################

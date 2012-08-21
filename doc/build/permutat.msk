@@ -7,7 +7,7 @@
 %%
 %Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 %%
-\Chapter{Permutations}
+\PreliminaryChapter{Permutations}
 
 {\GAP} offers a data type *permutation* to describe the elements of permutation groups.
 
@@ -17,7 +17,7 @@ permutation <p> is written $i^p$,  which is expressed  as `<i> ^ <p>'  in
 {\GAP}. (This operation is also implemented by the function `OnPoints', see
 "OnPoints".)
 If `<i> ^ $p\ne i$', we say that <i> is *moved* by~<p>, otherwise
-it is _fixed_. Permutations in {\GAP} are  entered and displayed in cycle
+it is *fixed*. Permutations in {\GAP} are  entered and displayed in cycle
 notation, such as `(1,2,3)(4,5)'.
 
 In the  names of the  {\GAP} functions  that deal with  permutations, the
@@ -62,8 +62,11 @@ gap> OnPoints(17,(2,5,17,9,8));
 9
 \endexample
 
+The operation `Permuted' (see "Permuted") can be used to permute the entries
+of a list according to a permutation.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Comparison of permutations}
+\Section{Comparison of Permutations}
 
 \>`<p_1> = <p_2>'{equality test}!{for permutations}
 \>`<p_1> \< <p_2>'{precedence test}!{for permutations}
@@ -88,7 +91,7 @@ true
 \Declaration{SmallestGeneratorPerm}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Moved points of permutations}
+\Section{Moved Points of Permutations}
 
 \Declaration{SmallestMovedPointPerm}
 \Declaration{LargestMovedPointPerm}
@@ -113,6 +116,8 @@ gap> SmallestMovedPointPerms([(2,3,4),(7,6,3),(5,47)]);
 2
 gap> LargestMovedPointPerms([(2,3,4),(7,6,3),(5,47)]);
 47
+gap> LargestMovedPointPerms([()]);
+0
 \endexample
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -128,7 +133,7 @@ gap> CycleStructurePerm((1,2,3)(4,5,9,7,8));
 \endexample
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Creating permutations}
+\Section{Creating Permutations}
 
 \Declaration{ListPerm}
 \Declaration{PermList}
@@ -146,5 +151,7 @@ gap> RestrictedPerm((1,2)(3,4),[3..5]);
 (3,4)
 \endexample
 
-\Declaration{Permuted}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%E
 

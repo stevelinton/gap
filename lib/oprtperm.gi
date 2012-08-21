@@ -58,7 +58,7 @@ InstallOtherMethod( OrbitStabilizerOp,
           IsFunction ], RANK_SOLV,
     function( G, pnt, gens, oprs, opr )
     local   S;
-    
+
     if gens <> oprs  or  opr <> OnPoints  then
         TryNextMethod();
     fi;
@@ -150,7 +150,7 @@ InstallMethod( BlocksOp,
     if opr <> OnPoints  then
         TryNextMethod();
     fi;
-    
+
     # handle trivial group
     if Length( oprs ) = 0  then
         Error("<G> must operate transitively on <D>");
@@ -160,7 +160,7 @@ InstallMethod( BlocksOp,
     if Length( D ) = 1  or IsPrimeInt( Length( D ) )  then
         return Immutable( [ D ] );
     fi;
- 
+
     # compute the orbit of $G$ and a factored transversal
     orbit := [ D[1] ];
     trans := [];
@@ -427,7 +427,7 @@ InstallMethod( BlocksOp,
     if opr <> OnPoints  then
         TryNextMethod();
     fi;
-    
+
     nrb := Length(D) - Length(seed) + 1;
 
     # in the beginning each point <d> is in a block by itself
@@ -520,12 +520,12 @@ end );
 
 #############################################################################
 ##
-#M  MinimalBlocks( <G>, <D>, <gens>, <oprs>, <OnPoints> ) 
-## Adaptation of the code for BlocksNoSeed to return _all_ minimal blocks 
+#M  RepresentativesMinimalBlocks( <G>, <D>, <gens>, <oprs>, <OnPoints> )
+## Adaptation of the code for BlocksNoSeed to return _all_ minimal blocks
 ## containing D[1].
 ## By Graham Sharp (Oxford), August 1997
 ##
-InstallOtherMethod( MinimalBlocksOp,
+InstallOtherMethod( RepresentativesMinimalBlocksOp,
         "G, domain, gens, perms, opr", true,
         [ IsGroup, IsList and IsCyclotomicCollection,
           IsList,
@@ -562,7 +562,7 @@ local   blocks,   # block system of <G>, result
   if Length( D ) = 1  or IsPrime( Length( D ) )  then
     return Immutable([ D ]);
   fi;
- 
+
   # handle trivial group
   if Length( oprs )=0  then
     Error("<G> must operate transitively on <D>");
@@ -585,7 +585,7 @@ local   blocks,   # block system of <G>, result
   if Length( orbit ) <> Length( D )  then
     Error("<G> must operate transitively on <D>");
   fi;
-  Info(InfoOperation,1,"MinimalBlocks transversal computed");
+  Info(InfoOperation,1,"RepresentativesMinimalBlocks transversal computed");
   nrorbs := Length( orbit );
 
   # since $i \in k^{G_1}$ implies $\beta(i)=\beta(k)$,  we initialize <eql>
@@ -609,16 +609,16 @@ local   blocks,   # block system of <G>, result
   rnd := ();
 
   for start in orbit{[2..Length(D)]} do
-  
+
     # repeat until we have a block system
     cur := start;
     # unless this is a new point, ignore and go on to the next
-    # -we could do this by a linked list to avoid these checks but the 
+    # -we could do this by a linked list to avoid these checks but the
     #  O(n) overheads involved in setting it up are greater than those saved
     if iter[cur] = 0 then
-  
+
     repeat
-  
+
       # compute such an $H$ by taking random Schreier generators of $G_1$
       # and stop if 2 successive generators dont change the orbits any
       # more
@@ -668,7 +668,7 @@ local   blocks,   # block system of <G>, result
         od;
 
       od;
-      Info(InfoOperation,1,"MinimalBlocks ",
+      Info(InfoOperation,1,"RepresentativesMinimalBlocks ",
                "number of orbits of <H> < <G>_1 is ",nrorbs);
 
       # take arbitrary point <cur>,  and an element <gen> taking 1 to <cur>
@@ -730,9 +730,9 @@ local   blocks,   # block system of <G>, result
 
         # otherwise if its not our current block but contains it
         # by construction a nonminimal block contains the current block
-        # - not any more it doesn't! Now we also have to check whether 
-        # the block appeared this time or earlier. 
-        elif img <> D[1]  and img <> cur  
+        # - not any more it doesn't! Now we also have to check whether
+        # the block appeared this time or earlier.
+        elif img <> D[1]  and img <> cur
                and leq[img] <> img  and iter[img] = start then
 
           # then merge all blocks it contains with <cur>
@@ -774,18 +774,18 @@ local   blocks,   # block system of <G>, result
       od;
       block := Set( block );
       blocks := [ block ];
-      Info(InfoOperation,1,"MinimalBlocks ",
+      Info(InfoOperation,1,"RepresentativesMinimalBlocks ",
                "length of alleged block is ",Length(block));
 
       # quick test to see if the group is primitive
       if Length( block ) = Length( orbit )  then
-        Info(InfoOperation,1,"MinimalBlocks <G> is primitive");
+        Info(InfoOperation,1,"RepresentativesMinimalBlocks <G> is primitive");
         return Immutable([ D ]);
       fi;
 
       # quick test to see if the orbit can be a block
       if Length( orbit ) mod Length( block ) <> 0  then
-        Info(InfoOperation,1,"MinimalBlocks ",
+        Info(InfoOperation,1,"RepresentativesMinimalBlocks ",
                  "alleged block is clearly not a block");
         changed := -1000;
       fi;
@@ -819,7 +819,7 @@ local   blocks,   # block system of <G>, result
             for pnt  in img  do
               if rep[pnt] <> 0  then
                 Info(InfoOperation,1,
-                "MinimalBlocks, alleged block is not a block");
+                "RepresentativesMinimalBlocks, alleged block is not a block");
                 changed := -1000;
               fi;
               rep[pnt] := img[1];
@@ -832,7 +832,7 @@ local   blocks,   # block system of <G>, result
             for pnt  in img  do
               if rep[pnt] <> rep[img[1]]  then
                 Info(InfoOperation,1,
-                 "MinimalBlocks , alleged block is not a block");
+                 "RepresentativesMinimalBlocks , alleged block is not a block");
                 changed := -1000;
               fi;
             od;
@@ -848,7 +848,7 @@ local   blocks,   # block system of <G>, result
 
     until 0 <= changed;
     if poss = true then AddSet(minblocks, block); fi;
-  
+
     # loop back to get another minimal block
     fi;
   od;
@@ -876,14 +876,14 @@ InstallMethod( EarnsOp,
     if gens <> oprs  or  opr <> OnPoints  then
         TryNextMethod();
     fi;
-    
+
     n := Length( D );
     if not IsPrimePowerInt( n )  then
         return fail;
     elif not IsPrimitive( G, D )  then
         TryNextMethod();
     fi;
-    
+
 #    # Try a shortcut for solvable groups (or if a solvable normal subgroup is
 #    # found).
 #    if DefaultStabChainOptions.tryPcgs  then
@@ -898,16 +898,16 @@ InstallMethod( EarnsOp,
 #                   [ Length( ElementaryAbelianSeries( pcgs ) ) - 1 ];
 #        fi;
 #    fi;
-    
+
     fac := FactorsInt( n );  p := fac[ 1 ];  d := Length( fac );
     alpha := BasePoint( StabChainMutable( G ) );
     G1 := Stabilizer( G, alpha );
-    
+
     # If <G> is regular, it must be cyclic of prime order.
     if IsTrivial( G1 )  then
         return G;
     fi;
-    
+
     # If <G> is not a Frobenius group ...
     for orb  in Orbits( G1, D )  do
         beta := orb[ 1 ];
@@ -948,13 +948,13 @@ InstallMethod( EarnsOp,
                     Add( gens, pre );
                 od;
                 Q := SylowSubgroup( Centre( G2 ), p );
-                 
+
                 # This is unnecessary  if   you trust the   classification of
                 # finite simple groups.
-                if Size( Q ) > p ^ ( d - 1 )  then  
+                if Size( Q ) > p ^ ( d - 1 )  then
                     return fail;
                 fi;
-                
+
                 R := ClosureGroup( Q, gens );
                 R0 := OmegaOp( R, p, 1 );
                 y := First( GeneratorsOfGroup( R0 ),
@@ -974,7 +974,7 @@ InstallMethod( EarnsOp,
             fi;
         fi;
     od;
-    
+
     # <G> is a Frobenius group.
     a := GeneratorsOfGroup( Centre( G1 ) )[ 1 ];
     x := First( GeneratorsOfGroup( G ), gen -> alpha ^ gen <> alpha );
@@ -983,7 +983,7 @@ InstallMethod( EarnsOp,
     return M;
 
 end );
-    
+
 #############################################################################
 ##
 #M  TransitivityOp( <G>, <D>, <gens>, <oprs>, <opr> ) . . . . . . on integers
@@ -997,7 +997,7 @@ InstallMethod( TransitivityOp,
     function( G, D, gens, oprs, opr )
     if gens <> oprs  or  opr <> OnPoints  then
         TryNextMethod();
-    
+
     elif not IsTransitiveOp( G, D, gens, oprs, opr )  then
         return 0;
     else
@@ -1029,17 +1029,18 @@ InstallMethod( IsSemiRegularOp,
             img,        # image of '<prm>[<i>][<pnt>]' under <gen>
             p, n,       # loop variables
             i, l;       # loop variables
-    
+
     if opr <> OnPoints  then
         TryNextMethod();
     fi;
-    
+
     # compute the orbits and check that they all have the same length
-    orbs := OrbitsOp( G, D, gens, oprs, OnPoints );
+    orbs := Filtered(OrbitsOp( G, D, gens, oprs, OnPoints ),
+                     i->Length(i)>1);
     if Length( Set( List( orbs, Length ) ) ) <> 1  then
         return false;
     fi;
-    
+
     # initialize the permutations that act like the generators
     used := [];
     perm := [];
@@ -1052,7 +1053,7 @@ InstallMethod( IsSemiRegularOp,
         perm[i][ orbs[1][1] ] := orbs[1][1] ^ oprs[i];
         used[i][ orbs[1][1] ^ oprs[i] ] := true;
     od;
-    
+
     # initialize the permutation that permutes the orbits
     l := Length( oprs ) + 1;
     used[l] := [];
@@ -1068,19 +1069,19 @@ InstallMethod( IsSemiRegularOp,
     od;
     perm[l][orbs[Length(orbs)][1]] := orbs[1][1];
     used[l][orbs[1][1]] := true;
-    
+
     # compute the orbit of the first representative
     orb := [ orbs[1][1] ];
     for pnt  in orb  do
         for gen  in oprs  do
-    
+
             # if the image is new
             new := pnt ^ gen;
             if not new in orb  then
-    
+
                 # add the new element to the orbit
                 Add( orb, new );
-    
+
                 # extend the permutations that act like the generators
                 for i  in [ 1 .. Length( oprs ) ]  do
                     img := perm[i][pnt] ^ gen;
@@ -1091,7 +1092,7 @@ InstallMethod( IsSemiRegularOp,
                         used[i][img] := true;
                     fi;
                 od;
-    
+
                 # extend the permutation that permutates the orbits
                 p := pnt;
                 n := new;
@@ -1106,12 +1107,12 @@ InstallMethod( IsSemiRegularOp,
                     p := perm[l][p];
                     n := img;
                 od;
-    
+
             fi;
-    
+
         od;
     od;
-    
+
     # check that the permutations commute with the generators
     for i  in [ 1 .. Length( oprs ) ]  do
         for gen  in oprs  do
@@ -1122,7 +1123,7 @@ InstallMethod( IsSemiRegularOp,
             od;
         od;
     od;
-    
+
     # check that the permutation commutes with the generators
     for gen  in oprs  do
         for orb  in orbs  do
@@ -1133,17 +1134,17 @@ InstallMethod( IsSemiRegularOp,
             od;
         od;
     od;
-    
+
     # everything is ok, the representation is semiregular
     return true;
-    
+
 end );
 
 #############################################################################
 ##
 #M  RepresentativeOperation( <G>, <d>, <e>, <opr> ) . . . . . for perm groups
 ##
-InstallOtherMethod( RepresentativeOperationOp, true, [ IsPermGroup,
+InstallOtherMethod( RepresentativeOperationOp, "permgrp",true, [ IsPermGroup,
         IsObject, IsObject, IsFunction ], RANK_SOLV,
     function ( G, d, e, opr )
     local   rep,                # representative, result
@@ -1198,7 +1199,7 @@ InstallOtherMethod( RepresentativeOperationOp, true, [ IsPermGroup,
     elif opr = OnPoints and IsPermGroup( d ) and IsPermGroup( e )  then
         rep := IsomorphismPermGroups( G, d, e );
 
-    # operation on pairs on tuples of other objects, iterate
+    # operation on pairs or tuples of other objects, iterate
     elif opr = OnPairs  or opr = OnTuples  then
         rep := One( G );
         S   := G;
@@ -1249,7 +1250,7 @@ InstallOtherMethod( StabilizerOp,
     if gens <> oprs  then
         TryNextMethod();
     fi;
-    
+
     # standard operation on points, make a stabchain beginning with <d>
     if opr = OnPoints and IsInt( d )  then
         base := [ d ];
@@ -1265,7 +1266,7 @@ InstallOtherMethod( StabilizerOp,
         od;
         if IsIdenticalObj( S, K )  then  K := G;
                                 else  K := GroupStabChain( G, S, true );  fi;
-                            
+
     # standard operation on (lists of) permutations, take the centralizer
     elif opr = OnPoints  and IsPerm( d )  then
         K := Centralizer( G, d );
@@ -1282,14 +1283,15 @@ InstallOtherMethod( StabilizerOp,
     elif opr = OnSets  and ForAll( d, IsInt )  then
         K := RepOpSetsPermGroup( G, d );
 
-    # operation on sets of sets (true partitions)
-    elif opr = OnSetsSets and IsList(d) and ForAll(d,i->ForAll(i,IsInt)) then
+    # operation on sets of pairwise disjoint sets
+    elif     opr = OnSetsDisjointSets
+         and IsList(d) and ForAll(d,i->ForAll(i,IsInt)) then
         K := PartitionStabilizerPermGroup( G, d );
 
     #T OnSetTuples?
 
     # operation on tuples of sets
-    elif opr = OnTuplesSets 
+    elif opr = OnTuplesSets
       and IsList(d) and ForAll(d,i->ForAll(i,IsInt)) then
 	K:=G;
 	for S in d do
@@ -1297,7 +1299,7 @@ InstallOtherMethod( StabilizerOp,
 	od;
 
     # operation on tuples of tuples
-    elif opr = OnTuplesTuples 
+    elif opr = OnTuplesTuples
       and IsList(d) and ForAll(d,i->ForAll(i,IsInt)) then
 	K:=G;
 	for S in d do
@@ -1339,15 +1341,30 @@ end );
 
 #############################################################################
 ##
-#O  OnSetsSets(<set>,<g>)
+#F  OnSetsSets( <set>, <g> )
 ##
-InstallGlobalFunction( OnSetsSets, function(e,g)
-  return Set(List(e,i->OnSets(i,g)));
+InstallGlobalFunction( OnSetsSets, function( e, g )
+    return Set( List( e, i -> OnSets( i, g ) ) );
 end );
+
 
 #############################################################################
 ##
-#O  OnSetsTuples(<set>,<g>)
+#F  OnSetsDisjointSets( <set>, <g> )
+##
+##  `OnSetsDisjointSets' does the same as `OnSetsSets',
+##  but since this special case is treated in a special way for example by
+##  `StabilizerOp',
+##  the function must be an object different from `OnSetsSets'.
+##
+InstallGlobalFunction( OnSetsDisjointSets, function( e, g )
+    return Set( List( e, i -> OnSets( i, g ) ) );
+end );
+
+
+#############################################################################
+##
+#F  OnSetsTuples( <set>, <g> )
 ##
 InstallGlobalFunction( OnSetsTuples, function(e,g)
   return Set(List(e,i->OnTuples(i,g)));
@@ -1355,7 +1372,7 @@ end );
 
 #############################################################################
 ##
-#O  OnTuplesSets(<set>,<g>)
+#F  OnTuplesSets( <set>, <g> )
 ##
 InstallGlobalFunction( OnTuplesSets, function(e,g)
   return List(e,i->OnSets(i,g));
@@ -1363,7 +1380,7 @@ end );
 
 #############################################################################
 ##
-#O  OnTuplesTuples(<set>,<g>)
+#F  OnTuplesTuples( <set>, <g> )
 ##
 InstallGlobalFunction( OnTuplesTuples, function(e,g)
   return List(e,i->OnTuples(i,g));
@@ -1372,5 +1389,5 @@ end );
 
 #############################################################################
 ##
-#E  oprtperm.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

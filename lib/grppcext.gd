@@ -10,86 +10,92 @@ Revision.grppcext_gd :=
 
 #############################################################################
 ##
-#I  Infos
+#I  InfoCompPairs
+#I  InfoExtReps
 ##
 DeclareInfoClass( "InfoCompPairs" );
 DeclareInfoClass( "InfoExtReps");
-DeclareInfoClass( "InfoFrattExt" );
 
 #############################################################################
 ##
-#F  ExtensionSQ( C, G, M, c )
+#F  ExtensionSQ( <C>, <G>, <M>, <c> )
 ##
 DeclareGlobalFunction( "ExtensionSQ" );
 
 #############################################################################
 ##
-#F  FpGroupPcGroupSQ( G )
+#F  FpGroupPcGroupSQ( <G> )
 ##
 DeclareGlobalFunction( "FpGroupPcGroupSQ" );
 
 #############################################################################
 ##
-#F  CompatiblePairs( G, M, [P] )
+#F  CompatiblePairs( <G>, <M> [,<D>] )
 ##
+##  returns the group of compatible pairs of the group <G> with the 
+##  <G>-module <M> as subgroup of the direct product of <Aut(G)> x <Aut(M)>.
+##  Here <Aut(M)> is considered as subgroup of a general linear group. The 
+##  optional argument <D> should be a subgroup of <Aut(G)> x <Aut(M)>. If it
+##  is given, then only the compatible pairs in <D> are computed.
 DeclareGlobalFunction( "CompatiblePairs" );
 
 #############################################################################
 ##
-#F  FindConjugatingElement( G, inn )
+#O  Extension( <G>, <M>, <c> )
 ##
-#T DeclareGlobalFunction( "FindConjugatingElement" );
-#T up to now no function is installed
-
-#############################################################################
-##
-#O  Extension( G, M, c )
-##
+##  returns the extension of <G> by the <G>-module <M> via the cocycle <c>.
 DeclareOperation( "Extension", [ CanEasilyComputePcgs, IsObject, IsVector ] );
 
 #############################################################################
 ##
-#O  Extensions( G, M )
+#O  Extensions( <G>, <M> )
 ##
+##  returns all extensions of <G> by the <G>-module <M> up to equivalence.
 DeclareOperation( "Extensions", [ CanEasilyComputePcgs, IsObject ] );
 
 #############################################################################
 ##
-#O  ExtensionRepresentatives( G, M, P )
+#O  ExtensionRepresentatives( <G>, <M>, <P> )
 ##
+##  returns all extensions of <G> by the <G>-module <M> up to equivalence 
+##  under action of <P> where <P> has to be a subgroup of the group of 
+##  compatible pairs of <G> with <M>.
 DeclareOperation( "ExtensionRepresentatives", 
                     [CanEasilyComputePcgs, IsObject, IsObject] );
 
 #############################################################################
 ##
-#O  SplitExtension( G, M )
-#O  SplitExtension( G, aut, N )
+#O  SplitExtension( <G>, <M> )
+#O  SplitExtension( <G>, <aut>, <N> )
 ##
+##  returns the split extension of <G> by the <G>-module <M>. In the second
+##  form it returns the split extension of <G> by <N> where <aut> is a
+##  homomorphism of <G> into Aut(<N>).
 DeclareOperation( "SplitExtension", [CanEasilyComputePcgs, IsObject] );
 
 #############################################################################
 ##
-#O  TopExtensionsByAutomorphism( G, aut, p )
+#O  TopExtensionsByAutomorphism( <G>, <aut>, <p> )
 ##
 DeclareOperation( "TopExtensionsByAutomorphism",
                                [CanEasilyComputePcgs, IsObject, IsInt] );
 
 #############################################################################
 ##
-#O  CyclicTopExtensions( G, p )
+#O  CyclicTopExtensions( <G>, <p> )
 ##
 DeclareOperation( "CyclicTopExtensions", 
                        [CanEasilyComputePcgs, IsInt] );
 
 #############################################################################
 ##
-#A SocleComplement
+#A SocleComplement(<G>)
 ##
 DeclareAttribute( "SocleComplement", IsGroup );
 
 #############################################################################
 ##
-#A SocleDimensions
+#A SocleDimensions(<G>)
 ##
 DeclareAttribute( "SocleDimensions", IsGroup );
 

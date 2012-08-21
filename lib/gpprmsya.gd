@@ -21,10 +21,7 @@ Revision.gpprmsya_gd :=
 ##  A   group is a  natural  alternating group if  it is  a permutation group
 ##  acting as alternating group on its moved points.
 ##
-DeclareProperty(
-    "IsNaturalAlternatingGroup",
-    IsPermGroup );
-
+DeclareProperty( "IsNaturalAlternatingGroup", IsPermGroup );
 
 
 #############################################################################
@@ -33,19 +30,14 @@ DeclareProperty(
 ##
 ##  Such a group is a group isomorphic to a natural alterning group.
 ##
-DeclareProperty(
-    "IsAlternatingGroup",
-    IsGroup );
-
+DeclareProperty( "IsAlternatingGroup", IsGroup );
 
 
 #############################################################################
 ##
 #M  IsAlternatingGroup( <nat-alt-grp> )
 ##
-InstallTrueMethod(
-    IsAlternatingGroup,
-    IsNaturalAlternatingGroup );
+InstallTrueMethod( IsAlternatingGroup, IsNaturalAlternatingGroup );
 
 
 #############################################################################
@@ -55,10 +47,7 @@ InstallTrueMethod(
 ##  A group is a natural symmetric group if it is  a permutation group acting
 ##  as symmetric group on its moved points.
 ##
-DeclareProperty(
-    "IsNaturalSymmetricGroup",
-    IsPermGroup );
-
+DeclareProperty( "IsNaturalSymmetricGroup", IsPermGroup );
 
 
 #############################################################################
@@ -67,22 +56,36 @@ DeclareProperty(
 ##
 ##  Such a group is a group isomorphic to a natural symmetric group.
 ##
-DeclareProperty(
-    "IsSymmetricGroup",
-    IsGroup );
-
+DeclareProperty( "IsSymmetricGroup", IsGroup );
 
 
 #############################################################################
 ##
 #M  IsSymmetricGroup( <nat-sym-grp> )
 ##
-InstallTrueMethod(
-    IsSymmetricGroup,
-    IsNaturalSymmetricGroup );
+InstallTrueMethod( IsSymmetricGroup, IsNaturalSymmetricGroup );
 
 
 #############################################################################
 ##
-#E  gpprmsya.gd  . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#A  SymmetricParentGroup( <grp> )
 ##
+##  For a permutation group <grp> this function returns the symmetric group
+##  which moves the same points as <grp> does.
+DeclareAttribute("SymmetricParentGroup",IsPermGroup);
+
+#############################################################################
+##
+#A  OrbitStabilizingParentGroup( <grp> )
+##
+##  returns the subgroup of `SymmetricParentGroup(<grp>)' which stabilizes
+##  the orbits of <grp> setwise. (So it is a direct product of wreath
+##  products of symmetric groups.) It is a natural supergroup for the
+##  normalizer.
+##
+DeclareAttribute("OrbitStabilizingParentGroup",IsPermGroup);
+
+
+#############################################################################
+##
+#E

@@ -51,6 +51,8 @@ const char * Revision_scanner_c =
 #include        "lists.h"               /* generic lists                   */
 #include        "string.h"              /* strings                         */
 
+#include        "opers.h"               /* DoFilter...                     */
+
 
 /****************************************************************************
 **
@@ -580,6 +582,7 @@ UInt OpenInput (
     Input->isstream = 0;
     Input->file = file;
     Input->name[0] = '\0';
+    Input->echo = 0;
     SyStrncat( Input->name, filename, sizeof(Input->name) );
 
     /* start with an empty line and no symbol                              */
@@ -619,6 +622,7 @@ UInt OpenInputStream (
     Input->sline = 0;
     Input->name[0] = '\0';
     Input->file = -1;
+    Input->echo = 0;
     SyStrncat( Input->name, "stream", 6 );
 
     /* start with an empty line and no symbol                              */
@@ -1221,7 +1225,7 @@ UInt CloseOutput ( void )
     /* flush output and close the file                                     */
     Pr( "%c", (Int)'\03', 0L );
     if ( ! Output->isstream ) {
-        SyFclose( Output->file );
+      SyFclose( Output->file );
     }
 
     /* revert to previous output file and indicate success                 */
@@ -1438,13 +1442,17 @@ Char GetLine ( void )
         }
 
         /* if neccessary echo the line to the logfile                      */
-        if ( ! Input->isstream ) {
-            if ( InputLog != 0 && ! Input->isstream ) {
-                if ( Input->file == 0 || Input->file == 2 ) {
-                    PutLine2( InputLog, In );
-                }
-            }
-        }
+	if( InputLog != 0 && Input->echo == 1)
+            if ( !(In[0] == '\377' && In[1] == '\0') ) 
+	    PutLine2( InputLog, In ); 
+
+		/*	if ( ! Input->isstream ) {
+	  if ( InputLog != 0 && ! Input->isstream ) {
+	    if ( Input->file == 0 || Input->file == 2 ) {
+	      PutLine2( InputLog, In );
+	    }
+	    }
+	    } */
 
     }
 
@@ -1862,9 +1870,12 @@ void GetSymbol ( void )
     case ')':   Symbol = S_RPAREN;                      GET_CHAR();  break;
     case ',':   Symbol = S_COMMA;                       GET_CHAR();  break;
 
-    case ':':   Symbol = S_ILLEGAL;                     GET_CHAR();
-                if ( *In == '\\' ) { GET_CHAR(); 
-                  if ( *In == '\n' ) { GET_CHAR(); } }
+    case ':':   Symbol = S_COLON;                       GET_CHAR();
+                if ( *In == '\\' ) {
+		  GET_CHAR(); 
+                  if ( *In == '\n' )
+		    { GET_CHAR(); }
+		}
                 if ( *In == '=' ) { Symbol = S_ASSIGN;  GET_CHAR(); break; }
                 break;
 
@@ -1928,17 +1939,21 @@ Obj WriteAllFunc;
 **
 *F  PutLine2( <output>, <line> )  . . . . . . . . . . . . print a line, local
 */
+
+
 void PutLine2(
     TypOutputFile *         output,
     Char *                  line )
 {
     Obj                     str;
+    UInt                    len;
 
     if ( output->isstream ) {
-        str = NEW_STRING( SyStrlen(line) );
-        SyStrncat( CSTR_STRING(str), line, SyStrlen(line) );
-        CALL_2ARGS( WriteAllFunc, output->stream, str );
-    }
+	len = SyStrlen(line);
+	str = NEW_STRING( len+1 );
+	SyStrncat( CSTR_STRING(str), line, len+1 );
+	CALL_2ARGS( WriteAllFunc, output->stream, str );
+      } 
     else {
         SyFputs( line, output->file );
     }
@@ -2057,15 +2072,17 @@ void PutChr (
     else if ( ch == '\03' ) {
 
         /* print the line                                                  */
-        Output->line[ Output->pos ] = '\0';
-        PutLine();
-
-        /* start the next line                                             */
-        Output->pos      = 0;
-
-        /* first character is a very bad place to split                    */
-        Output->spos     = 0;
-        Output->sindent  = 666;
+        if (Output->pos != 0)
+	  {
+	    Output->line[ Output->pos ] = '\0';
+	    PutLine();
+	    
+	    /* start the next line                                         */
+	    Output->pos      = 0;
+	  }
+	/* first character is a very bad place to split                    */
+	Output->spos     = 0;
+	Output->sindent  = 666;
 
     }
 
@@ -2152,6 +2169,18 @@ void PutChr (
         Output->sindent  = 666;
 
     }
+}
+
+/****************************************************************************
+**
+*F  FuncToggleEcho( )
+**
+*/
+
+Obj FuncToggleEcho( Obj self)
+{
+  Input->echo = 1 - Input->echo;
+  return (Obj)0;
 }
 
 
@@ -2490,6 +2519,33 @@ void Pr (
 
 /****************************************************************************
 **
+*V  GVarFuncs . . . . . . . . . . . . . . . . . . list of functions to export
+*/
+static StructGVarFunc GVarFuncs [] = {
+
+    { "ToggleEcho", 0, "",
+      FuncToggleEcho, "src/scanner.c:ToggleEcho" },
+
+    { 0 }
+
+};
+
+/****************************************************************************
+**
+*F  InitLibrary( <module> ) . . . . . . .  initialise library data structures
+*/
+static Int InitLibrary (
+    StructInitInfo *    module )
+{
+    /* init filters and functions                                          */
+    InitGVarFuncsFromTable( GVarFuncs );
+
+    /* return success                                                      */
+    return 0;
+}
+
+/****************************************************************************
+**
 
 *F  InitKernel( <module> )  . . . . . . . . initialise kernel data structures
 */
@@ -2502,6 +2558,7 @@ static Int InitKernel (
     Int                 i;
 
     Input  = InputFiles-1;   ignore = OpenInput(  "*stdin*"  );
+    Input->echo = 1; /* echo stdin */
     Output = OutputFiles-1;  ignore = OpenOutput( "*stdout*" );
 
     InputLog  = 0;  OutputLog  = 0;
@@ -2522,10 +2579,14 @@ static Int InitKernel (
     InitGlobalBag(&(inputLogStream.stream), "src/scanner.c:inputLogStream" );
     InitGlobalBag(&(outputLogStream.stream),"src/scanner.c:outputLogStream");
 
+    
+    
     /* import functions from the library                                   */
     ImportFuncFromLibrary( "ReadLine", &ReadLineFunc );
     ImportFuncFromLibrary( "WriteAll", &WriteAllFunc );
+    /*    InitFopyGVar( "IsOutputTextFileRep", &IsOutputTextFileRep ); */
 
+    InitHdlrFuncsFromTable( GVarFuncs );
     /* return success                                                      */
     return 0;
 }
@@ -2543,7 +2604,7 @@ static StructInitInfo module = {
     0,                                  /* version                        */
     0,                                  /* crc                            */
     InitKernel,                         /* initKernel                     */
-    0,                                  /* initLibrary                    */
+    InitLibrary,                        /* initLibrary                    */
     0,                                  /* checkInit                      */
     0,                                  /* preSave                        */
     0,                                  /* postSave                       */

@@ -17,7 +17,7 @@ Revision.onecohom_gd:=
 #############################################################################
 ##
 #V  InfoCoh
-##
+##  The info class for the cohomology calculations is `InfoCoh'.
 DeclareInfoClass("InfoCoh");
 
 
@@ -25,7 +25,7 @@ DeclareInfoClass("InfoCoh");
 ##
 #O  TriangulizedGeneratorsByMatrix( <gens>, <M>, <F> ) 
 ##                                                  triangulize and make base
-##  AKA 'AbstractBaseMat'
+##  AKA `AbstractBaseMat'
 ##
 DeclareGlobalFunction("TriangulizedGeneratorsByMatrix");
 
@@ -96,9 +96,9 @@ DeclareOperation( "OCCoprimeComplement",
 ##
 #O  OneCoboundaries( <G>, <M> )	. . . . . . . . . . one cobounds of <G> / <M>
 ##
-##  computes only the one coboundaries. Syntax of input and output otherwise
-##  is the same as with `OneCocycles' except that entries that refer to
-##  cocycles are not computed.
+##  computes only the group of one coboundaries. Syntax of input and output
+##  otherwise is the same as with `OneCocycles' except that entries that
+##  refer to cocycles are not computed.
 DeclareGlobalFunction( "OneCoboundaries" );
 
 
@@ -109,10 +109,11 @@ DeclareGlobalFunction( "OneCoboundaries" );
 #O  OneCocycles( <G>, <mpcgs> )
 #O  OneCocycles( <gens>, <mpcgs> )
 ##
-##  Computes 1-Cocycle Z^1(<G>/<M>,<M>). The normal subgroup <M> may be
+##  Computes 1-Cocycles $Z^1(<G>/<M>,<M>)$. The normal subgroup <M> may be
 ##  given by a (Modulo)Pcgs <mpcgs>. In this case the whole calculation is
-##  permormed modulo the normal subgroup defined by the
-##  `DenominatorOfModuloPcgs(<mpcgs>)'. Similarly the group <G> may instead
+##  performed modulo the normal subgroup defined by the
+##  `DenominatorOfModuloPcgs(<mpcgs>)' (see~"Polycyclic Generating Systems").
+##  Similarly the group <G> may instead
 ##  be specified by a set of elements <gens> that are represesentatives for
 ##  a generating system for the factor group <G>/<M>. If this is done the
 ##  1-Cocycles are computed with respect to these generators (otherwise the
@@ -176,7 +177,7 @@ DeclareOperation("OCAddComplement",
 ##
 #O  OCOneCocycles( <ocr>, <onlySplit> ) . . . . . . one cocycles main routine
 ##
-##  is the more technical function to compute one cocycles. It takes an record
+##  is the more technical function to compute 1-cocycles. It takes an record
 ##  <ocr> as first argument which must contain at least the components
 ##  `group' for $G$ and `modulePcgs' for a (modulo) pcgs of <M>. This record
 ##  will also be returned with components as described under `OneCocycles'
@@ -185,7 +186,7 @@ DeclareOperation("OCAddComplement",
 ##  but components like `oneCoboundaries' will only be
 ##  computed if not already present.
 ##
-##  If <onlySplit> is `true', 'OneCocyclesOC' returns `false' as soon as
+##  If <onlySplit> is `true', `OneCocyclesOC' returns `false' as soon as
 ##  possibly  if the extension does not split.
 ##
 DeclareGlobalFunction("OCOneCocycles");
@@ -196,7 +197,9 @@ DeclareGlobalFunction("OCOneCocycles");
 #O  ComplementclassesEA(<G>,<N>) . complement classes to el.ab. N by 1-Cohom.
 ##
 ##  computes `Complementclasses' to an elementary abelian normal subgroup
-##  <N> via 1-Cohomology.
+##  <N> via 1-Cohomology. Normally, a user program should call
+##  `Complementclasses' (see~"Complementclasses") instead, which also works
+##  for a solvable (not necessarily elementary abelian) <N>.
 DeclareGlobalFunction("ComplementclassesEA");
 
 

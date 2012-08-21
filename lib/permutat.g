@@ -26,12 +26,14 @@ DeclareCategoryKernel( "IsPerm",
 
 #############################################################################
 ##
-#C  IsPermCollection(<obj>)
+#C  IsPermCollection( <obj> )
+#C  IsPermCollColl( <obj> )
 ##
-##  is the category for collections of permutations.
+##  are the categories for collections of permutations and collections of
+##  collections of permutations, respectively.
 ##
 DeclareCategoryCollections( "IsPerm" );
-
+DeclareCategoryCollections( "IsPermCollection" );
 
 
 #############################################################################
@@ -116,7 +118,8 @@ DeclareRepresentation( "IsPerm4Rep", IsInternalRep, [] );
 ##
 ##  is the family of all permutations.
 ##
-PermutationsFamily := NewFamily( "PermutationsFamily", IsPerm );
+BIND_GLOBAL( "PermutationsFamily",
+    NewFamily( "PermutationsFamily", IsPerm ) );
 
 
 #############################################################################
@@ -137,7 +140,7 @@ BIND_GLOBAL( "TYPE_PERM4",
 
 #############################################################################
 ##
-#V  One . . . . . . . . . . . . . . . . . . . . . . . . .  one of permutation
+#v  One . . . . . . . . . . . . . . . . . . . . . . . . .  one of permutation
 ##
 SetOne( PermutationsFamily, () );
 
@@ -180,7 +183,7 @@ end );
 
 #############################################################################
 ##
-#F  RestrictedPerm(<g>,<D>)  restriction of a permutation to an invariant set
+#F  RestrictedPerm(<perm>,<list>)  restriction of a perm. to an invariant set
 ##
 ##  `RestrictedPerm' returns  the new permutation <new>  that operates on the
 ##  points in the list <list> in the same  way as the permutation <perm>, and
@@ -229,10 +232,10 @@ end );
 #F  MappingPermListList(<src>,<dst>)  permutation mapping one list to another
 ##
 ##  returns   a   permutation    <perm>  such   that
-##  `<list1>[<i>]  ^ <perm> = <list2>[<i>]'.  <perm> fixes  all points larger
-##  then the maximum  of the  entries in <list1>   and <list2>. If  there are
+##  `<src>[<i>]  ^ <perm> = <dst>[<i>]'.  <perm> fixes  all points larger
+##  then the maximum  of the  entries in <src>   and <dst>. If  there are
 ##  several     such    permutations,  it      is   not     specified   which
-##  `MappingPermListList' returns.   <list1> and  <list2>  must  be  lists of
+##  `MappingPermListList' returns.   <src> and  <dst>  must  be  lists of
 ##  positive integers of the same length, and neither  may contain an element
 ##  twice.
 BIND_GLOBAL( "MappingPermListList", function( src, dst )
@@ -254,7 +257,7 @@ end );
 
 #############################################################################
 ##
-#M  SmallestMovedPointPerm( <perm> )  . . . . . . . . . . .  for permutations
+#m  SmallestMovedPointPerm( <perm> )  . . . . . . . . . . .  for permutations
 ##
 InstallMethod( SmallestMovedPointPerm,
     "for a permutation",
@@ -276,7 +279,7 @@ end );
 
 #############################################################################
 ##
-#M  LargestMovedPointPerm( <perm> ) . . . . . . . .  for internal permutation
+#m  LargestMovedPointPerm( <perm> ) . . . . . . . .  for internal permutation
 ##
 InstallMethod( LargestMovedPointPerm,
     "for an internal permutation",
@@ -287,7 +290,7 @@ InstallMethod( LargestMovedPointPerm,
 
 #############################################################################
 ##
-#M  NrMovedPointsPerm( <perm> ) . . . . . . . . . . . . . . . for permutation
+#m  NrMovedPointsPerm( <perm> ) . . . . . . . . . . . . . . . for permutation
 ##
 InstallMethod( NrMovedPointsPerm,
     "for a permutation",
@@ -310,7 +313,7 @@ InstallMethod( NrMovedPointsPerm,
 
 #############################################################################
 ##
-#M  CycleStructurePerm( <perm> )  . . . . . . . . .  length of cycles of perm
+#m  CycleStructurePerm( <perm> )  . . . . . . . . .  length of cycles of perm
 ##
 InstallMethod( CycleStructurePerm,
     "default method",
@@ -355,7 +358,7 @@ end );
 
 #############################################################################
 ##
-#M  String( <perm> )  . . . . . . . . . . . . . . . . . . . for a permutation
+#m  String( <perm> )  . . . . . . . . . . . . . . . . . . . for a permutation
 ##
 InstallMethod( String,
     "for a permutation",
@@ -391,5 +394,16 @@ InstallMethod( String,
 
 #############################################################################
 ##
-#E  permutat.g	. . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#M  Order( <perm> ) . . . . . . . . . . . . . . . . .  order of a permutation
+##
+InstallMethod( Order,
+    "for a permutation",
+    true,
+    [ IsPerm ], 0,
+    OrderPerm );
+
+
+#############################################################################
+##
+#E
 ##

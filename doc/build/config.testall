@@ -1,0 +1,44 @@
+@msfiles = ("addmagma","algebra","algfld","alglie","blist","boolean","coll",
+  "combinat","cyclotom","debug","domain","fieldfin","fields","fldabnum",
+  "groups","grpfp","grphomom","grplib","grpmat","grpoper","grppc","grpperm",
+  "grpprod","install","integers","lists","magma","mapping","matint","matrix",
+  "module","numtheor","objects","padics","pcgs","permutat","pres","ratfun",
+  "rational","record","rings","run","semigrp","string","types","vector",
+  "vspc","wordass");
+
+@gdfiles = ("addcoset","addmagma","algebra","algfld","algfp","alghom",
+  "alglie","algsc","arith","assert","basis","basismut","clas",
+  "coll","combinat","csetgrp","ctbl","ctblauto","ctblchar","ctblfuns",
+  "ctblgrp","ctbllatt","ctblmaps","ctblmoli","ctblmono","ctblpope",
+  "ctblsolv","ctblsymm","cyclotom","domain","extaset","extlset","extrset",
+  "extuset","factgrp","ffe","field","files","fldabnum","ghom","ghompcgs",
+  "ghomperm","global","gpprmsya","gprd","grp","grpffmat","grpfp","grpfree",
+  "grplatt","grpmat","grpnice","grppc","grppcaut","grppccom","grppcext",
+  "grppcfp","grppclat","grppcnrm","grppcrep","grpperm","grpprmcs","grpramat",
+  "grpreps","grptbl","hash","ideal","info","integer","liefam","list",
+  "listcoef","magma","mapphomo","mapping","matblock","matint","matrix",
+  "mgmring","module","monoid","morpheus","numtheor","object","onecohom",
+  "oprt","oprtglat","padics","pcgs","pcgsind","pcgsmodu","pcgspcg","pcgsperm",
+  "pcgsspec","polyconw","polyrat","pquot","process","quotsys","randiso",
+  "ratfun","ring",
+  "ringpoly","rvecempt","rws","rwsgrp","rwspcclt","rwspcgrp","semigrp",
+  "sgpres","stbc","stbcbckt","streams","string","tietze","tom","tuples",
+  "twocohom","unknown","upoly","vecmat","vspc","vspchom","word","wordass",
+  "wpobj","zlattice","zmodnz",
+  "boolean.g",
+  "compiler.g","cyclotom.g","dt.g","fampred.g","ffe.g","filter.g",
+  "flag.g","function.g","global.g","kernel.g","list.g",
+  "methwhy.g","oper.g","overload.g","package.g","permutat.g",
+  "profile.g","record.g","reread.g","set.g","string.g","system.g","type.g",
+  "variable.g","version.g","wpobj.g",
+  "../grp/basic","../grp/perf","../trans/trans",
+  "../prim/primitiv","../small/small");
+
+$DIR = "../ref";
+$LIB = "../../lib"; 
+versionnumber=4b4
+versionsuffix=4b4
+gapdirname=gap4b4
+ucgapdirname=GAP4B4
+check
+

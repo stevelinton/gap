@@ -68,14 +68,16 @@ DeclareOperation( "GroupHomomorphismByImagesNC",
 
 #############################################################################
 ##
-#O  NaturalHomomorphismByNormalSubgroup( <G>, <N> ) . . map onto factor group
+#O  NaturalHomomorphismByNormalSubgroup( <G>, <N> )
 #O  NaturalHomomorphismByNormalSubgroupNC(<G>,<N> )
 ##
 ##  returns a homomorphism from <G> to another group whose kernel is <N>.
 ##  {\GAP} will try to select the image group as to make computations in it
 ##  as efficient as possible. As the factor group $<G>/<N>$ can be identified 
 ##  with the image of <G> this permits efficient computations in the factor
-##  group.
+##  group. The homomorphism returned is not necessarily surjective, so
+##  `ImagesSource' should be used insteadf of `Range' to get a group
+##  isomorphic to the factor group.
 ##  The `NC' variant does not check whether <N> is normal in <G>.
 ##
 InParentFOA( "NaturalHomomorphismByNormalSubgroup", IsGroup, IsGroup,
@@ -86,7 +88,6 @@ MakeReadWriteGlobal( "NaturalHomomorphismByNormalSubgroup" );
 UnbindGlobal( "NaturalHomomorphismByNormalSubgroup" );
 
 DeclareGlobalFunction("NaturalHomomorphismByNormalSubgroup");
-
 
 #############################################################################
 ##
@@ -105,12 +106,21 @@ DeclareRepresentation( "IsGroupGeneralMappingByPcgs",
 
 #############################################################################
 ##
+#R  IsPreimagesByAsGroupGeneralMappingByImages(<obj>)
+##
+##  Representation for mappings that delegate work for preimages to a
+##  GroupHomomorphismByImages.
+DeclareRepresentation( "IsPreimagesByAsGroupGeneralMappingByImages",
+      IsGroupGeneralMapping and IsSPGeneralMapping and IsAttributeStoringRep,
+      [  ] );
+
+#############################################################################
+##
 #R  IsGroupGeneralMappingByAsGroupGeneralMappingByImages(<obj>)
 ##  Representation for mappings that delegate work on a
 ##  GroupHomomorphismByImages.
 DeclareRepresentation( "IsGroupGeneralMappingByAsGroupGeneralMappingByImages",
-      IsGroupGeneralMapping and IsSPGeneralMapping and IsAttributeStoringRep,
-      [  ] );
+      IsPreimagesByAsGroupGeneralMappingByImages, [  ] );
 
 #############################################################################
 ##
@@ -143,6 +153,16 @@ end;
     
 #############################################################################
 ##
+#O  ConjugatorAutomorphism( <G>, <g> )
+##
+##  creates for $<g>$ in the same Family as the elemnts of <G> the
+##  automorphism of <G> defined by $<h>\mapsto<h>^{<elm>}$ for all
+##  $<h>\in<G>$.
+DeclareOperation( "ConjugatorAutomorphism",
+    [ IsGroup, IsMultiplicativeElementWithInverse ] );
+    
+#############################################################################
+##
 #O  InnerAutomorphism( <G>, <g> )
 ##
 ##  creates for $<g>\in<G>$ the inner automorphism of <G>
@@ -150,10 +170,45 @@ end;
 DeclareOperation( "InnerAutomorphism",
     [ IsGroup, IsMultiplicativeElementWithInverse ] );
 
-DeclareRepresentation( "IsInnerAutomorphismRep",
-    IsGroupHomomorphism and IsBijective and IsAttributeStoringRep
-    and IsSPGeneralMapping,
-    [ "conjugator" ] );
+#############################################################################
+##
+#P  IsConjugatorAutomorphism( <hom> )
+##
+##  If <hom> is an bijective endomorphism of a group <G> this property
+##  tests, whether <hom> can be induced by conjugation with an element of
+##  <G> or another group which naturally contains <G> (if <G> is a
+##  permutation group).  If this is the case, the attribute
+##  `ConjugatorInnerAutomorphism' contains this element which induces the
+##  same conjugation action as <hom> does.
+##
+##  To avoid problems with `IsInnerAutomorphism' it is guaranteed that the
+##  conjugator is taken from <G> if possible.
+DeclareProperty("IsConjugatorAutomorphism",IsGroupGeneralMappingByImages);
+
+#############################################################################
+##
+#P  IsInnerAutomorphism( <hom> )
+##
+##  If <hom> is an bijective endomorphism of a group <G> this property tests,
+##  whether <hom> is an inner automorphism of <G>. If this is the case, the
+##  attribute `ConjugatorInnerAutomorphism' contains an element of <G> which
+##  induces the same conjugation action as <hom> does.
+##
+##  An automorphism is an inner automorphism if it is a conjugator
+##  automorphism and if the conjugating element can be found in <G>.
+DeclareProperty("IsInnerAutomorphism",IsConjugatorAutomorphism);
+
+#############################################################################
+##
+#A  ConjugatorInnerAutomorphism( <hom> )
+##
+##  For an inner automorphism <hom> this attribute returns an element that
+##  induces the same conjugation action.
+DeclareAttribute("ConjugatorInnerAutomorphism",IsConjugatorAutomorphism);
+
+DeclareRepresentation( "IsConjugatorAutomorphismRep",
+    IsGroupHomomorphism and IsConjugatorAutomorphism and IsBijective 
+    and IsAttributeStoringRep and IsSPGeneralMapping, [ ] );
 
 
 #############################################################################
@@ -169,12 +224,33 @@ DeclareGlobalFunction( "MakeMapping" );
 
 #############################################################################
 ##
-#A  IsomorphismPermGroup(<G>)
-##  returns an isomorphism $\varphi$ from <G> to a permutation group <P>
-##  which is isomorphic to <G>. The method will select a suitable
-##  permutation representation.
-DeclareAttribute("IsomorphismPermGroup",IsGroup);
+#F  GroupHomomorphismByFunction( <S>, <R>, <fun> )
+#F  GroupHomomorphismByFunction( <S>, <R>, <fun>, <invfun> )
+##
+##  `GroupHomomorphismByFunction' returns a group homomorphism <hom> with
+##  source <S> and range <R>, such that each element <s> of <S> is mapped to
+##  the element `<fun>( <s> )', where <fun> is a {\GAP} function.
+##
+##  If the argument <invfun> is bound then <hom> is a bijection between <S>
+##  and <R>, and the preimage of each element <r> of <R> is given by
+##  `<invfun>( <r> )', where <invfun> is a {\GAP}  function.
+##
+##  No test is performed on whether the functions actually give an
+##  isomorphism between both groups.
+##
+##  `GroupHomomorphismByFunction' creates a mapping which
+##  `IsSPGeneralMapping'.
+##              
+DeclareGlobalFunction("GroupHomomorphismByFunction");
 
+#############################################################################
+##
+#F  ImagesRepresentativeGMBIByElementsList( <hom>, <elm> )
+##
+##  This is the method for `ImagesRepresentative' which calls `MakeMapping'
+##  and uses element lists to evaluate the image. It is used by
+##  `Factorization'.
+DeclareGlobalFunction("ImagesRepresentativeGMBIByElementsList");
 
 #############################################################################
 ##

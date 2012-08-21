@@ -197,7 +197,7 @@ InstallMethod( PrintObj,
 ##
 ##  Compute the identity (if exists) from the s.~c. table.
 ##
-InstallOtherMethod( One,
+InstallMethod( One,
     "for family of s. c. algebra elements",
     true,
     [ IsSCAlgebraObjFamily ], 0,
@@ -384,20 +384,20 @@ InstallMethod( \/,
     return ObjByExtRep( FamilyObj( x ), x![1] / y );
     end );
 
-InstallMethod( Zero,
+InstallMethod( ZeroOp,
     "for s. c. algebra element",
     true,
     [ IsSCAlgebraObj ], 0,
     x -> ObjByExtRep( FamilyObj( x ), Zero( ExtRepOfObj( x ) ) ) );
 
-InstallMethod( AdditiveInverse,
+InstallMethod( AdditiveInverseOp,
     "for s. c. algebra element",
     true,
     [ IsSCAlgebraObj ], 0,
     x -> ObjByExtRep( FamilyObj( x ),
                       AdditiveInverse( ExtRepOfObj( x ) ) ) );
 
-InstallOtherMethod( One,
+InstallOtherMethod( OneOp,
     "for s. c. algebra element",
     true,
     [ IsSCAlgebraObj ], 0,
@@ -411,7 +411,7 @@ InstallOtherMethod( One,
     return one;
     end );
 
-InstallOtherMethod( Inverse,
+InstallOtherMethod( InverseOp,
     "for s. c. algebra element",
     true,
     [ IsSCAlgebraObj ], 0,
@@ -447,6 +447,7 @@ InstallMethod( \in,
 ##
 #F  AlgebraByStructureConstants( <R>, <sctable> )
 #F  AlgebraByStructureConstants( <R>, <sctable>, <name> )
+#F  AlgebraByStructureConstants( <R>, <sctable>, <names> )
 #F  AlgebraByStructureConstants( <R>, <sctable>, <name1>, <name2>, ... )
 ##
 ##  is an algebra $A$ over the ring <R>, defined by the structure constants
@@ -470,12 +471,8 @@ BindGlobal( "AlgebraByStructureConstantsArg", function( arglist, filter )
             gens;       # algebra generators of `A'
 
     # Check the argument list.
-    if not (     1 < Length( arglist )
-             and IsRing( arglist[1] )
-             and IsList( arglist[2] )
-             and ( Length( arglist ) = 2 or
-                   ForAll( [ 3 .. Length( arglist ) ],
-                           x -> IsString( arglist[x] ) ) ) ) then
+    if not 1 < Length( arglist ) and IsRing( arglist[1] )
+                                 and IsList( arglist[2] ) then
       Error( "usage: AlgebraByStructureConstantsArg([<R>,<sctable>]) or \n",
              "AlgebraByStructureConstantsArg([<R>,<sctable>,<name1>,...])" );
     fi;
@@ -491,20 +488,24 @@ BindGlobal( "AlgebraByStructureConstantsArg", function( arglist, filter )
       n:= Length( sctable[1] );
     fi;
 
-    # Construct names of generators (used only for printing).
+    # Construct names of generators (used for printing only).
     if   Length( arglist ) = 2 then
       names:= List( [ 1 .. n ],
                     x -> Concatenation( "v.", String(x) ) );
+      MakeImmutable( names );
     elif Length( arglist ) = 3 and IsString( arglist[3] ) then
       names:= List( [ 1 .. n ],
                     x -> Concatenation( "v.", arglist[3] ) );
+      MakeImmutable( names );
     elif Length( arglist ) = 3 and IsHomogeneousList( arglist[3] )
-                           and ForAll( arglist[3], IsString ) then
-      names:= arglist[3];
+                               and Length( arglist[3] ) = n
+                               and ForAll( arglist[3], IsString ) then
+      names:= Immutable( arglist[3] );
     elif Length( arglist ) = 2 + n then
-      names:= arglist{ [ 3 .. Length( arglist ) ] };
+      names:= Immutable( arglist{ [ 3 .. Length( arglist ) ] } );
     else
-      Error( "number of names does not match" );
+      Error( "usage: AlgebraByStructureConstantsArg([<R>,<sctable>]) or \n",
+             "AlgebraByStructureConstantsArg([<R>,<sctable>,<name1>,...])" );
     fi;
 
     # Construct the family of elements of our algebra.
@@ -519,7 +520,7 @@ BindGlobal( "AlgebraByStructureConstantsArg", function( arglist, filter )
     fi;
 
     Fam!.sctable   := sctable;
-    Fam!.names     := Immutable( names );
+    Fam!.names     := names;
     Fam!.zerocoeff := zero;
 
     # Construct the default type of the family.
@@ -610,9 +611,9 @@ end );
 
 #############################################################################
 ##
-#M  One( <quat> ) . . . . . . . . . . . . . . . . . . . . .  for a quaternion
+#M  OneOp( <quat> ) . . . . . . . . . . . . . . . . . . . .  for a quaternion
 ##
-InstallMethod( One,
+InstallMethod( OneOp,
     "for a quaternion",
     true,
     [ IsQuaternion and IsSCAlgebraObj ], 0,
@@ -621,13 +622,13 @@ InstallMethod( One,
 
 #############################################################################
 ##
-#M  Inverse( <quat> ) . . . . . . . . . . . . . . . . . . .  for a quaternion
+#M  InverseOp( <quat> ) . . . . . . . . . . . . . . . . . .  for a quaternion
 ##
 ##  The inverse of $c_1 e + c_2 i + c_3 j + c_4 k$ is
 ##  $c_1/z e - c_2/z i - c_3/z j - c_4/z k$
 ##  where $z = c_1^2 + c_2^2 + c_3^2 + c_4^2$.
 ##
-InstallMethod( Inverse,
+InstallMethod( InverseOp,
     "for a quaternion",
     true,
     [ IsQuaternion and IsSCAlgebraObj ], 0,

@@ -873,7 +873,7 @@ function(mat)
 
     # all entries must be non negativ, the diagonal and the first row must
     # have positive entries
-    if IsInt(Position(DiagonalOfMat, 0)) or IsInt(Position(
+    if IsInt(Position(DiagonalOfMat(mat), 0)) or IsInt(Position(
                List(mat, x->x[1]), 0)) or Minimum(Flat(mat)) < 0 then
         Error("not a table of marks");
     fi;
@@ -950,7 +950,7 @@ function(n)
     # additional components
     derivedSubgroups:=ListWithIdenticalEntries(n,1);
     normalizer:=ListWithIdenticalEntries(n,n);
-    group:=Group(PermList(Concatenation([2..n],[1])));
+    group:=GroupByGenerators( [ PermList( Concatenation( [2..n], [1] ) ) ] );
     SetSize(group,n);
     SetName(group,Concatenation("C",String(n)));
 
@@ -2869,7 +2869,8 @@ function(arglist)
     fi;
 
     if IsList(record.GroupOfTom) then
-        record.GroupOfTom:=Group(record.GroupOfTom,record.GroupOfTom[1]^0);
+        record.GroupOfTom:= GroupByGenerators( record.GroupOfTom,
+                                               record.GroupOfTom[1]^0 );
     fi;
 
     #  remove superfluous things

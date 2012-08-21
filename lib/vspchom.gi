@@ -602,9 +602,9 @@ InstallMethod( \*,
 
 #############################################################################
 ##
-#M  AdditiveInverse( <map> )  . . . . . . . . . . . . . . for linear g.m.b.i.
+#M  AdditiveInverseOp( <map> )  . . . . . . . . . . . . . for linear g.m.b.i.
 ##
-InstallMethod( AdditiveInverse,
+InstallMethod( AdditiveInverseOp,
     "for linear g.m.b.i.",
     true,
     [ IsGeneralMapping and IsLinearGeneralMappingByImagesDefaultRep ], 0,
@@ -1158,14 +1158,9 @@ InstallMethod( NaturalHomomorphismBySubspace,
 
 #############################################################################
 ##
-#M  NaturalHomomorphismBySubspace( <V>, <W> ) . . . for two free left modules
+#F  NaturalHomomorphismBySubspaceOntoFullRowSpace( <V>, <W> )
 ##
-##  return a left module m.b.m.
-##
-InstallMethod( NaturalHomomorphismBySubspace,
-    "for two finite dimensional free left modules",
-    IsIdenticalObj,
-    [ IsFreeLeftModule, IsFreeLeftModule ], 0,
+InstallGlobalFunction( NaturalHomomorphismBySubspaceOntoFullRowSpace,
     function( V, W )
 
     local F,
@@ -1183,13 +1178,8 @@ InstallMethod( NaturalHomomorphismBySubspace,
     # Check that the modules are finite dimensional.
     if not IsFiniteDimensional( V ) or not IsFiniteDimensional( W ) then
       TryNextMethod();
-    fi;
-
-    # If `V' is equal to `W', return a zero mapping.
-    if not IsSubset( V, W ) then
+    elif not IsSubset( V, W ) then
       Error( "<W> must be contained in <V>" );
-    elif Dimension( V ) = Dimension( W ) then
-      return ZeroMapping( V, FullRowModule( LeftActingDomain( V ), 0 ) );
     fi;
 
     # If the left acting domains are different, adjust them.
@@ -1200,9 +1190,18 @@ InstallMethod( NaturalHomomorphismBySubspace,
       W:= AsLeftModule( F, W );
     fi;
 
+    # If `V' is equal to `W', return a zero mapping.
+    if Dimension( V ) = Dimension( W ) then
+      return ZeroMapping( V, FullRowModule( F, 0 ) );
+    fi;
+
     # Compute a basis of `V' through a basis of `W'.
     Wvectors:= BasisVectors( BasisOfDomain( W ) );
-    mb:= MutableBasisByGenerators( F, Wvectors );
+    if IsEmpty( Wvectors ) then
+      mb:= MutableBasisByGenerators( F, Wvectors, Zero( W ) );
+    else
+      mb:= MutableBasisByGenerators( F, Wvectors );
+    fi;
     compl:= [];
     for gen in BasisVectors( BasisOfDomain( V ) ) do
       if not IsContainedInSpan( mb, gen ) then
@@ -1235,6 +1234,19 @@ InstallMethod( NaturalHomomorphismBySubspace,
 
     return nathom;
     end );
+
+
+#############################################################################
+##
+#M  NaturalHomomorphismBySubspace( <V>, <W> ) . . . for two free left modules
+##
+##  return a left module m.b.m.
+##
+InstallMethod( NaturalHomomorphismBySubspace,
+    "for two finite dimensional free left modules",
+    IsIdenticalObj,
+    [ IsFreeLeftModule, IsFreeLeftModule ], 0,
+    NaturalHomomorphismBySubspaceOntoFullRowSpace );
 
 
 #############################################################################
@@ -1293,9 +1305,9 @@ InstallMethod( \*,
 
 #############################################################################
 ##
-#M  AdditiveInverse( <map> )  . . . . . . . . . . . . . . . for linear m.b.m.
+#M  AdditiveInverseOp( <map> )  . . . . . . . . . . . . . . for linear m.b.m.
 ##
-InstallMethod( AdditiveInverse,
+InstallMethod( AdditiveInverseOp,
     "for linear m.b.m.",
     true,
     [ IsGeneralMapping and IsLinearMappingByMatrixDefaultRep ], 0,
@@ -2246,7 +2258,7 @@ StandardGeneratorsOfFullHomModule := function( M )
     one:= One( R );
     m:= Dimension( UnderlyingLeftModule( BS ) );
     n:= Dimension( UnderlyingLeftModule( BR ) );
-    zeromat:= MutableNullMat( m, n, R );
+    zeromat:= NullMat( m, n, R );
     gens:= [];
     for i in [ 1 .. m ] do
       for j in [ 1 .. n ] do
@@ -2491,7 +2503,7 @@ InstallMethod( End,
     fi;
 
     n:= Dimension( V );
-    gens:= MutableNullMat( n, n, F );
+    gens:= NullMat( n, n, F );
     gens:= [ gens, List( gens, ShallowCopy ) ];
     one:= One( F );
 

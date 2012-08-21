@@ -145,6 +145,8 @@ DeclareOperation( "AlgebraWithOneHomomorphismByImagesNC",
 ##
 ##  is the homomorphism of algebras provided by the natural
 ##  projection map of <A> onto the quotient algebra <A>/<I>.
+##  This map can be used to take pre-images in the original algebra from
+##  elements in the quotient.
 ##
 DeclareOperation( "NaturalHomomorphismByIdeal",
     [ IsFLMLOR, IsFLMLOR ] );

@@ -900,7 +900,7 @@ InstallMethod( BasisVectors,
 
 #############################################################################
 ##
-#M  Zero( <V> )
+#M  Zero( <V> ) . . . . . . . . . . . . . . . . . . . . . .  for matrix space
 ##
 InstallOtherMethod( Zero,
     "for a matrix space",
@@ -1105,7 +1105,7 @@ InstallMethod( CanonicalBasis,
 ##  also if the defining matrices are Lie matrices.
 ##
 DeclareRepresentation( "IsMutableBasisOfGaussianMatrixSpaceRep",
-    IsComponentObjectRep and IsMutable,
+    IsComponentObjectRep,
     [ "heads", "basisVectors", "leftActingDomain", "zero" ] );
 
 
@@ -1133,6 +1133,7 @@ InstallMethod( MutableBasisByGenerators,
 
       B:= Objectify( NewType( FamilyObj( mats ),
                                   IsMutableBasis
+                              and IsMutable
                               and IsMutableBasisOfGaussianMatrixSpaceRep ),
                      rec(
                           basisVectors     := ShallowCopy( newmats.vectors ),
@@ -1171,6 +1172,7 @@ InstallMethod( MutableBasisByGenerators,
 
       B:= Objectify( NewType( FamilyObj( mats ),
                                   IsMutableBasis
+                              and IsMutable
                               and IsMutableBasisOfGaussianMatrixSpaceRep ),
                      rec(
                           basisVectors     := ShallowCopy( newmats.vectors ),
@@ -1209,6 +1211,7 @@ InstallOtherMethod( MutableBasisByGenerators,
 
       B:= Objectify( NewType( CollectionsFamily( FamilyObj( zero ) ),
                                   IsMutableBasis
+                              and IsMutable
                               and IsMutableBasisOfGaussianMatrixSpaceRep ),
                      rec(
                           zero:= zero,
@@ -1220,6 +1223,7 @@ InstallOtherMethod( MutableBasisByGenerators,
         B!.basisVectors:= [];
         z:= ListWithIdenticalEntries( Length( zero[1] ), 0 );
         B!.heads:= List( zero, i -> ShallowCopy( z ) );
+#T problem for `NullAlgebra' !!
 
       else
 
@@ -1291,7 +1295,8 @@ InstallOtherMethod( BasisVectors,
 InstallMethod( CloseMutableBasis,
     "for a mut. basis of a Gaussian matrix space, and a matrix",
     IsCollsElms,
-    [ IsMutableBasis and IsMutableBasisOfGaussianMatrixSpaceRep,
+    [ IsMutableBasis and IsMutable
+                     and IsMutableBasisOfGaussianMatrixSpaceRep,
       IsMatrix ], 0,
     function( MB, v )
     local V,              # corresponding free left module
@@ -1338,7 +1343,7 @@ InstallMethod( CloseMutableBasis,
       # Reduce `v' with the known basis vectors.
       for i in [ 1 .. m ] do
         for j in [ 1 .. n ] do
-          if heads[i][j] <> 0 then
+          if zero <> v[i][j] and heads[i][j] <> 0 then
             scalar:= - v[i][j];
             bv:= basisvectors[ heads[i][j] ];
             for k in [ 1 .. m ] do
@@ -1358,7 +1363,7 @@ InstallMethod( CloseMutableBasis,
           od;
           Add( basisvectors, v );
           heads[i][j]:= Length( basisvectors );
-          return;
+          break;
         fi;
       od;
 

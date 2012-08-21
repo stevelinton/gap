@@ -60,6 +60,7 @@ ReadLib( "ratfun.gi"   );
 ReadLib( "ratfunul.gi" );
 ReadLib( "ringpoly.gi" );
 ReadLib( "upoly.gi"    );
+ReadLib( "upolyirr.gi" );
 ReadLib( "polyfinf.gi" );
 ReadLib( "polyrat.gi"  );
 ReadLib( "polyconw.gi" );
@@ -78,6 +79,7 @@ ReadLib( "fldabnum.gi" );
 ReadLib( "padics.gi"   );
 
 ReadLib( "vecmat.gi"   );
+ReadLib( "vec8bit.gi"  );
 ReadLib( "meataxe.gi"  );
 
 ReadLib( "word.gi"     );
@@ -96,17 +98,20 @@ ReadLib( "grpfree.gi"  );
 ReadLib( "rws.gi"      );
 ReadLib( "rwspcclt.gi" );
 ReadLib( "rwspcsng.gi" );
+ReadLib( "rwspccoc.gi" );
 ReadLib( "rwspcftl.gi" );
 ReadLib( "rwsgrp.gi"   );
 ReadLib( "rwspcgrp.gi" );
 ReadLib( "rwsdt.gi" );
 
+# files dealing with quotient systems
+ReadLib( "pquot.gi");
 
 # files dealing with polycyclic generating systems
 ReadLib( "pcgs.gi"     );
 ReadLib( "pcgsind.gi"  );
-ReadLib( "pcgspcg.gi"  );
 ReadLib( "pcgsmodu.gi" );
+ReadLib( "pcgspcg.gi"  );
 ReadLib( "pcgscomp.gi" );
 ReadLib( "pcgsperm.gi" );
 ReadLib( "pcgsnice.gi" );
@@ -157,10 +162,7 @@ ReadLib( "twocohom.gi" );
 ReadLib( "grppcext.gi");
 ReadLib( "randiso.gi");
 ReadLib( "randiso2.gi");
-ReadLib( "fratfree.gi");
-ReadLib( "frattext.gi");
 ReadLib( "grppcfp.gi");
-ReadLib( "upext.gi");
 
 # files dealing with nice monomorphism
 ReadLib( "grpnice.gi"  );

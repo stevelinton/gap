@@ -5,13 +5,26 @@
 #H  @(#)$Id$
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
-#Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  (C) 1999 School Math and Comp. Sci., University of St.  Andrews, Scotland
 ##
 ##  This file contains attributes, properties and operations for univariate
 ##  polynomials over the rationals
 ##
 Revision.polyrat_gd:=
   "@(#)$Id$";
+#############################################################################
+##
+#F  APolyProd(<a>,<b>,<p>)   . . . . . . . . . . polynomial product a*b mod p
+##
+##  return a*b mod p;
+DeclareGlobalFunction("APolyProd");
+
+#############################################################################
+##
+#F  BPolyProd(<a>,<b>,<m>,<p>) . . . . . . polynomial product a*b mod m mod p
+##
+##  return EuclideanRemainder(PolynomialRing(Rationals),a*b mod p,m) mod p;
+DeclareGlobalFunction("BPolyProd");
 
 #############################################################################
 ##
@@ -27,6 +40,14 @@ DeclareOperation("PrimitivePolynomial",[IsPolynomial]);
 
 #############################################################################
 ##
+#F  BombieriNorm(<pol>)
+##
+## compute weighted Norm [pol]_2
+##
+DeclareGlobalFunction("BombieriNorm");
+
+#############################################################################
+##
 #A  MinimizedBombieriNorm( <f> ) . . . Tschirnhaus transf'd polynomial
 ##
 ##  This function applies linear Tschirnhaus transformations (x->x+i) to the
@@ -35,6 +56,48 @@ DeclareOperation("PrimitivePolynomial",[IsPolynomial]);
 ##
 DeclareAttribute("MinimizedBombieriNorm",
    IsPolynomial and IsRationalFunctionsFamilyElement);
+
+#############################################################################
+##
+#F  RootBound(<f>)
+##
+##  bound for absolute value of (complex) roots of ratinal univariate pol. <f>
+##
+DeclareGlobalFunction("RootBound");
+
+#############################################################################
+##
+#F  OneFactorBound(<pol>)
+##
+##  Coefficient bound for single factor of rational polynomial <pol>
+##
+DeclareGlobalFunction("OneFactorBound");
+
+#############################################################################
+##
+#F  HenselBound(<pol>,[<minpol>,<den>]) . . . Bounds for Factor coefficients
+##    if the computation takes place over an algebraic extension, then
+##    minpol and denominator must be given
+##
+DeclareGlobalFunction("HenselBound");
+
+#############################################################################
+##
+#F  TrialQuotientRPF(<f>,<g>,<b>)
+##
+## $<f>/<g>$ if coefficient bounds are given by list <b>
+##
+DeclareGlobalFunction("TrialQuotientRPF");
+
+#############################################################################
+##
+#F  TryCombinations(<f>,...)
+##
+##  trial divisions after Hensel factoring.
+DeclareGlobalFunction("TryCombinations");
+
+DeclareGlobalFunction("HeuGcdIntPolsExtRep"); # to permit recursive call
+DeclareGlobalFunction("HeuGcdIntPolsCoeffs"); # univariate version
 
 #############################################################################
 ##

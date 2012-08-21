@@ -78,6 +78,16 @@ end);
 
 #############################################################################
 ##
+#M  <G> in <clas> . . . . . . . . . . . . . . . . . . by conjugacy test
+##
+InstallMethod( \in, IsElmsColls, [ IsGroup,IsConjugacyClassSubgroupsRep], 0,
+function( G, clas )
+  return RepresentativeOperation(ActingDomain(clas),Representative(clas),G)
+		 <>fail;
+end);
+
+#############################################################################
+##
 #M  AsList(<cls>)
 ##
 InstallOtherMethod( \[\], "for classes of subgroups",
@@ -91,6 +101,16 @@ local rep;
   fi;
   return ConjugateSubgroup(rep,c!.normalizerTransversal[nr]);
 end);
+
+InstallMethod( StabilizerOfExternalSet, true, [ IsConjugacyClassSubgroupsRep ], 
+    # override eventual pc method
+    10,
+function(xset)
+  return Normalizer(ActingDomain(xset),Representative(xset));
+end);
+
+InstallOtherMethod( NormalizerOp, true, [ IsConjugacyClassSubgroupsRep ], 0,
+    StabilizerOfExternalSet );
 
 
 #############################################################################
@@ -820,26 +840,13 @@ end);
 #F  MaximalSubgroupClassReps(<G>) . . . . reps of conjugacy classes of
 #F                                                          maximal subgroups
 ##
-InstallMethod(MaximalSubgroupClassReps,"try solvable",true,[IsGroup],1,
-function (G)
-  if CanEasilyComputePcgs(G) # safety to avoid recursion: Methods are
-                             # ill-sorted
-     or not IsSolvableGroup(G) # not usable
-     then
-    TryNextMethod();
-  fi;
-  return MaximalSubgroupClassReps(G); # this will call *another* method
-end);
-
 InstallMethod(MaximalSubgroupClassReps,"using lattice",true,[IsGroup],0,
 function (G)
     local   maxs,lat;
 
     #AH special AG treatment
-    if IsSolvableGroup(G) then
-      lat:=IsomorphismPcGroup(G);
-      maxs:=MaximalSubgroupClassReps(Image(lat,G));
-      return List(maxs,i->PreImage(lat,i));
+    if not HasIsSolvableGroup(G) and IsSolvableGroup(G) then
+      return MaximalSubgroupClassReps(G);
     fi;
     # simply compute all conjugacy classes and take the maximals
     lat:=LatticeSubgroups(G);
@@ -1103,6 +1110,50 @@ InstallMethod(NormalSubgroups,"homomorphism principle pc groups",true,
 
 InstallMethod(NormalSubgroups,"homomorphism principle perm groups",true,
   [IsPermGroup],0,NormalSubgroupsCalc);
+
+#############################################################################
+##
+#M  IntermediateSubgroups(<G>,<U>)
+##
+InstallMethod(IntermediateSubgroups,"blocks for coset operation",
+  IsIdenticalObj, [IsGroup,IsGroup],0,
+function(G,U)
+local rt,op,a,l,i,j,u,max,subs;
+  rt:=RightTransversal(G,U);
+  op:=Operation(G,rt,OnRight); # use the special trick for right transversals
+  a:=ShallowCopy(AllBlocks(op));
+  l:=Length(a);
+
+  # compute inclusion information among sets
+  Sort(a,function(x,y)return Length(x)<Length(y);end);
+  # this is n^2 but I hope will not dominate everything.
+  subs:=List([1..l],i->Filtered([1..i-1],j->IsSubset(a[i],a[j])));
+      # List the sets we know to be contained in each set
+
+  max:=Set(List(Difference([1..l],Union(subs)), # sets which are
+						# contained in no other
+      i->[i,l+1]));
+
+  for i in [1..l] do
+    #take all subsets
+    if Length(subs[i])=0 then
+      # is minimal
+      AddSet(max,[0,i]);
+    else
+      u:=ShallowCopy(subs[i]);
+      #and remove those which come via other ones
+      for j in u do
+	u:=Difference(u,subs[j]);
+      od;
+      for j in u do
+	#remainder is maximal
+	AddSet(max,[j,i]);
+      od;
+    fi;
+  od;
+
+  return rec(subgroups:=List(a,i->ClosureGroup(U,rt{i})),inclusions:=max);
+end);
 
 #############################################################################
 ##

@@ -125,7 +125,8 @@ local  hom,fg,fpi,fpg,nt;
   fi;
 
   nt:=Subgroup(ocr.group,NumeratorOfModuloPcgs(ocr.modulePcgs));
-  if Index(ocr.group,nt)>500000 then
+  if Index(ocr.group,nt)>500000 and not
+   KnownNaturalHomomorphismsPool(ocr.group,nt) then
     # computing a factor representation may be too hard
     hom:=false;
   else
@@ -243,9 +244,10 @@ local i,base;
     ocr.moduleMap := x -> ExponentsOfPcElement(ocr.modulePcgs,x)
                           * ocr.one;
     ocr.matrices := LinearOperationLayer(ocr.generators, ocr.modulePcgs);
-    ocr.identityMatrix := IdentityMat( Length( ocr.modulePcgs ), ocr.field );
-    List( ocr.matrices, IsMatrix );
-    IsMatrix( ocr.identityMatrix );
+    ocr.identityMatrix := Immutable( IdentityMat( Length( ocr.modulePcgs ),
+         ocr.field ) );
+#    List( ocr.matrices, IsMatrix );
+#    IsMatrix( ocr.identityMatrix );
 #T ??
 
     # Do the same for the operations of 'normalIn' if present.
@@ -253,7 +255,7 @@ local i,base;
         if not IsBound( ocr.normalMatrices )  then
             ocr.normalMatrices := LinearOperationLayer(ocr.normalGenerators,
                 ocr.modulePcgs);
-    	    List( ocr.normalMatrices, IsMatrix );
+#    	    List( ocr.normalMatrices, IsMatrix );
         fi;
     fi;
 
@@ -340,7 +342,7 @@ InstallGlobalFunction( OCAddToFunctions, function( ocr )
     	    	for i  in [ 1 .. Length( L ) ]  do
     	    	    L[ i ] := gens[ i ] * L[ i ];
     	    	od;
-    	    	return Group( L,One(base[1]) );
+    	    	return GroupByGenerators( L, One( base[1] ) );
     	    end;
         else
 
@@ -367,7 +369,7 @@ InstallGlobalFunction( OCAddToFunctions, function( ocr )
                 for i  in [ 1 .. Length( L ) ]  do
                     L[ i ] := gens[i] * ocr.vectorMap( L[i] );
                 od;
-    	    	return Group( L ,One(base[1]));
+    	    	return GroupByGenerators( L, One( base[1] ) );
             end;
         fi;
     fi;
@@ -453,8 +455,10 @@ end);
 #F  OCAddCentralizer( <ocr>, <B> )  . . . . . . . add centralizer by base <B>
 ##
 OCAddCentralizer := function( ocr, B )
-    ocr.centralizer := Group(List(B,ocr.vectorMap),One(ocr.group));
+    ocr.centralizer := GroupByGenerators( List( B, ocr.vectorMap ),
+                                          One( ocr.group ) );
 end;
+
 
 #############################################################################
 ##
@@ -639,6 +643,21 @@ local   f,r,fg,rel,i,j,w,g,n;
     Add( ocr.relators, rel );
   od;
 
+end);
+
+BindGlobal("OCTestRelations",function(ocr,gens)
+local i,j,e,g;
+  g:=GroupByGenerators( NumeratorOfModuloPcgs( ocr.modulePcgs ) );
+  for i in ocr.relators do
+    e:=One(gens[1]);
+    for j in [1..Length(i.generators)] do
+      e:=e*gens[i.generators[j]]^i.powers[j];
+    od;
+    if not e in g then
+      Error("relator wrong");
+    fi;
+  od;
+  return true;
 end);
 
 #############################################################################
@@ -993,7 +1012,7 @@ local   n, i;
       n := n * ocr.generators[ r.generators[ i ] ] ^ r.powers[ i ];
   od;
 
-  #Assert(1,n in Group(ocr.modulePcgs));
+  Assert(1,n in GroupByGenerators( NumeratorOfModuloPcgs( ocr.modulePcgs )));
 
   return ShallowCopy(ocr.moduleMap( n ));
 
@@ -1143,6 +1162,8 @@ InstallGlobalFunction( OCOneCocycles, function( ocr, onlySplit )
 
     # Initialize the relations and sum/big matrices.
     OCAddRelations( ocr, ocr.generators );
+    Assert(1,OCTestRelations(ocr,ocr.generators)=true);
+
     OCAddSumMatrices( ocr, ocr.generators );
     if IsBound( ocr.smallGeneratingSet )  then
         OCAddBigMatrices( ocr, ocr.generators );
@@ -1366,7 +1387,7 @@ InstallGlobalFunction( OneCoboundaries, function(G,M)
   if IsGroup(G) then 
     ocr.group:=G;
   else
-    ocr.group:=Group(G);
+    ocr.group:= GroupByGenerators( G );
     ocr.generators:=G;
   fi;
 
@@ -1399,7 +1420,7 @@ local   ocr,erg;
   if IsGroup(G) then 
     ocr.group:=G;
   else
-    ocr.group:=Group(G);
+    ocr.group:= GroupByGenerators( G );
     ocr.generators:=G;
   fi;
 

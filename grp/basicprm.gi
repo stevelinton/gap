@@ -15,7 +15,6 @@ Revision.basicprm_gi :=
 
 #############################################################################
 ##
-
 #M  AbelianGroupCons( <IsPermGroup>, <ints> )
 ##
 InstallMethod( AbelianGroupCons,
@@ -43,6 +42,16 @@ function( filter, ints )
     return grp;
 end );
 
+#############################################################################
+##
+#M  ElementaryAbelianGroupCons( <IsPermGroup>, <size> )
+##
+InstallMethod( ElementaryAbelianGroupCons, "perm group", true,
+    [ IsPermGroup and IsFinite, IsPosInt ],
+    0,function(filter,size)
+  return AbelianGroup(filter,Factors(size));
+end);
+
 
 #############################################################################
 ##
@@ -52,10 +61,11 @@ InstallMethod( AlternatingGroupCons,
     "perm group with degree",
     true,
     [ IsPermGroup and IsFinite,
-      IsInt and IsPosRat ],
+      IsInt],
     0,
 
 function( filter, deg )
+    if deg<0 then TryNextMethod();fi;
     return AlternatingGroupCons( IsPermGroup, [ 1 .. deg ] );
 end );
 
@@ -77,7 +87,7 @@ function( filter, dom )
     dom := Set(dom);
     IsRange( dom );
     if Length(dom) < 3  then
-        alt := Group( () );
+        alt := GroupByGenerators( [], () );
         SetSize(           alt, 1 );
         SetMovedPoints(    alt, [] );
         SetNrMovedPoints(  alt, 0 );
@@ -120,10 +130,11 @@ InstallMethod( AlternatingGroupCons,
     "regular perm group with degree",
     true,
     [ IsPermGroup and IsRegularProp and IsFinite,
-      IsInt and IsPosRat ],
+      IsInt],
     0,
 
 function( filter, deg )
+    if deg<0 then TryNextMethod();fi;
     return AlternatingGroupCons( IsPermGroup and IsRegularProp,
                                  [ 1 .. deg ] );
 end );
@@ -164,7 +175,7 @@ InstallMethod( CyclicGroupCons,
 function( filter, n )
     local   c;
 
-    c := Group( PermList( Concatenation( [2..n], [1] ) ) );
+    c := GroupByGenerators( [ PermList( Concatenation( [2..n], [1] ) ) ] );
     SetSize( c, n );
     SetIsCyclic( c, true );
     return c;
@@ -179,10 +190,11 @@ InstallMethod( SymmetricGroupCons,
     "perm group with degree",
     true,
     [ IsPermGroup and IsFinite,
-      IsInt and IsPosRat ],
+      IsInt ],
     0,
 
 function( filter, deg )
+    if deg<0 then TryNextMethod();fi;
     return SymmetricGroupCons( IsPermGroup, [ 1 .. deg ] );
 end );
 
@@ -204,7 +216,7 @@ function( filters, dom )
     dom := Set(dom);
     IsRange( dom );
     if Length(dom) < 2  then
-        sym := Group( () );
+        sym := GroupByGenerators( [], () );
         SetSize(           sym, 1 );
         SetMovedPoints(    sym, [] );
         SetNrMovedPoints(  sym, 0 );
@@ -234,10 +246,11 @@ InstallMethod( SymmetricGroupCons,
     "regular perm group with degree",
     true,
     [ IsPermGroup and IsRegularProp and IsFinite,
-      IsInt and IsPosRat ],
+      IsInt],
     0,
 
 function( filter, deg )
+    if deg<0 then TryNextMethod();fi;
     return SymmetricGroupCons( IsPermGroup and IsRegularProp,
                                [ 1 .. deg ] );
 end );
@@ -264,8 +277,8 @@ function( filter, dom )
 end );
 
 
-
 #############################################################################
 ##
-#E  basicperm.gd  . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 ##
+

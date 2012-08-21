@@ -10,26 +10,38 @@
 Revision.gprd_gd :=
     "@(#)$Id$";
 
-#############################################################################
-##
-#F  DirectProduct(<G> {,<H> })
-##
-##  constructs the direct product of the groups given as arguments.
-DeclareGlobalFunction( "DirectProduct" );
 
 #############################################################################
 ##
-#F  SubdirectProduct(<G> ,<H>, <Ghom>, <Hhom> )
+#F  DirectProduct( <G>{, <H>} )
+#O  DirectProductOp( <list>, <expl> )
+##
+##  These functions construct the direct product of the groups given as
+##  arguments.
+##  `DirectProduct' takes an arbitrary positive number of arguments
+##  and calls the operation `DirectProductOp', which takes exactly two
+##  arguments, namely a nonempty list of groups and one of these groups.
+##  (This somewhat strange syntax allows the method selection to choose
+##  a reasonable method for special cases, e.g., if all groups are
+##  permutation groups or pc groups.)
+##
+DeclareGlobalFunction( "DirectProduct" );
+DeclareOperation( "DirectProductOp", [ IsList, IsGroup ] );
+
+
+#############################################################################
+##
+#O  SubdirectProduct(<G> ,<H>, <Ghom>, <Hhom> )
 ##
 ##  constructs the subdirect product of <G> and <H> with respect to the
 ##  epimorphisms <Ghom> from <G> onto a group <A> and <Hhom> from <H> onto
-##  the same group <H>.
+##  the same group <A>.
 DeclareOperation( "SubdirectProduct",
     [ IsGroup, IsGroup, IsGroupHomomorphism, IsGroupHomomorphism ] );
 
 #############################################################################
 ##
-#F  SemidirectProduct(<G>, <alpha>, <N> )
+#O  SemidirectProduct(<G>, <alpha>, <N> )
 ##
 ##  constructs the semidirect product of <N> with <G> acting via <alpha>.
 DeclareOperation( "SemidirectProduct",
@@ -38,8 +50,8 @@ DeclareOperation( "SemidirectProduct",
 
 #############################################################################
 ##
-#F  WreathProduct(<G>, <P> )
-#F  WreathProduct(<G>, <H> [,<hom>] )
+#O  WreathProduct(<G>, <P> )
+#O  WreathProduct(<G>, <H> [,<hom>] )
 ##
 ##  constructs the wreath product of <G> with the permutation group <P>
 ##  (acting on its `MovedPoints'). The
@@ -58,9 +70,6 @@ DeclareOperation( "WreathProduct", [ IsObject, IsObject ] );
 ##  wreath product in product action.
 DeclareGlobalFunction( "WreathProductProductAction" );
 
-DeclareGlobalFunction( "DirectProductOfPermGroups" );
-DeclareGlobalFunction( "DirectProductOfPcGroups" );
-DeclareGlobalFunction( "DirectProductOfGroups" );
 DeclareGlobalFunction( "InnerSubdirectProducts" );
 DeclareGlobalFunction( "InnerSubdirectProducts2" );
 DeclareGlobalFunction( "SubdirectProducts" );
@@ -91,10 +100,5 @@ DeclareAttribute( "WreathProductInfo", IsGroup, "mutable" );
 
 #############################################################################
 ##
-#E  Emacs variables . . . . . . . . . . . . . . local variables for this file
-##  Local Variables:
-##  mode:             outline-minor
-##  outline-regexp:   "#[WCROAPMFVE]"
-##  fill-column:      77
-##  End:
-#############################################################################
+#E
+

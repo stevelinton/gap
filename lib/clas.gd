@@ -24,13 +24,13 @@ DeclareRepresentation( "IsExternalOrbitByStabilizerRep",
 #R  IsExternalOrbitByStabilizerEnumerator . . . . . . . . enumerator for such
 ##
 DeclareRepresentation ( "IsExternalOrbitByStabilizerEnumerator",
-      IsDomainEnumerator and IsComponentObjectRep and IsAttributeStoringRep,
+      IsDomainEnumerator and IsAttributeStoringRep,
       [ "rightTransversal" ] );
 
 #############################################################################
 ##
-#R  IsConjugacyClassGroupRep  . . . . . . . . . . .  conjugacy class in group
-#R  IsConjugacyClassPermGroupRep  . . . . . . . . .  conjugacy class in group
+#R  IsConjugacyClassGroupRep(<obj>)
+#R  IsConjugacyClassPermGroupRep(<obj>)
 ##
 ##  Conjugacy classes have the representation `IsConjugacyClassGroupRep', a
 ##  subrepresentation is `IsConjugacyClassPermGroupRep' for permutation
@@ -45,12 +45,16 @@ DeclareRepresentation( "IsConjugacyClassPermGroupRep",
 ##
 #C  ConjugacyClass( <G>, <g> )  . . . . . . . . . conjugacy class constructor
 ##
-##  creates the conjugacy class in $G$ with representative $g$.
-##  A conjugacy class is an
-##  external orbit ("ExternalOrbit") of group elements with the group acting
-##  by conjugation on it. Thus element tests or operation representatives can be
-##  computed.  The attribute `Centralizer' gives the centralizer of
-##  the representative which is the same result as `StabilizerOfExternalSet'.
+##  creates the conjugacy class in $G$ with representative $g$.  This class
+##  is an external set, so functions like `Representative' (which returns
+##  <g>), `ActingDomain' (which returns <G>), `StabilizerOfExternalSet'
+##  (which returns the centralizer of <g>) and `AsList' work for it.
+##
+##  A conjugacy class is an external orbit ("ExternalOrbit") of group
+##  elements with the group acting by conjugation on it. Thus element tests
+##  or operation representatives can be computed.  The attribute
+##  `Centralizer' gives the centralizer of the representative (which is the
+##  same result as `StabilizerOfExternalSet').
 DeclareOperation( "ConjugacyClass", [ IsGroup, IsObject ] );
 
 
@@ -75,7 +79,7 @@ DeclareRepresentation( "IsRationalClassPermGroupRep",
 #M  IsFinite( <cl> )  . . . . . . . . . . . . . . . . .  for a rational class
 ##
 InstallTrueMethod( IsFinite, IsRationalClassGroupRep and IsDomain );
-#T The '*' in the 'Size' method (file `clas.gi') indicates that infinite
+#T The `*' in the `Size' method (file `clas.gi') indicates that infinite
 #T rational classes are not allowed.
 
 
@@ -91,14 +95,22 @@ InstallTrueMethod( IsFinite, IsRationalClassGroupRep and IsDomain );
 ##  group elements with the group acting by conjugation on it but not an
 ##  external orbit.
 ##
+DeclareOperation( "RationalClass", [ IsGroup, IsObject ] );
+
+#############################################################################
+##
+#A  GaloisGroup( <ratcl> )
+##
+##  Suppose that <ratcl> is a rational class of a group <G> with
+##  representative <g>.
 ##  The exponents $i$  for which $<g>^i$ lies  already in the ordinary
 ##  conjugacy  class of  <g>, form a  subgroup of the *prime residue class
 ##  group* $P_n$ (see "PrimitiveRootMod"), the so-called *Galois group*  of
 ##  the rational class. The prime residue class group $P_n$ is obtained in
 ##  {\GAP}  as `Units( Integers mod <n> )', the  unit group of a residue
 ##  class ring. The Galois group of a rational class <rcl> is stored in the
-##  attribute `GaloisGroup( <rcl>)' as a subgroup of this group.
-DeclareOperation( "RationalClass", [ IsGroup, IsObject ] );
+##  attribute `GaloisGroup(<rcl>)' as a subgroup of this group.
+DeclareAttribute( "GaloisGroup", IsRationalClassGroupRep );
 
 DeclareGlobalFunction( "DecomposedRationalClass" );
 DeclareGlobalFunction( "GroupByPrimeResidues" );
@@ -135,10 +147,10 @@ DeclareGlobalFunction( "GeneralStepClEANS" );
 ##  conjugating element.
 ##
 ##  The optional record <opt> may contain the following components that will
-##  affect the algorithms behavior:
+##  affect the algorithms behaviour:
 ##  
 ##  \beginitems
-##  `pcgs'&is a Pcgs that will be used for the calculation. In the case of
+##  `pcgs'&is a pcgs that will be used for the calculation. In the case of
 ##  the calculation of rational classes, it must be a pcgs refining a
 ##  central series. The attribute `NormalSeriesByPcgs' must return an
 ##  appropriate series of normal subgroups with elementary abelian factors
@@ -160,7 +172,7 @@ DeclareGlobalFunction( "GeneralStepClEANS" );
 ##  <K>. In mode 0 when lifting from <G>/<K> to <G>/<L> this function is
 ##  called before performing the actual lifting and only those
 ##  representatives for which it returns `true' are passed to the next
-##  level. This permits to calculate only classes with say small
+##  level. This permits the calculation of only those classes with say small
 ##  centralizers or classes of restricted orders.
 ##  \enditems
 DeclareGlobalFunction( "ClassesSolvableGroup" );

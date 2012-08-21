@@ -766,10 +766,10 @@ InstallMethod( ClosureRing,
 
 #############################################################################
 ##
-#M  ClosureRing( <R>, <list> )  . . . . . . . . . . . . . . . closure of ring
+#M  ClosureRing( <R>, <C> ) . . . . . . . . . . . . . . . . . closure of ring
 ##
 InstallMethod( ClosureRing,
-    "for ring and list of elements",
+    "for ring and collection of elements",
     IsIdenticalObj,
     [ IsRing, IsCollection ], 0,
     function( R, list )
@@ -786,11 +786,27 @@ InstallMethod( ClosureRing,
 #M  Quotient( <r>, <s> )  . . . . . . . . . . .  delegate to the default ring
 ##
 InstallOtherMethod( Quotient,
-    "for two ring elements",
+    "for two ring elements (delegate to three argument version",
     IsIdenticalObj,
     [ IsRingElement, IsRingElement ], 0,
     function( r, s )
     return Quotient( DefaultRing( [ r, s ] ), r, s );
+    end );
+
+InstallMethod( Quotient,
+    "for a ring and two ring elements",
+    IsCollsElmsElms,
+    [ IsRing, IsRingElement, IsRingElement ], 0,
+    function( R, r, s )
+    local quo;
+    quo:= Inverse( s );
+    if quo <> fail then
+      quo:= r * quo;
+      if not quo in R then
+        quo:= fail;
+      fi;
+    fi;
+    return quo;
     end );
 
 
@@ -888,7 +904,7 @@ InstallMethod( Associates,
     IsCollsElms,
     [ IsRing, IsRingElement ], 0,
     function( R, r );
-    return AsListSorted( Enumerator( Units( R ) ) * r );
+    return AsSSortedList( Enumerator( Units( R ) ) * r );
     end );
 
 

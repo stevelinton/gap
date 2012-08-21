@@ -1,5 +1,6 @@
-@msfiles = ("groups","grpprod");
-@gdfiles = ("grp","grplatt","grppclat","domain","ghom","magma","clas",
-            "grppccom","csetgrp",","gprd");
+@msfiles = ("groups","grpprod","grpmat");
+@gdfiles = ("ctbl","grp","grplatt","grppclat","domain","ghom","magma","clas",
+            "grppccom","csetgrp","gprd","grpmat","onecohom","grpramat",
+            "arith");
 $DIR = "../ref";
 $LIB = "../../lib"; 

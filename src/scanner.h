@@ -65,6 +65,7 @@ const char * Revision_scanner_h =
 #define S_RPAREN        ((1UL<< 8))
 #define S_COMMA         ((1UL<< 9)+0)
 #define S_DOTDOT        ((1UL<< 9)+1)
+#define S_COLON         ((1UL<< 9)+1)
 
 #define S_INT           ((1UL<<10))
 #define S_TRUE          ((1UL<<11)+0)
@@ -810,6 +811,7 @@ typedef struct {
     Obj         stream;
     Obj         sline;
     Int         spos;
+    UInt        echo;
 } TypInputFile;
 
 

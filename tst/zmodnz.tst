@@ -38,7 +38,7 @@ false
 gap> z2 < Z(7); Z(7) < z2;
 true
 false
-gap> Print(ListSorted( [ Z(7)^3, Z(7)^2, z1, z2, z3, Z(7)^5 ] ),"\n");
+gap> Print(SSortedList( [ Z(7)^3, Z(7)^2, z1, z2, z3, Z(7)^5 ] ),"\n");
 [ ZmodpZObj( 1, 7 ), ZmodpZObj( 3, 7 ), Z(7)^2, Z(7)^3, ZmodpZObj( 4, 7 ), 
   Z(7)^5 ]
 
@@ -242,7 +242,7 @@ gap> Print(List( rings, AsList ),"\n");
   [ ZmodnZObj( 0, 8 ), ZmodnZObj( 1, 8 ), ZmodnZObj( 2, 8 ), 
       ZmodnZObj( 3, 8 ), ZmodnZObj( 4, 8 ), ZmodnZObj( 5, 8 ), 
       ZmodnZObj( 6, 8 ), ZmodnZObj( 7, 8 ) ] ]
-gap> Print(List( rings, AsListSorted ),"\n");
+gap> Print(List( rings, AsSSortedList ),"\n");
 [ [ 0*Z(2), Z(2)^0 ], [ 0*Z(3), Z(3)^0, Z(3) ], 
   [ ZmodnZObj( 0, 4 ), ZmodnZObj( 1, 4 ), ZmodnZObj( 2, 4 ), 
       ZmodnZObj( 3, 4 ) ], 
@@ -261,7 +261,9 @@ gap> Print(List( rings, Units ),"\n");
   Group( [ ZmodnZObj( 7, 8 ), ZmodnZObj( 5, 8 ) ] ) ]
 
 gap> enum:= Enumerator( Integers mod 9 );
-<enumerator of (Integers mod 9)>
+[ ZmodnZObj( 0, 9 ), ZmodnZObj( 1, 9 ), ZmodnZObj( 2, 9 ), ZmodnZObj( 3, 9 ),
+  ZmodnZObj( 4, 9 ), ZmodnZObj( 5, 9 ), ZmodnZObj( 6, 9 ), ZmodnZObj( 7, 9 ),
+  ZmodnZObj( 8, 9 ) ]
 gap> len:= Length( enum );
 9
 gap> l:= [];;
@@ -276,7 +278,7 @@ gap> ForAll( [ 1 .. len ], i -> i = Position( enum, enum[i], 0 ) );
 true
 
 
-gap> STOP_TEST( "zmodnz.tst", 6575053 );
+gap> STOP_TEST( "zmodnz.tst", 13246249 );
 
 
 #############################################################################

@@ -288,7 +288,7 @@ SimpleLieAlgebraTypeA := function( n, F )
       od;
     od;
 
-    CM:= MutableNullMat( n, n );
+    CM:= NullMat( n, n );
     for i in [1..n-1] do
       CM[i][i]:= 2;
       CM[i][i+1]:= -1;
@@ -524,7 +524,7 @@ SimpleLieAlgebraTypeC := function( n, F )
 
     Append( posR, -posR );
     Append( posRv, negRv );
-    CM:= MutableNullMat( n, n );
+    CM:= NullMat( n, n );
     for i in [1..n-1] do
       CM[i][i]:= 2;
       CM[i][i+1]:= -1;
@@ -734,7 +734,7 @@ SimpleLieAlgebraTypeB := function( n, F )
 
     Append( posR, -posR );
     Append( posRv, negRv );
-    CM:= MutableNullMat( n, n );
+    CM:= NullMat( n, n );
     for i in [1..n-1] do
       CM[i][i]:= 2;
       CM[i][i+1]:= -1;
@@ -902,7 +902,7 @@ SimpleLieAlgebraTypeD := function( n, F )
 
     Append( posR, -posR );
     Append( posRv, negRv );
-    CM:= MutableNullMat( n, n );
+    CM:= NullMat( n, n );
     for i in [1..n-1] do
       CM[i][i]:= 2;
       CM[i][i+1]:= -1;
@@ -1074,7 +1074,7 @@ SimpleLieAlgebraTypeE := function( n, F )
     # Calculate a basis of a Cartan subalgebra relative to which the
     # root system is as above. 
 
-    eqs:= MutableNullMat( Length(C)^2, Length(C)^2, Rationals );
+    eqs:= NullMat( Length(C)^2, Length(C)^2, Rationals );
     rl:= ShallowCopy( Zero(Rationals)*[1..Length(C)^2] );
     for i in [1..Length(C)] do
       for k in [1..Length(C)] do
@@ -1463,7 +1463,7 @@ SimpleLieAlgebraTypeS:= function( n, F )
     bas:= NullspaceMat( TransposedMat( eqs ) );
     bas:= List( bas, v -> LinearCombination( Basis( WW[1] ), v ) );
 
-    L:= DerivedSubalgebra( Subalgebra( WW[1], bas, "basis" ) );
+    L:= LieDerivedSubalgebra( Subalgebra( WW[1], bas, "basis" ) );
     SetIsRestrictedLieAlgebra( L, ForAll( n, x -> x=1 ) );
     return L;
 
