@@ -12,19 +12,36 @@
 ##  A *basis* of a free left $F$-module $V$ of dimension $n$, say,
 ##  is an ordered list of vectors $B = [ v_1, v_2, \ldots, v_n ]$ in $V$
 ##  such that $V$ is generated as a left module by these vectors.
+##  In {\GAP} bases behave like lists, i.e., their elements can be accessed
+##  via [ ], and they have a length:
+##  \beginexample
+##  gap> V:= Rationals^3;
+##  ( Rationals^3 )
+##  gap> B:= Basis( V );
+##  CanonicalBasis( ( Rationals^3 ) )
+##  gap> B[1];
+##  [ 1, 0, 0 ]
+##  gap> Length( B );
+##  3
+##  \endexample
 ##
-##  The basic operations for bases are `Coefficients'
+##  Besides the basic operations for lists
+##  (see~"Basic Operations for Lists"),
+##  the basic operations for bases are `BasisVectors', `Coefficients',
 ##  and `LinearCombination'.
 ##
 ##  {\GAP} supports three types of bases, namely
-##  \beginitems
-##   1. & *relative bases* that delegate the work to another basis of the same
-##     left module (via a basechange matrix), 
+##  \beginlist
+##  \item{1.}
+##    *relative bases* that delegate the work to another basis of the same
+##    left module (via a basechange matrix), 
 ##
-##  2. & *bases handled by nice bases* that delegate the work to a basis
-##     of an isomorphic left module over the same left acting domain, and
+##  \item{2.}
+##    *bases handled by nice bases* that delegate the work to a basis
+##    of an isomorphic left module over the same left acting domain, and
 ##
-##  3. & bases that really do the work.
+##  \item{3.}
+##    bases that really do the work.
 ##  \endlist
 ##
 ##  *Constructors* for bases are `RelativeBasis' resp. `RelativeBasisNC'
@@ -34,23 +51,28 @@
 ##  `RelativeBasis' does only need one method.
 ##  
 ##  Examples:
-##  \beginitems
-##   - & In the case of Gaussian row and matrix spaces, 
-##    `BasisOfDomain( <V> )'
+##  \beginlist
+##  \item{-}
+##    In the case of Gaussian row and matrix spaces, 
+##    `Basis( <V> )'
 ##    computes a semi-echelonized basis that uses Gaussian elimination.
 ##    A basis constructed with user supplied vectors is either
 ##    semi-echelonized or is a relative basis.
 ##
-##  - & In the case of handling by nice bases, *no* basechange matrix is used
+##  \item{-}
+##    In the case of handling by nice bases, *no* basechange matrix is used
 ##    (the nice basis, however, is allowed to use a basechange matrix).
 ##
-##  - & Non-Gaussian row and matrix spaces are handled via nice bases.
+##  \item{-}
+##    Non-Gaussian row and matrix spaces are handled via nice bases.
 ##
-##  - & Field element spaces occur in two situations.
+##  \item{-}
+##    Field element spaces occur in two situations.
 ##    For the fields themselves and subfields special bases are used.
 ##    For a subspace of a field the nice basis is constructed
 ##    relative to a basis of the enveloping field.
-##  \enditems
+##  \endlist
+##
 Revision.basis_gd :=
     "@(#)$Id$";
 
@@ -64,7 +86,7 @@ Revision.basis_gd :=
 ##  A basis is an immutable list,
 ##  the $i$-th entry being the $i$-th basis vector.
 ##
-##  (See `IsMutableBasis' for mutable bases.)
+##  (See `IsMutableBasis' ("ref:ismutablebasis") for mutable bases.)
 ##
 DeclareCategory( "IsBasis", IsHomogeneousList and IsDuplicateFreeList );
 
@@ -137,7 +159,9 @@ DeclareProperty( "IsNormalBasis", IsBasis );
 ##
 #P  IsSemiEchelonized( <B> )
 ##
-##  is used for Gaussian row and matrix vector spaces.
+##  is used for Gaussian row and matrix vector spaces. A basis is 
+##  semi-echelonized if its basis vectors form an upper triangular matrix
+##  with $1$-s on the diagonal.
 ##
 DeclareProperty( "IsSemiEchelonized", IsBasis );
 
@@ -169,8 +193,9 @@ DeclareAttribute( "EnumeratorByBasis", IsBasis );
 ##  a ring.
 ##
 ##  In this case `StructureConstantsTable' returns a structure constants
-##  table $T$ in sparse representation, as used for s.c. algebras.
-##
+##  table $T$ in sparse representation, as used for structure constants
+##  algebras (see Section "tut:algebras" of the user's tutorial).
+## 
 ##  The coefficients of the product $b_i b_j$ of basis vectors are stored in
 ##  $T[i][j]$ as a list of length 2; its first entry is the list of positions
 ##  of nonzero coefficients, the second entry is the list of the coefficients
@@ -248,90 +273,60 @@ DeclareOperation( "IteratorByBasis", [ IsBasis ] );
 
 #############################################################################
 ##
-#A  BasisOfDomain( <V> )
+#A  Basis( <V> )
+#O  Basis( <V>, <vectors> )
+#O  BasisNC( <V>, <vectors> )
 ##
-##  is a basis of the free left module <V>.
+##  Called with a free left module <V> as the only argument,
+##  `Basis' returns an arbitrary basis of <V>.
 ##
-DeclareAttribute( "BasisOfDomain", IsFreeLeftModule );
+##  If additionally a list <vectors> of vectors in <V> is given
+##  that forms a basis of <V> then `Basis' returns this basis;
+##  if <vectors> are not linearly independent or do not generate <V>
+##  as a free left module over the left acting domain of <V>
+##  then `fail' is returned.
+##
+##  `BasisNC' does the same as `Basis' for two arguments,
+##  except that it is not checked whether <vectors> form a basis.
+##
+DeclareAttribute( "Basis", IsFreeLeftModule );
+DeclareOperation( "Basis", [ IsFreeLeftModule, IsHomogeneousList ] );
+
+DeclareOperation( "BasisNC", [ IsFreeLeftModule, IsHomogeneousList ] );
 
 
 #############################################################################
 ##
-#A  SemiEchelonBasisOfDomain( <V> )
+#A  SemiEchelonBasis( <V> )
+#O  SemiEchelonBasis( <V>, <vectors> )
+#O  SemiEchelonBasisNC( <V>, <vectors> )
 ##
-##  is a semi-echelonized basis of the Gaussian row or matrix vector space
-##  <V>. A basis is semi-echelonized if its basis vectors form an 
-##  upper traingular matrix with $1$-s on the diagonal.
+##  Let <V> be a Gaussian row or matrix vector space over the field $F$.
+##  A basis of <V> is called *semi-echelonized* if its basis vectors form
+##  a semi-echelonized matrix (see~"SemiEchelonMat").
 ##
-DeclareAttribute( "SemiEchelonBasisOfDomain", IsFreeLeftModule );
-#T more restrictive (SEB)?
-
-
-#############################################################################
+##  Called with <V> as the only argument,
+##  `SemiEchelonBasis' returns an arbitrary semi-echelonized basis of <V>.
 ##
-#O  BasisByGenerators( <V>, <vectors> )
-#O  BasisByGeneratorsNC( <V>, <vectors> )
+##  If additionally a list <vectors> of vectors in <V> is given
+##  that forms a semi-echelonized basis of <V> then `SemiEchelonBasis'
+##  returns this basis;
+##  if <vectors> do not form a basis of <V> then `fail' is returned.
 ##
-##  is the basis of the free left module <V> that is formed by the vectors
-##  in the list <vectors>, provided they are linearly independent over
-##  the coefficients division ring of <V>.
-##  If <vectors> does not form a basis of <V> then `BasisByGenerators'
-##  returns `fail', whereas `BasisByGeneratorsNC' does not check this.
+##  `SemiEchelonBasisNC' does the same as `SemiEchelonBasis' for two
+##  arguments,
+##  except that it is not checked whether <vectors> form
+##  a semi-echelonized basis.
 ##
-##  The default method of `BasisByGenerators' calls `BasisOfDomain',
-##  and returns a relative basis.
-##
-DeclareOperation( "BasisByGenerators",
+DeclareAttribute( "SemiEchelonBasis", IsFreeLeftModule );
+DeclareOperation( "SemiEchelonBasis",
     [ IsFreeLeftModule, IsHomogeneousList ] );
 
-DeclareOperation( "BasisByGeneratorsNC",
+DeclareOperation( "SemiEchelonBasisNC",
     [ IsFreeLeftModule, IsHomogeneousList ] );
-
-
-#############################################################################
-##
-#O  SemiEchelonBasisByGenerators( <V>, <vectors> )
-#O  SemiEchelonBasisByGeneratorsNC( <V>, <vectors> )
-##
-##  is the semi-echelonized basis of the Gaussian row or matrix vector space
-##  <V> that is formed by the vectors in the list <vectors>,
-##  provided they are linearly independent over the coefficients division
-##  ring of <V>, and provided the basis is really semi-echelonized.
-##  If <vectors> does not form a semi-echelonized basis of <V> then
-##  `fail' is returned. `SemiEchelonBasisByGeneratorsNC( <V>, <vectors> )'
-##  is the same as `SemiEchelonBasisByGenerators( <V>, <vectors> )',
-##  except that the linearly independence of <vectors> is not checked, and
-##  also it is not checked whether the basis is semi-echelonized.
-##
-DeclareOperation( "SemiEchelonBasisByGenerators",
-    [ IsFreeLeftModule, IsHomogeneousList ] );
-#T more restrictive (SEB)?
-
-DeclareOperation( "SemiEchelonBasisByGeneratorsNC",
-    [ IsFreeLeftModule, IsHomogeneousList ] );
-#T more restrictive (SEB)?
-
-
-#############################################################################
-##
-#F  Basis( <V> )
-#F  Basis( <V>, <vectors> )
-##
-##  These are abbreviations for `BasisByDomain' and `BasisByGenerators'
-##  respectively.
-##
-DeclareGlobalFunction( "Basis" );
-
-
-#############################################################################
-##
-#F  SemiEchelonBasis( <V> )
-#F  SemiEchelonBasis( <V>, <vectors> )
-##
-##  These are abbreviations for `SemiEchelonBasisByDomain'
-##  and `SemiEchelonBasisByGenerators' respectively.
-##
-DeclareGlobalFunction( "SemiEchelonBasis" );
+#T In fact they should be declared for `IsGaussianSpace', or at least for
+#T `IsVectorSpace', but the files containing these categories are read later ..
+#T (Change this!)
 
 
 #############################################################################
@@ -339,21 +334,20 @@ DeclareGlobalFunction( "SemiEchelonBasis" );
 #O  NewBasis( <V> )
 #O  NewBasis( <V>, <gens> )
 ##
-##  Note that neither `BasisOfDomain' nor `BasisByGenerators' can be basis
-##  constructors (i.e., those operations whose methods have to call
-##  `Objectify'),
+##  Note that `Basis' cannot be a basis constructor
+##  (i.e., an operations whose methods have to call `Objectify'),
 ##  since one must be able to install methods for these operations,
 ##  depending on the free module in question.
-##  (And there is a default method for `BasisByGenerators',
-##  using `BasisOfDomain' and the construction of a relative basis.)
+##  (And there is a default method for `Basis' with two arguments,
+##  using `Basis' as an attribute and the construction of a relative basis.)
 ##
 DeclareOperation( "NewBasis", [ IsFreeLeftModule, IsCollection ] );
 
 
 #############################################################################
 ##
-#F  RelativeBasis( <B>, <vectors> )
-#F  RelativeBasisNC( <B>, <vectors> )
+#O  RelativeBasis( <B>, <vectors> )
+#O  RelativeBasisNC( <B>, <vectors> )
 ##
 ##  A relative basis is a basis of the free left module <V> that delegates
 ##  the computation of coefficients etc. to another basis of <V> via
@@ -382,7 +376,7 @@ DeclareOperation( "RelativeBasisNC", [ IsBasis, IsHomogeneousList ] );
 ##  computation of basis vectors, coefficients w.r.t. $B$ etc.
 ##  to a basis $C$ of an isomorphic ``nicer'' left $F$-module,
 ##  which usually is a row vector space or a matrix vector space,
-##  and thus allows to apply Gaussian elimination. 
+##  and thus allows one to apply Gaussian elimination. 
 ##  $C$ is called the {\it nice basis} of $B$, its underlying space $W$
 ##  is called the {\it nice vector space} of $V$.
 ##  (It is *not* required that the nice vector space is a coefficient space.)
@@ -396,11 +390,15 @@ DeclareOperation( "RelativeBasisNC", [ IsBasis, IsHomogeneousList ] );
 ##
 ##  If left module generators for $V$ are known then the usual process is as
 ##  follows.
-##  1. `B:= BasisOfDomain( <V> )'
+##  \beginlist
+##  \item{1.}
+##     `B:= Basis( <V> )'
 ##           computes a basis for <V>, without basis vectors.
-##  2. `PrepareNiceFreeLeftModule( <V> )'
+##  \item{2.}
+##     `PrepareNiceFreeLeftModule( <V> )'
 ##           computes the necessary data for the bijections
-##  3. `W:= NiceFreeLeftModule( <V> )'
+##  \item{3.}
+##     `W:= NiceFreeLeftModule( <V> )'
 ##           computes the left module generated by the images of
 ##           left module generators of <V> under the homomorphism mentioned
 ##           above.
@@ -408,17 +406,20 @@ DeclareOperation( "RelativeBasisNC", [ IsBasis, IsHomogeneousList ] );
 ##           that either left module generators of <V> are known or that
 ##           <V> is a FLMLOR(-with-one) with known left operator
 ##           ring(-with-one) generators.)
-##  3. `C:= BasisOfDomain( W )'
+##  \item{3.}
+##     `C:= Basis( W )'
 ##           computes a basis of the nice module `W' (That this is possible
 ##           is a problem of `W' and must of course be assumed!).
-##  4. `BasisVectors( B )'
+##  \item{4.}
+##     `BasisVectors( B )'
 ##           computes the preimages of `BasisVectors( C )' under the
 ##           homomorphism.
+##  \endlist
 ##
 ##  The default of `NiceBasis( <B> )' is
 ##  `Basis( NiceFreeLeftModule( <V> ) )' if no basis vectors are bound in
 ##  <B>, and this will usually be a semi-echelonized basis;
-##  thus such a basis will be chosen in the call `BasisOfDomain( <V> )'.
+##  thus such a basis will be chosen in the call `Basis( <V> )'.
 ##  If basis vectors are stored in <B> then the nice vectors of
 ##  these vectors are taken as basis vectors.
 ##  `NiceBasisNC( <B> )' does not check whether the basis vectors of
@@ -476,7 +477,7 @@ DeclareCategory( "IsBasisByNiceBasis", IsBasis and IsSmallList );
 ##  If <B> has no basis vectors then `NiceBasis( <B> )' is a basis of
 ##  `NiceFreeLeftModule( <V> )'.
 ##  Otherwise `NiceBasis( <B> )' is the result of the call of
-##  `BasisByGenerators' with arguments `NiceFreeLeftModule( <V> )'
+##  `Basis' with arguments `NiceFreeLeftModule( <V> )'
 ##  and the nice vectors of the basis vectors;
 ##  note that this result is either the desired basis $C$, say, or `fail',
 ##  where the latter case occurs if and only if the prescribed
@@ -493,7 +494,7 @@ DeclareAttribute( "NiceBasis", IsBasisByNiceBasis );
 #O  NiceBasisNC( <B> )
 ##
 ##  If the basis <B> has basis vectors bound then the attribute `NiceBasis'
-##  of <B> is set to `BasisByGeneratorsNC( <W>, <nice> )'
+##  of <B> is set to `BasisNC( <W>, <nice> )'
 ##  where <W> is the value of `NiceFreeLeftModule' for the underlying
 ##  free left module of <B>.
 ##  This means that it is *not* checked whether <B> really is a basis.
@@ -540,8 +541,8 @@ DeclareOperation( "PrepareNiceFreeLeftModule",
 ##  If <r> lies in <W> (which usually can be checked)
 ##  then `NiceVector( <V>, UglyVector( <V>, <r> ) ) = <r>'.
 ##
-##  (This allows for example to implement a membership test for <V> using the
-##  membership test in <W>.)
+##  (This allows one for example to implement a membership test for <V>
+##  using the membership test in <W>.)
 ##
 ##  Note that `NiceVector' and `UglyVector' may fail if <V> is a free module
 ##  for that `PrepareNiceFreeLeftModule' was not yet called.
@@ -555,5 +556,35 @@ DeclareOperation( "UglyVector",
 
 #############################################################################
 ##
-#E  basis.gd  . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#F  BasisWithReplacedLeftModule( <B>, <V> )
+##
+##  For a basis <B> and a left module <V> that is equal to the underlying
+##  left module of <B>,
+##  `BasisWithReplacedLeftModule' returns a basis equal to <B> except that
+##  the underlying left module of this basis is <V>.
+##
+DeclareGlobalFunction( "BasisWithReplacedLeftModule" );
+
+
+#############################################################################
+##
+#E
+
+#############################################################################
+##
+#A  BasisOfDomain( <V> )
+#O  BasisByGenerators( <V>, <vectors> )
+#O  BasisByGeneratorsNC( <V>, <vectors> )
+#A  SemiEchelonBasisOfDomain( <V> )
+#O  SemiEchelonBasisByGenerators( <V>, <vectors> )
+#O  SemiEchelonBasisByGeneratorsNC( <V>, <vectors> )
+##
+DeclareSynonymAttr( "BasisOfDomain", Basis );
+DeclareSynonym( "BasisByGenerators", Basis );
+DeclareSynonym( "BasisByGeneratorsNC", BasisNC );
+DeclareSynonymAttr( "SemiEchelonBasisOfDomain", SemiEchelonBasis );
+DeclareSynonym( "SemiEchelonBasisByGenerators", SemiEchelonBasis );
+DeclareSynonym( "SemiEchelonBasisByGeneratorsNC", SemiEchelonBasisNC );
+#T obsolete!
+
 

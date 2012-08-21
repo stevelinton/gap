@@ -21,7 +21,7 @@ Revision.matrix_gi :=
 ##
 #F  PrintArray( <array> ) . . . . . . . . . . . . . . . . pretty print matrix
 ##
-PrintArray := function( array )
+InstallGlobalFunction(PrintArray,function( array )
 
     local   arr,  max,  l,  k;
 
@@ -63,7 +63,7 @@ PrintArray := function( array )
             fi;
     	od;
     fi;
-end;
+end);
 
 
 ##########################################################################
@@ -116,7 +116,75 @@ InstallMethod( IsGeneralizedCartanMatrix,
 
 #############################################################################
 ##
+#M  IsDiagonalMat(<mat>)
+##
+InstallMethod( IsDiagonalMat,
+    "for a matrix",
+    true,
+    [ IsMatrix ], 0,
+    function( mat )
+   local  i, j,z;
+    if IsEmpty(mat) then return true;fi;
+    z:=Zero(mat[1][1]);
+    for i  in [ 1 .. Length( mat ) ]  do
+        for j  in [ 1 .. Length( mat[i] ) ]  do
+            if mat[i][j] <> z and i <> j  then
+                return false;
+            fi;
+        od;
+    od;
+    return true;
+    end);
 
+InstallOtherMethod( IsDiagonalMat, true, [ IsEmpty ], 0, ReturnTrue );
+
+
+#############################################################################
+##
+#M  IsUpperTriangularMat(<mat>)
+##
+InstallMethod( IsUpperTriangularMat,
+   "for a matrix",
+    true,
+    [ IsMatrix ], 0,
+    function( mat )
+   local  i, j,z;
+    if IsEmpty(mat) then return true;fi;
+    z:=Zero(mat[1][1]);
+    for i  in [ 1 .. Length( mat ) ]  do
+        for j  in [ 1 .. i-1]  do
+            if mat[i][j] <> z  then
+                return false;
+            fi;
+        od;
+    od;
+    return true;
+    end);
+
+#############################################################################
+##
+#M  IsLowerTriangularMat(<mat>)
+##
+InstallMethod( IsLowerTriangularMat,
+    "for a matrix",
+    true,
+    [ IsMatrix ], 0,
+    function( mat )
+   local  i, j,z;
+    if IsEmpty(mat) then return true;fi;
+    z:=Zero(mat[1][1]);
+    for i  in [ 1 .. Length( mat ) ]  do
+        for j  in [ i+1 .. Length( mat[i] ) ]  do
+            if mat[i][j] <> z  then
+                return false;
+            fi;
+        od;
+    od;
+    return true;
+    end);
+
+#############################################################################
+##
 #M  DiagonalOfMat(<mat>)  . . . . . . . . . . . . . . . .  diagonal of matrix
 ##
 ##  'DiagonalOfMat' returns  the diagonal of  the matrix <mat>.  The diagonal
@@ -142,7 +210,6 @@ end );
 
 #############################################################################
 ##
-
 #R  IsNullMapMatrix . . . . . . . . . . . . . . . . . . .  null map as matrix
 ##
 DeclareRepresentation( "IsNullMapMatrix", IsMatrix, [  ] );
@@ -210,7 +277,7 @@ end );
 #F  Matrix_CharacteristicPolynomialSameField( <fld>, <mat>, <ind> )
 ##
 Matrix_CharacteristicPolynomialSameField := function( fld, mat, ind )
-    local   d,  P,  L,  one,  zero,  vs,  i,  R,  M,  v,  p,  w,  h;
+    local   d,  P,  L,  one,  zero,  vs,  i,  R,  M,  v,  p,  w,  h, j, sc;
 
     # <d> is dimension of the underlying vector space
     d := Length(mat);
@@ -222,7 +289,6 @@ Matrix_CharacteristicPolynomialSameField := function( fld, mat, ind )
 
     # <P> contains all the order polynomials
     P   := [ ind^0 ];
-    ind := IndeterminateNumberOfUnivariateLaurentPolynomial(ind);
 
     # <L> contains the spinned up basis
     L := [];
@@ -262,10 +328,28 @@ Matrix_CharacteristicPolynomialSameField := function( fld, mat, ind )
                 w := ShallowCopy(v);
                 h := PositionNot( w, zero );
                 while h <= Length(w) and IsBound(L[h])  do
-                    if IsBound(R[h])  then
-                        AddCoeffs( p, R[h], -w[h] );
+                    if IsBound(R[h])  then # add -w[h]*R[h] to the beginning
+                                           # of p
+                        
+                        if Length( p ) = Length( R[h] ) then
+                            AddRowVector( p, R[h], -w[h] );
+                        else        
+                            for j in [1..Length(R[h])] do
+                                p[j]:= p[j]-w[h]*R[h][j];
+                            od;
+                        fi;
                     fi;
-                    AddCoeffs( w, L[h], -w[h] );
+                    
+                    # add -w[h]*L[h] to the beginning of w
+                    if Length( w ) = Length( L[h] ) then
+                        AddRowVector( w, L[h], -w[h] );
+                    else        
+                        sc:= -w[h];
+                        for j in [1..Length(L[h])] do
+                            w[j]:= w[j] + sc*L[h][j];
+                        od;
+                    fi;
+                    
                     h := PositionNot( w, zero );
                 od;
 
@@ -296,7 +380,7 @@ end;
 ##
 Matrix_MinimalPolynomialSameField := function( fld, mat, ind )
     local   W,  d,  P,  one,  zero,  vs,  dim,  v,  L,  R,  M,  p,  w,
-            h,  zv;
+            h,  zv,   cnt;
 
     # <W> will contain a spinned up basis
     W := [];
@@ -306,12 +390,11 @@ Matrix_MinimalPolynomialSameField := function( fld, mat, ind )
 
     # catch the trivial case of a matrix of dimension zero
     if d = 0  then
-        return Zero(ind);
+      return 0*Indeterminate(fld,ind);
     fi;
 
     # <P> contains all the order polynomials
-    P   := [ ind^0 ];
-    ind := IndeterminateNumberOfUnivariateLaurentPolynomial(ind);
+    P   := [ Indeterminate(fld,ind)^0 ];
 
     # get the one and zero
     one  := One(fld);
@@ -320,6 +403,7 @@ Matrix_MinimalPolynomialSameField := function( fld, mat, ind )
     # get the vectorspace
     vs := FullRowSpace( fld, d );
     zv := Zero(vs);
+    cnt:=Length(mat);
 
     # span the whole vector space
     dim := 0;
@@ -328,6 +412,10 @@ Matrix_MinimalPolynomialSameField := function( fld, mat, ind )
         # next random vector
         repeat
             v := Random(vs);
+	    # take rows from the matrix instead of random vectors. Then we
+	    # don't have to create these random vectors.
+	    #v:=mat[cnt];
+	    #cnt:=cnt-1;
         until v <> zv;
 
         # clear right <R> and left sides <L>
@@ -385,9 +473,9 @@ Matrix_MinimalPolynomialSameField := function( fld, mat, ind )
 
     # compute LCM of all polynomials
     p := P[1];
-    W := PolynomialRing( fld, [ind..ind] );
+    W := PolynomialRing( fld, [ind] );
     for h  in [ 2 .. Length(P) ]  do
-        p := Lcm( W, p, P[h] );
+        p := LcmOp( W, p, P[h] );
     od;
     return p;
 
@@ -413,6 +501,9 @@ function( m )
       t:=List(m,i->List(i,i->i![1]));
       Display(t);
       Print("modulo ",DataType(TypeObj(m[1][1])),"\n");
+#T what is this good for?
+#T (The code for finite prime fields should handle this case,
+#T and the output should look the same.)
     else
       # get the degree and characteristic
       deg  := Lcm( List( m, DegreeFFE ) );
@@ -430,6 +521,7 @@ function( m )
         for x  in [ 2 .. chr ]  do
             t[x] := FormattedString( x-1, w );
         od;
+#T useful only for (very) small characteristic, or?
         t[1] := FormattedString( ".", w );
 
         # print matrix
@@ -442,6 +534,7 @@ function( m )
         od;
 
       # if it a finite,  use mixed integers/z notation
+#T ...
       else
 	  Print( "z = Z(", chr^deg, ")\n" );
 
@@ -480,93 +573,74 @@ function( m )
 end );
 
 
-#############################################################################
-##
-#M  CharacteristicPolynomial( <ff>, <ffe-mat>, <indnum> )
-##
-InstallMethod( CharacteristicPolynomial, "spinning over finite field",
-    IsElmsCollsX,
-    [ IsField and IsFinite, IsOrdinaryMatrix and IsFFECollColl,IsPosInt ], 0,
-function( r, mat,inum )
-    local   fld,  dr,  df,  pol;
-
-    fld := DefaultFieldOfMatrix(mat);
-    dr  := DegreeOverPrimeField(r);
-    df  := DegreeOverPrimeField(fld);
-    if dr mod df = 0  then
-        pol := Matrix_CharacteristicPolynomialSameField(
-                   r, mat, Indeterminate(r,inum) );
-    else
-        fld := GF( r, LcmInt( df, dr ) / DegreeOverPrimeField(r) );
-        pol := Matrix_CharacteristicPolynomialSameField(
-                   r, BlownUpMat(Basis(fld),mat), Indeterminate(r,inum) );
-    fi;
-    return pol;
-end );
-
-
 ##########################################################################
 ##
 #M  CharacteristicPolynomial( <field>, <matrix>, <indnum> )
 ##
-InstallMethod( CharacteristicPolynomial, "spinning over the same field",
-    IsElmsCollsX, [ IsField, IsOrdinaryMatrix,IsPosInt ], 0,
-function( r, mat,inum )
-    local   fld;
-
-    fld := DefaultFieldOfMatrix(mat);
-    if not IsSubset( r, fld )  then
-        TryNextMethod();
-    fi;
-    return Matrix_CharacteristicPolynomialSameField(
-                   r, mat, Indeterminate(r,inum) );
-end );
-
-
-##########################################################################
-##
-#M  MinimalPolynomial( <ff>, <ffe-mat>, <indnum> )
-##
-InstallMethod( MinimalPolynomial,"spinning over the same field",
+InstallMethod( CharacteristicPolynomial, "spinning over field",
     IsElmsCollsX,
-    [ IsField and IsFinite, IsOrdinaryMatrix and IsFFECollColl,IsPosInt ], 0,
-function( r, mat,inum )
-    local   fld,  dr,  df,  pol;
+    [ IsField, IsOrdinaryMatrix, IsPosInt ], 0,
+function( F, mat,inum )
+    local fld, B;
 
-    fld := DefaultFieldOfMatrix(mat);
-    dr  := DegreeOverPrimeField(r);
-    df  := DegreeOverPrimeField(fld);
-    if dr mod df = 0  then
-        pol := Matrix_MinimalPolynomialSameField(
-                   r, mat, Indeterminate(r,inum) );
-    else
-        fld := GF( r, LcmInt( df, dr ) / DegreeOverPrimeField(r) );
-        pol := Matrix_MinimalPolynomialSameField(
-                   r, BlownUpMat(Basis(fld),mat), Indeterminate(r,inum) );
+    fld:= DefaultFieldOfMatrix( mat );
+
+    if not IsSubset( F, fld ) then
+
+      # Replace the matrix by a matrix with the same char. polynomial
+      # but with entries in `F'.
+      if not IsSubset( fld, F ) then
+        fld:= ClosureField( fld, F );
+      fi;
+      B:= Basis( AsField( F, fld ) );
+      mat:= BlownUpMat( B, mat );
+
     fi;
-    return pol;
+
+    return CharacteristicPolynomialMatrixNC( F, mat,inum);
 end );
+
+InstallMethod( CharacteristicPolynomialMatrixNC, "spinning over field",
+    IsElmsCollsX,
+    [ IsField, IsOrdinaryMatrix, IsPosInt ], 0,
+  Matrix_CharacteristicPolynomialSameField);
 
 
 #############################################################################
 ##
-#M  MinimalPolynomial( <field>, <matrix>,<indnum> )
+#M  MinimalPolynomial( <field>, <matrix>, <indnum> )
 ##
-InstallMethod( MinimalPolynomial, "spinning over finite field",
-    IsElmsCollsX, [ IsField, IsOrdinaryMatrix,IsPosInt ], 0,
-function( r, mat,inum )
-    local   fld;
+InstallMethod( MinimalPolynomial,
+    "spinning over field",
+    IsElmsCollsX,
+    [ IsField, IsOrdinaryMatrix, IsPosInt ], 0,
+function( F, mat,inum )
+    local fld, B;
 
-    fld := DefaultFieldOfMatrix(mat);
-    if not IsSubset( r, fld )  then
-        TryNextMethod();
+    fld:= DefaultFieldOfMatrix( mat );
+
+    if not IsSubset( F, fld ) then
+
+      # Replace the matrix by a matrix with the same minimal polynomial
+      # but with entries in `F'.
+      if not IsSubset( fld, F ) then
+        fld:= ClosureField( fld, F );
+      fi;
+      B:= Basis( AsField( F, fld ) );
+      mat:= BlownUpMat( B, mat );
+
     fi;
-    return Matrix_MinimalPolynomialSameField(
-                   r, mat, Indeterminate(r,inum) );
+
+    return MinimalPolynomialMatrixNC( F, mat,inum);
 end );
 
+InstallMethod( MinimalPolynomialMatrixNC, "spinning over field",
+    IsElmsCollsX,
+    [ IsField, IsOrdinaryMatrix, IsPosInt ], 0,
+  Matrix_MinimalPolynomialSameField);
 
-##########################################################################
+
+#############################################################################
 ##
 #M  Order( <mat> )  . . . . . . . . . . . . . . . . . . . . order of a matrix
 ##
@@ -579,60 +653,228 @@ InstallOtherMethod( Order,
     0,
 
 function ( mat )
-    local   m,  id,  ord,  i,  vec,  v,  o;
+    local   m, rank;
 
     # check that the argument is an invertible square matrix
     m := Length(mat);
     if m <> Length(mat[1])  then
         Error( "Order: <mat> must be a square matrix" );
     fi;
-    if RankMat( mat ) <> m  then
+    rank:= RankMat( mat );
+    if rank = fail then
+      if not IsUnit( DeterminantMat( mat ) ) then
         Error( "Order: <mat> must be invertible" );
+      fi;
+    elif rank <> m  then
+      Error( "Order: <mat> must be invertible" );
+#T also test here that the determinant is in fact a unit in the ring
+#T that is generated by the matrix entries?
+#T (Do we need `IsPossiblyInvertibleMat' and `IsSurelyInvertibleMat',
+#T the first meaning that the inverse in some ring exists,
+#T the second meaning that the inverse exists in the ring generated by the
+#T matrix entries?
+#T For `Order', it is `IsSurelyInvertibleMat' that one wants to check;
+#T then one can return `infinity' if the determinant is not a unit in the
+#T ring generated by the matrix entries.)
     fi;
-    id := One(mat);
+      
 
     # loop over the standard basis vectors
-    ord := 1;
-    for i  in [1..m]  do
+    return OrderMatTrial(mat,infinity);
 
-        # compute the length of the orbit of the <i>th standard basis vector
-        vec := mat[i];
-        v   := vec * mat;
-        o   := 1;
-        while v <> vec  do
-            v := v * mat;
-            o := o + 1;
-            if OrderMatLimit = o  then
-                Info( InfoWarning, 1,
-                      "Order: warning, order of <mat> might be infinite" );
-            fi;
-        od;
+end );
 
-        # raise the matrix to this length (new mat will fix basis vector)
-        mat := mat ^ o;
-        ord := ord * o;
+#############################################################################
+##
+#F  OrderMatTrial( <mat>,<lim> )
+##
+InstallGlobalFunction(OrderMatTrial,function(mat,lim)
+local ord,i,vec,v,o;
+
+  # loop over the standard basis vectors
+  ord := 1;
+  for i  in [1..Length(mat)]  do
+
+    # compute the length of the orbit of the <i>th standard basis vector
+    # (equivalently, of the orbit of `mat[<i>]',
+    # the image of the standard basis vector under `mat')
+    vec := mat[i];
+    v   := vec * mat;
+    o   := 1;
+    while v <> vec  do
+      v := v * mat;
+      o := o + 1;
+      if o>lim then
+	return fail;
+      elif OrderMatLimit = o  and Characteristic(v[1])=0 then
+	  Info( InfoWarning, 1,
+		"Order: warning, order of <mat> might be infinite" );
+      fi;
     od;
 
-    # return the order
-    return ord;
-end );
+    # raise the matrix to this length (new mat will fix basis vector)
+    mat := mat ^ o;
+    ord := ord * o;
+  od;
+  return ord;
+
+end);
+
+
+#############################################################################
+##
+#M  Order( <cycmat> ) . . . . . . . . . . .  order of a matrix of cyclotomics
+##
+##  The idea is to compute the minimal polynomial of the matrix,
+##  and to decompose this polynomial into cyclotomic polynomials.
+##  This is due to R. Beals, who used it in his `grim' package for {\GAP}~3.
+##
+InstallMethod( Order,
+    "ordinary matrix of cyclotomics",
+    true,
+    [ IsOrdinaryMatrix and IsCyclotomicCollColl ],
+    0,
+    function( cycmat )
+
+    local m,       # dimension of the matrix
+          trace,   # trace of the matrix
+          minpol,  # minimal polynomial of the matrix
+          n,       # degree of `minpol'
+          p,       # loop over small primes
+          t,       # product of the primes `p'
+          l,       # product of the values `p-1'
+          ord,     # currently known factor of the order
+          d,       # loop over the indices of cyclotomic polynomials
+          phi,     # `Phi( d )'
+          c,       # `d'-th cyclotomic polynomial
+          q;       # quotient and remainder
+
+    # Check that the argument is an invertible square matrix.
+    m:= Length( cycmat );
+    if m <> Length( cycmat[1] ) then
+      Error( "Order: <cycmat> must be a square matrix" );
+    elif RankMat( cycmat ) <> m  then
+      Error( "Order: <cycmat> must be invertible" );
+    fi;
+#T Here I could compute the inverse;
+#T its trace could be checked, too.
+#T Additionally, if `mat' consists of (algebraic) integers
+#T and the inverse does not then the order of `mat' is infinite.
+
+    # If the order is finite then the trace must be an algebraic integer.
+    trace:= TraceMat( cycmat );
+    if not IsIntegralCyclotomic( trace ) then
+      return infinity;
+    fi;
+
+    # If the order is finite then the absolute value of the trace 
+    # is bounded by the dimension of the matrix.
+#T compute this (approximatively) for arbitrary cyclotomics
+#T (by the way: why isn't this function called `AbsRat'?)
+    if IsInt( trace ) and Length( cycmat ) < AbsInt( trace ) then
+      return infinity;
+    fi;
+
+    # Before we start to deal with polynomials,
+    # we check whether the matrix has a *small* order.
+#T !!!
+
+    # Compute the minimal polynomial of the matrix.
+    minpol:= MinimalPolynomial( Rationals, cycmat );
+    n:= DegreeOfLaurentPolynomial( minpol );
+
+    # The order is finite if and only if the minimal polynomial
+    # is a product of cyclotomic polynomials.
+    # (Note that cyclotomic polynomials over the rationals are irreducible.)
+
+    # A necessary condition is that the constant term of the polynomial
+    # is $\pm 1$, since this holds for every cyclotomic polynomial.
+    if AbsInt( Value( minpol, 0 ) ) <> 1 then
+      return infinity;
+    fi;
+
+    # Another necessary condition is that no irreducible factor
+    # may occur more than once.
+    # (Note that the minimal polynomial divides $X^{ord} - 1$.)
+    if not IsOne( Gcd( minpol, Derivative( minpol ) ) ) then
+      return infinity;
+    fi;
+
+    # Compute an upper bound `t' for the numbers $i$ with the property
+    # that $\varphi(i) \leq n$ holds.
+    # (Let $p_k$ denote the $k$-th prime divisor of $i$,
+    # and $q_k$ the $k$-th prime; then clearly $q_k \leq p_k$ holds.
+    # Now let $h$ be the smallest *positive* integer --be careful that the
+    # products considered below are not empty-- such that
+    # $\prod_{k=1}^h ( q_k - 1 ) \geq n$, and set $t = \prod_{k=1}^h q_k$.
+    # If $i$ has the property $\varphi(i) \leq n$ then
+    # $i \leq n \frac{i}{\varphi(i)} = n \prod_{k} \frac{p_k}{p_k-1}$.
+    # Replacing $p_k$ by $q_k$ means to replace the factor
+    # $\frac{p_k}{p_k-1}$ by a larger factor,
+    # and if $i$ has less than $h$ prime divisors then
+    # running over the first $h$ primes increases the value of the product
+    # again, so we get $i \leq n \prod_{k=1}^h \frac{q_k}{q_k-1} \leq t$.)
+    p:= 2;
+    t:= 2;
+    l:= 1;
+    while l < n do
+      p:= NextPrimeInt( p );
+      t:= t * p;
+      l:= l * ( p - 1 );
+    od;
+
+    # Divide by each possible cyclotomic polynomial.
+    ord:= 1;
+    for d in [ 1 .. t ] do
+
+      phi:= Phi( d );
+      if phi <= n then
+        c:= CyclotomicPolynomial( Rationals, d );
+        q:= QuotientRemainder( minpol, c );
+        if IsZero( q[2] ) then
+          minpol:= q[1];
+          n:= n - phi;
+          ord:= Lcm( ord, d );
+          if n = 0 then
+
+            # The minimal polynomial is a product of cyclotomic polynomials.
+            return ord;
+
+          fi;
+        fi;
+      fi;
+
+    od;
+
+    # The matrix has infinite order.
+    return infinity;
+    end );
 
 
 #############################################################################
 ##
 #M  Order( <ffe-mat> )  . . . . .  order of a matrix of finite field elements
 ##
-InstallMethod( Order,
-    "matrix of finite field elements",
-    true,
-    [ IsOrdinaryMatrix and IsFFECollColl ],
-    0,
-
+InstallMethod( Order, "ordinary matrix of finite field elements", true,
+    [ IsOrdinaryMatrix and IsFFECollColl ], 0,
 function( mat )
-    local   o;
+local   o;
+  # catch the (unlikely in GL but likely in group theory...) case that mat
+  # has a small order
 
-    o := ProjectiveOrder(mat);
-    return o[1] * Order( o[2] );
+  # the following limit is very crude but seems to work OK. It picks small
+  # orders but still does not cost too much if the order gets larger.
+  o:=Characteristic(mat[1][1])^DegreeFFE(mat[1][1]); # size of field of
+                                                     # first entry
+  o:=QuoInt(Length(mat),o)*5; 
+
+  o:=OrderMatTrial(mat,o);
+  if o<>fail then
+    return o;
+  fi;
+
+  o := ProjectiveOrder(mat);
+  return o[1] * Order( o[2] );
 end );
 
 
@@ -717,7 +959,7 @@ function ( mat )
 
        # make a copy to avoid changing the original argument
        mat := List( mat, ShallowCopy );
-       m := Length(mat);
+      m := Length(mat);
        n := Length(mat[1]);
        zero := Zero( mat[1][1] );
 
@@ -811,12 +1053,18 @@ end);
 InstallOtherMethod( SumIntersectionMat,
   true, [ IsEmpty, IsMatrix ], 0,
 function(a,b)
+  b:=List(b,ShallowCopy);
+  TriangulizeMat(b);
+  b:=Filtered(b,i->not IsZero(i));
   return [b,a];
 end);
 
 InstallOtherMethod( SumIntersectionMat,
   true, [ IsMatrix, IsEmpty ], 0,
 function(a,b)
+  a:=List(a,ShallowCopy);
+  TriangulizeMat(a);
+  a:=Filtered(a,i->not IsZero(i));
   return [a,b];
 end);
 
@@ -831,17 +1079,93 @@ end);
 ##
 #M  DeterminantMat( <mat> )
 ##
-#T missing method for matrices over the rationals!
-#T 26-Oct-91 martin if <mat> is an rational matrix look for a pivot
+## Fractions free method, will never introduce denominators
+##
+## This method is better for cyclotomics, but pivotting is really needed
 ##
 InstallMethod( DeterminantMat,
-    "generic method",
+    "fraction-free method",
     true,
-    [ IsOrdinaryMatrix ],
-    100,
+    [ IsOrdinaryMatrix ], 0,
+    function ( mat )
+    local   det, sgn, row, zero, m, i, j, k, mult, row2, piv;
+    
+    # check that the argument is a square matrix and get the size
+    m := Length(mat);
+    zero := Zero(mat[1][1]);
+    if m <> Length(mat[1])  then
+        Error("DeterminantMat: <mat> must be a square matrix");
+    fi;
+    
+    # make a copy to avoid changing the orginal argument
+    mat := List(mat,ShallowCopy);
+    
+    # run through all columns of the matrix
+    i := 0;  det := 1;  sgn := 1;
+    for k  in [1..m]  do
+        
+        # find a nonzero entry in this column
+        #N  26-Oct-91 martin if <mat> is an rational matrix look for a pivot
+        j := i + 1;
+        while j <= m and mat[j][k] = zero  do j := j+1;  od;
+        
+        # if there is a nonzero entry
+        if j <= m  then
+            
+            # increment the rank
+            i := i + 1;
+            
+            # make its row the current row
+            if i <> j  then
+                row := mat[j];  mat[j] := mat[i];  mat[i] := row;
+                sgn := -sgn;
+            else
+                row := mat[j];
+            fi;
+            piv := row[k];
+            
+            # clear all entries in this column
+            # Then divide through by det, this, amazingly, works, due
+            #  to a theorem about 3x3 determinants
+            for j  in [i+1..m]  do
+                row2 := mat[j];
+                mult := -row2[k];
+                if  mult <> zero then
+                    MultRowVector( row2, piv );
+                    AddRowVector( row2, row, mult, k, m );
+                    MultRowVector( row2, Inverse(det) );
+                else
+                    MultRowVector( row2, piv/det);
+                fi;
+            od;
 
+            det := piv;
+        else
+            return zero;
+        fi;
+        
+
+    od;
+
+    # return the determinant
+    return sgn * det;
+end);
+
+
+#############################################################################
+##
+#M  DeterminantMat( <mat> )
+##
+## direct Gaussian elimination, not avoiding denominators
+#T  This method at the moment is  better for finite fields
+##  another method is installed for cyclotomics. Anything else falls
+##  through here also.
+##
+InstallMethod( DeterminantMat,"non fraction free",
+    true, [ IsOrdinaryMatrix and IsFFECollColl], 0,
 function( mat )
-    local   m,  zero,  det,  sgn,  k,  j,  row,  l,  norm,  mult;
+    local   m,  zero,  det,  sgn,  k,  j,  row,  l,  norm,
+            row2, x;
 
     Info( InfoMatrix, 1, "DeterminantMat called" );
 
@@ -885,34 +1209,24 @@ function( mat )
                 mat[j] := mat[k];
                 mat[k] := row;
                 sgn    := -sgn;
+            else
+                row := mat[j];
             fi;
 
             # ... and normalize the row.
-            if norm  then
-                det := det * mat[k][k];
-                MultRowVector( mat[k], Inverse(mat[k][k]) );
-
-                # clear all entries in this column, adjust only columns > k
-                # (Note that we need not clear the rows from 'k+1' to 'j'.)
-                for l  in [ j+1 .. m ]  do
-                    AddRowVector( mat[l], mat[k], -mat[l][k], k+1, m );
-                od;
-            else
-                # In order to avoid divisions, blow up the whole remaining
-                # matrix by the factor 'mat[k][k] / det'.
-                # Note that we *must* blow up also rows 'k+1' to 'j'.
-                mult:= mat[k][k] / det;
-                for l  in [ k+1 .. j ]  do
-                    MultRowVector( mat[l], mult );
-                od;
-                for l  in [ j+1 .. m ]  do
-                    mult := -mat[l][k];
-                    MultRowVector( mat[l], mat[k][k] );
-                    AddRowVector( mat[l], mat[k], mult, k+1, m );
-                    MultRowVector( mat[l], Inverse(det) );
-                od;
-                det := mat[k][k];
-            fi;
+            x := row[k];
+            det := det * x;
+            MultRowVector( mat[k], Inverse(x) );
+            
+            # clear all entries in this column, adjust only columns > k
+            # (Note that we need not clear the rows from 'k+1' to 'j'.)
+            for l  in [ j+1 .. m ]  do
+                row2 := mat[l];
+                x := row2[k];
+                if x <> zero then
+                    AddRowVector( row2, row, -x, k+1, m );
+                fi;
+            od;
 
         # the determinant is zero
         else
@@ -928,6 +1242,70 @@ function( mat )
 
 end );
 
+#############################################################################
+##
+#M  DeterminantMat( <mat> )
+##
+##  This method is now never faster than the other methods.
+##
+##
+#InstallMethod( DeterminantMat,"method for GF(2)",
+#    true, [ IsOrdinaryMatrix and IsFFECollColl], 0,
+#function(mat)
+#  local   det, sgn, row, zero, m, i, j, k, l;
+#  # we are only better for GF(2)
+#  m:=mat[1][1];
+#  if DegreeFFE(m)>1 or Characteristic(m)>2 then
+#    TryNextMethod();
+#  fi;
+
+#  # the old GAP3 code
+#  # check that the argument is a square matrix and get the size
+#  m := Length(mat);
+#  zero := 0*mat[1][1];
+#  if m <> Length(mat[1])  then
+#      Error("DeterminantMat: <mat> must be a square matrix");
+#  fi;
+
+#  # make a copy to avoid changing the orginal argument
+#  mat := ShallowCopy( mat );
+
+#  # run through all columns of the matrix
+#  i := 0;  det := 1;  sgn := 1;
+#  for k  in [1..m]  do
+
+#      # find a nonzero entry in this column
+#      #N  26-Oct-91 martin if <mat> is an rational matrix look for a pivot
+#      j := i + 1;
+#      while j <= m and mat[j][k] = zero  do j := j+1;  od;
+
+#      # if there is a nonzero entry
+#      if j <= m  then
+
+#	  # increment the rank
+#	  i := i + 1;
+
+	  # make its row the current row
+#	  if i <> j  then
+#	      row := mat[j];  mat[j] := mat[i];  mat[i] := row;
+#	      sgn := -sgn;
+#	  fi;
+
+	  # clear all entries in this column
+#	  for j  in [i+1..m]  do
+#	      mat[j] := (mat[i][k]*mat[j]-mat[j][k]*mat[i])/det;
+#	  od;
+
+#	  det := mat[i][k];
+#      fi;
+
+#  od;
+
+  # return the determinant
+#  if i < m  then det := zero;  fi;
+#  return sgn * det;
+#end);
+
 
 #############################################################################
 ##
@@ -939,6 +1317,13 @@ InstallMethod( DimensionsMat,
     0,
     A -> [ Length(A), Length(A[1]) ] );
 
+#############################################################################
+##
+#M  DiagonalizeMat(<integers>,<mat>)
+##
+InstallMethod( DiagonalizeMat, "over the integers",
+    true, [ IsIntegers,IsMatrix  and IsMutable], 0,
+    function(I,mat) DiagonalizeIntMat(mat);end);
 
 #############################################################################
 ##
@@ -948,13 +1333,10 @@ InstallMethod( DimensionsMat,
 ##  unique <d> with '<d>[<i>]' divides '<d>[<i>+1]' and <mat>  is  equivalent
 ##  to a diagonal matrix with the elements '<d>[<i>]' on the diagonal.
 ##
-InstallMethod( ElementaryDivisorsMat,
-    "generic method for matrices",
-    true,
-    [ IsMatrix ],
-    0,
+InstallMethod( ElementaryDivisorsMat, "generic method for euclidean rings",
+    true, [ IsEuclideanRing,IsMatrix ], 0,
 
-function ( mat )
+function ( ring,mat )
     local  divs, gcd, zero, m, n, i, k;
 
     # make a copy to avoid changing the original argument
@@ -962,7 +1344,7 @@ function ( mat )
     m := Length(mat);  n := Length(mat[1]);
 
     # diagonalize the matrix
-    DiagonalizeMat( mat );
+    DiagonalizeMat(ring, mat );
 
     # get the diagonal elements
     divs := [];
@@ -978,17 +1360,28 @@ function ( mat )
                 divs[i] := divs[k];
                 divs[k] := zero;
             elif divs[i] <> zero
-              and EuclideanRemainder( divs[k], divs[i] ) <> zero  then
-                gcd     := Gcd( divs[i], divs[k] );
+              and EuclideanRemainder(ring, divs[k], divs[i] ) <> zero  then
+                gcd     := Gcd(ring, divs[i], divs[k] );
                 divs[k] := divs[k] / gcd * divs[i];
                 divs[i] := gcd;
             fi;
         od;
-        divs[i] := StandardAssociate( divs[i] );
+        divs[i] := StandardAssociate( ring,divs[i] );
     od;
 
     return divs;
 end );
+
+InstallOtherMethod( ElementaryDivisorsMat,
+    "compatibility method for integers",
+    true, [ IsMatrix ], 0, mat->ElementaryDivisorsMat(Integers,mat));
+
+
+#############################################################################
+##
+#F  MutableCopyMat( <mat> )
+##
+InstallGlobalFunction( MutableCopyMat, mat -> List( mat, ShallowCopy ) );
 
 
 #############################################################################
@@ -1022,13 +1415,16 @@ end );
 #M  NullspaceMat( <mat> ) . . . . . . basis of solutions of <vec> * <mat> = 0
 ##
 InstallMethod( NullspaceMat,
-    "generic method for ordinary matrices",
-    true,
-    [ IsOrdinaryMatrix ],
-    0,
+        "generic method for ordinary matrices",
+        true,
+        [ IsOrdinaryMatrix ],
+        0,
+        mat -> SemiEchelonMatTransformation(mat).relations);
 
+InstallMethod(TriangulizedNullspaceMat,"generic method",
+  true,[IsOrdinaryMatrix],0,
 function ( mat )
-    local   nullspace, m, n, min, empty, i, k, row, tmp, zero, one;
+    local   nullspace, m, n, min, empty, i, k, row, zero, one;#
 
     # triangulize the transposed of the matrix
     mat := MutableTransposedMat( Reversed( mat ) );
@@ -1110,54 +1506,59 @@ InstallMethod( RankMat,
     true,
     [ IsMatrix ],
     0,
+        function(mat)
+    local n,i,z,j,t,rk,k,piv,row,x,m;
 
-function ( mat )
-    local   m, n, i, j, k, row, zero;
     # make a copy to avoid changing the original argument
-    Info( InfoMatrix, 1, "RankMat called" );
     m := Length(mat);
     n := Length(mat[1]);
-    zero := Zero( mat[1][1] );
-    mat := ShallowCopy( mat );
+    z := Zero(mat[1][1]);
+    mat := List(mat, ShallowCopy);
 
     # run through all columns of the matrix
-    i := 0;
-    for k  in [1..n]  do
+    rk := 0;
+    for i in [1..n] do
 
         # find a nonzero entry in this column
-        #N  26-Oct-91 martin if <mat> is an rational matrix look for a pivot
-        j := i + 1;
-        while j <= m and mat[j][k] = zero  do j := j+1;  od;
+        #N  26-Oct-91 martin if <mat> is a rational matrix look for a pivot
+        j := rk+1;
+        while j <= m and mat[j][i] = z  do
+            j := j+1;
+        od;
 
         # if there is a nonzero entry
-        if j <= m  then
+        if (j <= m) then
 
             # increment the rank
-            Info( InfoMatrix, 2, "  nonzero columns: ", k );
-            i := i + 1;
+            rk := rk+1;
 
-            # make its row the current row and normalize it
-#T why normalize it?
-#T (generic method division free?)
-            row    := mat[j];
-            mat[j] := mat[i];
-            mat[i] := Inverse( row[k] ) * row;
+            # make its row the current row
+            t := mat[j];
+            if j > rk then
+                mat[j] := mat[rk];
+                mat[rk] := t;
+            fi;
 
-            # clear all entries in this column
-            for j  in [i+1..m] do
-                if  mat[j][k] <> zero  then
-                    mat[j] := mat[j] - mat[j][k] * mat[i];
+            # clear all entries below in this column
+            # (if possible, otherwise return `fail')
+            piv := Inverse(t[i]);
+            if piv = fail then
+              return fail;
+            fi;
+            piv := - piv;
+            for k in [rk+1..m] do
+                row := mat[k];
+                x := row[i];
+                if x <> z then
+                    AddRowVector(row,t,piv*x);
                 fi;
             od;
-
         fi;
-
     od;
 
     # return the rank (the number of linear independent rows)
-    Info( InfoMatrix, 1, "RankMat returns ", i );
-    return i;
-end );
+    return rk;
+end);
 
 
 #############################################################################
@@ -1177,7 +1578,11 @@ InstallMethod( SemiEchelonMat,
           vectors,   # list of basis vectors
           heads,     # list of pivot positions in 'vectors'
           i,         # loop over rows
-          j;         # loop over columns
+          j,         # loop over columns
+          x,         # a current element
+          nzheads,   # list of non-zero heads
+          row;       # the row of current interest
+    
 
     mat:= List( mat, ShallowCopy );
     nrows:= Length( mat );
@@ -1186,22 +1591,27 @@ InstallMethod( SemiEchelonMat,
     zero:= Zero( mat[1][1] );
 
     heads:= ListWithIdenticalEntries( ncols, 0 );
+    nzheads := [];
     vectors := [];
 
     for i in [ 1 .. nrows ] do
-
+        
+        row := mat[i];
         # Reduce the row with the known basis vectors.
-        for j in [ 1 .. ncols ] do
-            if heads[j] <> 0 then
-                AddRowVector( mat[i], vectors[ heads[j] ], - mat[i][j] );
+        for j in [ 1 .. Length(nzheads) ] do
+            x := row[nzheads[j]];
+            if x <> zero then
+                AddRowVector( row, vectors[ j ], - x );
             fi;
         od;
 
-        j := PositionNot( mat[i], zero );
+        j := PositionNot( row, zero );
         if j <= ncols then
 
             # We found a new basis vector.
-            Add( vectors, mat[i] / mat[i][j] );
+            MultRowVector(row, Inverse(row[j]));
+            Add( vectors, row );
+            Add( nzheads, j);
             heads[j]:= Length( vectors );
 
         fi;
@@ -1235,7 +1645,7 @@ function( mat )
           T,         # transformation matrix
           coeffs,    # list of coefficient vectors for 'vectors'
           relations, # basis vectors of the null space of 'mat'
-          k;         # loop over 'vectors'
+          row, head, x, row2;
 
     mat:= List( mat, ShallowCopy );
     nrows := Length( mat );
@@ -1246,30 +1656,107 @@ function( mat )
     heads   := ListWithIdenticalEntries( ncols, 0 );
     vectors := [];
 
-    T         := MutableIdentityMat( nrows, Field( zero ) );
+    T         := IdentityMat( nrows, zero );
     coeffs    := [];
     relations := [];
 
     for i in [ 1 .. nrows ] do
-
+        
+        row := mat[i];
+        row2 := T[i];
+        
         # Reduce the row with the known basis vectors.
         for j in [ 1 .. ncols ] do
-            if heads[j] <> 0 then
-                AddRowVector( T[i]  , coeffs[ heads[j] ] , - mat[i][j] );
-                AddRowVector( mat[i], vectors[ heads[j] ], - mat[i][j] );
+            head := heads[j];
+            if head <> 0 then
+                x := - row[j];
+                if x <> zero then
+                    AddRowVector( row2  , coeffs[ head ] , x );
+                    AddRowVector( row,    vectors[ head ], x );
+                fi;
             fi;
         od;
 
-        j:= PositionNot( mat[i], zero );
+        j:= PositionNot( row, zero );
         if j <= ncols then
 
             # We found a new basis vector.
-            Add( coeffs,  T[i]   / mat[i][j] );
-            Add( vectors, mat[i] / mat[i][j] );
+            Add( coeffs,  row2   / row[j] );
+            Add( vectors, row / row[j] );
             heads[j]:= Length( vectors );
 
         else
-            Add( relations, T[i] );
+            Add( relations, row2 );
+        fi;
+
+    od;
+
+    return rec( heads     := heads,
+                vectors   := vectors,
+                coeffs    := coeffs,
+                relations := relations );
+end );
+
+
+InstallMethod( SemiEchelonMatTransformation,
+        "special method for GF(2)",
+        true,
+        [ IsMatrix and IsMutable and IsFFECollColl and IsGF2MatrixRep],
+        0,
+
+function( mat )
+
+    local zero,      # zero of the field of <mat>
+          nrows,     # number of rows in <mat>
+          ncols,     # number of columns in <mat>
+          vectors,   # list of basis vectors
+          heads,     # list of pivot positions in 'vectors'
+          i,         # loop over rows
+          j,         # loop over columns
+          T,         # transformation matrix
+          coeffs,    # list of coefficient vectors for 'vectors'
+          relations, # basis vectors of the null space of 'mat'
+          row, head, row2;
+
+    mat:= List( mat, ShallowCopy );
+    nrows := Length( mat );
+    ncols := Length( mat[1] );
+
+    zero  := 0*Z(2);
+
+    heads   := ListWithIdenticalEntries( ncols, 0 );
+    vectors := [];
+
+    T         := IdentityMat( nrows, GF(2) );
+    coeffs    := [];
+    relations := [];
+
+    for i in [ 1 .. nrows ] do
+        
+        row := mat[i];
+        row2 := T[i];
+        
+        # Reduce the row with the known basis vectors.
+        for j in [ 1 .. ncols ] do
+            head := heads[j];
+            if head <> 0 then
+                if row[j] <> zero then
+                    AddRowVector( row2  , coeffs[ head ] );
+                    AddRowVector( row,    vectors[ head ]);
+                fi;
+            fi;
+        od;
+
+        j:= PositionNot( row, zero );
+        if j <= ncols then
+
+            # We found a new basis vector.
+            Add( coeffs,  row2 );
+            Add( vectors, row  );
+            heads[j]:= Length( vectors );
+
+        else
+            Add( relations, row2 );
         fi;
 
     od;
@@ -1414,7 +1901,6 @@ end );
 
 ##########################################################################
 ##
-
 #M  InverseMatMod( <cyc-mat>, <integer> )
 ##
 InstallMethod( InverseMatMod,
@@ -1435,7 +1921,7 @@ function( mat, m )
     MM := List( mat, x -> List( x, y -> y mod m ) );
 
     # construct the identity matrix
-    inv := MutableIdentityMat( n, Cyclotomics );
+    inv := IdentityMat( n, Cyclotomics );
     perm := [];
 
     # loop over the rows
@@ -1613,7 +2099,7 @@ function( M1, M2 )
       return [ M1, M2 ];
     elif Length( M1[1] ) <> Length( M2[1] ) then
       Error( "dimensions of matrices are not compatible" );
-    elif 0 * M1[1][1] <> 0 * M2[1][1] then
+    elif Zero( M1[1][1] ) <> Zero( M2[1][1] ) then
       Error( "fields of matrices are not compatible" );
     fi;
 
@@ -1636,7 +2122,7 @@ function( M1, M2 )
       Add( mat, v );
     od;
 
-    # Transform 'mat' into semi-echelon form.
+    # Transform `mat' into semi-echelon form.
     mat   := SemiEchelonMat( mat );
     heads := mat.heads;
     mat   := mat.vectors;
@@ -1673,7 +2159,7 @@ InstallMethod( TriangulizeMat,
     0,
 
 function ( mat )
-    local   m, n, i, j, k, row, zero;
+    local   m, n, i, j, k, row, zero, x, row2;
 
     Info( InfoMatrix, 1, "TriangulizeMat called" );
 
@@ -1709,14 +2195,22 @@ function ( mat )
                # make its row the current row and normalize it
                row    := mat[j];
                mat[j] := mat[i];
-               MultRowVector( row, row[k]^-1 );
+               MultRowVector( row, Inverse(row[k]) );
                mat[i] := row;
 
                # clear all entries in this column
-               for j  in [1..m] do
-                   if  i <> j  and mat[j][k] <> zero  then
-                       AddRowVector( mat[j], mat[i], - mat[j][k] );
-         #             mat[j] := mat[j] - mat[j][k] * mat[i];
+               for j  in [1..i-1] do
+                   row2 := mat[j];
+                   x := row2[k];
+                   if   x <> zero  then
+                       AddRowVector( row2, row, - x );
+                   fi;
+               od;
+               for j  in [i+1..m] do
+                   row2 := mat[j];
+                   x := row2[k];
+                   if   x <> zero  then
+                       AddRowVector( row2, row, - x );
                    fi;
                od;
 
@@ -1732,6 +2226,89 @@ end );
 # special method to cope with 0-dimensional matrices
 InstallOtherMethod(TriangulizeMat,"empty list",true,
   [IsList and IsEmpty and IsPlistRep],0,Ignore);
+
+InstallOtherMethod( TriangulizeMat,
+  "error message for immutable matrices", true, [ IsMatrix ], 0,
+function(m)
+  if IsMutable(m) and ForAll(m,IsMutable) then
+    TryNextMethod();
+  else
+    Error("The matrix <m> must be mutable to be triangulizable");
+  fi;
+end);
+
+#############################################################################
+##
+#M  TriangulizeMat( <mat> ) . . . . . bring a matrix in upper triangular form
+##
+InstallGlobalFunction(TriangulizeMatGF2,function ( mat )
+    local   m, n, i, j, k, row, zero;
+
+    if Length(mat) > 0 then 
+
+       # get the size of the matrix
+       m := Length(mat);
+       n := Length(mat[1]);
+       zero := 0*Z(2);
+   
+        # make sure that the rows are mutable
+       for i in [ 1 .. m ] do
+           if not IsMutable( mat[i] ) then
+               mat[i]:= ShallowCopy( mat[i] );
+           fi;
+       od;
+     
+     # run through all columns of the matrix
+       i := 0;
+       for k  in [1..n]  do
+   
+           # find a nonzero entry in this column
+           j := i + 1;
+           while j <= m and mat[j][k] = zero  do j := j + 1;  od;
+   
+           # if there is a nonzero entry
+           if j <= m  then
+   
+               # increment the rank
+               i := i + 1;
+   
+               row := mat[j];  mat[j] := mat[i];  mat[i] := row;
+   
+               # clear all entries in this column
+               for j  in [1..i-1] do
+                   if  mat[j][k] <> zero  then
+                       AddRowVector(mat[j],row);
+                   fi;
+               od;
+               for j  in [i+1..m] do
+                   if  mat[j][k] <> zero  then
+                       AddRowVector(mat[j],row);
+                   fi;
+               od;
+   
+           fi;
+   
+       od;
+   
+    fi;
+
+end);
+
+InstallMethod( TriangulizeMat, "method for matrices of packed GF2-vectors",
+ true, [ IsMatrix and IsMutable and IsFFECollColl], 0,
+function ( mat )
+ if not ForAll(mat,IsGF2VectorRep) then
+    TryNextMethod();
+  fi;
+  TriangulizeMatGF2(mat);
+end);
+
+InstallMethod( TriangulizeMat, "method GF(2) matrices",
+  true, [ IsMatrix and IsMutable and IsFFECollColl and IsGF2MatrixRep], 10,
+  TriangulizeMatGF2);
+
+
+
 
 #############################################################################
 ##
@@ -1810,7 +2387,7 @@ end );
 ##
 ##
 InstallGlobalFunction( BaseSteinitzVectors, function(bas,mat)
-local z,d,l,b,i,j,k,stop,v,dim,h,zv;
+local z,l,b,i,j,k,stop,v,dim,h,zv;
 
   # catch trivial case
   if Length(bas)=0 then
@@ -1882,24 +2459,10 @@ local z,d,l,b,i,j,k,stop,v,dim,h,zv;
 	     heads:=h);
 end );
 
+
 #############################################################################
 ##
 #F  BlownUpMat( <B>, <mat> )
-##
-##  Let <B> be a basis of a field extension $F / K$, and <mat> a matrix whose
-##  entries are all in $F$.
-##  'BlownUpMat' returns a matrix over $K$ where each entry of <mat> is
-##  replaced by its regular representation w.r. to <B>.
-##
-##  In other words\:\
-##  If we regard <mat> as a linear transformation on the space $F^n$ with
-##  respect to the $F$-basis with vectors $(v_1, ldots, v_n)$, say, and if
-##  the basis <B> has vectors $(b_1, \ldots, b_m)$ then the returned matrix
-##  is the linear transformation on the space $K^{mn}$ with respect to the
-##  $K$-basis whose vectors are $(b_1 v_1, \ldots b_m v_1, \ldots, b_m v_n)$.
-##
-##  Note that the linear transformations act on *row* vectors, i.e., the rows
-##  of the matrix contains vectors that consist of <B>-coefficients.
 ##
 InstallGlobalFunction( BlownUpMat, function ( B, mat )
 
@@ -1945,7 +2508,6 @@ InstallGlobalFunction( BlownUpVector, function ( B, vector )
 
     # Return the result.
     return result;
-
 end );
 
 
@@ -2138,12 +2700,11 @@ InstallGlobalFunction( DiagonalizeIntMatNormDriven, function ( mat )
         for k  in [ d+1 .. nrrows ]  do
             quo := BestQuoInt( mat[k][d], mat[d][d] );
             if quo = 1  then
-#N  Is it worth having SubtractRowVector to speed up this case?  SL
-                AddRowVector(mat[k],-row);
+                AddRowVector(mat[k], row, -1);
             elif quo = -1  then
-                AddRowVector(mat[k],row);
+                AddRowVector(mat[k], row);
             elif quo <> 0  then
-                AddRowVector(mat[k], -quo*row);
+                AddRowVector(mat[k], row, -quo);
             fi;
             clear := clear and mat[k][d] = 0;
         od;
@@ -2223,12 +2784,11 @@ InstallGlobalFunction( DiagonalizeIntMatNormDriven, function ( mat )
             for k  in [ d+1 .. nrrows ]  do
                 quo := BestQuoInt( mat[k][d], mat[d][d] );
 	        if quo = 1  then
-#N  Is it worth having SubtractRowVector to speed up this case?  SL
-                    AddRowVector(mat[k],-row);
+                    AddRowVector(mat[k],row,-1);
                 elif quo = -1  then
                     AddRowVector(mat[k],row);
                 elif quo <> 0  then
-                    AddRowVector(mat[k], -quo*row);
+                    AddRowVector(mat[k], row, -quo);
                 fi;
                 clear := clear and mat[k][d] = 0;
             od;
@@ -2270,20 +2830,21 @@ end );
 #############################################################################
 ##
 #F  IdentityMat( <m>[, <F>] ) . . . . . . . . identity matrix of a given size
-#F  MutableIdentityMat( <m>[, <F>] )  . . . . identity matrix of a given size
 ##
 #T change this to 2nd argument the identity of the field/ring?
 ##
-InstallGlobalFunction( MutableIdentityMat, function ( arg )
-    local   id, m, zero, one, row, i, k;
+InstallGlobalFunction( IdentityMat, function ( arg )
+    local   id, m, zero, one, row, i, f;
 
     # check the arguments and get dimension, zero and one
     if Length(arg) = 1  then
         m    := arg[1];
         zero := 0;
         one  := 1;
+        f := Rationals;
     elif Length(arg) = 2  and IsRing(arg[2])  then
         m    := arg[1];
+        f := arg[2];
         zero := Zero( arg[2] );
         one  := One(  arg[2] );
         if one = fail then
@@ -2293,6 +2854,13 @@ InstallGlobalFunction( MutableIdentityMat, function ( arg )
         m    := arg[1];
         zero := Zero( arg[2] );
         one  := One( arg[2] );
+        if IsFFE(arg[2]) then
+            f := Characteristic(arg[2]); # ConvertToVectorRep also takes the
+	                               # characteristic instead of the field
+        else
+            f := false;
+        fi;
+                
     else
         Error("usage: IdentityMat( <m>[, <F>] )");
     fi;
@@ -2303,60 +2871,53 @@ InstallGlobalFunction( MutableIdentityMat, function ( arg )
     fi;
 
     # make an empty row
-    row := [];
-    for k  in [1..m]  do row[k] := zero;  od;
+    row := ListWithIdenticalEntries(m,zero);
 
     # make the identity matrix
     id := [];
     for i  in [1..m]  do
         id[i] := ShallowCopy( row );
         id[i][i] := one;
-        ConvertToVectorRep( id[i] );
+        if f <> false then
+           ConvertToVectorRep( id[i], f );
+        else
+            ConvertToVectorRep( id[i] );
+        fi;
     od;
 
     # return the identity matrix
     return id;
 end );
 
-InstallGlobalFunction( IdentityMat, function ( arg )
-    if Length(arg) = 1  then
-      return Immutable( MutableIdentityMat( arg[1] ) );
-    elif Length(arg) = 2 then
-      return Immutable( MutableIdentityMat( arg[1], arg[2] ) );
-    else
-      Error("usage: IdentityMat( <m>[, <F>] )");
-    fi;
-end );
-
 
 #############################################################################
 ##
 #F  NullMat( <m>, <n> [, <F>] ) . . . . . . . . . null matrix of a given size
-#F  MutableNullMat( <m>, <n> [, <F>] )  . . . . . null matrix of a given size
 ##
-InstallGlobalFunction( MutableNullMat, function ( arg )
-    local   null, m, n, zero, row, i, k;
+InstallGlobalFunction( NullMat, function ( arg )
+    local   null, m, n, zero, row, i, k, f;
 
     if Length(arg) = 2  then
         m    := arg[1];
         n    := arg[2];
-        zero := 0;
+        f := Rationals;
     elif Length(arg) = 3  and IsRing(arg[3])  then
         m    := arg[1];
         n    := arg[2];
-        zero := Zero( arg[3] );
+        f := arg[3];
     elif Length(arg) = 3  then
         m    := arg[1];
         n    := arg[2];
-        zero := Zero( arg[3] );
+        f := Field(arg[3]);
     else
         Error("usage: NullMat( <m>, <n> [, <F>] )");
     fi;
+    zero := Zero(f);
 
     # make an empty row
     row := [];
     for k  in [1..n]  do row[k] := zero;  od;
-    ConvertToVectorRep( row );
+    ConvertToVectorRep( row, f );
 
     # make the null matrix
     null := [];
@@ -2366,16 +2927,6 @@ InstallGlobalFunction( MutableNullMat, function ( arg )
 
     # return the null matrix
     return null;
-end );
-
-InstallGlobalFunction( NullMat, function ( arg )
-    if Length(arg) = 2  then
-      return Immutable( MutableNullMat( arg[1], arg[2] ) );
-    elif Length(arg) = 3 then
-      return Immutable( MutableNullMat( arg[1], arg[2], arg[3] ) );
-    else
-      Error("usage: NullMat( <m>, <n> [, <F>] )");
-    fi;
 end );
 
 
@@ -2471,11 +3022,15 @@ InstallGlobalFunction( PermutationMat, function( arg )
       F:= arg[3];
     fi;
 
-    mat:= MutableNullMat( dim, dim, F );
+    mat:= NullMat( dim, dim, F );
 
     for i in [ 1 .. dim ] do
-      mat[i][ i^perm ]:= One( F );
-      ConvertToVectorRep( mat[i] );
+        mat[i][ i^perm ]:= One( F );
+       if IsFFECollection(F) and IsField(F) then 
+           ConvertToVectorRep( mat[i], F );
+       elif IsFFE(F) or IsFFECollection(F) then
+           ConvertToVectorRep( mat[i], Field(F));
+       fi;
     od;
 
     return mat;
@@ -2605,7 +3160,7 @@ InstallGlobalFunction( RandomInvertibleMat, function ( arg )
             for k  in [1..m]  do
                 row[k] := Random( R );
             od;
-            ConvertToVectorRep( row );
+            ConvertToVectorRep( row, R );
             mat[i] := row;
         until NullspaceMat( mat ) = [];
     od;
@@ -2644,10 +3199,12 @@ InstallGlobalFunction( RandomMat, function ( arg )
         for k  in [1..n]  do
             row[k] := Random( R );
         od;
-        ConvertToVectorRep( row );
+        ConvertToVectorRep( row, R );
         mat[i] := row;
     od;
-
+    
+    # put into optimal form
+    ConvertToMatrixRep(mat);
     return mat;
 end );
 
@@ -2660,7 +3217,7 @@ InstallGlobalFunction( RandomUnimodularMat, function ( m )
     local  mat, c, i, j, k, l, a, b, v, w, gcd;
 
     # start with the identity matrix
-    mat := MutableIdentityMat( m );
+    mat := IdentityMat( m );
 
     for c  in [1..m]  do
 
@@ -2819,6 +3376,43 @@ InstallGlobalFunction( FlatBlockMat, function( block )
     return mat;
 end );
 
+#############################################################################
+##
+#F  DirectSumMat( <matlist> ) . . . . . . . . . . . create block diagonal mat
+#F  DirectSumMat( mat1,..,matn )  . . . . . . . . . create block diagonal mat
+##
+InstallGlobalFunction( DirectSumMat, function (arg)                     
+    local  c, r, res, m, f, F;
+    if Length(arg)=1 and not IsMatrix(arg[1]) then
+        arg:=arg[1];
+    fi;
+    f:=function(m)                                        
+        if Length(m)=0 then
+            return 0;    
+        else                            
+            return Length(m[1]);
+        fi;
+    end;                     
+    r:=1; m:=[ ];
+    while m = [ ] and r <= Length( arg ) do
+      m:= arg[r]; r:=r+1;
+    od;
+    if m <> [ ] then
+      F:= DefaultField( m[1][1] );
+    else
+      F:= Rationals;
+    fi;                    
+    res:=List(NullMat(Sum(arg,Length),Sum(arg,f),F),ShallowCopy);
+    r:=0;
+    c:=0;          
+    for m in arg do   
+        res{r+[1..Length(m)]}{c+[1..f(m)]}:=m;
+        r:=r+Length(m);
+        c:=c+f(m);
+    od;
+    return res;
+end );
+
 
 #############################################################################
 ##
@@ -2903,6 +3497,27 @@ function( mat )
   return [ B, mat-B ];
 
 end );
+
+#############################################################################
+##
+#F  OnSubspacesByCanonicalBasis(<bas>,<mat>)
+##
+InstallGlobalFunction(OnSubspacesByCanonicalBasisGF2,function( mat, obj )
+  #mat:=ShallowCopy(mat);
+  #mat:=PROD_LIST_SCL_DEFAULT(mat,obj); # this produced a *mutable* product
+  # (Hooray, so we do not even need `ShallowCopy'. But this should be better
+  # done via a defined interface!)
+  mat:=ShallowCopy(mat*obj);
+  TriangulizeMatGF2(mat); # this function works on full vectors, so no
+			  # further `ShallowCopy' level is needed!
+  return mat;
+end);
+
+InstallGlobalFunction(OnSubspacesByCanonicalBasis,function( mat, obj )
+  mat:=ShallowCopy(mat*obj);
+  TriangulizeMat(mat);
+  return mat;
+end);
 
 #############################################################################
 ##
@@ -3024,5 +3639,5 @@ end );
 #############################################################################
 ##
 
-#E  matrix.gi . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-##
+#E
+

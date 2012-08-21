@@ -16,9 +16,9 @@ Revision.grppcatr_gi :=
 
 #############################################################################
 ##
-#M  AsListSorted( <pcgrp> )
+#M  AsSSortedList( <pcgrp> )
 ##
-InstallMethod( AsListSorted,
+InstallMethod( AsSSortedList,
     "pcgs computable groups",
     true,
     [ IsGroup and CanEasilyComputePcgs and IsFinite ],
@@ -48,12 +48,8 @@ end );
 ##
 #M  CompositionSeries( <G> )
 ##
-InstallMethod( CompositionSeries,
-    "pcgs computable groups",
-    true, 
-    [ IsGroup and CanEasilyComputePcgs and IsFinite ],
-    0,
-
+InstallMethod( CompositionSeries, "pcgs computable groups", true, 
+    [ IsGroup and CanEasilyComputePcgs and IsFinite ], 0,
 function( G )
     local   pcgsG,  m,  S,  parent,  i,  igs,  U;
 
@@ -63,15 +59,16 @@ function( G )
     S     := [];
 
     # if <pcgsG> is induced use the parent
-    if IsInducedPcgs(pcgsG)  then
-        parent := ParentPcgs(pcgsG);
-    else
-        parent := pcgsG;
-    fi;
+    parent := ParentPcgs(pcgsG);
+    #if IsInducedPcgs(pcgsG)  then
+    #    parent := ParentPcgs(pcgsG);
+    #else
+    #    parent := pcgsG;
+    #fi;
 
     # compute the pcgs of the composition subgroups
     for i  in [ 1 .. m+1 ]  do
-        igs := InducedPcgsByPcSequence( parent, pcgsG{[i..m]} );
+        igs := InducedPcgsByPcSequenceNC( parent, pcgsG{[i..m]} );
         U   := SubgroupByPcgs( G, igs );
         Add( S, U );
     od;
@@ -93,10 +90,11 @@ InstallMethod( DerivedSubgroup,
     0,
 
 function( U )
-    local   pcgsU,  C,  i,  j,  tmp;
+    local   pcgsU,  parent,  C,  i,  j,  tmp;
 
     # compute the commutators of the elements of a pcgs
     pcgsU := Pcgs(U);
+    parent := ParentPcgs( pcgsU );
     C := [];
     for i  in [ 1 .. Length(pcgsU) ]  do
         for j  in [ i+1 .. Length(pcgsU) ]  do
@@ -105,11 +103,7 @@ function( U )
     od;
 
     # if <pcgsU> is induced use the parent
-    if IsInducedPcgs(pcgsU)  then
-        tmp := InducedPcgsByGeneratorsNC( ParentPcgs(pcgsU), C );
-    else
-        tmp := InducedPcgsByGeneratorsNC( pcgsU, C );
-    fi;
+    tmp := InducedPcgsByGeneratorsNC( parent, C );
     C := SubgroupByPcgs( U, tmp );
     return C;
 end);
@@ -120,38 +114,9 @@ end);
 #M  ElementaryAbelianSeries( <G> )
 ##
 InstallMethod( ElementaryAbelianSeries,
-    "pcgs computable groups using special pcgs",
-    true, 
-    [ IsGroup and CanEasilyComputePcgs and IsFinite ],
-    0,
-
-function( G )
-    local   spec,  first,  m,  S,  i,  igs,  U,L;
-
-    spec  := SpecialPcgs( G );
-    first := LGFirst( spec );
-    m     := Length( spec );
-    S     := [G];
-    for i  in [ 2 .. Length(first) ]  do
-        igs := InducedPcgsByPcSequenceNC( spec, spec{[first[i]..m]} );
-        U   := SubgroupByPcgs( G, igs );
-        Add( S, U );
-    od;
-
-    # remove spurious factors
-    L:=[S[1]];
-    U:=S[1];
-    i:=2;
-    repeat
-      while i<Length(S) and HasElementaryAbelianFactorGroup(U,S[i+1]) do
-	i:=i+1;
-      od;
-      U:=S[i];
-      Add(L,U);
-    until Size(U)=1;
-
-    return L;
-end );
+    "pcgs computable groups using `PcgsElementaryAbelianSeries'", true, 
+    [ IsGroup and CanEasilyComputePcgs and IsFinite ], 0,
+  G->NormalSeriesByPcgs(PcgsElementaryAbelianSeries(G)));
 
 
 #############################################################################
@@ -178,12 +143,11 @@ end);
 InstallMethod( HallSubgroupOp, 
     "pcgs computable groups using special pcgs",
     true,
-    [ IsGroup and CanEasilyComputePcgs and IsFinite,
-      IsList ],
+    [ IsGroup and CanEasilyComputePcgs and IsFinite, IsList ],
     0,
 
 function( G, pi )
-    local pcgs, spec, weights, gens, i, S;
+    local spec, weights, gens, i, S;
 
     spec := SpecialPcgs( G );
     weights := LGWeights( spec );
@@ -195,6 +159,10 @@ function( G, pi )
     S := SubgroupByPcgs( G, gens );
     return S;
 end );
+
+RedispatchOnCondition(HallSubgroupOp,true,[IsGroup,IsList],
+  [IsGroup and IsSolvableGroup and CanEasilyComputePcgs and IsFinite,
+  IsList ],0);
 
 
 #############################################################################
@@ -232,7 +200,7 @@ function( G )
             mats  := LinearOperationLayer( spec, pcgsL );
             modu  := GModuleByMats( mats, GF(p) );
             rad   := MTX.BasisRadical( modu );
-            elms  := List( rad, x -> PcElementByExponents( pcgsL, x ) );
+            elms  := List( rad, x -> PcElementByExponentsNC( pcgsL, x ) );
             Append( pref, elms );
 
         elif weights[start][2] > 1 then
@@ -261,11 +229,8 @@ InstallMethod( IsFinite,
 ##
 #M  Size( <pcgrp> )
 ##
-InstallMethod( Size,
-    "pcgs computable groups",
-    true,
-    [ IsGroup and CanEasilyComputePcgs ],
-    10,
+InstallMethod( Size, "pcgs computable groups", true,
+    [ IsGroup and CanEasilyComputePcgs ], 0,
 
 function( grp )
     local   ords;
@@ -290,7 +255,7 @@ InstallMethod( SylowComplementOp,
     true,
     [ IsGroup and CanEasilyComputePcgs and IsFinite,
       IsPosInt ],
-    0,
+    80,
 
 function( G, p )
     local   spec,  weights,  gens,  i,  S;
@@ -306,6 +271,10 @@ function( G, p )
     return S;
 end );
 
+RedispatchOnCondition(SylowComplementOp,true,[IsGroup,IsPosInt],
+  [IsGroup and IsSolvableGroup and CanEasilyComputePcgs and IsFinite,
+  IsPosInt ],0);
+
 
 #############################################################################
 ##
@@ -318,7 +287,7 @@ InstallMethod( SylowSubgroupOp,
     true,
     [ IsGroup and CanEasilyComputePcgs and IsFinite,
       IsPosInt ],
-    0,
+    100,
 
 function( G, p )
     local   spec,  weights,  gens,  i,  S;
@@ -366,7 +335,9 @@ MaximalSubgroupClassesRepsLayer := function( pcgs, l )
     maxi  := MTX.BasesMaximalSubmodules( modu );
 
     for i in [1..Length( maxi )] do
-        elms := List( maxi[i], x -> PcElementByExponents( pcgsL, x ) );
+        maxi[i] := ShallowCopy( maxi[i] );
+        TriangulizeMat( maxi[i] );
+        elms := List( maxi[i], x -> PcElementByExponentsNC( pcgsL, x ) );
         sub  := Concatenation( pcgs{[1..start-1]}, elms, pcgsN );
         sub  := InducedPcgsByPcSequenceNC( pcgs, sub );
         M    := SubgroupByPcgs( G, sub );
@@ -383,11 +354,11 @@ end;
 InstallMethod( MaximalSubgroupClassReps,
     "pcgs computable groups using special pcgs",
     true, 
-    [ IsGroup and CanEasilyComputePcgs ],
+    [ IsGroup and CanEasilyComputePcgs and IsFinite ],
     0,
 
 function( G )
-    local pcgs, spec, first, max, i, new;
+    local spec, first, max, i, new;
 
     spec  := SpecialPcgs(G);
     first := LGFirst( spec );
@@ -408,11 +379,11 @@ end );
 InstallMethod( MaximalSubgroups,
     "pcgs computable groups using special pcgs",
     true, 
-    [ IsGroup and HasFamilyPcgs ],
+    [ IsGroup and HasFamilyPcgs and IsFinite ],
     0,
 
 function( G )
-    local pcgs, spec, first, m, max, i, U, new, M;
+    local spec, first, m, max, i, U, new, M;
 
     spec  := SpecialPcgs(G);
     first := LGFirst( spec );
@@ -457,7 +428,7 @@ end );
 InstallMethod( NormalMaximalSubgroups,
     "pcgs computable groups using special pcgs",
     true, 
-    [ IsGroup and CanEasilyComputePcgs ],
+    [ IsGroup and CanEasilyComputePcgs and IsFinite ],
     0,
 
 function( G )
@@ -511,9 +482,7 @@ end;
 ##
 InstallMethod( MinimalGeneratingSet,
     "pcgs computable groups using special pcgs",
-    true, 
-    [ IsGroup and CanEasilyComputePcgs ],
-    0,
+    true, [ IsPcGroup and IsFinite ], 0,
 
 function( G )
     local spec, weights, first, m, mingens, i, start, next, j,
@@ -569,7 +538,7 @@ end );
 #M  SmallGeneratingSet(<G>) 
 ##
 InstallMethod(SmallGeneratingSet,"using minimal generating set",true,
-  [IsPcGroup],0,
+  [IsPcGroup and IsFinite],0,
 function (G)
   return MinimalGeneratingSet(G);
 end);
@@ -652,7 +621,7 @@ NextStepCentralizer := function( gens, cent, pcgsF, field )
 
             # calculate elements corresponding to null
             for j  in [1..Length(null)]  do
-                elm := PcElementByExponents( pcgsF, notcentral, null[j] );
+                elm := PcElementByExponentsNC( pcgsF, notcentral, null[j] );
                 Add( newgens, elm );
             od;
         fi;
@@ -667,18 +636,21 @@ end;
 #F  GeneratorsCentrePGroup( <U> )
 ##
 InstallGlobalFunction( GeneratorsCentrePGroup, function( U )
-    local pcgs, p, ser, gens, cent, i, field, pcgsF;
+    local pcgs, spec, n, firs, p, field, ser, gens, cent, i, pcgsF;
 
     # catch the trivial case
     pcgs := Pcgs(U);
     if Length( pcgs ) = 0 then return []; fi;
 
     # set up series
-    p     := RelativeOrderOfPcElement( pcgs, pcgs[1] );
+    spec  := SpecialPcgs( U );
+    n     := Length( spec );
+    firs  := LGFirst( spec );
+    p     := PrimePGroup( U );
     field := GF(p);
-    ser   := List( PCentralSeries( U, p ), 
-             x -> InducedPcgsByGeneratorsNC( pcgs, GeneratorsOfGroup(x) ) );
-    gens  := AsList( ser[1] mod ser[2] );
+    ser   := List( firs, x ->
+                   InducedPcgsByPcSequenceNC( spec, spec{[x..n]} ) );
+    gens  := spec{[1..firs[2]-1]};
     cent  := gens;
     for i in [2..Length(ser)-1] do
         pcgsF := ser[i] mod ser[i+1];
@@ -696,7 +668,7 @@ end );
 InstallMethod( Centre,
     "pcgs computable groups using special pcgs",
     true, 
-    [ IsGroup and CanEasilyComputePcgs ],
+    [ IsGroup and CanEasilyComputePcgs and IsFinite ],
     0,
 
 function( G )
@@ -818,7 +790,7 @@ function( G )
 
                     # calculate elements corresponding to null
                     for n in null do
-                        elm := PcElementByExponents( pcgsF, cent[j], n );
+                        elm := PcElementByExponentsNC( pcgsF, cent[j], n );
                         if elm <> Identity( G ) then
                             AddSet( newgens, elm );
                         fi;
@@ -841,18 +813,18 @@ end );
 InstallMethod( OmegaSeries,
                "for p-groups",
                true,
-               [IsGroup and HasInducedPcgsWrtSpecialPcgs],
+               [IsGroup and CanEasilyComputePcgs and IsFinite],
                0,
 function( G )
     local pcgs, cl, U, series, exp, sub, p, M;
 
-    pcgs := InducedPcgsWrtSpecialPcgs( G );
+    pcgs := Pcgs( G );
     if Length( pcgs ) = 0 then return [G]; fi;
     if Length( pcgs ) = 1 then return [G,TrivialSubgroup(G)]; fi;
 
     U      := TrivialSubgroup( G );
     series := [U];
-    p      := RelativeOrderOfPcElement( pcgs, pcgs[1] );
+    p      := PrimePGroup( G );
     cl     := ConjugacyClasses( G );
     exp    := 1;
     while Size( U ) < Size( G ) do
@@ -876,30 +848,35 @@ end);
 InstallMethod( PCentralSeriesOp,
     "method for pc groups and prime",
     true, 
-    [ IsPcGroup, IsPosInt ], 
+    [ IsPcGroup and IsFinite, IsPosInt ], 
     0,
 
 function( G, p )
-    local   pcgs, L,  S,  N,  gens, pcgsN;
+    local spec, weig, firs, ser, int, i, t, s, w, sub, N;
 
-    # Start with <G>.
-    pcgs := Pcgs(G);
-    L := [];
-    N := G;
-    repeat
-        Add( L, N );
-        S := N;
-        gens := GeneratorsOfGroup( CommutatorSubgroup(G,S) );
-        Append( gens, List( GeneratorsOfGroup(S), x -> x^p ) );
-        pcgsN := InducedPcgsByGenerators( pcgs, gens );
-        pcgsN := CanonicalPcgs( pcgsN );
-        N     := SubgroupByPcgs( G, pcgsN );
-    until N = S;
-    return L;
+    spec := SpecialPcgs(G);
+    weig := LGWeights( spec );
+    firs := LGFirst( spec );
+    ser  := [G];
+    int  := [];
+    for i in [1..Length(firs)-1] do
+        t := firs[i];
+        s := firs[i+1];
+        w := weig[t];
+        if w[1] = 1 and w[3] = p then
+            sub := Concatenation( int, spec{[s..Length(spec)]} );
+            sub := InducedPcgsByPcSequenceNC( spec, sub );
+            N := SubgroupByPcgs( G, sub );
+            Add( ser, N );
+        else
+            Append( int, spec{[t..s-1]} );
+        fi;
+    od;
+    return ser;
 end );
 
 #############################################################################
 ##
 
-#E  grppcpatr.gi  . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E  grppcatr.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
 ##

@@ -20,6 +20,10 @@ IsFamFamXY := function(a,b,c,d)
   return IsIdenticalObj(a,b);
 end;
 
+IsFamXYFamZ := function(F1, F2, F3, F4, F5) return
+  IsIdenticalObj(F1,F4); end;
+
+
 #############################################################################
 ##
 #O  IsFamFamFam(<F1>,<F2>,<F3>)  test whether F1=F2=F3
@@ -110,6 +114,12 @@ IsCollsElmsElmsX := function( F1, F2, F3, F4 )
        and IsIdenticalObj( F2, F3 );
 end;
 
+IsCollsElmsXElms := function( F1, F2, F3, F4 )
+    return HasElementsFamily(F1)
+       and IsIdenticalObj( ElementsFamily(F1), F2 )
+       and IsIdenticalObj( F2, F4 );
+end;
+
 IsCollCollsElmsElms := function( F1, F2, F3 )
     return HasElementsFamily(F1)
        and HasElementsFamily( ElementsFamily(F1) )
@@ -129,6 +139,12 @@ IsCollsCollsElmsX := function( F1, F2, F3, F4 )
        and IsIdenticalObj( ElementsFamily( F1 ), F3 );
 end;
 
+IsCollsCollsElmsXX := function( F1, F2, F3, F4, F5 )
+    return HasElementsFamily( F1 )
+       and IsIdenticalObj( F1, F2 )
+       and IsIdenticalObj( ElementsFamily( F1 ), F3 );
+end;
+
 IsCollsElmsColls := function(a,b,c)
   return IsIdenticalObj(a,c) and HasElementsFamily(a) and
     IsIdenticalObj(b,ElementsFamily(a));
@@ -136,6 +152,11 @@ end;
 
 
 IsCollsXElms := function( F1, F2, F3 )
+    return     HasElementsFamily( F1 )
+           and IsIdenticalObj( F3, ElementsFamily( F1 ) );
+end;
+
+IsCollsXElmsX := function( F1, F2, F3, F4 )
     return     HasElementsFamily( F1 )
            and IsIdenticalObj( F3, ElementsFamily( F1 ) );
 end;
@@ -401,10 +422,18 @@ end;
 
 #############################################################################
 ##
-#F  IsIdenticalObjObjXObj( <F1>, <F2>, <F3> )
+#f  IsIdenticalObjObjXObj( <F1>, <F2>, <F3> )
 IsIdenticalObjObjXObj := function( F1, F2, F3 )
     return IsIdenticalObj( F1, F3 );
 end;                                            
+
+#############################################################################
+##
+#O  IsFamXFamY( <F1>, <F2>, <F3>, <F4> )
+##
+IsFamXFamY := function( F1, F2, F3, F4 )
+    return IsIdenticalObj(F1, F3);
+end;
 
 
 #############################################################################

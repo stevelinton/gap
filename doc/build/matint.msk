@@ -12,11 +12,13 @@
 
 \Declaration{IntegralizedMat}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Normal forms over the integers}
+\Section{Normal Forms over the Integers}
 
 \Declaration{DiagonalizeIntMatNormDriven}
 
 \Declaration{SNFNormDriven}
+
+\Declaration{SNFofREF}
 
 \Declaration{HNFNormDriven}
 
@@ -27,7 +29,8 @@
 \Declaration{HermiteNormalFormIntegerMat}
 
 \Declaration{TriangulizedIntegerMat}
-
+ 
+\Declaration{NormalFormIntMat}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{Decompositions}
 
@@ -36,7 +39,7 @@
 \Declaration{Decomposition}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Lattice reduction}
+\Section{Lattice Reduction}
 
 \index{LLL algorithm!for vectors}%
 \index{short vectors spanning a lattice}%
@@ -47,3 +50,17 @@
 \index{LLL algorithm!for Gram matrices}%
 \index{lattice base reduction}
 \Declaration{LLLReducedGramMat}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Orthogonal Embeddings}
+
+\Declaration{OrthogonalEmbeddings}
+
+\Declaration{ShortestVectors}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%E
+

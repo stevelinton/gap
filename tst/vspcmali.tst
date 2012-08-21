@@ -151,17 +151,17 @@ false
 gap> LieObject( Z(3) * [ [ 0, 0 ], [ 0, 1 ] ] ) in v;
 true
 
-gap> BasisByGeneratorsNC( v,
+gap> BasisNC( v,
 >     [ LieObject( [ [ Z(3)^0, Z(3)^0 ], [ Z(3)^0, Z(3)^0 ] ] ),
 >       LieObject( [ [ 0*Z(3), 0*Z(3) ], [ 0*Z(3), Z(3)^0 ] ] ) ] );
 SemiEchelonBasis( <vector space over GF(3^2), with 2 generators>,
 [ LieObject( [ [ Z(3)^0, Z(3)^0 ], [ Z(3)^0, Z(3)^0 ] ] ),
   LieObject( [ [ 0*Z(3), 0*Z(3) ], [ 0*Z(3), Z(3)^0 ] ] ) ] )
-gap> BasisOfDomain( v );
+gap> Basis( v );
 SemiEchelonBasis( <vector space over GF(3^2), with 2 generators>,
 [ LieObject( [ [ Z(3)^0, Z(3)^0 ], [ Z(3)^0, Z(3)^0 ] ] ),
   LieObject( [ [ 0*Z(3), 0*Z(3) ], [ 0*Z(3), Z(3)^0 ] ] ) ] )
-gap> SemiEchelonBasisOfDomain( v );
+gap> SemiEchelonBasis( v );
 SemiEchelonBasis( <vector space over GF(3^2), with 2 generators>,
 [ LieObject( [ [ Z(3)^0, Z(3)^0 ], [ Z(3)^0, Z(3)^0 ] ] ),
   LieObject( [ [ 0*Z(3), 0*Z(3) ], [ 0*Z(3), Z(3)^0 ] ] ) ] )
@@ -176,7 +176,7 @@ gap> b:= SemiEchelonBasis( v,
 SemiEchelonBasis( <vector space over GF(3^2), with 2 generators>,
 [ LieObject( [ [ Z(3)^0, Z(3)^0 ], [ Z(3)^0, Z(3)^0 ] ] ),
   LieObject( [ [ 0*Z(3), 0*Z(3) ], [ 0*Z(3), Z(3)^0 ] ] ) ] )
-gap> b:= SemiEchelonBasisByGeneratorsNC( v,
+gap> b:= SemiEchelonBasisNC( v,
 >         [ LieObject( [ [ Z(3)^0, Z(3)^0 ], [ Z(3)^0, Z(3)^0 ] ] ), 
 >           LieObject( [ [ 0*Z(3), 0*Z(3) ], [ 0*Z(3), Z(3)^0 ] ] ) ] );
 SemiEchelonBasis( <vector space over GF(3^2), with 2 generators>,
@@ -200,9 +200,9 @@ gap> w:= LeftModuleByGenerators( GF(9),
 >           LieObject( [ [ Z(27), Z(3) ], [ Z(3), Z(3) ] ] ),
 >           LieObject( [ [ 0*Z(3), Z(3) ], [ Z(3), Z(3) ] ] ) ] );
 <vector space over GF(3^2), with 3 generators>
-gap> BasisOfDomain( w );
+gap> Basis( w );
 Basis( <vector space over GF(3^2), with 3 generators>, ... )
-gap> b:= BasisByGenerators( w,
+gap> b:= Basis( w,
 >         [ LieObject( [ [ 0*Z(3), Z(3) ], [ Z(3), Z(3) ] ] ),
 >           LieObject( [ [ Z(27), Z(3) ], [ Z(3), Z(3) ] ] ) ] );;
 gap> Print( b, "\n" );
@@ -375,7 +375,7 @@ gap> Print( BasisVectors( c ), "\n" );
 ##
 ##  7. Methods for mutable bases of Gaussian matrix spaces
 ##
-gap> mb:= MutableBasisByGenerators( Rationals,
+gap> mb:= MutableBasis( Rationals,
 >          [ LieObject( [ [ 1, 1 ], [ 1, 1 ] ] ),
 >            LieObject( [ [ 0, 1 ], [ 1, 1 ] ] ),
 >            LieObject( [ [ 1, 1 ], [ 1, 1 ] ] ) ] );
@@ -389,7 +389,7 @@ gap> Print( BasisVectors( mb ), "\n" );
 [ LieObject( [ [ 1, 1 ], [ 1, 1 ] ] ), LieObject( [ [ 0, 1 ], [ 1, 1 ] ] ), 
   LieObject( [ [ E(4), 0 ], [ 0, 0 ] ] ) ]
 
-gap> mb:= MutableBasisByGenerators( Rationals,
+gap> mb:= MutableBasis( Rationals,
 >          [ LieObject( [ [ 1, 1 ], [ 1, 1 ] ] ),
 >            LieObject( [ [ 0, 1 ], [ 1, 1 ] ] ),
 >            LieObject( [ [ 1, 1 ], [ 1, 1 ] ] ) ] );
@@ -408,7 +408,7 @@ SemiEchelonBasis( <vector space of dimension 4 over Rationals>,
 [ LieObject( [ [ 1, 1 ], [ 1, 1 ] ] ), LieObject( [ [ 0, 1 ], [ 1, 1 ] ] ),
   LieObject( [ [ 0, 0 ], [ 1, 2 ] ] ), LieObject( [ [ 0, 0 ], [ 0, 1 ] ] ) ] )
 
-gap> mb:= MutableBasisByGenerators( Rationals, [],
+gap> mb:= MutableBasis( Rationals, [],
 >             LieObject( [ [ 0, 0 ], [ 0, 0 ] ] ) );
 <mutable basis over Rationals, 0 vectors>
 gap> CloseMutableBasis( mb, LieObject( [ [ 1, 2 ], [ 3, 4 ] ] ) );
@@ -423,9 +423,9 @@ SemiEchelonBasis( <vector space of dimension 2 over Rationals>,
 [ LieObject( [ [ 1, 2 ], [ 3, 4 ] ] ), LieObject( [ [ 0, 0 ], [ 0, 1 ] ] ) ] )
 
 
-gap> STOP_TEST( "vspcmali.tst", 51405100 );
+gap> STOP_TEST( "vspcmali.tst", 51942500 );
 
 #############################################################################
 ##
-#E  vspcmali.tst  . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-##
+#E
+

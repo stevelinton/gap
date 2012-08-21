@@ -1,3 +1,6 @@
+Revision.deg64_aff :=
+    "@(#)$Id$";
+
 AFFINE_NON_SOLVABLE_GROUPS[ 64 ] := [
  function() return
  PrimitiveAffinePermGroupByMatrixGroup( GL( 6, 2 ) );

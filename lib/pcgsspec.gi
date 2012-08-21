@@ -156,6 +156,7 @@ PcgsSystemWithWf := function( pcgs, wf )
         newpcgs := pcgs;
     else
         newpcgs := PcgsByPcSequenceNC( FamilyObj(OneOfPcgs(pcgs)), list );
+        SetOneOfPcgs( newpcgs, OneOfPcgs(pcgs) );
     fi;
 
     # set up layers
@@ -415,7 +416,7 @@ PcgsSystemWithHallSystem := function( pcgssys )
 
             # calculate new i-th base element
             new := ShallowCopy( pcgssys.pcgs!.pcSequence );
-            subs := PcElementByExponents(pcgssys.pcgs, base, solution);
+            subs := PcElementByExponentsNC(pcgssys.pcgs, base, solution);
             new[i] := new[i] * subs;
             pcgssys.pcgs := PcgsByPcSequenceNC( F, new );
 
@@ -546,7 +547,7 @@ PcgsSystemWithComplementSystem := function( pcgssys )
 
             # calculate new i-th base element
             new := ShallowCopy( pcgssys.pcgs!.pcSequence );
-            subs:= PcElementByExponents(pcgssys.pcgs, base, solution);
+            subs:= PcElementByExponentsNC(pcgssys.pcgs, base, solution);
             new[i] := new[i] * subs;
             pcgssys.pcgs := PcgsByPcSequenceNC( F, new );
 
@@ -560,7 +561,6 @@ end;
 
 #############################################################################
 ##
-
 #M  SpecialPcgs( <pcgs> )
 ##
 InstallMethod( SpecialPcgs,
@@ -573,7 +573,7 @@ InstallMethod( SpecialPcgs,
 InstallMethod( SpecialPcgs,
     "generic method for pcgs",
     true,
-    [ IsPcgs ],
+    [ IsPcgs and IsFiniteOrdersPcgs and IsPrimeOrdersPcgs ],
     0,
 
 function( pcgs )
@@ -606,10 +606,53 @@ function( pcgs )
         SetLGWeights( newpcgs, pcgssys.weights );
         SetLGLayers( newpcgs, pcgssys.layers );
         SetLGFirst( newpcgs, pcgssys.first );
+        SetIsFiniteOrdersPcgs( newpcgs, true );
+        SetIsPrimeOrdersPcgs( newpcgs, true );
     fi;
     return newpcgs;
 end );
 
+#############################################################################
+##
+#M  LGHeads( <pcgs> )
+##
+InstallMethod( LGHeads, "for special pcgs", true,
+               [ IsSpecialPcgs ], 0,
+function( pcgs )
+    local h, i, w, j;
+    h := [];
+    i := 1;
+    w := LGWeights( pcgs );
+    for j in [1..Length(w)] do
+        if w[j][1] = i then
+            Add( h, j );
+            i := i + 1;
+        fi;
+    od;
+    Add( h, Length( w ) + 1 );
+    return h; 
+end);
+
+#############################################################################
+##
+#M  LGTails( <pcgs> )
+##
+InstallMethod( LGTails, "for special pcgs", true,
+               [ IsSpecialPcgs ], 0,
+function( pcgs )
+    local h, w, i, j, t;
+    h := LGHeads( pcgs );
+    w := LGWeights( pcgs );
+    t := [];
+    for i in [1..Length(h)-1] do
+        j := h[i];
+        while j <= Length( w ) and w[h[i]][1] = w[j][1] and w[j][2] = 1 do
+            j := j + 1;
+        od;
+        Add( t, j );
+    od;
+    return t; 
+end);
 
 #############################################################################
 ##
@@ -648,6 +691,73 @@ function(G)
     return SpecialPcgs(G);
   fi;
 end);
+
+#############################################################################
+##
+#M  IsomorphismSpecialPcGroup( <group> )
+##
+InstallMethod( IsomorphismSpecialPcGroup, "method for pc groups",
+    true, [ IsPcGroup ], 0,
+function(G)
+local s,H,iso;
+  s:=SpecialPcgs(G);
+  H:=PcGroupWithPcgs(s);
+  iso:=GroupHomomorphismByImagesNC(G,H,s,FamilyPcgs(H));
+  SetIsBijective( iso, true );
+  return iso;
+end);
+
+InstallMethod( IsomorphismSpecialPcGroup, "generic method for groups",
+    true, [ IsGroup ], 0,
+function(G)
+local iso;
+  iso:=IsomorphismPcGroup(G);
+  return iso*IsomorphismSpecialPcGroup(Range(iso));
+end);
+
+#############################################################################
+##
+#M  InducedPcgsWrtSpecialPcgs( <group> )
+##
+InstallOtherMethod( InducedPcgsWrtSpecialPcgs, "method for pc groups",
+    true, [ IsPcGroup ], 0,
+function( U )
+local spec;
+    spec := SpecialPcgs( FamilyPcgs( U ) );
+    if HasPcgs(U) and spec=HomePcgs(U) then
+      return InducedPcgsWrtHomePcgs(U);
+    fi;
+    return InducedPcgsByGeneratorsNC( spec, GeneratorsOfGroup(U) );
+end );
+
+InstallOtherMethod( InducedPcgsWrtSpecialPcgs, "generic method for groups",
+    true, [ IsGroup ], 0,
+function( U )
+local spec;
+  spec := SpecialPcgs( Parent( U ) );
+  return InducedPcgsByGeneratorsNC( spec, GeneratorsOfGroup(U) );
+end );
+
+IndPcgsWrtSpecFromFamOrHome:=function( U )
+local spec;
+  spec := SpecialPcgs( FamilyPcgs( U ) );
+  if spec=HomePcgs(U) then
+    return InducedPcgsWrtHomePcgs(U);
+  elif IsSortedPcgsRep(spec) and spec!.sortingPcgs=HomePcgs(U) then
+    return InducedPcgsByPcSequenceNC(spec,AsList(InducedPcgsWrtHomePcgs(U)));
+  fi;
+  return InducedPcgsByGeneratorsNC( spec, InducedPcgsWrtHomePcgs(U) );
+end;
+
+InstallOtherMethod( InducedPcgsWrtSpecialPcgs,
+  "for groups that have already an induced pcgs wrt home pcgs", true,
+  [ IsGroup and HasInducedPcgsWrtHomePcgs], 0,
+IndPcgsWrtSpecFromFamOrHome);
+
+InstallOtherMethod( InducedPcgsWrtSpecialPcgs,
+  "for groups that have already an induced pcgs wrt family pcgs", true,
+  [ IsGroup and HasInducedPcgsWrtFamilyPcgs], 0,
+IndPcgsWrtSpecFromFamOrHome);
 
 #############################################################################
 ##
@@ -730,6 +840,67 @@ end );
 
 #############################################################################
 ##
+#M LGLength( G )
+##
+InstallMethod( LGLength, 
+               "for groups",
+               true,
+               [ IsGroup ],                         
+               0,                                     
+function( G )
+
+    if not IsSolvableGroup( G ) then
+        return fail;
+    fi;
+    return Length( Set( LGWeights( SpecialPcgs( G ) ) ) );
+end );
+
+#############################################################################
+##
+#M  PClassPGroup( <G> )   . . . . . . . . . .  . . . . . . <p>-central series
+##
+InstallMethod( PClassPGroup,
+    "for groups with special pcgs",                                       
+    true, [ IsPGroup and HasSpecialPcgs ], 1,
+    function( G )
+
+    return LGLength( G );
+    end );
+
+#############################################################################
+##
+#M  RankPGroup( <G> ) . . . . . . . . . . . .  . . . . . . <p>-central series
+##
+InstallMethod( RankPGroup,
+    "for groups with special pcgs",                                       
+    true, [ IsPGroup and HasSpecialPcgs ], 1,
+    function( G )
+
+    return LGFirst( SpecialPcgs( G ) )[ 2 ] - 1;
+    end );
+
+#############################################################################
+##
+#F SpecialPcgsSubgroup( G, i )
+##
+SpecialPcgsSubgroup := function( G, i )
+    local spec, firs, sub;
+    spec := SpecialPcgs( G );
+    firs := LGFirst( spec );
+    sub  := InducedPcgsByPcSequenceNC( spec, spec{[firs[i]..Length(spec)]} );
+    return SubgroupByPcgs( G, sub );
+end;
+
+#############################################################################
+##
+#F SpecialPcgsFactor( G, i )
+##
+SpecialPcgsFactor := function( G, i )
+    return G / SpecialPcgsSubgroup( G, i );
+end;
+
+#############################################################################
+##
 #M  IndicesNormalSteps( <pcgs> )
 ##
 InstallMethod( IndicesNormalSteps, "special pcgs: LGFirst", true,
@@ -744,11 +915,23 @@ InstallOtherMethod( PcgsCentralSeries, "for pc groups use SpecialPcgs",
 InstallOtherMethod( PcgsPCentralSeriesPGroup, "for pc groups use SpecialPcgs",
   true,[IsPcGroup],0,SpecialPcgs);
 
-InstallOtherMethod( PcgsElementaryAbelianSeries, "if special pcgs is known",
-  true,[HasSpecialPcgs],0,SpecialPcgs);
+PcgsElAbSerFromSpecPcgs:=function(G)
+local s;
+  if HasHomePcgs(G)
+     and IsPcgsElementaryAbelianSeries(InducedPcgsWrtHomePcgs(G)) then
+    return InducedPcgsWrtHomePcgs(G); 
+    # prefer the `HomePcgs' because wrt. it we store inducedness and for pc
+    # groups its the family pcgs wrt. calculations are quicker
+  fi;
+  s:=SpecialPcgs(G);
+  return s;
+end;
 
-InstallOtherMethod( PcgsElementaryAbelianSeries,
-  "for pc groups use SpecialPcgs", true,[IsPcGroup],0,SpecialPcgs);
+InstallOtherMethod(PcgsElementaryAbelianSeries, "if special pcgs is known",
+  true,[HasSpecialPcgs],0,PcgsElAbSerFromSpecPcgs);
+
+InstallMethod(PcgsElementaryAbelianSeries,"for PCgroups via SpecialPcgs",
+  true,[IsPcGroup],0,PcgsElAbSerFromSpecPcgs);
 
 
 #############################################################################

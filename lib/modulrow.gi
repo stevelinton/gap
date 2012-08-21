@@ -12,7 +12,7 @@
 ##
 ##  Especially methods for *full row modules* $R^n$ are contained.
 ##
-##  (See the file 'modulmat.gi' for the methods for matrix modules.)
+##  (See the file `modulmat.gi' for the methods for matrix modules.)
 ##
 Revision.modulrow_gi :=
     "@(#)$Id$";
@@ -119,7 +119,7 @@ end );
 #M  \^( <R>, <n> )  . . . . . . . . . . . . . . . full row module over a ring
 ##
 InstallOtherMethod( \^,
-    "for ring and integer (delegate to 'FullRowModule')",
+    "for ring and integer (delegate to `FullRowModule')",
     true,
     [ IsRing, IsInt ], 0,
     FullRowModule );
@@ -290,29 +290,102 @@ InstallMethod( IsCanonicalBasisFullRowModule,
 ##
 DeclareRepresentation( "IsEnumeratorOfFiniteFullRowModuleRep",
     IsDomainEnumerator and IsAttributeStoringRep,
-    [ "coeffsenum", "q", "zerovector" ] );
+    [ "coeffsenum", "q", "zerovector", "coeffszero" ] );
+
+#############################################################################
+##
+#R  IsEnumeratorOfFiniteFullRowModuleFFRep( <iter> )
+##
+DeclareRepresentation( "IsEnumeratorOfFiniteFullRowModuleFFRep",
+    IsEnumeratorOfFiniteFullRowModuleRep,
+    [ "coeffsenum", "q", "zerovector", "coeffszero" ] );
 
 
 #############################################################################
 ##
 #M  Position( <enum>, <elm>, 0 )  .  for enumerator of finite full row module
 ##
-InstallOtherMethod( Position,
+BindGlobal( "PosVecEnum", function( arg )
+    local e, v, len, n, i, pos;
+
+    e:= arg[1];
+    v:= arg[2];
+    len:= Length( v );
+    n:= 0;
+    i:= 1;
+
+    while i <= len and v[i] = e!.coeffszero do
+      i:= i+1;
+    od;
+
+    while i <= len do
+      pos:= Position( e!.coeffsenum, v[i], 0 );
+      if pos = fail then
+        return fail;
+      fi;
+      n:= e!.q * n + pos - 1;
+      i:= i+1;
+    od;
+
+    return n + 1;
+end );
+
+InstallMethod( Position,
     "for enumerator via canonical basis of a finite full row module",
     true,
-#T ?
-#T    [ IsList and IsEnumeratorOfFiniteFullRowModuleRep, IsRowVector,
     [ IsList and IsEnumeratorOfFiniteFullRowModuleRep, IsList,
-      IsZeroCyc ], 0,
-    function( e, v, zero )
-    local n, i;
-    n:= 0;
-    for i in [ PositionNot( v, zero ) .. Length( v ) ] do
-      n:= e!.q * n + Position( e!.coeffsenum, v[i], 0 ) - 1;
-    od;
-    return n + 1;
-    end );
+      IsZeroCyc ], 0,PosVecEnum);
 
+InstallMethod( PositionCanonical,
+    "for enumerator via canonical basis of a finite full row module",
+    true,
+    [ IsList and IsEnumeratorOfFiniteFullRowModuleRep, IsList ], 0,
+    PosVecEnum);
+
+BindGlobal("PosVecEnumFF",function(arg)
+local v,i,l;
+  v:=arg[2];
+  # test whether the vector is indeed compact over a finite field
+  if not IsDataObjectRep(v) then
+
+    # the degree of the field extension q provides
+    l:=LogInt(arg[1]!.q,Characteristic(v)); 
+    for i in v do
+      if not (IsFFE(i) and IsInt(l/DegreeFFE(i))) then
+	TryNextMethod(); # cannot convert, wrong type of object
+      fi;
+    od;
+
+    if ConvertToVectorRep(v,arg[1]!.q)=fail then
+      TryNextMethod(); # cannot convert, wrong type of object
+    fi;
+  fi;
+  # Problem with GF(4) vectors over GF(2)
+  if (IsGF2VectorRep(v) and arg[1]!.q<>2) 
+     or (Is8BitVectorRep(v) and arg[1]!.q=2) then
+    TryNextMethod();
+  fi;
+
+  # compute index via number
+  v:=NumberFFVector(v,arg[1]!.q);
+  if v=fail then 
+    return v;
+  else
+    return v+1;
+  fi;
+end);
+
+InstallMethod( Position,
+    "for enumerator via canonical basis, over built-in finite field",
+    true,
+    [ IsList and IsEnumeratorOfFiniteFullRowModuleFFRep, IsRowVector,
+      IsZeroCyc ], 0,PosVecEnumFF);
+
+InstallMethod( PositionCanonical,
+    "for enumerator via canonical basis, over built-in finite field",
+    true,
+    [ IsList and IsEnumeratorOfFiniteFullRowModuleFFRep, IsRowVector ], 0,
+    PosVecEnumFF);
 
 #############################################################################
 ##
@@ -333,6 +406,7 @@ InstallMethod( \[\],
       n:= QuoInt( n, e!.q );
       i:= i-1;
     od;
+    ConvertToVectorRep(v,e!.q);
     return v;
     end );
 
@@ -368,7 +442,7 @@ InstallOtherMethod( Position,
       return fail;
     fi;
 
-    # Replace the entries of 'vector' by their positions.
+    # Replace the entries of `vector' by their positions.
     vector:= List( vector, x -> Position( enum!.coeffsenum, x, 0 ) - 1 );
 
     # Find the maximal entry in the vector, and its number.
@@ -382,7 +456,7 @@ InstallOtherMethod( Position,
       return 1;
     fi;
 
-    # Compute the positions of 'max' in 'vector',
+    # Compute the positions of `max' in `vector',
     maxpos:= [];
     for i in [ 1 .. n ] do
       if vector[i] = max then
@@ -391,7 +465,7 @@ InstallOtherMethod( Position,
     od;
 
     # Compute the number of those elements with same distribution
-    # of 'max' as in 'vector' that come before 'vector'.
+    # of `max' as in `vector' that come before `vector'.
     pos:= 0;
     for i in [ n, n-1 .. 1 ] do
       if vector[i] <> max then
@@ -401,10 +475,10 @@ InstallOtherMethod( Position,
     pos:= pos + 1;
 
     # Compute the number of those elements with smaller distribution
-    # of 'max'.
+    # of `max'.
     # Consider the following example.
     # 1   3 4     7
-    # m ? m m ? ? m ? ... ?       ('vector', the '?' mean entries < 'm')
+    # m ? m m ? ? m ? ... ?       ('vector', the `?' mean entries < `m')
     # * * * * * * ? ? ... ?       gives (m+1)^6 m^{n-6}
     # * * * ? ? ? m ? ... ?       gives (m+1)^3 m^{n-3-1}
     # * * ? m ? ? m ? ... ?       gives (m+1)^2 m^{n-2-2}
@@ -468,7 +542,7 @@ InstallMethod( \[\],
     until pos = 0;
     maxpos:= Reversed( maxpos );
 
-    # Compute the values of the element that are strictly smaller than 'max'.
+    # Compute the values of the element that are strictly smaller than `max'.
     vector:= [];
     N:= N - 1;
     for i in [ 1 .. n ] do
@@ -501,18 +575,27 @@ InstallMethod( EnumeratorByBasis,
     [ IsBasis and IsCanonicalBasis and IsCanonicalBasisFullRowModule ], 0,
     function( B )
 
-    local V, F;
+    local V, F,filter;
 
     V:= UnderlyingLeftModule( B );
     F:= LeftActingDomain( V );
 
     if IsFinite( F ) then
 
-      F:= Objectify( NewType( FamilyObj( V ),
-                              IsEnumeratorOfFiniteFullRowModuleRep ),
+      # By construction, the enumerator is sorted.
+      filter:= IsEnumeratorOfFiniteFullRowModuleRep and IsSSortedList;
+
+      if IsFinite(LeftActingDomain(V)) and IsPrimeInt(Size(LeftActingDomain(V)))
+        and Size(LeftActingDomain(V))<256
+	and IsInternalRep(One(LeftActingDomain(V))) then
+	filter:=IsEnumeratorOfFiniteFullRowModuleFFRep and IsQuickPositionList;
+      fi;
+
+      F:= Objectify( NewType( FamilyObj( V ), filter ),
                      rec(
                           coeffsenum := Enumerator( F ),
                           q          := Size( F ),
+			  coeffszero := Zero(F),
                           zerovector := Zero( V )
                          ) );
       SetUnderlyingCollection( F, V );
@@ -552,9 +635,9 @@ DeclareRepresentation( "IsIteratorOfFiniteFullRowModuleRep",
 #M  NextIterator( <iter> )  . . . . .  for iterator of finite full row module
 ##
 InstallMethod( NextIterator,
-    "for iterator w.r.t. canonical basis of finite full row module",
+    "for mutable iterator w.r.t. canonical basis of finite full row module",
     true,
-    [ IsIterator and IsIteratorOfFiniteFullRowModuleRep ], 0,
+    [ IsIterator and IsMutable and IsIteratorOfFiniteFullRowModuleRep ], 0,
     function( iter )
     local pos;
 
@@ -584,11 +667,29 @@ InstallMethod( IsDoneIterator,
 
 #############################################################################
 ##
+#M  ShallowCopy( <iter> ) . . . . . .  for iterator of finite full row module
+##
+InstallMethod( ShallowCopy,
+    "for iterator w.r.t. canonical basis of finite full row module",
+    true,
+    [ IsIterator and IsIteratorOfFiniteFullRowModuleRep ], 0,
+    iter -> Objectify( Subtype( TypeObj( iter ), IsMutable ),
+                       rec( dimension    := iter!.dim,
+                            counter      := ShallowCopy( iter!.counter ),
+                            position     := iter!.position,
+                            q            := iter!.q,
+                            limit        := ShallowCopy( iter!.limit ),
+                            ringelements := iter!.ringelements ) ) );
+
+
+#############################################################################
+##
 #R  IsIteratorOfInfiniteFullRowModuleRep( <iter> )
 ##
 DeclareRepresentation( "IsIteratorOfInfiniteFullRowModuleRep",
     IsComponentObjectRep,
-    [ "dim", "maxentry", "vector", "coeffsenum" ] );
+    [ "dim", "maxentry", "vector", "coeffsenum", "result", "firstval",
+      "maxval" ] );
 
 
 #############################################################################
@@ -596,17 +697,17 @@ DeclareRepresentation( "IsIteratorOfInfiniteFullRowModuleRep",
 #M  NextIterator( <iter> )  . . . . .  for iterator of finite full row module
 ##
 InstallMethod( NextIterator,
-    "for iterator w.r.t. canonical basis of infinite full row module",
+    "for mutable iterator w.r.t. canon. basis of infinite full row module",
     true,
-    [ IsIterator and IsIteratorOfInfiniteFullRowModuleRep ], 0,
+    [ IsIterator and IsMutable and IsIteratorOfInfiniteFullRowModuleRep ], 0,
     function( iter )
     local dim,        # dimension of the free module
-          vector,     # positions of the coefficients in 'iter!.coeffsenum'
+          vector,     # positions of the coefficients in `iter!.coeffsenum'
                       # of the previous element
           result,     # coefficients of the previous element
-          max1,       # one less than the maximal entry in 'vector'
-          max,        # maximal entry in 'vector'
-          firstval,   # first entry in 'iter!.coeffsenum'
+          max1,       # one less than the maximal entry in `vector'
+          max,        # maximal entry in `vector'
+          firstval,   # first entry in `iter!.coeffsenum'
           i;          # loop variable
 
     # (Increase the counter.)
@@ -617,9 +718,9 @@ InstallMethod( NextIterator,
     max1     := iter!.maxentry - 1;
     firstval := iter!.firstval;
 
-    # If not all entries in 'vector' are 'max1' or 'max1 + 1' then
+    # If not all entries in `vector' are `max1' or `max1 + 1' then
     # increase the counter formed by the positions with entry
-    # different from 'max1 + 1', and return the result.
+    # different from `max1 + 1', and return the result.
     for i in [ 1 .. dim ] do
       if vector[i] < max1 then
         vector[i]:= vector[i] + 1;
@@ -631,7 +732,7 @@ InstallMethod( NextIterator,
       fi;
     od;
 
-    # Otherwise if all entries are 'max1 + 1', increase the maximum.
+    # Otherwise if all entries are `max1 + 1', increase the maximum.
     max:= iter!.maxentry;
     if dim < PositionNot( vector, max ) then
       max:= max + 1;
@@ -646,8 +747,8 @@ InstallMethod( NextIterator,
       return ShallowCopy( result );
     fi;
 
-    # Otherwise get the next start configuration with maximum 'max'.
-    # (The entries of 'vector' are now either '1' or 'max'.)
+    # Otherwise get the next start configuration with maximum `max'.
+    # (The entries of `vector' are now either `1' or `max'.)
     for i in [ 1 .. dim ] do
       if vector[i] = max then
         vector[i]:= 1;
@@ -660,7 +761,7 @@ InstallMethod( NextIterator,
     od;
 
     Assert( 2, true,
-            "there should be a position with value different from 'max'" );
+            "there should be a position with value different from `max'" );
     end );
 
 
@@ -673,6 +774,26 @@ InstallMethod( IsDoneIterator,
     true,
     [ IsIterator and IsIteratorOfInfiniteFullRowModuleRep ], 0,
     ReturnFalse );
+
+
+#############################################################################
+##
+#M  ShallowCopy( <iter> ) . . . . . .  for iterator of finite full row module
+##
+InstallMethod( ShallowCopy,
+    "for iterator w.r.t. canonical basis of finite full row module",
+    true,
+    [ IsIterator and IsIteratorOfInfiniteFullRowModuleRep ], 0,
+    iter -> Objectify( Subtype( TypeObj( iter ), IsMutable ),
+                       rec(
+                             dim        := iter!.dim,
+                             vector     := ShallowCopy( iter!.vector ),
+                             result     := ShallowCopy( iter!.result ),
+                             coeffsenum := iter!.coeffsenum,
+                             maxentry   := iter!.maxentry,
+                             firstval   := iter!.firstval,
+                             maxval     := iter!.maxval
+                           ) ) );
 
 
 #############################################################################
@@ -712,6 +833,7 @@ InstallMethod( IteratorByBasis,
 
       return Objectify( NewType( IteratorsFamily,
                                      IsIterator
+                                 and IsMutable
                                  and IsIteratorOfFiniteFullRowModuleRep ),
                         rec(
                             dimension    := dim,
@@ -732,6 +854,7 @@ InstallMethod( IteratorByBasis,
 
       return Objectify( NewType( IteratorsFamily,
                                      IsIterator
+                                 and IsMutable
                                  and IsIteratorOfInfiniteFullRowModuleRep ),
                         rec(
                              dim        := dim,
@@ -749,9 +872,9 @@ InstallMethod( IteratorByBasis,
 
 #############################################################################
 ##
-#M  BasisOfDomain( <M> )  . . . . . . . . . . . . . . . . for full row module
+#M  Basis( <M> )  . . . . . . . . . . . . . . . . . . . . for full row module
 ##
-InstallMethod( BasisOfDomain,
+InstallMethod( Basis,
     "for full row module",
     true,
     [ IsFreeLeftModule and IsRowModuleRep and IsFullRowModule ], SUM_FLAGS,
@@ -760,5 +883,5 @@ InstallMethod( BasisOfDomain,
 
 #############################################################################
 ##
-#E  modulrow.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

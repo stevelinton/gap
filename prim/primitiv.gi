@@ -47,6 +47,27 @@ end );
 
 #############################################################################
 ##
+#F  CohortToFilename( <cohortname> )
+##
+##  translate cohort names to proper filenames without the special characters
+CohortToFilename := function(c)
+local p;
+  c:=LowercaseString(c);
+  c:=ReplacedString(c,",","c");
+  c:=ReplacedString(c,"+","p");
+  c:=ReplacedString(c,"-","m");
+  c:=ReplacedString(c,"^","e");
+  # fix the names which are *.[0-9][0-9][0-9]?
+  p:=Position(c,'.');
+  if p<>fail and Length(c)-p>3 then
+    # remove the last digit (this happens to be unique) to get us back to 8+3
+    c:=c{Concatenation([1..Length(c)-2],[Length(c)])};
+  fi;
+  return c;
+end;
+
+#############################################################################
+##
 #F  ConstructCohort( <N>, <G>, <Omega> )  . . . . . . . . . . . . . . . local
 ##
 InstallGlobalFunction( ConstructCohort, function( N, G, Omega )
@@ -119,7 +140,7 @@ InstallGlobalFunction( AlternatingCohortOnSets, function( n, k )
     
     A := AlternatingGroup( n );
     orb := Combinations( [ 1 .. n ], k );
-    G := Operation( A, orb, OnSets );
+    G := Action( A, orb, OnSets );
     SetSize( G, Size( A ) );
     out := Permutation( (1,2), orb, OnSets );
     G!.normalizer := ClosureGroup( G, out );
@@ -138,8 +159,8 @@ InstallGlobalFunction( LinearCohortOnProjectivePoints, function( n, q )
     
     fld := GF( q );
     pro := OneDimSubspacesTransversal( fld ^ n );
-    gens := GeneratorsOfGroup( Operation( SL( n, q ), pro ) );
-    M := MutableIdentityMat( n, fld );
+    gens := GeneratorsOfGroup( Action( SL( n, q ), pro ) );
+    M := IdentityMat( n, fld );
     M[ 1 ][ 1 ] := PrimitiveRoot( fld );
     coh := MakeCohort( Concatenation( [
         Permutation( FrobeniusAutomorphism( fld ), pro, OnTuples ),
@@ -158,11 +179,11 @@ InstallGlobalFunction( SymplecticCohortOnProjectivePoints, function( n, q )
     
     fld := GF( q );
     pro := OneDimSubspacesTransversal( fld ^ n );
-    gens := GeneratorsOfGroup( Operation( Sp( n, q ), pro ) );
+    gens := GeneratorsOfGroup( Action( Sp( n, q ), pro ) );
     if q mod 2 = 0  then
         M := PrimitiveRoot( fld );
     else
-        M := MutableIdentityMat( n, fld );
+        M := IdentityMat( n, fld );
         for i  in [ 1 .. n / 2 ]  do
             M[ i ][ i ] := PrimitiveRoot( fld );
         od;
@@ -212,7 +233,7 @@ InstallGlobalFunction( UnitaryCohortOnProjectivePoints, function( n, q, iso )
     if iso  then  v := id[ 1 ];
             else  v := P[ 1 ];   fi;
     pro := ExternalOrbit( G, pro, v );
-    gens := GeneratorsOfGroup( Operation( G, pro ) );
+    gens := GeneratorsOfGroup( Action( G, pro ) );
     coh := MakeCohort( Concatenation( [
         Permutation( FrobeniusAutomorphism( fld ), pro, OnTuples ),
         Permutation( z, pro, OnRight ),
@@ -234,10 +255,10 @@ InstallGlobalFunction( CohortProductAction, function( coh, n )
     S := SymmetricGroup( n );
     N := WreathProductProductAction( Source( coh ), S );
     G := WreathProductProductAction
-         ( OperationHomomorphism
+         ( ActionHomomorphism
            ( KernelOfMultiplicativeGeneralMapping( coh ),
              MovedPoints( Source( coh ) ) ),
-           OperationHomomorphism( TrivialSubgroup( S ), MovedPoints( S ) ) );
+           ActionHomomorphism( TrivialSubgroup( S ), MovedPoints( S ) ) );
     prd := ConstructCohort( N, G, MovedPoints( G ) );
     SetName( prd, Concatenation( Name( coh ), "^", String( n ) ) );
     return prd;
@@ -258,11 +279,11 @@ end );
 InstallGlobalFunction( CohortDiagonalAction, function( G )
     local   coh,  T,  T_,  gens,  gen,  imgs,  N,  hom;
     
-    hom := OperationHomomorphism( G, G, OnRight );
+    hom := ActionHomomorphism( G, G, OnRight );
     SetIsInjective( hom, true );
     coh := CohortOfGroup( Image( hom ) );
     T := GeneratorsOfGroup( Image( hom ) );
-    T_ := GeneratorsOfGroup( Operation( G, G, OnLeftInverse ) );
+    T_ := GeneratorsOfGroup( Action( G, G, OnLeftInverse ) );
     gens := Concatenation( T, T_ );
     Add( gens, AutomorphismByConjugation( [ 1 .. Size( G ) ],
             Concatenation( T, T_ ), Concatenation( T_, T ) ) );
@@ -296,7 +317,7 @@ local   M,gens,V,  G,  E,  A;
     V := FieldOfMatrixGroup( M ) ^ DimensionOfMatrixGroup( M );
     
     # the linear part
-    G := Operation( M, V );
+    G := Action( M, V );
     
     # the translation part
     E := GroupByGenerators( List( Basis( V ), b ->
@@ -313,7 +334,7 @@ local   M,gens,V,  G,  E,  A;
     A := GroupByGenerators( Concatenation
                  ( GeneratorsOfGroup( G ), gens ) );
     SetSize( A, Size( M ) * Size( V ) );
-    Setter( EarnsAttr )( A, E );
+    SetEarns( A, E );
     if HasName( M )  then
         SetName( A, Concatenation( String( Size( FieldOfMatrixGroup( M ) ) ),
                 "^", String( DimensionOfMatrixGroup( M ) ), ":",
@@ -428,51 +449,14 @@ end );
 InstallGlobalFunction( AlmostDerivedSubgroup, function( G, nr )
     local   hom,  U;
     
-    hom := NaturalHomomorphismByNormalSubgroupInParent
-           ( PerfectResiduum( G ) );
+    hom := NaturalHomomorphismByNormalSubgroup(G,
+             PerfectResiduum( G ) );
     U := PreImage( hom, Representative
                  ( ConjugacyClassesSubgroups( Image( hom ) )[ nr ] ) );
     if HasName( G )  then
         SetName( U, Concatenation( Name( G ), "_", String( nr ) ) );
     fi;
     return U;
-end );
-
-#############################################################################
-##
-#F  Rank( <arg> ) . . . . . . . . . . . . . . . . . . . . number of suborbits
-##
-InstallMethod( RankOp, true, OrbitsishReq, 0,
-    function( G, D, gens, oprs, opr )
-    local   hom;
-    
-    hom := OperationHomomorphism( G, D, gens, oprs, opr );
-    return Rank( Image( hom ), [ 1 .. Length( D ) ] );
-end );
-
-InstallMethod( RankOp,
-        "G, ints, gens, perms, opr", true,
-        [ IsGroup, IsList and IsCyclotomicCollection,
-          IsList,
-          IsList,
-          IsFunction ], 0,
-    function( G, D, gens, oprs, opr )
-    if    opr <> OnPoints
-       or not IsIdenticalObj( gens, oprs )  then
-        TryNextMethod();
-    fi;
-    return Length( Orbits( Stabilizer( G, D, D[ 1 ], opr ),
-                   D, opr ) );
-end );
-
-InstallMethod( RankOp,
-        "G, [  ], gens, perms, opr", true,
-        [ IsGroup, IsList and IsEmpty,
-          IsList,
-          IsList,
-          IsFunction ], SUM_FLAGS,
-    function( G, D, gens, oprs, opr )
-    return 0;
 end );
 
 #############################################################################
@@ -576,16 +560,15 @@ InstallGlobalFunction( Cohort, function( deg, c )
     if c > Length( COHORTS[ deg ] )  then
         return Length( COHORTS[ deg ] );
     elif IsString( COHORTS[ deg ][ c ] )  then
-        ReadPrim( Concatenation( "cohorts/", COHORTS[ deg ][ c ],
-                ".", String( deg ) ) );
+        ReadCohorts( CohortToFilename(Concatenation(COHORTS[ deg ][ c ],
+                ".", String( deg )) ) );
         SetName( coh, Concatenation( COHORTS[ deg ][ c ],
                 "#", String( deg ) ) );
         COHORTS[ deg ][ c ] := coh;
     elif not IsGeneralMapping( COHORTS[ deg ][ c ] )  then
         if IsString( COHORTS[ deg ][ c ][ 1 ] )  then
-            ReadPrim( Concatenation( "cohorts/",
-                    COHORTS[ deg ][ c ][1],
-                    ".", String( deg ), COHORTS[ deg ][ c ][ 2 ] ) );
+            ReadCohorts(CohortToFilename(Concatenation(COHORTS[deg][c][1],
+                    ".", String( deg ), COHORTS[ deg ][ c ][ 2 ] )) );
             SetName( coh, Concatenation( COHORTS[ deg ][ c ][ 1 ],
                     "#", String( deg ), COHORTS[ deg ][ c ][ 2 ] ) );
             COHORTS[ deg ][ c ] := coh;
@@ -618,9 +601,10 @@ InstallGlobalFunction( MakePrimitiveGroup, function( deg, nr )
             div := DivisorsInt( p - 1 );
             if nr <= Length( div )  then
                 G := PrimitiveAffinePermGroupByMatrixGroup
-                  ( Group( [ [ PrimitiveRoot( GF( p ) ) ^
-                             div[ Length( div ) + 1 - nr ] ] ] ) );
-                Setter( IsPrimitiveAffineProp )( G, true );
+                  ( GroupByGenerators( [
+                        [ [ PrimitiveRoot( GF( p ) ) ^
+                             div[ Length( div ) + 1 - nr ] ] ] ] ) );
+                SetIsPrimitiveAffine( G, true );
                 return G;
             else
                 if nr = infinity  then  num := num + Length( div );
@@ -631,7 +615,7 @@ InstallGlobalFunction( MakePrimitiveGroup, function( deg, nr )
             if nr <= Length( IrredSolGroupList[ n ][ p ] )  then
                 G := PrimitiveAffinePermGroupByMatrixGroup
                      ( IrreducibleSolvableGroup( n, p, nr ) );
-                Setter( IsPrimitiveAffineProp )( G, true );
+                SetIsPrimitiveAffine( G, true );
                 return G;
             else
                 if nr = infinity  then
@@ -660,8 +644,8 @@ InstallGlobalFunction( MakePrimitiveGroup, function( deg, nr )
                 AFFINE_NON_SOLVABLE_GROUPS[ deg ][ nr ] := tmp[ 2 ];
                 SetName( AFFINE_NON_SOLVABLE_GROUPS[ deg ][ nr ], tmp[ 1 ] );
             fi;
-            Setter( IsPrimitiveAffineProp )
-              ( AFFINE_NON_SOLVABLE_GROUPS[ deg ][ nr ], true );
+            SetIsPrimitiveAffine( AFFINE_NON_SOLVABLE_GROUPS[ deg ][ nr ],
+                                  true );
             return AFFINE_NON_SOLVABLE_GROUPS[ deg ][ nr ];
         fi;
         if nr = infinity  then
@@ -712,7 +696,7 @@ InstallGlobalFunction( MakePrimitiveGroup, function( deg, nr )
         if nr > tmp  then
             cls[ nr ] := PreImage( coh, cls[ nr ] );
         fi;
-        Setter( IsPrimitiveAffineProp )( cls[ nr ], false );
+        SetIsPrimitiveAffine( cls[ nr ], false );
         SetName( cls[ nr ], Concatenation( Name( coh ), ".", String( nr ) ) );
         return cls[ nr ];
     elif deg > 4  and  nr = Length( cls ) + 1  then
@@ -727,8 +711,11 @@ InstallGlobalFunction( PrimitiveGroup, function( deg, nr )
     local   G;
     
     G := MakePrimitiveGroup( deg, nr );
+    if IsGroup(G) and NrMovedPoints(G)<>deg then
+      Error("inconsistency in library!");
+    fi;
     if IsGroup( G )  then
-        Setter( IsPrimitiveProp )( G, true );
+        SetIsPrimitive( G, true );
         if deg <= 50  then
             if IsEmpty( SIMS_NUMBERS )  then
                 ReadPrim( "simsnums.gi" );

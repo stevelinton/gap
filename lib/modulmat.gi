@@ -346,9 +346,9 @@ InstallMethod( Coefficients,
 
 #############################################################################
 ##
-#M  BasisOfDomain( <M> )  . . . . . . . . . . . . . .  for full matrix module
+#M  Basis( <M> )  . . . . . . . . . . . . . . . . . .  for full matrix module
 ##
-InstallMethod( BasisOfDomain,
+InstallMethod( Basis,
     "for full matrix module",
     true,
     [ IsFreeLeftModule and IsMatrixModuleRep and IsFullMatrixModule ],
@@ -370,5 +370,5 @@ InstallMethod( IsCanonicalBasisFullMatrixModule,
 
 #############################################################################
 ##
-#E  modulmat.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

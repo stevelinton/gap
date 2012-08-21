@@ -44,7 +44,6 @@ BindGlobal( "AbelianNumberFieldByReducedGaloisStabilizerInfo",
 
     d:= Phi(N) / Length( stab );
 
-    
     SetIsCyclotomicField( D, Length( stab ) = 1 );
     SetLeftActingDomain( D, F );
     SetDegreeOverPrimeField( D, d );
@@ -54,6 +53,7 @@ BindGlobal( "AbelianNumberFieldByReducedGaloisStabilizerInfo",
     SetSize( D, infinity );
     SetDimension( D, d / DegreeOverPrimeField( F ) );
     SetPrimeField( D, Rationals );
+    SetIsWholeFamily( D, false );
 
     return D;
 end );
@@ -68,7 +68,7 @@ end );
 ##
 InstallGlobalFunction( CyclotomicField, function ( arg )
 
-    local i, j, k, l, m, C, F, subfield, xtension, d, zumb, N, val;
+    local F, subfield, xtension;
 
     # If necessary split the arguments.
     if     Length( arg ) = 1
@@ -138,7 +138,7 @@ end );
 ##  which are minimal with the property that they describe the same abelian
 ##  number field as the input parameters <N> and <stabilizer>.
 ##
-ReducedGaloisStabilizerInfo := function( N, stabilizer )
+BindGlobal( "ReducedGaloisStabilizerInfo", function( N, stabilizer )
 
     local d,
           gens,
@@ -220,7 +220,7 @@ ReducedGaloisStabilizerInfo := function( N, stabilizer )
     fi;
 
     return rec( N:= N, stabilizer:= stabilizer );
-end;
+end );
 
 
 #############################################################################
@@ -497,6 +497,10 @@ InstallOtherMethod( Conductor,
 ##
 #M  Subfields( <F> )  . . . . . . . . .  subfields of an abelian number field
 ##
+##  The Galois group of an abelian number field is abelian,
+##  so the subfields are in bijection with the conjugacy classes of subgroups
+##  of the Galois group.
+##
 InstallMethod( Subfields,
     "for abelian number field of cyclotomics",
     true,
@@ -508,7 +512,7 @@ InstallMethod( Subfields,
     return Set( List( ConjugacyClassesSubgroups( GaloisGroup( F ) ),
                       x -> AbelianNumberField( n, Union( stab,
                              List( GeneratorsOfGroup( Representative( x ) ),
-                                   y -> y!.galois ) ) ) ) );
+                                   y -> ExponentOfPowering( y ) ) ) ) ) );
     end );
 
 
@@ -517,133 +521,149 @@ InstallMethod( Subfields,
 #M  FieldExtension( <subfield>, <poly> )  . .  extend an abelian number field
 ##
 InstallOtherMethod( FieldExtension,
-    "for abelian number field of cyclotomics, and univ. polynomial",
+    "for field of cyclotomics, and univ. polynomial (degree <= 2)",
     true,
 #T CollPoly
     [ IsAbelianNumberField and IsCyclotomicCollection,
-      IsUnivariateLaurentPolynomial ], 0,
+      IsLaurentPolynomial ], 0,
     function( F, poly )
 
     local coeffs, root;
 
-    coeffs:= ShiftedCoeffs( poly );
-    if not ForAll( coeffs, x -> x in F ) then
+    coeffs:= CoefficientsOfLaurentPolynomial( poly );
+    coeffs:= ShiftedCoeffs( coeffs[1], coeffs[2] );
+
+    if not IsSubset( F, coeffs ) then
       Error( "all coefficients of <poly> must lie in <F>" );
     elif 3 < Length( coeffs ) then
       TryNextMethod();
-    elif 2 <= Length( coeffs ) then
+    elif Length( coeffs ) <= 1 then
+      Error( "<poly> must have degree at least 1" );
+    elif Length( coeffs ) = 2 then
 
+      # `poly' is a linear polynomial.
+      root:= - coeffs[1] / coeffs[2];
       F:= AsField( F, F );
-      SetDefiningPolynomial( F, poly );
-
-      return F;
 
     else
 
+      # `poly' has degree 2.
       # The roots of `a*x^2 + b*x + c' are
       # $\frac{ -b \pm \sqrt{ b^2 - 4ac } }{2a}$.
-      root:= ( ER( coeffs[2]^2 - 4 * coeffs[1] * coeffs[3] )
-                                            - coeffs[2] ) / 2*coeffs[3];
+      root:= coeffs[2]^2 - 4 * coeffs[1] * coeffs[3];
+      if not IsRat( root ) then
+        TryNextMethod();
+      fi;
+      root:= ( ER( root ) - coeffs[2] ) / ( 2 * coeffs[3] );
       F:= AsField( F, FieldByGenerators(
-                           Concatenation( GeneratorsOfField( F ), root ) ) );
-      SetDefiningPolynomial( F, poly );
-      SetRootOfDefiningPolynomial( F, root );
-
-      return F;
+                       Concatenation( GeneratorsOfField( F ), [ root ] ) ) );
 
     fi;
+
+    # Store the defining polynomial, and a root of it in the extension field.
+    SetDefiningPolynomial( F, poly );
+    SetRootOfDefiningPolynomial( F, root );
+
+    return F;
     end );
 
 
 #############################################################################
 ##
-#M  Conjugates( <F>, <z> )
+#M  Conjugates( <L>, <K>, <z> )
 ##
 InstallMethod( Conjugates,
-    "for abelian number field of cyclotomics, and cyclotomic",
-    IsCollsElms,
-    [ IsAbelianNumberField and IsCyclotomicCollection, IsCyc ], 0,
-    function ( F, z )
+    "for two abelian number fields of cyclotomics, and cyclotomic",
+    IsCollsXElms,
+    [ IsAbelianNumberField and IsCyclotomicCollection,
+      IsAbelianNumberField and IsCyclotomicCollection, IsCyc ], 0,
+    function( L, K, z )
 
-    local N, gal, gens, result, pnt;
+    local N, gal, gens, conj, pnt;
 
-    N:= Conductor( F );
+    N:= Conductor( L );
 
     # automorphisms of the conductor
     gal:= PrimeResidues( N );
 
-    if not IsPrimeField( LeftActingDomain( F ) ) then
+    if not IsPrimeField( K ) then
 
       # take only the subgroup of `gal' that fixes the subfield pointwise
-      gens:= GeneratorsOfField( LeftActingDomain( F ) );
+      gens:= GeneratorsOfField( K );
       gal:= Filtered( gal,
                       x -> ForAll( gens, y -> GaloisCyc( y, x ) = y ) );
     fi;
 
     # get representatives of cosets of the Galois stabilizer
-    result:= [];
-    gens:= GaloisStabilizer( F );
+    conj:= [];
+    gens:= GaloisStabilizer( L );
     while gal <> [] do
       pnt:= gal[1];
-      Add( result, GaloisCyc( z, pnt ) );
+      Add( conj, GaloisCyc( z, pnt ) );
       SubtractSet( gal, List( gens, x -> ( x * pnt ) mod N ) );
     od;
 
-    return result;
+    return conj;
     end );
 
 InstallMethod( Conjugates,
-    "for cyclotomic field of cyclotomics, and cyclotomic",
-    IsCollsElms,
-    [ IsCyclotomicField and IsCyclotomicCollection, IsCyc ], 0,
-    function ( F, z )
+    "for cycl. field of cyclotomics, ab. number field, and cyclotomic",
+    IsCollsXElms,
+    [ IsCyclotomicField and IsCyclotomicCollection,
+      IsAbelianNumberField and IsCyclotomicCollection, IsCyc ], 0,
+    function( L, K, z )
 
-    local subfield, conj, i;
-    if not z in F then Error( "<z> must lie in <F>" ); fi;
-    subfield:= LeftActingDomain( F );
-    if IsPrimeField( subfield ) then
-      return List( PrimeResidues( Conductor( F ) ),
+    local conj, Kgens, i;
+
+    if not z in L then
+      Error( "<z> must lie in <L>" );
+    fi;
+
+    if IsPrimeField( K ) then
+      conj:= List( PrimeResidues( Conductor( L ) ),
                    i -> GaloisCyc( z, i ) );
     else
       conj:= [];
-      for i in PrimeResidues( Conductor( F ) ) do
-        if ForAll( GeneratorsOfField( subfield ),
-                   x -> GaloisCyc( x, i ) = x ) then
+      Kgens:= GeneratorsOfField( K );
+      for i in PrimeResidues( Conductor( L ) ) do
+        if ForAll( Kgens, x -> GaloisCyc( x, i ) = x ) then
           Add( conj, GaloisCyc( z, i ) );
         fi;
       od;
-      return conj;
     fi;
+
+    return conj;
     end );
 
 
 #############################################################################
 ##
-#M  Norm( <F>, <z> )
+#M  Norm( <L>, <K>, <z> )
 ##
 InstallMethod( Norm,
-    "for abelian number field of cyclotomics, and cyclotomic",
-    IsCollsElms,
-    [ IsAbelianNumberField and IsCyclotomicCollection, IsCyc ], 0,
-    function( F, z )
+    "for two abelian number fields of cyclotomics, and cyclotomic",
+    IsCollsXElms,
+    [ IsAbelianNumberField and IsCyclotomicCollection,
+      IsAbelianNumberField and IsCyclotomicCollection, IsCyc ], 0,
+    function( L, K, z )
     local N, gal, gens, result, pnt;
 
-    N:= Conductor( F );
+    N:= Conductor( L );
 
     # automorphisms of the conductor
     gal:= PrimeResidues( N );
 
-    if not IsPrimeField( LeftActingDomain( F ) ) then
+    if not IsPrimeField( K ) then
 
       # take only the subgroup of `gal' that fixes the subfield pointwise
-      gens:= GeneratorsOfField( LeftActingDomain( F ) );
+      gens:= GeneratorsOfField( K );
       gal:= Filtered( gal,
                       x -> ForAll( gens, y -> GaloisCyc( y, x ) = y ) );
     fi;
 
-    # get representatives of cosets of `GaloisStabilizer( F )'
+    # get representatives of cosets of `GaloisStabilizer( L )'
     result:= 1;
-    gens:= GaloisStabilizer( F );
+    gens:= GaloisStabilizer( L );
     while gal <> [] do
       pnt:= gal[1];
       result:= result * GaloisCyc( z, pnt );
@@ -654,56 +674,60 @@ InstallMethod( Norm,
     end );
 
 InstallMethod( Norm,
-    "for cyclotomic field of cyclotomics, and cyclotomic",
-    IsCollsElms,
-    [ IsCyclotomicField and IsCyclotomicCollection, IsCyc ], 0,
-    function( F, z )
-    local i, result, subfield;
+    "for cycl. field of cyclotomics, ab. number field, and cyclotomic",
+    IsCollsXElms,
+    [ IsCyclotomicField and IsCyclotomicCollection,
+      IsAbelianNumberField and IsCyclotomicCollection, IsCyc ], 0,
+    function( L, K, z )
+
+    local i, result, Kgens;
+
     result:= 1;
-    subfield:= LeftActingDomain( F );
-    if IsPrimeField( subfield ) then
-      for i in PrimeResidues( Conductor( F ) ) do
+    if IsPrimeField( K ) then
+      for i in PrimeResidues( Conductor( L ) ) do
         result:= result * GaloisCyc( z, i );
       od;
     else
-      for i in PrimeResidues( Conductor( F ) ) do
-        if ForAll( GeneratorsOfField( subfield ),
-                   x -> GaloisCyc( x, i ) = x ) then
+      Kgens:= GeneratorsOfField( K );
+      for i in PrimeResidues( Conductor( L ) ) do
+        if ForAll( Kgens, x -> GaloisCyc( x, i ) = x ) then
           result:= result * GaloisCyc( z, i );
         fi;
       od;
     fi;
+
     return result;
     end );
 
 
 #############################################################################
 ##
-#M  Trace( <F>, <z> )
+#M  Trace( <L>, K>, <z> )
 ##
 InstallMethod( Trace,
-    "for abelian number field of cyclotomics, and cyclotomic",
-    IsCollsElms,
-    [ IsAbelianNumberField and IsCyclotomicCollection, IsCyc ], 0,
-    function( F, z )
+    "for two abelian number fields of cyclotomics, and cyclotomic",
+    IsCollsXElms,
+    [ IsAbelianNumberField and IsCyclotomicCollection,
+      IsAbelianNumberField and IsCyclotomicCollection, IsCyc ], 0,
+    function( L, K, z )
     local N, gal, gens, result, pnt;
 
-    N:= Conductor( F );
+    N:= Conductor( L );
 
     # automorphisms of the conductor
-    gens:= GeneratorsOfField( LeftActingDomain( F ) );
+    gens:= GeneratorsOfField( K );
     gal:= PrimeResidues( N );
 
-    if not IsPrimeField( LeftActingDomain( F ) ) then
+    if not IsPrimeField( K ) then
 
       # take only the subgroup of `gal' that fixes the subfield pointwise
       gal:= Filtered( gal,
                       x -> ForAll( gens, y -> GaloisCyc( y, x ) = y ) );
     fi;
 
-    # get representatives of cosets of `GaloisStabilizer( F )'
+    # get representatives of cosets of `GaloisStabilizer( L )'
     result:= 0;
-    gens:= GaloisStabilizer( F );
+    gens:= GaloisStabilizer( L );
     while gal <> [] do
       pnt:= gal[1];
       result:= result + GaloisCyc( z, pnt );
@@ -714,25 +738,26 @@ InstallMethod( Trace,
     end );
 
 InstallMethod( Trace,
-    "for cyclotomic field of cyclotomics, and cyclotomic",
-    IsCollsElms,
-    [ IsCyclotomicField and IsCyclotomicCollection, IsCyc ], 0,
-    function( F, z )
-    local i, result, subfield;
+    "for cycl. field of cyclotomics, ab. number field, and cyclotomic",
+    IsCollsXElms,
+    [ IsCyclotomicField and IsCyclotomicCollection,
+      IsAbelianNumberField and IsCyclotomicCollection, IsCyc ], 0,
+    function( L, K, z )
+    local i, result, Kgens;
     result:= 0;
-    subfield:= LeftActingDomain( F );
-    if IsPrimeField( subfield ) then
-      for i in PrimeResidues( Conductor( F ) ) do
+    if IsPrimeField( K ) then
+      for i in PrimeResidues( Conductor( L ) ) do
         result:= result + GaloisCyc( z, i );
       od;
     else
-      for i in PrimeResidues( Conductor( F ) ) do
-        if ForAll( GeneratorsOfField( subfield ),
-                   x -> GaloisCyc( x, i ) = x ) then
+      Kgens:= GeneratorsOfField( K );
+      for i in PrimeResidues( Conductor( L ) ) do
+        if ForAll( Kgens, x -> GaloisCyc( x, i ) = x ) then
           result:= result + GaloisCyc( z, i );
         fi;
       od;
     fi;
+
     return result;
     end );
 
@@ -1255,9 +1280,9 @@ InstallMethod( CanonicalBasis,
 
 #############################################################################
 ##
-#M  BasisOfDomain( <F> )
+#M  Basis( <F> )
 ##
-InstallMethod( BasisOfDomain,
+InstallMethod( Basis,
     "for abelian number field of cyclotomics",
     true,
     [ IsAbelianNumberField and IsCyclotomicCollection ], 0,
@@ -1689,14 +1714,6 @@ SetDegreeOverPrimeField( Cyclotomics, infinity );
 SetDimension( Cyclotomics, infinity );
 
 
-#T ##########################################################################
-#T ##
-#T #F  CyclotomicsOps.MinimalPolynomial( Cyclotomics, <z> )
-#T ##
-#T CyclotomicsOps.MinimalPolynomial := function( Cyclotomics, z )
-#T     return Polynomial( Rationals, MinPol( Field( z ), z ) );
-#T     end;
-
 #############################################################################
 ##
 ##  Automorphisms of abelian number fields
@@ -1715,10 +1732,39 @@ DeclareRepresentation( "IsANFAutomorphismRep",
 ##
 #P  IsANFAutomorphism( <obj> )
 ##
-IsANFAutomorphism := IsANFAutomorphismRep
+DeclareSynonym( "IsANFAutomorphism", IsANFAutomorphismRep
     and IsFieldHomomorphism
     and IsMapping
-    and IsBijective;
+    and IsBijective );
+
+
+#############################################################################
+##
+#M  ExponentOfPowering( <map> )
+##
+InstallMethod( ExponentOfPowering,
+    "for an ANFAutomorphism",
+    true,
+    [ IsMapping and IsANFAutomorphismRep ], 0,
+    map -> map!.galois );
+
+InstallMethod( ExponentOfPowering,
+    "for an identity mapping",
+    true,
+    [ IsMapping and IsOne ], 0,
+    map -> 1 );
+
+InstallMethod( ExponentOfPowering,
+    "for a mapping",
+    true,
+    [ IsMapping ], 0,
+    function( map )
+    if IsOne( map ) then
+      return 1;
+    else
+      TryNextMethod();
+    fi;
+    end );
 
 
 #############################################################################
@@ -1948,7 +1994,7 @@ InstallMethod( PreImagesRepresentative,
 InstallMethod( CompositionMapping2,
     "for two ANF automorphisms",
     FamSource1EqFamRange2,
-    [ IsFieldHomomorphism and IsANFAutomorphismRep, 
+    [ IsFieldHomomorphism and IsANFAutomorphismRep,
       IsFieldHomomorphism and IsANFAutomorphismRep ], 0,
     function ( aut1, aut2 )
     return ANFAutomorphism( Source( aut1 ), aut1!.galois * aut2!.galois );
@@ -1995,24 +2041,29 @@ InstallMethod( PrintObj,
 ##
 #M  GaloisGroup( <F> )  . . . . . . . Galois group of an abelian number field
 ##
+##  The required group is a factor group of the Galois group $G$
+##  of the enveloping cyclotomic field.
+##  So the group $U$ generated by the actions of the generators of $G$ on <F>
+##  is the Galois group of <F>, viewed as field over the rationals.
+##
+##  If <F> is a field over a proper extension of the rationals then we take
+##  the pointwise stabilizer of the subfield in $U$.
+##
 InstallMethod( GaloisGroup,
-    "for abelian number field of cyclotomics",
-    true, [ IsAbelianNumberField and IsCyclotomicCollection ], 0,
-    function ( F )
+    "for abelian number field ",
+    true,
+    [ IsAbelianNumberField ], 0,
+    function( F )
     local group;
+
     group:= GroupByGenerators( List( Flat(
-                GeneratorsPrimeResidues( Conductor( F ) ).generators ),
-                         x -> ANFAutomorphism( F, x ) ),
-                   IdentityMapping( F ) );
+                    GeneratorsPrimeResidues( Conductor( F ) ).generators ),
+                        x -> ANFAutomorphism( F, x ) ),
+                IdentityMapping( F ) );
 
     if not IsPrimeField( LeftActingDomain( F ) ) then
-
-      # take the subgroup of the prime residue group that fixes the
-      # subfield pointwise;
-      # the required group is a factor group of this group
-      group:= Group( Stabilizer( group,
-                  GeneratorsOfField( LeftActingDomain( F ) ), OnTuples ) );
-#T ?
+      group:= Stabilizer( group,
+                  GeneratorsOfField( LeftActingDomain( F ) ), OnTuples );
     fi;
 
     return group;
@@ -2021,5 +2072,5 @@ InstallMethod( GaloisGroup,
 
 #############################################################################
 ##
-#E  fldabnum.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

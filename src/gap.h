@@ -117,6 +117,13 @@ extern void ErrorQuitIntSmall (
 extern void ErrorQuitIntSmallPos (
     Obj                 obj );
 
+/****************************************************************************
+**
+*F  ErrorQuitIntPos( <obj> ) . . . . . . .  not a positive  integer
+*/
+extern void ErrorQuitIntPos (
+    Obj                 obj );
+
 
 /****************************************************************************
 **

@@ -9,6 +9,12 @@
 
 gap> START_TEST("$Id$");
 
+# we don't want `GroupString' to display the number of generators as this
+# may differ. We get the sizes anyhow from the composition factors. Thus
+# install a dummy method
+gap> InstallMethod(GroupString, "for a group", true, [ IsGroup,IsString ], 0,
+> function( G,nam )return "Group";end);
+
 # missing (?):
 # bbox
 # dim8p3
@@ -1830,10 +1836,27 @@ gap> List( ChiefSeriesPermGroup( g ), Size );
 [ 36578304, 6048, 1 ]
 
 
-gap> STOP_TEST( "grpprmcs.tst", 10000 );
+# $A_5 \times A_5$ in primitive action on $60$ points
+# (direct factors corresponding to left and right regular action)
+
+gap> g:= AlternatingGroup( 5 );;
+gap> e:= AsList( g );;
+gap> gens:= GeneratorsOfGroup( g );;
+gap> p:= List( gens, i -> PermList( List( e, j -> Position( e, i*j ) ) ) );;
+gap> q:= List( gens, i -> PermList( List( e, j -> Position( e, j*i ) ) ) );;
+gap> h:= Group( Concatenation( p, q ) );
+<permutation group with 4 generators>
+gap> IsPrimitive( h, [ 1 .. 60 ] );
+true
+gap> CompositionSeries( h );
+[ <permutation group of size 3600 with 4 generators>, 
+  <permutation group of size 60 with 2 generators>, Group(()) ]
+
+
+gap> STOP_TEST( "grpprmcs.tst", 21790865000 );
 
 
 #############################################################################
 ##
-#E  grpprmcs.tst  . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

@@ -1,0 +1,4 @@
+@msfiles = ("fpsemi");
+@gdfiles  = ("fpsemi","kbsemi","tcsemi");
+$DIR = "../ref";
+$LIB = "../../lib";

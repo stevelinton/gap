@@ -16,21 +16,21 @@ Revision.vecmat_gd :=
 
 #############################################################################
 ##
-#V  GF2One  . . . . . . . . . . . . . . . . . . . . . . . . . .  one of GF(2)
+#v  GF2One  . . . . . . . . . . . . . . . . . . . . . . . . . .  one of GF(2)
 ##
-GF2One := Z(2);
+BIND_GLOBAL( "GF2One", Z(2) );
 
 
 #############################################################################
 ##
-#V  GF2Zero . . . . . . . . . . . . . . . . . . . . . . . . . . zero of GF(2)
+#v  GF2Zero . . . . . . . . . . . . . . . . . . . . . . . . . . zero of GF(2)
 ##
-GF2Zero := 0*Z(2);
+BIND_GLOBAL( "GF2Zero", 0*Z(2) );
 
 
 #############################################################################
 ##
-#R  IsGF2VectorRep  . . . . . . . . . . . . . . . . . . . . . vector over GF2
+#R  IsGF2VectorRep( <obj> ) . . . . . . . . . . . . . . . . . vector over GF2
 ##
 DeclareRepresentation(
     "IsGF2VectorRep",
@@ -55,19 +55,84 @@ DeclareGlobalVariable(
     "TYPE_LIST_GF2VEC_IMM",
     "type of a packed, immutable GF2 vector" );
 
+#############################################################################
+##
+#V  TYPE_LIST_GF2VEC_IMM_LOCKED . . . . . . . . type of immutable GF2 vectors
+##
+DeclareGlobalVariable(
+    "TYPE_LIST_GF2VEC_IMM_LOCKED",
+    "type of a packed, immutable GF2 vector with representation lock" );
+
 
 #############################################################################
 ##
 #F  ConvertToGF2VectorRep( <vector> ) . . . . . . . .  convert representation
 ##
-ConvertToGF2VectorRep := CONV_GF2VEC;
+DeclareSynonym( "ConvertToGF2VectorRep", CONV_GF2VEC );
 
+#############################################################################
+##
+#F  ConvertToVectorRep( <list> )
+#F  ConvertToVectorRep( <list> , <field> )
+#F  ConvertToVectorRep( <list> , <fieldsize> )
+##
+##  `ConvertToVectorRep( <list> )' converts <list> to an internal
+##  vector representation if possible.
+##
+##  `ConvertToVectorRep( <list> , <field> )' converts <list> to an
+##  internal vector representation appropriate for a vector over
+##  <field>. It is forbidden to call this function unless all elements
+##  of <list> lie in <field>.
+##
+##  Instead of a <field> also its size <fieldsize> may be given.
+##
+##  <list> may already be a compressed vector. In this case, if no
+##  <field> or <fieldsize> is given, then nothing happens. If one is
+##  given then the vector is rewritten as a compressed vector over the
+##  given <field> unless it has the filter
+##  `IsLockedRepresentationVector', in which case it is not changed.
+##
+##  The return value is the size of the field over which the vector
+##  ends up written, if it is written in a compressed representation.
+##  Otherwise it is `true' if the vector does consist entirely of elements
+##  of finite fields and `fail' otherwise.
+##  
+##
+DeclareGlobalFunction( "ConvertToVectorRep");
+
+#############################################################################
+##
+#F  ConvertToMatrixRep( <list> )
+#F  ConvertToMatrixRep( <list>, <field> )
+#F  ConvertToMatrixRep( <list>, <fieldsize> )
+##
+##  `ConvertToMatrixRep( <list> )' converts <list> to an internal
+##  matrix representation if possible.  `ConvertToMatrixRep( <list> ,
+##  <field> )' converts <list> to an internal matrix representation
+##  appropriate for a matrix over <field>. It is forbidden to call
+##  this function unless all elements of <list> are vectors with
+##  entries in  <field>.
+##
+##  Instead of a <field> also its size <fieldsize> may be given.
+##
+##  <list> may already be a compressed matrix. In this case, if no
+##  <field> or <fieldsize> is given, then nothing happens.
+##
+##  <list> itself may be mutable, but its entries must be immutable.
+##
+##  The return value is the size of the field over which the matrix
+##  ends up written, if it is written in a compressed representation.
+##  Otherwise it is `fail'. 
+##
+##
+
+DeclareGlobalFunction( "ConvertToMatrixRep");
 
 #############################################################################
 ##
 #F  ImmutableGF2VectorRep( <vector> ) . . . . . . . .  convert representation
 ##
-ImmutableGF2VectorRep := function( vector )
+BIND_GLOBAL( "ImmutableGF2VectorRep", function( vector )
     if ForAny( vector, x -> x <> GF2Zero and x <> GF2One )  then
         return fail;
     fi;
@@ -75,13 +140,13 @@ ImmutableGF2VectorRep := function( vector )
     CONV_GF2VEC(vector);
     SET_TYPE_DATOBJ( vector, TYPE_LIST_GF2VEC_IMM );
     return vector;
-end;
+end );
 
 
 #############################################################################
 ##
 
-#R  IsGF2MatrixRep  . . . . . . . . . . . . . . . . . . . . . matrix over GF2
+#R  IsGF2MatrixRep( <obj> ) . . . . . . . . . . . . . . . . . matrix over GF2
 ##
 DeclareRepresentation(
     "IsGF2MatrixRep",
@@ -91,9 +156,9 @@ DeclareRepresentation(
 
 #############################################################################
 ##
-#M  IsOrdinaryMatrix
-#M  IsConstantTimeAccessList
-#M  IsSmallList
+#M  IsOrdinaryMatrix( <obj> )
+#M  IsConstantTimeAccessList( <obj> )
+#M  IsSmallList( <obj> )
 ##
 ##  Lists in `IsGF2VectorRep' and `IsGF2MatrixRep' are (at least) as good
 ##  as lists in `IsInternalRep' w.r.t.~the above filters.
@@ -124,55 +189,20 @@ DeclareGlobalVariable(
     "type of a packed, immutable GF2 matrix" );
 
 
-#############################################################################
-##
-#F  SET_LEN_GF2MAT( <list>, <len> ) . . . . .  set the length of a GF2 matrix
-##
-SET_LEN_GF2MAT := function( list, len )
-    list![1] := len;
-end;
-
 
 #############################################################################
 ##
 #F  ConvertToGF2MatrixRep( <matrix> ) . . . . . . . .  convert representation
 ##
-ConvertToGF2MatrixRep := function(matrix)
-    local   i;
 
-    if not IsMutable(matrix)  then
-        return;
-    fi;
-
-    #T 1997/11/3 fceller replace this by `CONV_PLIST'
-    if not IsPlistRep(matrix)  then
-        return;
-    fi;
-
-    # check that we can convert the entries
-    for i  in [ 1 .. Length(matrix) ]  do
-        if IsMutable(matrix[i]) or not IsGF2VectorRep(matrix[i])  then
-            return;
-        fi;
-    od;
-
-    # put length at position 1
-    for i  in [ Length(matrix), Length(matrix)-1 .. 1 ]  do
-        matrix[i+1] := matrix[i];
-    od;
-    matrix[1] := Length(matrix)-1;
-
-    # and convert
-    Objectify( TYPE_LIST_GF2MAT, matrix );
-
-end;
+DeclareSynonym( "ConvertToGF2MatrixRep", CONV_GF2MAT);
 
 
 #############################################################################
 ##
 #F  ImmutableGF2MatrixRep( <matrix> ) . . . . . . . .  convert representation
 ##
-ImmutableGF2MatrixRep := function(matrix)
+BIND_GLOBAL( "ImmutableGF2MatrixRep", function(matrix)
     local   new,  i,  row;
 
     # put length at position 1
@@ -191,15 +221,15 @@ ImmutableGF2MatrixRep := function(matrix)
     # and return new matrix
     return new;
 
-end;
+end );
 
 
 #############################################################################
 ##
-
 #F  ImmutableMatrix( <field>, <matrix> ) . convert into "best" representation
 ##
-ImmutableMatrix := function( field, matrix )
+BIND_GLOBAL( "ImmutableMatrix", function( field, matrix )
+    local mat;
 
     # matrix over GF2
     if IsFinite(field) and Size(field) = 2  then
@@ -207,13 +237,33 @@ ImmutableMatrix := function( field, matrix )
 
     # everything else
     else
-        return Immutable(matrix);
+        mat := Immutable(matrix);
+        ConvertToMatrixRep(mat);
+        return mat;
     fi;
-end;
+end );
 
 
 #############################################################################
 ##
+#O  PositionNonZero( <vec> ) . . . . . . . . Position of first non-zero entry
+##
+## Returns either an integer, which is the position of the first non-zero element of
+## the row vector, or fail if all elements of the row vector are zero.
+##
+DeclareOperation("PositionNonZero", [IsRowVector]);
 
-#E  vecmat.gd . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#############################################################################
+##
+#O  NumberFFVector(<vec>,<sz>)
+##
+##  returns an integer that gives the position of the finite field row vector
+##  (<vec>) in the sorted list of all row vectors over the field with <sz>
+##  elements in the same dimension as <vec>.
+DeclareOperation("NumberFFVector", [IsRowVector,IsPosInt]);
+  
+  
+#############################################################################
+##
+#E
 ##

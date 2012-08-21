@@ -1,3 +1,6 @@
+Revision.deg16_aff :=
+    "@(#)$Id$";
+
 AFFINE_NON_SOLVABLE_GROUPS[ 16 ] := [
  function() return
  PrimitiveAffinePermGroupByMatrixGroup( GL( 4, 2 ) );

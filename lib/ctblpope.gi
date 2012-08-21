@@ -15,81 +15,9 @@ Revision.ctblpope_gi :=
     "@(#)$Id$";
 
 
-#T option to compute only multiplicity free candidates?
-
-
 #############################################################################
 ##
-#F  ClassOrbitCharTable( <tbl>, <cc> )  . . . .  classes of a cyclic subgroup
-##
-InstallGlobalFunction( ClassOrbitCharTable, function( tbl, cc )
-    local i, oo, res;
-
-    res:= [ cc ];
-    oo:= OrdersClassRepresentatives( tbl )[cc];
-
-    # find all generators of <cc>
-    for i in [ 2 .. oo-1 ] do
-       if GcdInt(i, oo) = 1 then
-          AddSet( res, PowerMap( tbl, i, cc ) );
-       fi;
-    od;
-
-    return res;
-end );
-
-
-#############################################################################
-##
-#F  ClassRootsCharTable( <tbl> )  . . . . . . . . nontrivial root of elements
-##
-InstallGlobalFunction( ClassRootsCharTable, function( tbl )
-
-    local i, nccl, orders, pmap, root;
-
-    nccl   := NrConjugacyClasses( tbl );
-    orders := OrdersClassRepresentatives( tbl );
-    root   := List([1..nccl], x->[]);
-
-    for pmap in ComputedPowerMaps( tbl ) do
-       for i in [1..nccl] do
-          if i <> pmap[i] and orders[i] <> orders[pmap[i]] then
-             AddSet(root[pmap[i]], i);
-          fi;
-       od;
-    od;
-
-    return root;
-end );
-
-
-#############################################################################
-##
-#F  SubClass( <tbl>, <char> ) . . . . . . . . . . . size of class in subgroup
-##
-InstallGlobalFunction( SubClass , function(tbl, char)
-
-   local sc, i;
-
-   sc:= ShallowCopy( SizesConjugacyClasses( tbl ) );
-   char:= ValuesOfClassFunction( char );
-
-   for i in [2..Length(char)] do
-      sc[i]:= (char[i] * sc[i]) / char[1];
-      if not IsInt(sc[i]) then
-        Print( "#E SubClass(): noninteger number of elements in class ",
-               i, "\n");
-      fi;
-   od;
-
-   return sc;
-
-end );
-
-
-#############################################################################
-##
-#F  TestPerm1( <tbl>, <char> ) . . . . . . . . . . . . . . . . test permchar
+#F  TestPerm1( <tbl>, <char> ) . . . . . . . . . . . . . . . .  test permchar
 ##
 InstallGlobalFunction( TestPerm1, function(tbl, char)
 
@@ -110,13 +38,12 @@ InstallGlobalFunction( TestPerm1, function(tbl, char)
    od;
 
    return 0;
-
 end );
 
 
 #############################################################################
 ##
-#F  TestPerm2( <tbl>, <char> ) . . . . . . . . . . . . test permchar
+#F  TestPerm2( <tbl>, <char> ) . . . . . . . . . . . . . . . .  test permchar
 ##
 InstallGlobalFunction( TestPerm2, function(tbl, char)
 
@@ -155,16 +82,24 @@ InstallGlobalFunction( TestPerm2, function(tbl, char)
    subfak:= Set(Factors(subord));
    for prime in subfak do
       if subord mod prime^2 <> 0 then
+
+        # Compute the number of elements of order $p$ in the
+        # (hypothetical) subgroup $H$.
         sum:= 0;
         for j in [2..nccl] do
           if tbl_orders[j] = prime then
             sum:= sum + subclass[j];
           fi;
         od;
+
+        # Check that the number of Sylow $s$ subgroups is an integer
+        # that is congruent to $1$ modulo $p$.
         if (sum - prime + 1) mod (prime * (prime - 1)) <> 0 then
           Info( InfoCharacterTable, 2, ":" );
           return 5;
         fi;
+
+        # Check that the number of Sylow $p$ subgroups in $H$ divides $|H|$.
         if subord mod (sum / (prime - 1)) <> 0 then
           Info( InfoCharacterTable, 2, ";" );
           return 5;
@@ -173,49 +108,62 @@ InstallGlobalFunction( TestPerm2, function(tbl, char)
    od;
 
    return 0;
-
 end );
 
 
 #############################################################################
 ##
-#F  TestPerm3( <tbl>, <permch> ) . . . . . . . . . . . . . . . test permchar
+#F  TestPerm3( <tbl>, <permch> ) . . . . . . . . . . . . . . .  test permchar
 ##
-InstallGlobalFunction( TestPerm3, function(tbl, permch)
+InstallGlobalFunction( TestPerm3, function( tbl, permch )
 
-   local i, j, nccl, fb, sc, corbs, lc, phii, pc, tbl_orders;
+    local i, j, nccl, fb, corbs, lc, phii, pi, orders, classes, good;
 
-   fb:= [];
-   lc:= [];
-   phii:= [];
-   tbl_orders:= OrdersClassRepresentatives( tbl );
-   nccl:= Length(tbl_orders);
+    fb      := [];
+    lc      := [];
+    phii    := [];
+    orders  := OrdersClassRepresentatives( tbl );
+    classes := SizesConjugacyClasses( tbl );
+    nccl    := Length( orders );
 
-   for i in [1..nccl] do
-      if not IsBound(lc[i]) then
-        corbs:= ClassOrbitCharTable(tbl, i);
-        lc[i]:= Length(corbs);
+    # Compute the values $`phii[i]' = [ N_G(g_i) : C_G(g_i) ]$,
+    # store them only for one representative of each Galois family.
+    for i in [ 1 .. nccl ] do
+      if not IsBound( lc[i] ) then
+        corbs:= ClassOrbit( tbl, i );
+        lc[i]:= Length( corbs );
         for j in corbs do
           lc[j]:= lc[i];
         od;
-        phii[i]:= Phi(tbl_orders[i]) / lc[i];
+        phii[i]:= Phi( orders[i] ) / lc[i];
       fi;
-   od;
+    od;
 
-   for pc in permch do
-      sc:= SubClass(tbl, pc);
-      for j in [2..nccl] do
-        if tbl_orders[j] > 2 and IsBound(phii[j]) then
-          if sc[j] mod phii[j] <> 0 then
-            AddSet(fb, pc);
-          fi;
+    # Check condition (h) for all characters $\pi$ in `permch',
+    # i.e., $\pi(1) |N_G(g)|$ divides $\pi(g) |G|$ for all $g \in G$.
+    for pi in permch do
+      good:= true;
+      for j in [ 2 .. nccl ] do
+        if     2 < orders[j] and IsBound( phii[j] )
+           and ( pi[j] * classes[j] ) mod ( pi[1] * phii[j] ) <> 0 then
+          good:= false;
+          break;
         fi;
       od;
-   od;
+      if good then
+        AddSet( fb, pi );
+      fi;
+    od;
 
-   return fb;
-
+    # Return the list of characters that satisfy condition (h).
+    return fb;
 end );
+
+
+#############################################################################
+##
+#F  TestPerm4( <tbl>, <chars>, <modtbl> )  . . . . . . . . . .  test permchar
+##
 
 
 #############################################################################
@@ -225,7 +173,9 @@ end );
 ##
 InstallGlobalFunction( Inequalities, function( arg )
 
-   local tbl, chars, option,
+   local tbl,      # character table, first argument
+         chars,    # list of characters, second argument
+         option,   # optional third argument, `"small"' is supported
          i, j, h, o, dim, nccl, ncha, c, X, dir, root, ineq, tuete,
          Conditor, Kombinat, other, mini, con, conO, conU, pos,
          proform, project;
@@ -239,6 +189,8 @@ InstallGlobalFunction( Inequalities, function( arg )
       tbl:= arg[1];
       chars:= arg[2];
       option:= arg[3];
+   else
+     Error( "usage: Inequalities( <tbl>, <chars>[, <option>] )" );
    fi;
 
    # local functions
@@ -330,9 +282,9 @@ InstallGlobalFunction( Inequalities, function( arg )
    c:= TransposedMat(X);
 
    # determine power conditions
-   # ie: for each class find a root and replace coloumn by difference.
+   # ie: for each class find a root and replace column by difference.
 
-   root:= ClassRootsCharTable(tbl);
+   root:= ClassRoots(tbl);
    ineq:= [];   other:= [];  pos:= [];
    for i in [2..nccl] do
       if not c[i] in ineq then
@@ -438,19 +390,18 @@ end );
 
 #############################################################################
 ##
-#F  Permut( <tbl>, <arec> )               2 Jul 91
-##
-##  determine possible permutation characters
+#F  Permut( <tbl>, <arec> )
 ##
 InstallGlobalFunction( Permut, function( tbl, arec )
 
-    local tbl_size, permel, sortedchars, degree,
+    local tbl_size, permel, sortedchars,
           a, amin, amax, c, ncha, len, i, j, k, l, permch,
           Conditor, comb, cond, X, divs, pm, minR, maxR,
           d, sub, del, s, nccl, root, other,
           time1, time2, total, free, const, lowerBound, upperBound,
           einfug, solveKnot, nextLevel, insertValue, suche;
 
+    # Check the arguments.
     if not IsOrdinaryTable( tbl ) then
        Error( "<tbl> must be complete character table" );
     fi;
@@ -466,12 +417,6 @@ InstallGlobalFunction( Permut, function( tbl, arec )
       sortedchars:= SortedCharacters( tbl, Irr( tbl ), "degree" );
       permel:= Inequalities( tbl, sortedchars );
 
-    fi;
-
-    if IsBound(arec.degree) then
-       degree:= arec.degree;
-    else
-       degree:= 0;
     fi;
 
     # local functions
@@ -584,7 +529,7 @@ InstallGlobalFunction( Permut, function( tbl, arec )
     insertValue:= function(const, s)
        local i, j, c;
 
-       const:= ShallowCopy(const);
+       const:= List( const, ShallowCopy );
 
        for i in [s..ncha] do
           c:= const[i];
@@ -632,62 +577,6 @@ InstallGlobalFunction( Permut, function( tbl, arec )
        fi;
     end;
 
-    suche:= function(s)
-       local unten, oben, i, j, char, fail,
-             maxu, mino, c;
-
-       unten:= [];
-       oben:= [];
-
-       maxu:= 0;
-
-       for i in [1..Length(Conditor[s].u)] do
-         unten:= 0;
-         for j in [1..s-1] do
-           unten:= unten - a[j]*Conditor[s].u[i][j];
-         od;
-         if unten <= 0 then
-           unten:= 0;
-         else
-           unten:= QuoInt(unten-1, Conditor[s].u[i][s]) + 1;
-         fi;
-
-         maxu:= Maximum(maxu, unten);
-       od;
-       for i in [1..Length(Conditor[s].o)] do
-         oben:= 0;
-         for j in [1..s-1] do
-           oben:= oben + a[j]*Conditor[s].o[i][j];
-         od;
-         if oben < 0 then
-           oben:= -1;
-         else
-           oben:= QuoInt(oben, -Conditor[s].o[i][s]);
-         fi;
-         if not IsBound(mino) then
-           mino:= oben;
-         else
-           mino:= Minimum(mino, oben);
-         fi;
-       od;
-
-       for i in [maxu..mino] do
-         a[s]:= i;
-         if s < ncha then
-           suche(s+1);
-         else
-           total:= total+1;
-           char:= a * X;
-           fail:= TestPerm2(tbl, char);
-           if fail = 0 then
-             Add(permch, char);
-             Info( InfoCharacterTable, 2, Length(permch), a, "\n", char );
-           fi;
-         fi;
-       od;
-       a[s]:= 0;
-    end;
-
     nccl:= NrConjugacyClasses( tbl );
     total:= 0;
     X:= permel.obj;
@@ -698,6 +587,7 @@ InstallGlobalFunction( Permut, function( tbl, arec )
     a:= [1];
 
     if IsBound(arec.degree) then
+
        minR:= Minimum(arec.degree); maxR:= Maximum(arec.degree);
        amax:= [1]; amin:= [1];
        Conditor:= permel.Conditor;
@@ -705,19 +595,87 @@ InstallGlobalFunction( Permut, function( tbl, arec )
        free[1]:= false;
        const:= List(Conditor, x-> List(x, y->y[1]));
        solveKnot(const, free);
+
+       # The result list may contain also some characters of degree
+       # different from the desired ones.
+       # We remove these characters.
+       permch:= Filtered( permch, x -> x[1] in arec.degree );
+
     else
+
+       suche:= function(s)
+          local unten, oben, i, j, char, fail,
+                maxu, mino, c;
+   
+          unten:= [];
+          oben:= [];
+   
+          maxu:= 0;
+   
+          for i in [1..Length(Conditor[s].u)] do
+            unten:= 0;
+            for j in [1..s-1] do
+              unten:= unten - a[j]*Conditor[s].u[i][j];
+            od;
+            if unten <= 0 then
+              unten:= 0;
+            else
+              unten:= QuoInt(unten-1, Conditor[s].u[i][s]) + 1;
+            fi;
+   
+            maxu:= Maximum(maxu, unten);
+          od;
+          for i in [1..Length(Conditor[s].o)] do
+            oben:= 0;
+            for j in [1..s-1] do
+              oben:= oben + a[j]*Conditor[s].o[i][j];
+            od;
+            if oben < 0 then
+              oben:= -1;
+            else
+              oben:= QuoInt(oben, -Conditor[s].o[i][s]);
+            fi;
+            if not IsBound(mino) then
+              mino:= oben;
+            else
+              mino:= Minimum(mino, oben);
+            fi;
+          od;
+   
+          for i in [maxu..mino] do
+            a[s]:= i;
+            if s < ncha then
+              suche(s+1);
+            else
+              total:= total+1;
+              char:= a * X;
+              fail:= TestPerm2(tbl, char);
+              if fail = 0 then
+                Add(permch, char);
+                Info( InfoCharacterTable, 2, Length(permch), a, "\n", char );
+              fi;
+            fi;
+          od;
+          a[s]:= 0;
+       end;
+   
        Conditor:= [];
        for i in [1..ncha] do
          Conditor[i]:= rec(o:= Filtered(permel.Conditor[i], x->x[i] < 0),
                            u:= Filtered(permel.Conditor[i], x->x[i] > 0));
        od;
+
        suche(2);
+
     fi;
+
+    # Check condition (h).
+    permch:= TestPerm3( tbl, permch );
 
     Info( InfoCharacterTable, 2,"Total number of tested Characters:", total );
     Info( InfoCharacterTable, 2,"Surviving:      ", Length(permch) );
 
-    return List( Set(permch), vals -> CharacterByValues( tbl, vals ) );;
+    return List( permch, vals -> Character( tbl, vals ) );;
 end );
 
 
@@ -738,7 +696,7 @@ InstallGlobalFunction( PermBounds, function(tbl, degree)
    # determine power conditions
    # i.e.: for each class find a root and replace column by difference.
 
-   root:= ClassRootsCharTable(tbl);
+   root:= ClassRoots(tbl);
    ineq:= [];   other:= [];  pos:= [];
    for i in [2..nccl] do
       if not c[i] in ineq then
@@ -776,7 +734,7 @@ InstallGlobalFunction( PermBounds, function(tbl, degree)
    Add(ineq, deglist);
    Add(vec, degree-1);
 
-   point:= TransposedMat(ineq);
+   point:= MutableTransposedMat(ineq);
    Add(point, -vec);
 
    point:= point^-1;
@@ -801,8 +759,8 @@ InstallGlobalFunction( PermComb, function( tbl, arec )
    local irreds,        # irreducible characters of `tbl'
          newirreds,     # shallow copy of `irreds'
          perm,          # permutation of constituents
-         mindeg,        # list of minimal mmultiplicities of constituents
-         maxdeg,        # list of maximal mmultiplicities of constituents
+         mindeg,        # list of minimal multiplicities of constituents
+         maxdeg,        # list of maximal multiplicities of constituents
          lincom,        # local function, backtrack
          prep,
          X,             # possible constituents
@@ -869,6 +827,7 @@ InstallGlobalFunction( PermComb, function( tbl, arec )
          for j in [2..i] do
            maxb[i]:= maxb[i] + xdegrees[j] * maxdeg[j];
          od;
+#T improve! (maxb[i]:= maxb[i-1] + xdegrees[j] * maxdeg[j];)
       od;
       d:= arec.degree - Constituent[1];
       k:= ncha - 1;
@@ -892,10 +851,14 @@ InstallGlobalFunction( PermComb, function( tbl, arec )
              fail:= TestPerm2(tbl, char);
            fi;
            if fail = 0 then
+#T better:
+#T         if TestPerm1( tbl, char ) = 0 and TestPerm2( tbl, char ) = 0 then
              Add( permch, char );
              Info( InfoCharacterTable, 2, Length(permch), comb, "\n", char );
+#T ??
            else
              Info( InfoCharacterTable, 2, "-" );
+#T ??
            fi;
          fi;
 
@@ -930,18 +893,39 @@ InstallGlobalFunction( PermComb, function( tbl, arec )
    xdegrees:= List(X, x->x[1]);
    permch:= [];
 
+   # Compute bounds for the multiplicities of the constituents.
+   # (The trivial character *must* have multiplicity $1$.)
    if IsRecord( prep ) then
+
+      # Compute minimal and maximal multiplicities from the info in `prep'.
       point:= prep.point + arec.degree * rho;
       maxdeg:= [1];
       Append(maxdeg, maxList(point));
       mindeg:= [1];
       Append(mindeg, minList(point));
-   else
+
+   elif IsBound( arec.maxmult ) then
+
+      # Explicit bounds for the maximal multiplicities are prescribed.
+      maxdeg:= arec.maxmult;
       maxdeg:= List( [ 1 .. Length( xdegrees ) ],
-       i -> Minimum( xdegrees[i], QuoInt( arec.degree - 1, xdegrees[i] ) ) );
+                   i -> Minimum( xdegrees[i], maxdeg[i],
+                                 QuoInt( arec.degree - 1, xdegrees[i] ) ) );
       maxdeg[1]:= 1;
       mindeg:= List( X, x -> 0 );
       mindeg[1]:= 1;
+
+   else
+
+      # The maximal multiplicity of $\psi$ in $\pi$ is bounded
+      # by $\psi(1)/[\psi,\psi]$ and by $(\pi(1)-1)/\psi(1)$.
+      maxdeg:= List( [ 1 .. Length( xdegrees ) ],
+                   i -> Minimum( xdegrees[i],
+                                 QuoInt( arec.degree - 1, xdegrees[i] ) ) );
+      maxdeg[1]:= 1;
+      mindeg:= List( X, x -> 0 );
+      mindeg[1]:= 1;
+
    fi;
 
    # `mindeg' prescribes a constituent.
@@ -949,43 +933,73 @@ InstallGlobalFunction( PermComb, function( tbl, arec )
    maxdeg:= maxdeg - mindeg;
 
    lincom();
+
+   # Check condition (h).
+   permch:= TestPerm3( tbl, permch );
+
    Sort( permch );
-   return List( permch, values -> CharacterByValues( tbl, values ) );
+   return List( permch, values -> Character( tbl, values ) );
 end );
 
 
 #############################################################################
 ##
-#F  PermCandidates( <tbl>, <characters>, <torso> )
+#F  PermCandidates( <tbl>, <characters>, <torso>, <all> )
 ##
-InstallGlobalFunction( PermCandidates, function( tbl, characters, torso )
+InstallGlobalFunction( PermCandidates,
+    function( tbl, characters, torso, all )
 
     local tbl_classes,         # attribute of `tbl'
           tbl_size,            # attribute of `tbl'
-          tbl_orders,          # attribute of `tbl'
+          ratchars,            # list of all rational irreducible characters
+          consider_candidate,  # function to check each candidate
+          orders,              # list of representative orders of `tbl'
           tbl_centralizers,    # attribute of `tbl'
           i, chi, matrix, fusion, moduls, divs, normindex, candidate,
-          classes, nonzerocol, possibilities, rest, images, uniques,
+          classes, nonzerocol,
+          possibilities,       # list of candidates already found
+          rest, images, uniques,
           nccl, min_anzahl, min_class, erase_uniques, impossible,
-          evaluate, ischaracter, first, localstep,
+          evaluate, first, localstep,
           remain, ncha, pos, fusionperm, newimages, oldrows, newmatrix,
           step, erster, descendclass, j, row;
 
     tbl_classes:= SizesConjugacyClasses( tbl );
     tbl_size:= Size( tbl );
 
-    ischaracter:= function( genchar )   # we know that `genchar' is a
-                                        # generalized character
+    if all = true then 
+      ratchars:= characters;
+    else
+      ratchars:= RationalizedMat( Irr( tbl ) );
+    fi;
+
+    # We know that `genchar' is a generalized character,
+    # since it is in the span of `characters', modulo the generalized
+    # characters that are nonzero on exactly one Galois family of classes.
+    consider_candidate:= function( genchar )
+
       local i, chi, cand;
+
+      # Check condition (a),
+      # i.e., the scalar products with `ratchars' are nonnegative.
       cand:= [];
       for i in [ 1 .. Length( genchar ) ] do
         cand[i]:= genchar[i] * tbl_classes[i];
       od;
-#T better: once multiply all in `characters' with the class lengths!
-      for chi in characters do
-        if cand * chi < 0 then return false; fi;
+#T better: once multiply all in `ratchars' with the class lengths!
+      for chi in ratchars do
+        if cand * chi < 0 then
+          return false;
+        fi;
       od;
-      return true;
+
+      # Check some properties of possible permutation characters
+      # that are not guaranteed by the construction.
+#T some of them are guaranteed but still tested here ...
+      if TestPerm1( tbl, genchar ) = 0 and TestPerm2( tbl, genchar ) = 0 then
+        Add( possibilities, genchar );
+      fi;
+
     end;
 
     # step 1: check and improve input
@@ -995,25 +1009,42 @@ InstallGlobalFunction( PermCandidates, function( tbl, characters, torso )
       return [];
     fi;
 
-    tbl_orders:= OrdersClassRepresentatives( tbl );
-    for i in [ 1 .. Length( characters[1] ) ] do       # necessary zeroes
-      if ( tbl_size / torso[1] ) mod tbl_orders[i] <> 0 then
+    # Force property (g) of possible permutation characters.
+    # ($\pi(g) = 0$ if the order of $g$ does not divide $|G|/\pi(1)$.)
+    orders:= OrdersClassRepresentatives( tbl );
+    for i in [ 1 .. Length( characters[1] ) ] do
+      if ( tbl_size / torso[1] ) mod orders[i] <> 0 then
         if IsBound( torso[i] ) and IsInt( torso[i] ) and torso[i] <> 0 then
           Error( "value must be zero at class ", i );
         fi;
         torso[i]:= 0;
       fi;
     od;
-    matrix:= [];                                        # delete impossibles
+
+    # In all cases except one,
+    # only constituents of degree less than the desired degree are allowed.
+    matrix:= [];
     for chi in characters do
-      if chi[1] < torso[1] then AddSet( matrix, chi ); fi;
+      if chi[1] < torso[1] then
+        AddSet( matrix, chi );
+      fi;
     od;
-    tbl_centralizers:= SizesCentralizers( tbl );
-    if matrix = [] then       # At most the trivial character is possible
+
+    # (Of course the trivial character itself is the exception.)
+    if IsEmpty( matrix ) then
       if ForAll( torso, x -> x = 1 ) then
-        return [ List( tbl_centralizers, x -> 1 ) ];
+        return [ TrivialCharacter( tbl ) ];
+      else
+        return [];
       fi;
     fi;
+
+    # The computations in each column are done modulo the centralizer
+    # order of this column.
+    # More precisely, we may choose the largest centralizer order for
+    # all those columns of the character table that correspond to the
+    # given column of `matrix'.
+    tbl_centralizers:= SizesCentralizers( tbl );
     matrix:= CollapsedMat( matrix, [ ] );
     fusion:= matrix.fusion;
     matrix:= matrix.mat;
@@ -1022,16 +1053,20 @@ InstallGlobalFunction( PermCandidates, function( tbl, characters, torso )
       if IsBound( moduls[ fusion[i] ] ) then
         moduls[ fusion[i] ]:= Maximum( moduls[ fusion[i] ],
                                        tbl_centralizers[i] );
-        # Would Lcm be allowed?
+#T Would Lcm be allowed?
       else
         moduls[ fusion[i] ]:= tbl_centralizers[i];
       fi;
     od;
-    divs:= [ torso[1] ];    # X[1] / Gcd( X[1], classes[g] ) | X[g]
-                            # better: X[1] / Gcd( X[1], order/N(g) ) | X[g]
+
+    # Force property (h) of possible permutation characters,
+    # i.e., $\pi(1) |N_G(g)|$ divides $\pi(g) |G|$ for all $g \in G$.
+    # (This is equivalent to the condition that
+    # $\pi(1) / \gcd( \pi(1), [ G : N_G(g) ] )$ divides $\pi(g)$.)
+    divs:= [ torso[1] ];
     for i in [ 2 .. Length( fusion ) ] do
-      normindex:= ( tbl_classes[i] * Length( ClassOrbitCharTable( tbl, i ) ) )
-                                                         / Phi( tbl_orders[i] );
+      normindex:= ( tbl_classes[i] * Length( ClassOrbit( tbl, i ) ) )
+                                                         / Phi( orders[i] );
       if IsBound( divs[ fusion[i] ] ) then
         divs[ fusion[i] ]:= Lcm( divs[ fusion[i] ],
                                  torso[1] / GcdInt( torso[1], normindex ) );
@@ -1039,6 +1074,7 @@ InstallGlobalFunction( PermCandidates, function( tbl, characters, torso )
         divs[ fusion[i] ]:= torso[1] / GcdInt( torso[1], normindex );
       fi;
     od;
+
     candidate:= [];
     nonzerocol:= [];
     classes:= [];
@@ -1047,10 +1083,19 @@ InstallGlobalFunction( PermCandidates, function( tbl, characters, torso )
       nonzerocol[i]:= true;
       classes[i]:= 0;
     od;
+
     for i in [ 1 .. Length( fusion ) ] do
       classes[ fusion[i] ]:= classes[ fusion[i] ] + tbl_classes[i];
     od;
-    possibilities:= []; # global list of all permutation character candidates
+
+    # Initialize the global list of all possible permutation characters.
+    possibilities:= [];
+
+    # The scalar product of the trivial character with a transitive
+    # permutation character is $1$,
+    # this yields an upper bound on the values that are not yet known.
+    # We subtract the known values from `Size( tbl )'.
+    # (If there is a contradiction, we return an empty list.)
     rest:= tbl_size;
     images:= [];
     uniques:= [];
@@ -1058,13 +1103,18 @@ InstallGlobalFunction( PermCandidates, function( tbl, characters, torso )
       if IsBound( torso[i] ) and IsInt( torso[i] ) then
         if IsBound( images[ fusion[i] ] ) then
           if torso[i] <> images[ fusion[i] ] then
-            return [];      # different values in equal columns
+
+            # Different values are prescribed for identified columns.
+            return [];
+
           fi;
         else
           images[ fusion[i] ]:= torso[i];
           AddSet( uniques, fusion[i] );
           rest:= rest - classes[ fusion[i] ] * torso[i];
-          if rest < 0 then return []; fi;
+          if rest < 0 then
+            return [];
+          fi;
         fi;
       fi;
     od;
@@ -1090,7 +1140,7 @@ InstallGlobalFunction( PermCandidates, function( tbl, characters, torso )
           col:= -col;
           candidate[ col ]:= ( candidate[ col ] + images[ col ] )
                              mod moduls[ col ];
-          row:= false;
+          row:= fail;
         else                    # eliminate nonzero entries in `col'
           candidate[ col ]:= ( candidate[ col ] + images[ col ] )
                              mod moduls[ col ];
@@ -1105,7 +1155,7 @@ InstallGlobalFunction( PermCandidates, function( tbl, characters, torso )
           od;
           matrix:= shrink;
         fi;
-        if row <> false then
+        if row <> fail then
           Add( extracted, row );
           quot:= candidate[ col ] / row[ col ];
           if not IsInt( quot ) then
@@ -1181,12 +1231,7 @@ InstallGlobalFunction( PermCandidates, function( tbl, characters, torso )
     od;
     if min_anzahl = infinity then
       if rest[1] = 0 then
-        gencharacter:= images{ fusion };
-        if     ischaracter( gencharacter )
-           and TestPerm1( tbl, gencharacter ) = 0
-           and TestPerm2( tbl, gencharacter ) = 0 then
-          Add( possibilities, gencharacter );
-        fi;
+        consider_candidate( images{ fusion } );
       fi;
       impossible:= true;
     else
@@ -1198,17 +1243,19 @@ InstallGlobalFunction( PermCandidates, function( tbl, characters, torso )
     return extracted;
     # impossible = true: calling function will return from backtrack
     # impossible = false: then min_class < E( 3 ), and images[ min_class ]
-    #           contains the informations for descending at min_class
+    #           contains the information for descending at min_class
     end;
 
     rest:= [ rest ];
     erase_uniques( uniques, nonzerocol, candidate, rest );
 
-    # here we may forget the extracted rows, later in the backtrack they must be
-    # appended after each return.
+    # Here we may forget the extracted rows,
+    # later in the backtrack they must be appended after each return.
 
     rest:= rest[1];
-    if impossible then return possibilities; fi;
+    if impossible then
+      return List( possibilities, vals -> Character( tbl, vals ) );
+    fi;
 
     Info( InfoCharacterTable, 2,
           "PermCandidates : unique columns erased, there are ",
@@ -1232,8 +1279,10 @@ InstallGlobalFunction( PermCandidates, function( tbl, characters, torso )
     fusionperm:= [];
     newimages:= [];
     for i in remain do
-      fusionperm[ i ]:= pos;
-      if IsBound( images[i] ) then newimages[ pos ]:= images[i]; fi;
+      fusionperm[i]:= pos;
+      if IsBound( images[i] ) then
+        newimages[ pos ]:= images[i];
+      fi;
       pos:= pos + 1;
     od;
     min_class:= fusionperm[ min_class ];
@@ -1257,7 +1306,9 @@ InstallGlobalFunction( PermCandidates, function( tbl, characters, torso )
     rest:= [ rest ];
     extracted:= erase_uniques( [ uniques ], nonzerocol, candidate, rest );
     rest:= rest[1];
-    if impossible then return extracted; fi;
+    if impossible then
+      return extracted;
+    fi;
     descendclass:= min_class;
     step:= images[ descendclass ].step;    # spalten-ggt
     erster:= images[ descendclass ].firstallowed;
@@ -1306,7 +1357,7 @@ InstallGlobalFunction( PermCandidates, function( tbl, characters, torso )
       fi;
     od;
 
-    return List( possibilities, values -> CharacterByValues( tbl, values ) );
+    return List( possibilities, values -> Character( tbl, values ) );
 end );
 
 
@@ -1385,7 +1436,7 @@ end );
 # After that, `fusion' induces an equivalence relation of conjugacy classes,
 # `matrix' is the new list of constituents. Let $C \:= \{i_1,\ldots,i_n\}$
 # be an equivalence class; for further computation, we have to adjust the
-# other informations\:
+# other information\:
 #
 # \begin{enumerate}
 # \item Collapse `faithful'; the values that are not yet known later will be
@@ -1466,7 +1517,7 @@ end );
 # set true to indicate that this branch of the backtrack search tree has
 # ended here.
 # Otherwise `erase' looks for that column where the number of possible
-# values is minimal, and puts a record with informations about first
+# values is minimal, and puts a record with information about first
 # possible value, step (of the arithmetic progression) and number of
 # values into that column of `faithful';
 # the number of the column is written to `min\_class',
@@ -1584,7 +1635,7 @@ InstallGlobalFunction( PermCandidatesFaithful,
     families:= [];
     for i in [ 1 .. nccl ] do
       if not IsBound( families[i] ) then
-        families[i]:= ClassOrbitCharTable( tbl, i );
+        families[i]:= ClassOrbit( tbl, i );
         for j in families[i] do families[j]:= families[i]; od;
       fi;
     od;
@@ -1704,7 +1755,7 @@ InstallGlobalFunction( PermCandidatesFaithful,
     matrix:= [];               # delete impossibles
     for i in chars do
       if i[1] <= faithful[1]
-         and Difference( norm_subgrp, KernelChar( i ) ) <> [] then
+         and Difference( norm_subgrp, ClassPositionsOfKernel( i ) ) <> [] then
         j:= 1;
         while j <= Length( i )
               and i[j] >= i[1] - faithful[1] - nonfaithful[j] do
@@ -1987,7 +2038,7 @@ InstallGlobalFunction( PermCandidatesFaithful,
     return extracted;
     # impossible = true: calling function will return from backtrack
     # impossible = false: then min_class < E( 3 ), and faithful[ min_class ]
-    #                 contains the informations for descending at min_class
+    #                 contains the information for descending at min_class
     end;
     #
     rest:= [ rest ];
@@ -2122,17 +2173,19 @@ InstallGlobalFunction( PermCandidatesFaithful,
         matrix:= newmatrix;
       fi;
     od;
-    return List( possibilities, vals -> CharacterByValues( tbl, vals ) );
+    return List( possibilities, vals -> Character( tbl, vals ) );
 end );
 
 
 #############################################################################
 ##
-#F  PermChars( <tbl> [, <arec>] ) . . . . . . . . . . 06 Aug 91
+#F  PermChars( <tbl> )
+#F  PermChars( <tbl>, <degree> )
+#F  PermChars( <tbl>, <arec> )
 ##
-InstallGlobalFunction( PermChars, function(arg)
+InstallGlobalFunction( PermChars, function( arg )
 
-   local tbl, arec, fields;
+   local tbl, arec, names, chars;
 
    if Length(arg) = 1 then
       tbl:= arg[1];
@@ -2151,17 +2204,36 @@ InstallGlobalFunction( PermChars, function(arg)
 
    fi;
 
-   fields:= RecNames(arec);
-   if "degree" in fields and IsInt(arec.degree) then
-      return PermComb(tbl, arec);
-   elif IsSubset(fields, ["normalsubgrp", "nonfaithful",
-                    "chars", "lower", "upper", "torso"]) then
+   names:= RecNames( arec );
+
+   if "degree" in names and IsInt( arec.degree ) then
+
+      # Use the improved combinatorial approach.
+      return PermComb( tbl, arec );
+
+   elif IsSubset( names, ["normalsubgrp", "nonfaithful",
+                    "chars", "lower", "upper", "torso"] ) then
+
+      # ...
       return PermCandidatesFaithful(tbl, arec.chars, arec.normalsubgrp,
             arec.nonfaithful, arec.upper, arec.lower, arec.torso);
-   elif IsSubset(fields, ["torso", "chars"]) then
-      return PermCandidates(tbl, arec.chars, arec.torso);
+
+   elif "torso" in names then
+
+      # Use Gaussian elimination.
+      if "chars" in names then 
+        return PermCandidates( tbl, arec.chars, arec.torso, false );
+      else
+        return PermCandidates( tbl, RationalizedMat( List( Irr( tbl ),
+                                        ValuesOfClassFunction ) ),
+                               arec.torso, true );
+      fi;
+
    else
-      return Permut(tbl, arec);
+
+      # Solve the system of inequalities.
+      return Permut( tbl, arec );
+
    fi;
 end );
 
@@ -2187,7 +2259,7 @@ InstallGlobalFunction( PermCharInfo, function( tbl, permchars )
     tbl_centralizers:= SizesCentralizers( tbl );
     tbl_size:= Size( tbl );
 
-    if not IsList( permchars[1] ) then
+    if not IsEmpty( permchars ) and not IsList( permchars[1] ) then
       permchars:= [ permchars ];
     fi;
     permchars:= List( permchars, ValuesOfClassFunction );
@@ -2281,5 +2353,5 @@ end );
 
 #############################################################################
 ##
-#E  ctblpope.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

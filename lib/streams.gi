@@ -267,7 +267,7 @@ InstallOtherMethod( OutputLogTo,
 
 #############################################################################
 ##
-#M  WriteAll( <output-text-string>, <string> )  . . . . . . . write all bytes
+#M  WriteAll( <output-text-stream>, <string> )  . . . . . . . write all bytes
 ##
 InstallMethod( WriteAll,
     "output text stream",
@@ -673,7 +673,7 @@ end );
 
 #############################################################################
 ##
-#M  SeekPositionStream( <input-text-string> ) . . . . . . . . .  set position
+#M  SeekPositionStream( <input-text-file> ) . . . . . . . . .  set position
 ##
 InstallMethod( SeekPositionStream,
     "input text file",
@@ -846,7 +846,7 @@ InstallMethod( SeekPositionStream,
 DeclareRepresentation(
     "IsOutputTextStringRep",
     IsPositionalObjectRep,
-    [] );
+    ["string", "format"] );
 
 
 #############################################################################
@@ -880,13 +880,12 @@ function( str, append )
     if not IsMutable(str)  then
         Error( "<str> must be mutable" );
     fi;
-    return Objectify( OutputTextStringType, [ str ] );
+    return Objectify( OutputTextStringType, [ str, true ] );
 end );
 
 
 #############################################################################
 ##
-
 #M  PrintObj( <output-text-string> )
 ##
 InstallMethod( PrintObj,
@@ -939,6 +938,32 @@ function( stream, byte )
     return true;
 end );
 
+#############################################################################
+##
+#M  PrintFormattingStatus( <output-text-string> )
+##
+InstallMethod( PrintFormattingStatus, "output tyext string", true,
+        [IsOutputTextStringRep and IsOutputTextStream],
+        0,
+        str -> str![2]);
+
+#############################################################################
+##
+#M  SetPrintFormattingStatus( <output-text-string>, <status> )
+##
+InstallMethod( SetPrintFormattingStatus, "output text string", true,
+        [IsOutputTextStringRep and IsOutputTextStream,
+         IsBool],
+        0,
+        function( str, stat)
+    if stat = fail then
+        Error("Print formatting status must be true or false");
+    else
+        str![2] := stat;
+    fi;
+end);
+       
+
 
 #############################################################################
 ##
@@ -955,7 +980,7 @@ end );
 DeclareRepresentation(
     "IsOutputTextFileRep",
     IsPositionalObjectRep,
-    [] );
+    ["fid", "fname", "format" ] );
 
 
 #############################################################################
@@ -993,14 +1018,21 @@ function( str, append )
         return fail;
     else
         AddSet( OutputTextFileStillOpen, fid );
-        return Objectify( OutputTextFileType, [fid,Immutable(str)] );
+        return Objectify( OutputTextFileType, [fid,Immutable(str), true] );
     fi;
 end );
 
+InstallOtherMethod( OutputTextFile,
+        "error catching method, append not given",
+        true,
+        [ IsList ],
+        -SUM_FLAGS, # as low as possible
+        function( str )
+    Error("Usage OutputTextFile( <fname>, <appending> )");
+end );
 
 #############################################################################
 ##
-
 #M  CloseStream( <output-text-file> )
 ##
 InstallMethod( CloseStream,
@@ -1058,10 +1090,51 @@ function( stream, byte )
     return WRITE_BYTE_FILE( stream![1], byte );
 end );
 
+#############################################################################
+##
+#M  WriteAll( <output-text-file>, <string> )
+##
+
+InstallMethod( WriteAll, 
+        "output text file",
+        true,
+        [ IsOutputTextStream and IsOutputTextFileRep,
+          IsString ],
+        0,
+        function (stream, str)
+    ConvertToStringRep(str);
+    return WRITE_STRING_FILE_NC( stream![1], str );
+end );
 
 #############################################################################
 ##
+#M  PrintFormattingStatus( <output-text-file> )
+##
+InstallMethod( PrintFormattingStatus, "output tyext file", true,
+        [IsOutputTextFileRep and IsOutputTextStream],
+        0,
+        str -> str![3]);
 
+#############################################################################
+##
+#M  SetPrintFormattingStatus( <output-text-file>, <status> )
+##
+InstallMethod( SetPrintFormattingStatus, "output text file", true,
+        [IsOutputTextFileRep and IsOutputTextStream,
+         IsBool],
+        0,
+        function( str, stat)
+    if stat = fail then
+        Error("Print formatting status must be true or false");
+    else
+        str![3] := stat;
+    fi;
+end);
+       
+
+
+#############################################################################
+##
 #F  # # # # # # # # # # # # # output text none  # # # # # # # # # # # # # # #
 ##
 
@@ -1097,7 +1170,6 @@ end );
 
 #############################################################################
 ##
-
 #M  PrintObj( <output-text-none> )  . . . . . . . . . . . . . . .  nice print
 ##
 InstallMethod( PrintObj,
@@ -1151,7 +1223,30 @@ end );
 
 #############################################################################
 ##
+#M  PrintFormattingStatus( <output-text-none> )
+##
+InstallMethod( PrintFormattingStatus, "output text none", true,
+        [IsOutputTextNoneRep and IsOutputTextNone],
+        0,
+        ReturnFalse);
 
+#############################################################################
+##
+#M  SetPrintFormattingStatus( <output-text-none>, <status> )
+##
+InstallMethod( SetPrintFormattingStatus, "output text none", true,
+        [IsOutputTextNoneRep and IsOutputTextNone,
+         IsBool],
+        0,
+        function( str, stat)
+    if stat = fail then
+        Error("Print formatting status must be true or false");
+    fi;
+end);
+
+
+#############################################################################
+##
 #F  # # # # # # # # # # # # # # user streams  # # # # # # # # # # # # # # # #
 ##
 
@@ -1176,7 +1271,5 @@ end );
 
 #############################################################################
 ##
-
-
 #E  streams.gi  . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
 ##

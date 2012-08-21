@@ -16,6 +16,7 @@ Revision.primitiv_grp :=
     "@(#)$Id$";
 
 DegreeOperation := NrMovedPoints;
+DegreeAction := DegreeOperation;
 
 #############################################################################
 ##
@@ -23,7 +24,7 @@ DegreeOperation := NrMovedPoints;
 ##
 ##  'PGGens' is a table of  generators of the  primitive groups of degree  up
 ##  to 20.  The  table  of primitive groups of degree up to 20 references the
-##  elements contained here.  Listing the generators seperately saves spaces,
+##  elements contained here.  Listing the generators separately saves spaces,
 ##  since many generators appear in more than one group.
 ##
 PGGens := [
@@ -1074,11 +1075,11 @@ PG := function ( n )
         Add( gens, PGGens[entry[i]] );
     od;
 
-    G := Group( gens, () );
-    SetNrMovedPoints          ( G, entry[1]                   );
-    SetSize                   ( G, entry[2]                   );
-    Setter( TransitivityAttr )( G, entry[3]                   );
-    SetIsSimpleGroup          ( G, entry[4]        mod 10 = 1 );
+    G := GroupByGenerators( gens, () );
+    SetNrMovedPoints ( G, entry[1]                   );
+    SetSize          ( G, entry[2]                   );
+    SetTransitivity  ( G, entry[3]                   );
+    SetIsSimpleGroup ( G, entry[4]        mod 10 = 1 );
 #    G.isSharpTransitive := QuoInt(entry[4],10000) mod 10 = 1;
 #    G.isKPrimitive      := QuoInt(entry[4], 1000) mod 10 = 1;
 #    G.isOdd             := QuoInt(entry[4],  100) mod 10 = 1;
@@ -1318,15 +1319,8 @@ OnePrimitiveGroupSims := function ( arg )
 
 end;
 
-#############################################################################
-##
-##  Local Variables:
-##  mode:             outline-minor
-##  outline-regexp:   "#[WCROAPMFVE]"
-##  fill-column:      77
-##  End:
 
 #############################################################################
 ##
-#E  primitiv.grp  . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

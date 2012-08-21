@@ -619,7 +619,7 @@ InstallMethod( TwoSidedIdealByGenerators,
     true,
     [ IsMatrixFLMLOR, IsList and IsEmpty ], 0,
     function( A, mats )
-    local dims, I;
+    local I;
 
     I:= Objectify( NewType( FamilyObj( mats ),
                                 IsFLMLOR
@@ -712,7 +712,7 @@ InstallMethod( LeftIdealByGenerators,
     true,
     [ IsMatrixFLMLOR, IsList and IsEmpty ], 0,
     function( A, mats )
-    local dims, I;
+    local I;
 
     I:= Objectify( NewType( FamilyObj( mats ),
                                 IsFLMLOR
@@ -804,7 +804,7 @@ InstallMethod( RightIdealByGenerators,
     true,
     [ IsMatrixFLMLOR, IsList and IsEmpty ], 0,
     function( A, mats )
-    local dims, I;
+    local I;
 
     I:= Objectify( NewType( FamilyObj( mats ),
                                 IsFLMLOR
@@ -838,7 +838,6 @@ InstallMethod( IsUnit,
     return m <> fail and m in A;
     end );
 
-
 #############################################################################
 ##
 #M  RadicalOfAlgebra( <A> ) . . . . . . . . for an associative matrix algebra
@@ -850,6 +849,8 @@ InstallMethod( IsUnit,
 ##  for arbitrary associative algebras the task is reduced to the
 ##  Gaussian matrix algebra case.
 ##
+##  The implementation of the characterisitc p>0 part is by Craig Struble.
+##
 InstallMethod( RadicalOfAlgebra,
     "for associative Gaussian matrix algebra",
     true,
@@ -858,31 +859,30 @@ InstallMethod( RadicalOfAlgebra,
 
     local F,           # the field of A
           p,           # the characteristic of F
+          q,           # the size of F
           n,           # the dimension of A
+          ident,       # the identity matrix
           bas,         # a list of basis vectors of A
+          minusOne,    # -1 in F
           eqs,         # equation set
-          i,j,k,u,v,   # loop variables
-          R,           # a basis of the radical
-          bb,          # a list of basis vectors of the algebra over F_p
-          lemat,       # the length of the matrices in bb
-          l,           # the intger such that p^l <= lemat < p^{l+1}
-          B,           # bb together with the identity matrix
+          i,j,         # loop variables
+          G,           # Gram matrix
           I,           # a list of basis vectors of an ideal of A
-          t,           # the length of I
+          I_prime,     # I \cup ident
+          changed,     # flag denoted if $I_i <> I_{i-1}$ in ideal sequence
           pexp,        # a power of the prime p
-          X,Y,         # matrices
-          w,wc,        # vectors
-          G,           # the prime field of F
-          canbas,      # canonical basis
-          bsp,         # a vector space
-          d,           # the degree of F
           dim,         # the dimension of the vector space where A acts on
-          r;           # a primitive root of F
+          charPoly,    # characteristic polynomials of elements in A
+          invFrob,     # inverse of the Frobenius map of F
+          invFrobexp,  # a power of the invFrob
+          r, r_prime;  # the length of I and I_prime
 
     # Check associativity.
     if not IsAssociative( A ) then
       TryNextMethod();
     fi;
+
+    if Dimension( A ) = 0 then return A; fi;
 
     F:= LeftActingDomain( A );
     p:= Characteristic( F );
@@ -912,106 +912,72 @@ InstallMethod( RadicalOfAlgebra,
     else
 
       # If `p' is greater than 0, then the situation is more difficult.
-      # We follow the algorithm presented in
-      # "L. Ronyai, Computing the Structure of Finite Algebras,
-      # J. Symbolic Computation (1990), 355-373".
-      # The calculation splits into two cases.
-      # In the first case we have $'F' = F_p$ the prime field.
-      # Then a sequence of ideals $I_0, \ldots, I_l$ is calculated such that
-      # $I_l$ is the radical of `A'.
-      # The second case where $'F' = F_{p^d}$ is more complicated.
-      # Here we transform `A' to an algebra over $F_p$ and then
-      # calculate the radical.  Finally this radical is transformed back.
+      # We implement the algorithm presented in 
+      # "Cohen, Arjeh M, G\'{a}bor Ivanyos, and David B. Wales, 
+      # 'Finding the radical of an algebra of linear tranformations,'
+      # Journal of Pure and Applied Algebra 117 & 118 (1997), 177-193".
+      
+      q := Size( F );
+      dim := Length( bas[1] );
+      pexp := 1;
+      invFrob := InverseGeneralMapping(FrobeniusAutomorphism(F));
+      invFrobexp := invFrob;
+      minusOne := -One(F);
+      ident := IdentityMat( dim, F );
+      changed := true;
+      I := ShallowCopy( bas );
 
-      d:= DegreeOverPrimeField( F );
-      dim:= Length( bas[1] );
-
-      if 1 < d then
-
-        # We produce a basis of an isomorphic matrix algebra with entries
-        # in $F_p$.
-
-        r:= PrimitiveRoot( F );
-        bb:= [];
-        G:= GF(p);
-        canbas:= CanonicalBasis( AsField( G, F ) );
-        for i in bas do
-          X:= TransposedMat( i );
-          Y:= [];
-          for k in [1..dim] do
-            for j in [0..d-1] do
-              w:= r^j*X[k];
-              wc:= [];
-              for u in [1..dim] do
-                Append( wc, Coefficients( canbas, w[u] ) );
+      # Compute the sequence of ideals $I_i$ (see the paper by Cohen, et.al.)
+      while pexp <= dim do
+          # These values need recomputation only when $I_i <> I_{i-1}$
+          if changed then
+              I_prime := ShallowCopy( I );
+              if not ident in I_prime then
+                  Add( I_prime, ident );
+              fi;
+              r := Length( I );
+              r_prime := Length( I_prime );
+              eqs := NullMat( r, r_prime, F );
+              charPoly := List( [1..r], x -> [] );
+              for i in [1..r] do
+                  for j in [1..r_prime] do
+                      charPoly[i][j] := 
+                          CoefficientsOfUnivariatePolynomial( CharacteristicPolynomial( F, I[i]*I_prime[j] ) );
+                  od;
               od;
-              Add( Y, wc );
-            od;
+              changed := false;
+          fi;
+          
+          for i in [1..r] do
+              for j in [1..r_prime] do
+                  eqs[i][j] := minusOne^pexp * charPoly[i][j][dim-pexp+1];
+              od;
           od;
-          Add( bb, TransposedMat( Y ) );
-        od;
 
-      else
+          G := NullspaceMat( eqs );
 
-        bb:= bas;
-        G:= F;
+          if Length( G ) = 0 then
+              return TrivialSubalgebra( A );
+          elif Length( G ) <> r then
+              # $I_i <> I_{i-1}$, so compute the basis for $I_i$
+              changed := true;
+              if 1 < pexp and pexp < q then
+                  G := List( G, x -> List( x, y -> y^invFrobexp ) );
+              fi;
+              I := List( G, x -> LinearCombination( I, x ) );
+          fi;
 
-      fi;
+          # prepare for next step
 
-      # We calculate the radical of the algebra over `F_p'.
-
-      B:= ShallowCopy( bb );
-      lemat:= Length( B[1] );
-      Add( B, IdentityMat( lemat, G ) );
-
-      # `l' is the unique integer satisfying `p^l <= lemat < p^{l+1}'.
-      l:= LogInt( lemat, p );
-
-      I:= ShallowCopy( bb );
-      t:= n;
-      pexp:= 1;
-
-      for i in [0..l] do
-
-        # Calculate $I_i$ (see the paper by Ronyai).
-
-        eqs:= MutableNullMat( t, n+1, G );
-        for j in [1..t] do
-          for k in [1..n+1] do
-            X:= List( I[j] * B[k], IntVecFFE );
-            eqs[j][k]:= ( TraceMat( X^pexp ) / pexp ) * One( G );
-          od;
-        od;
-
-        R:= NullspaceMat( eqs );
-
-        if Length( R ) = 0 then
-          return TrivialSubalgebra( A );
-        fi;
-
-        I:= List( R, x -> LinearCombination( I, x ) );
-        t:= Length(I);
-        pexp:= pexp*p;
-
+          invFrobexp := invFrobexp * invFrob;
+          pexp := pexp*p;
       od;
 
-      if 1 < d then
-
-        # Transform back.
-
-        bsp:= BasisByGeneratorsNC( VectorSpace( G, bb ), bb );
-        R:= List( I, i -> LinearCombination( bas, Coefficients( bsp, i )) );
-
-      else
-
-        R:= I;
-
-      fi;
-
-      return SubalgebraNC( A, R, "basis" );
+      return SubalgebraNC( A, I, "basis" );
     fi;
+    end );     
 
-    end );
+
 
 
 #############################################################################
@@ -1060,7 +1026,7 @@ InstallMethod( CentralizerOp,
     function( A, mat )
     return SubalgebraNC( A,
                CentralizerInAssociativeGaussianMatrixAlgebra(
-                   BasisVectors( BasisOfDomain( A ) ),
+                   BasisVectors( Basis( A ) ),
                    [ mat ] ),
                "basis" );
     end );
@@ -1078,7 +1044,7 @@ InstallMethod( CentralizerOp,
     function( A, C )
     return SubalgebraNC( A,
                CentralizerInAssociativeGaussianMatrixAlgebra(
-                   BasisVectors( BasisOfDomain( A ) ),
+                   BasisVectors( Basis( A ) ),
                    GeneratorsOfAlgebra( C ) ),
                "basis" );
     end );
@@ -1097,7 +1063,7 @@ InstallMethod( CentralizerOp,
     function( A, mat )
     return SubalgebraWithOneNC( A,
                CentralizerInAssociativeGaussianMatrixAlgebra(
-                   BasisVectors( BasisOfDomain( A ) ),
+                   BasisVectors( Basis( A ) ),
                    [ mat ] ),
                "basis" );
     end );
@@ -1116,7 +1082,7 @@ InstallMethod( CentralizerOp,
     function( A, C )
     return SubalgebraWithOneNC( A,
                CentralizerInAssociativeGaussianMatrixAlgebra(
-                   BasisVectors( BasisOfDomain( A ) ),
+                   BasisVectors( Basis( A ) ),
                    GeneratorsOfAlgebra( C ) ),
                "basis" );
     end );
@@ -1154,7 +1120,7 @@ InstallGlobalFunction( FullMatrixAlgebraCentralizer, function( F, lst )
     # Position `(i,j)' in the matrix corresponds with position `(i-1)*n+j'
     # in the vector.
 
-    eq:= MutableNullMat( n2, n2 * len, F );
+    eq:= NullMat( n2, n2 * len, F );
     for u in [ 1 .. len ] do
       for i in [1..n] do
         for j in [1..n] do
@@ -1263,7 +1229,7 @@ InstallGlobalFunction( FullMatrixFLMLOR, function( R, n )
           one,    # the identity of the field
           A;      # algebra, result
 
-    gens:= MutableNullMat( n, n, R );
+    gens:= NullMat( n, n, R );
     gens:= [ gens, List( gens, ShallowCopy ) ];
     one:= One( R );
 
@@ -1293,7 +1259,7 @@ end );
 ##  system.
 #T  What is a nicer generating system ?
 ##
-FullMatrixLieFLMLOR := function( F, n )
+InstallGlobalFunction( FullMatrixLieFLMLOR, function( F, n )
 
     local null,   # null matrix
           one,    # identity of `F'
@@ -1303,7 +1269,7 @@ FullMatrixLieFLMLOR := function( F, n )
           A;      # algebra, result
 
     # Construct the generators.
-    null:= MutableNullMat( n, n, F );
+    null:= NullMat( n, n, F );
     one:= One( F );
 
 
@@ -1330,11 +1296,7 @@ FullMatrixLieFLMLOR := function( F, n )
 
     # return the algebra
     return A;
-end;
-
-FullMatrixLieAlgebra := FullMatrixLieFLMLOR;
-MatrixLieAlgebra := FullMatrixLieFLMLOR;
-MatLieAlgebra := FullMatrixLieFLMLOR;
+end );
 
 
 #############################################################################
@@ -1368,9 +1330,9 @@ InstallOtherMethod( DirectSumOfAlgebras,
     # We do not really need a basis for the arguments
     # but if we have one then we use it.
 #T Do we really have so many algebra generators? (distinguish from basis?)
-    if HasBasisOfDomain( A1 ) and HasBasisOfDomain( A2 ) then
-      b1:= BasisVectors( BasisOfDomain( A1 ) );
-      b2:= BasisVectors( BasisOfDomain( A2 ) );
+    if HasBasis( A1 ) and HasBasis( A2 ) then
+      b1:= BasisVectors( Basis( A1 ) );
+      b2:= BasisVectors( Basis( A2 ) );
     else
       b1:= GeneratorsOfAlgebra( A1 );
       b2:= GeneratorsOfAlgebra( A2 );
@@ -1382,18 +1344,18 @@ InstallOtherMethod( DirectSumOfAlgebras,
 
     B:= [];
     for i in b1 do
-      Q:= MutableNullMat( p1+p2, p1+p2, LeftActingDomain( A1 ) );
+      Q:= NullMat( p1+p2, p1+p2, LeftActingDomain( A1 ) );
       Q{ [ 1 .. p1 ] }{ [ 1 .. p1 ] }:= i;
       Add( B, Q );
     od;
     for i in b2 do
-      Q:= MutableNullMat( p1+p2, p1+p2, LeftActingDomain( A1 ) );
+      Q:= NullMat( p1+p2, p1+p2, LeftActingDomain( A1 ) );
       Q{ [ p1+1 .. p1+p2 ] }{ [ p1+1 .. p1+p2 ] }:= i;
       Add( B, Q );
     od;
 
     A:= AlgebraByGenerators( LeftActingDomain( A1 ), B );
-    if HasBasisOfDomain( A1 ) and HasBasisOfDomain( A2 ) then
+    if HasBasis( A1 ) and HasBasis( A2 ) then
       UseBasis( A, B );
     fi;
 
@@ -1435,9 +1397,9 @@ InstallOtherMethod( DirectSumOfAlgebras,
     # We do not really need a basis for the arguments
     # but if we have one then we use it.
 #T Do we really have so many algebra generators? (distinguish from basis?)
-    if HasBasisOfDomain( A1 ) and HasBasisOfDomain( A2 ) then
-      b1:= BasisVectors( BasisOfDomain( A1 ) );
-      b2:= BasisVectors( BasisOfDomain( A2 ) );
+    if HasBasis( A1 ) and HasBasis( A2 ) then
+      b1:= BasisVectors( Basis( A1 ) );
+      b2:= BasisVectors( Basis( A2 ) );
     else
       b1:= GeneratorsOfAlgebra( A1 );
       b2:= GeneratorsOfAlgebra( A2 );
@@ -1448,18 +1410,18 @@ InstallOtherMethod( DirectSumOfAlgebras,
 #T unauthorized access!
     B:= [];
     for i in b1 do
-      Q:= MutableNullMat( p1+p2, p1+p2, LeftActingDomain( A1 ) );
+      Q:= NullMat( p1+p2, p1+p2, LeftActingDomain( A1 ) );
       Q{ [ 1 .. p1 ] }{ [ 1 .. p1 ] }:= i;
       Add( B, LieObject( Q ) );
     od;
     for i in b2 do
-      Q:= MutableNullMat( p1+p2, p1+p2, LeftActingDomain( A1 ) );
+      Q:= NullMat( p1+p2, p1+p2, LeftActingDomain( A1 ) );
       Q{ [ p1+1 .. p1+p2 ] }{ [ p1+1 .. p1+p2 ] }:= i;
       Add( B, LieObject( Q ) );
     od;
 
     A:= AlgebraByGenerators( LeftActingDomain( A1 ), B );
-    if HasBasisOfDomain( A1 ) and HasBasisOfDomain( A2 ) then
+    if HasBasis( A1 ) and HasBasis( A2 ) then
       UseBasis( A, B );
     fi;
     SetIsLieAlgebra( A, true );
@@ -1680,7 +1642,7 @@ InstallMethod( RepresentativeLinearOperation,
       fi;
     fi;
 
-    B:= BasisOfDomain( A );
+    B:= Basis( A );
     vectors:= BasisVectors( B );
 
     # Compute the matrix of the equation system,
@@ -1716,7 +1678,7 @@ InstallMethod( RepresentativeLinearOperation,
       fi;
     fi;
 
-    B:= BasisOfDomain( A );
+    B:= Basis( A );
     vectors:= BasisVectors( B );
 
     # Compute the matrix of the equation system,
@@ -1767,7 +1729,5 @@ InstallMethod( IsomorphismMatrixFLMLOR,
 
 #############################################################################
 ##
-#E  algmat.gi . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-
-
+#E
 

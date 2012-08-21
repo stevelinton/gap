@@ -66,9 +66,9 @@ InstallOtherMethod( \+,
 
 #############################################################################
 ##
-#M  Zero( <record> )
+#M  ZeroOp( <record> )
 ##
-InstallOtherMethod( Zero,
+InstallOtherMethod( ZeroOp,
     "method for a record (expect `operations' component)",
     true,
     [ IsRecord ],
@@ -85,13 +85,13 @@ InstallOtherMethod( Zero,
 
 #############################################################################
 ##
-#M  AdditiveInverse( <record> )
+#M  AdditiveInverseOp( <record> )
 ##
 ##  Note that we cannot simply delegate to multiplication by `-1' since it
 ##  may happen that no individual multiplication was installed, and the
-##  generic multiplication would delegate back to `AdditiveInverse'.
+##  generic multiplication would delegate back to `AdditiveInverseOp'.
 ##
-InstallOtherMethod( AdditiveInverse,
+InstallOtherMethod( AdditiveInverseOp,
     "method for a record (expect `operations' component)",
     true,
     [ IsRecord ],
@@ -162,13 +162,13 @@ InstallOtherMethod( \*,
 
 #############################################################################
 ##
-#M  One( <record> )
+#M  OneOp( <record> )
 ##
 ##  Note that we cannot simply delegate to powering by `0' since it
 ##  may happen that no individual powering was installed, and the
 ##  generic powering would delegate back to `One'.
 ##
-InstallOtherMethod( One,
+InstallOtherMethod( OneOp,
     "method for a record (expect `operations' component)",
     true,
     [ IsRecord ],
@@ -189,13 +189,13 @@ InstallOtherMethod( One,
 
 #############################################################################
 ##
-#M  Inverse( <record> )
+#M  InverseOp( <record> )
 ##
 ##  Note that we cannot simply delegate to powering by `-1' since it
 ##  may happen that no individual powering was installed, and the
 ##  generic powering would delegate back to `Inverse'.
 ##
-InstallOtherMethod( Inverse,
+InstallOtherMethod( InverseOp,
     "method for a record (expect `operations' component)",
     true,
     [ IsRecord ],

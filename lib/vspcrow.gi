@@ -300,25 +300,32 @@ InstallMethod( Coefficients,
     [ IsBasis and IsSemiEchelonBasisOfGaussianRowSpaceRep, IsRowVector ], 0,
     function( B, v )
 
-    local coeff,     # coefficients list, result
-          zero,      # zero of the field
-          vectors,   # basis vectors of `B'
+    local vectors,   # basis vectors of `B'
+          heads,     # heads info of `B'
           len,       # length of `v'
+          zero,      # zero of the field
+          coeff,     # coefficients list, result
           i,         # loop over `v'
           pos;       # heads position
 
+    # Check whether the vector has the right length.
+    # (The heads info is not stored before the basis vectors are known.)
+    vectors:= BasisVectors( B );
+    heads:= B!.heads;
+    len:= Length( v );
+    if len <> Length( heads ) then
+      return fail;
+    fi;
+
     # Preset the coefficients list with zeroes.
     zero:= Zero( v[1] );
-    vectors:= BasisVectors( B );
     coeff:= List( vectors, x -> zero );
-#T store zero vector in the basis ?
 
     # Compute the coefficients of the base vectors.
     v:= ShallowCopy( v );
-    len:= Length( v );
     i:= PositionNot( v, zero );
     while i <= len do
-      pos:= B!.heads[i];
+      pos:= heads[i];
       if pos <> 0 then
         coeff[ pos ]:= v[i];
         AddRowVector( v, vectors[ pos ], - v[i] );
@@ -507,9 +514,9 @@ InstallMethod( \in,
 
 #############################################################################
 ##
-#M  BasisOfDomain( <V> )  . . . . . . . . . . . . . .  for Gaussian row space
-#M  BasisByGenerators( <V>, <vectors> ) . . . . . . .  for Gaussian row space
-#M  BasisByGeneratorsNC( <V>, <vectors> ) . . . . . .  for Gaussian row space
+#M  Basis( <V> )  . . . . . . . . . . . . . . . . . .  for Gaussian row space
+#M  Basis( <V>, <vectors> ) . . . . . . . . . . . . .  for Gaussian row space
+#M  BasisNC( <V>, <vectors> ) . . . . . . . . . . . .  for Gaussian row space
 ##
 ##  Distinguish the cases whether the space <V> is a Gaussian row vector
 ##  space or not.
@@ -522,21 +529,20 @@ InstallMethod( \in,
 ##  `NewRepresentationBasisByNiceBasis'.
 #T ?
 ##
-InstallMethod( BasisOfDomain,
+InstallMethod( Basis,
     "for Gaussian row space (construct a semi-echelonized basis)",
     true,
     [ IsGaussianSpace and IsGaussianRowSpaceRep ], 0,
-    SemiEchelonBasisOfDomain );
+    SemiEchelonBasis );
 
-InstallMethod( BasisByGenerators,
+InstallMethod( Basis,
     "for Gaussian row space and matrix (try semi-echelonized)",
     IsIdenticalObj,
     [ IsGaussianSpace and IsGaussianRowSpaceRep, IsMatrix ], 0,
     function( V, gens )
 
     local heads,
-          B,
-          v;
+          B,v;
 
     # Test whether the vectors form a semi-echelonized basis.
     # (If not then give up.)
@@ -570,7 +576,9 @@ InstallMethod( BasisByGenerators,
     return B;
     end );
 
-InstallMethod( BasisByGeneratorsNC, IsIdenticalObj,
+InstallMethod( BasisNC,
+    "for Gaussian row space and matrix (try semi-echelonized)",
+    IsIdenticalObj,
     [ IsGaussianSpace and IsGaussianRowSpaceRep, IsMatrix ], 0,
     function( V, gens )
 
@@ -602,15 +610,16 @@ InstallMethod( BasisByGeneratorsNC, IsIdenticalObj,
 
 #############################################################################
 ##
-#M  SemiEchelonBasisOfDomain( <V> )
-#M  SemiEchelonBasisByGenerators( <V>, <vectors> )
-#M  SemiEchelonBasisByGeneratorsNC( <V>, <vectors> )
+#M  SemiEchelonBasis( <V> )
+#M  SemiEchelonBasis( <V>, <vectors> )
+#M  SemiEchelonBasisNC( <V>, <vectors> )
 ##
-InstallImmediateMethod( SemiEchelonBasisOfDomain,
-    IsGaussianSpace and IsGaussianRowSpaceRep and HasCanonicalBasis, 20,
+InstallImmediateMethod( SemiEchelonBasis,
+    IsGaussianSpace and IsGaussianRowSpaceRep and HasCanonicalBasis
+                    and IsAttributeStoringRep, 20,
     CanonicalBasis );
 
-InstallMethod( SemiEchelonBasisOfDomain,
+InstallMethod( SemiEchelonBasis,
     "for Gaussian row space",
     true,
     [ IsGaussianSpace and IsGaussianRowSpaceRep ], 0,
@@ -625,7 +634,7 @@ InstallMethod( SemiEchelonBasisOfDomain,
     return B;
     end );
 
-InstallMethod( SemiEchelonBasisByGenerators,
+InstallMethod( SemiEchelonBasis,
     "for Gaussian row space and matrix",
     IsIdenticalObj,
     [ IsGaussianSpace and IsGaussianRowSpaceRep, IsMatrix ], 0,
@@ -665,14 +674,13 @@ InstallMethod( SemiEchelonBasisByGenerators,
     return B;
     end );
 
-InstallMethod( SemiEchelonBasisByGeneratorsNC,
+InstallMethod( SemiEchelonBasisNC,
     "for Gaussian row space and matrix",
     IsIdenticalObj,
     [ IsGaussianSpace and IsGaussianRowSpaceRep, IsMatrix ], 0,
     function( V, gens )
 
-    local B,  # the basis, result
-          v;  # loop over vector space generators
+    local B;  # the basis, result
 
     B:= Objectify( NewType( FamilyObj( gens ),
                                 IsBasis
@@ -732,9 +740,12 @@ InstallMethod( BasisVectors,
 
 #############################################################################
 ##
-#M  Zero( <V> )
+#M  Zero( <V> ) . . . . . . . . . . . . . . . . . . . . . . . for a row space
 ##
-InstallOtherMethod( Zero, true, [ IsRowSpace ], 0,
+InstallOtherMethod( Zero,
+    "for a row space",
+    true,
+    [ IsRowSpace ], 0,
     V -> Zero( LeftActingDomain( V ) ) * [ 1 .. V!.vectordim ] );
 
 
@@ -880,9 +891,9 @@ InstallMethod( Intersection2,
 
 #############################################################################
 ##
-#M  NormedVectors( <V> )
+#M  NormedRowVectors( <V> )
 ##
-InstallMethod( NormedVectors,
+InstallMethod( NormedRowVectors,
     "for Gaussian row space",
     true,
     [ IsGaussianSpace and IsGaussianRowSpaceRep ], 0,
@@ -912,7 +923,7 @@ InstallMethod( NormedVectors,
 
     elms      := [ base[1] ];
     elms2     := [ base[1] ];
-    fieldelms := List( AsListSorted( LeftActingDomain( V ) ), x -> x - 1 );
+    fieldelms := List( AsSSortedList( LeftActingDomain( V ) ), x -> x - 1 );
 
     for j in [ 1 .. Length( base ) - 1 ] do
 
@@ -951,7 +962,7 @@ InstallMethod( CanonicalBasis,
     "for Gaussian row space with known semi-ech. basis",
     true,
     [     IsGaussianSpace and IsGaussianRowSpaceRep
-      and HasSemiEchelonBasisOfDomain ], 0,
+      and HasSemiEchelonBasis ], 0,
     function( V )
 
     local base,    # list of base vectors
@@ -960,7 +971,6 @@ InstallMethod( CanonicalBasis,
           vectors, #
           row,     # one vector in `ech'
           B,       # basis record, result
-          m,       # number of rows in generators
           n,       # number of columns in generators
           zero,    # zero of the field
           i,       # loop over rows
@@ -974,7 +984,7 @@ InstallMethod( CanonicalBasis,
     # pivot elements are in increasing order, and to zeroize all
     # elements in the pivot columns except the pivot itself.
 
-    ech:= SemiEchelonBasisOfDomain( V );
+    ech:= SemiEchelonBasis( V );
     vectors:= BasisVectors( ech );
     heads := ShallowCopy( ech!.heads );
     n:= Length( heads );
@@ -1020,9 +1030,6 @@ InstallMethod( CanonicalBasis,
 
     local base,    # list of base vectors
           heads,   # list of numbers of leading columns
-          ech,     # echelonized basis, if known
-          vectors, #
-          row,     # one vector in `ech'
           B,       # basis record, result
           m,       # number of rows in generators
           n,       # number of columns in generators
@@ -1211,6 +1218,7 @@ InstallMethod( Iterator,
 
       iter:= Objectify( NewType( IteratorsFamily,
                                      IsIterator
+                                 and IsMutable
                                  and IsDimSubspacesFullRowSpaceIteratorRep ),
                         rec(
                              V          := V,
@@ -1235,6 +1243,7 @@ InstallMethod( Iterator,
       # and loop over all dimensions.
       iter:= Objectify( NewType( IteratorsFamily,
                                      IsIterator
+                                 and IsMutable
                                  and IsAllSubspacesFullRowSpaceIteratorRep ),
                         rec(
                              V          := V,
@@ -1249,13 +1258,17 @@ InstallMethod( Iterator,
     return iter;
     end );
 
-InstallMethod( IsDoneIterator, true,
+InstallMethod( IsDoneIterator,
+    "for iterator of k-dim. subspaces of a full row space",
+    true,
     [ IsIterator and IsDimSubspacesFullRowSpaceIteratorRep ], 0,
     iter ->     IsDoneIterator( iter!.choiceiter )
             and IsDoneIterator( iter!.spaceiter ) );
 
-InstallMethod( NextIterator, true,
-    [ IsIterator and IsDimSubspacesFullRowSpaceIteratorRep ], 0,
+InstallMethod( NextIterator,
+    "for mutable iterator of k-dim. subspaces of a full row space",
+    true,
+    [ IsIterator and IsMutable and IsDimSubspacesFullRowSpaceIteratorRep ], 0,
     function( iter )
 
     local dim,
@@ -1286,7 +1299,7 @@ InstallMethod( NextIterator, true,
     # Construct the canonical basis of the space.
     vector:= NextIterator( iter!.spaceiter );
     pos:= 0;
-    base:= MutableNullMat( k, n, iter!.field );
+    base:= NullMat( k, n, iter!.field );
     for i in [ 1 .. k ] do
       base[i][ iter!.actchoice[i] ]:= One( iter!.field );
       for j in [ i .. k ] do
@@ -1302,13 +1315,33 @@ InstallMethod( NextIterator, true,
     return Subspace( iter!.V, base, "basis" );
     end );
 
-InstallMethod( IsDoneIterator, true,
+InstallMethod( ShallowCopy,
+    "for iterator of k-dim. subspaces of a full row space",
+    true,
+    [ IsIterator and IsDimSubspacesFullRowSpaceIteratorRep ], 0,
+    iter -> Objectify( Subtype( TypeObj( iter ), IsMutable ),
+                rec(
+                     V          := iter!.V,
+                     field      := iter!.field,
+                     n          := iter!.n,
+                     k          := iter!.k,
+                     choiceiter := ShallowCopy( iter!.choiceiter ),
+                     actchoice  := iter!.actchoice,
+                     spaceiter  := ShallowCopy( iter!.spaceiter )
+                    ) ) );
+
+
+InstallMethod( IsDoneIterator,
+    "for iterator of all subspaces of a full row space",
+    true,
     [ IsIterator and IsAllSubspacesFullRowSpaceIteratorRep ], 0,
     iter ->     iter!.actdim = iter!.dim
             and IsDoneIterator( iter!.actdimiter ) );
 
-InstallMethod( NextIterator, true,
-    [ IsIterator and IsAllSubspacesFullRowSpaceIteratorRep ], 0,
+InstallMethod( NextIterator,
+    "for mutable iterator of all subspaces of a full row space",
+    true,
+    [ IsIterator and IsMutable and IsAllSubspacesFullRowSpaceIteratorRep ], 0,
     function( iter )
     if IsDoneIterator( iter!.actdimiter ) then
       iter!.actdim:= iter!.actdim + 1;
@@ -1316,6 +1349,18 @@ InstallMethod( NextIterator, true,
     fi;
     return NextIterator( iter!.actdimiter );
     end );
+
+InstallMethod( ShallowCopy,
+    "for iterator of all subspaces of a full row space",
+    true,
+    [ IsIterator and IsAllSubspacesFullRowSpaceIteratorRep ], 0,
+    iter -> Objectify( Subtype( TypeObj( iter ), IsMutable ),
+                       rec(
+                            V          := iter!.V,
+                            dim        := iter!.dim,
+                            actdim     := iter!.actdim,
+                            actdimiter := ShallowCopy( iter!.actdimiter )
+                           ) ) );
 
 
 #############################################################################
@@ -1368,16 +1413,16 @@ InstallMethod( SubspacesAll, true,
 ##  vector that makes the space non-Gaussian.
 ##
 DeclareRepresentation( "IsMutableBasisOfGaussianRowSpaceRep",
-    IsComponentObjectRep and IsMutable,
+    IsComponentObjectRep,
     [ "heads", "basisVectors", "leftActingDomain", "zero" ] );
 
 
 #############################################################################
 ##
-#M  MutableBasisByGenerators( <R>, <vectors> )  . . . . . for matrix over <R>
-#M  MutableBasisByGenerators( <R>, <vectors>, <zero> )  . for matrix over <R>
+#M  MutableBasis( <R>, <vectors> )  . . . . . . . . . . . for matrix over <R>
+#M  MutableBasis( <R>, <vectors>, <zero> )  . . . . . . . for matrix over <R>
 ##
-InstallMethod( MutableBasisByGenerators,
+InstallMethod( MutableBasis,
     "method to construct mutable bases of row spaces",
     IsElmsColls,
     [ IsRing, IsMatrix ], 0,
@@ -1397,6 +1442,7 @@ InstallMethod( MutableBasisByGenerators,
 
       B:= Objectify( NewType( FamilyObj( vectors ),
                                   IsMutableBasis
+                              and IsMutable
                               and IsMutableBasisOfGaussianRowSpaceRep ),
                      rec(
                           basisVectors:= ShallowCopy( newvectors.vectors ),
@@ -1410,7 +1456,7 @@ InstallMethod( MutableBasisByGenerators,
     return B;
     end );
 
-InstallOtherMethod( MutableBasisByGenerators,
+InstallOtherMethod( MutableBasis,
     "method to construct mutable bases of row spaces",
     IsIdenticalObjObjXObj,
     [ IsRing, IsList, IsRowVector ], 0,
@@ -1427,6 +1473,7 @@ InstallOtherMethod( MutableBasisByGenerators,
 
       B:= Objectify( NewType( CollectionsFamily( FamilyObj( zero ) ),
                                   IsMutableBasis
+                              and IsMutable
                               and IsMutableBasisOfGaussianRowSpaceRep ),
                      rec(
                           zero:= zero,
@@ -1475,7 +1522,7 @@ InstallMethod( PrintObj,
     true,
     [ IsMutableBasis and IsMutableBasisOfGaussianRowSpaceRep ], 0,
     function( MB )
-    Print( "MutableBasisByGenerators( ", MB!.leftActingDomain, ", " );
+    Print( "MutableBasis( ", MB!.leftActingDomain, ", " );
     if NrBasisVectors( MB ) = 0 then
       Print( "[], ", Zero( MB!.leftActingDomain ), " )" );
     else
@@ -1502,7 +1549,7 @@ InstallOtherMethod( BasisVectors,
 InstallMethod( CloseMutableBasis,
     "for a mut. basis of a Gaussian row space, and a row vector",
     IsCollsElms,
-    [ IsMutableBasis and IsMutableBasisOfGaussianRowSpaceRep,
+    [ IsMutableBasis and IsMutable and IsMutableBasisOfGaussianRowSpaceRep,
       IsRowVector ], 0,
     function( MB, v )
     local V,              # corresponding free left module
@@ -1525,7 +1572,7 @@ InstallMethod( CloseMutableBasis,
       SetFilterObj( MB, IsMutableBasisByImmutableBasisRep );
       ResetFilterObj( MB, IsMutableBasisOfGaussianRowSpaceRep );
 
-      MB!.immutableBasis:= BasisOfDomain( V );
+      MB!.immutableBasis:= Basis( V );
 
     else
 
@@ -1542,7 +1589,8 @@ InstallMethod( CloseMutableBasis,
       basisvectors:= MB!.basisVectors;
 
       for j in [ 1 .. ncols ] do
-        if heads[j] <> 0 then
+        if zero <> v[j] and heads[j] <> 0 then
+#T better loop with `PositionNot'?
           AddRowVector( v, basisvectors[ heads[j] ], - v[j] );
         fi;
       od;
@@ -1569,7 +1617,7 @@ InstallMethod( IsContainedInSpan,
     [ IsMutableBasis and IsMutableBasisOfGaussianRowSpaceRep,
       IsRowVector ], 0,
     function( MB, v )
-    local V,              # corresponding free left module
+    local 
           ncols,          # dimension of the row vectors
           zero,           # zero scalar
           heads,          # heads info of the basis
@@ -1620,7 +1668,7 @@ InstallMethod( ImmutableBasis,
     V:= FreeLeftModule( MB!.leftActingDomain,
                         BasisVectors( MB ),
                         MB!.zero );
-    MB:= SemiEchelonBasisByGeneratorsNC( V, BasisVectors( MB ) );
+    MB:= SemiEchelonBasisNC( V, BasisVectors( MB ) );
 #T use known `heads' info !!
     UseBasis( V, MB );
     return MB;
@@ -1647,61 +1695,148 @@ InstallOtherMethod( SiftedVector,
 
 #############################################################################
 ##
-#F  ExtendedVectors( <V> )  . . . . . . . . . . . . . . . . . . . . . . . . .
+#R  IsExtendedVectorsRep( <obj> )
 ##
-DeclareRepresentation( "IsExtendedVectors",
-                                    IsEnumerator and IsAttributeStoringRep,
-                                    [ "spaceEnumerator", "one" ] );
+DeclareRepresentation( "IsExtendedVectorsRep",
+    IsAttributeStoringRep, [ "spaceEnumerator", "one", "q" ] );
 
-ExtendedVectors := function( V )
+#############################################################################
+##
+#R  IsExtendedVectorsFFRep( <obj> )
+##
+##  is a subset of of `ExtendedVectorsRep' for row spaces over finite prime
+##  fields. In this case the kernel enumeration routines can be used.
+DeclareRepresentation( "IsExtendedVectorsFFRep",IsExtendedVectorsRep,["q"]);
+
+
+#############################################################################
+##
+#F  ExtendedVectors( <V> )  . . . . . . . . . . . . . . .  for a vector space
+##
+BindGlobal( "ExtendedVectors", function( V )
+local filter,r;
+    r:=rec( spaceEnumerator := Enumerator( V ),
+			one := One( LeftActingDomain( V ) ) );
+    filter:=IsList and IsExtendedVectorsRep;
+    if IsFinite(LeftActingDomain(V)) and IsPrimeInt(Size(LeftActingDomain(V)))
+      and Size(LeftActingDomain(V))<256
+      and IsInternalRep(One(LeftActingDomain(V))) then
+      filter:=IsList and IsExtendedVectorsFFRep and IsQuickPositionList;
+      r.q:=r.spaceEnumerator!.q;
+    else
+      r.q:=Size(LeftActingDomain(V));
+    fi;
     return Objectify( NewType( FamilyObj( V ),
-        IsExtendedVectors ), rec(
-                   spaceEnumerator := Enumerator( V ),
-                               one := One( LeftActingDomain( V ) ) ) );
-end;
+        filter ), r);
+end );
 
-InstallMethod( PrintObj, true, [ IsExtendedVectors ], 0,
+
+InstallMethod( PrintObj,
+    "for extended vectors",
+    true,
+    [ IsList and IsExtendedVectorsRep ], 0,
     function( T )
     Print( "A( ", UnderlyingCollection( T!.spaceEnumerator ), " )" );
 end );
 
-InstallMethod( Length, true, [ IsExtendedVectors ], 0,
-        T -> Length( T!.spaceEnumerator ) );
-
-InstallMethod( \[\], true, [ IsExtendedVectors, IsInt ], 0,
-    function( T, num )
-    return Concatenation( T!.spaceEnumerator[ num ], [ T!.one ] );
+InstallMethod( ViewObj, "for extended vectors", true,
+    [ IsList and IsExtendedVectorsRep ],
+    # there is a method for finite lists which claims to be better
+    10,
+    function( T )
+    Print( "A( ", UnderlyingCollection( T!.spaceEnumerator ), " )" );
 end );
 
-InstallMethod( Position, true,
-        [ IsExtendedVectors, IsObject, IsZeroCyc ], 0,
-    function( T, elm, zero )
-    return Position( T!.spaceEnumerator,
-                   elm{ [ 1 .. Length( elm ) - 1 ] } );
-end );
+InstallMethod( Length,
+    "for extended vectors",
+    true,
+    [ IsList and IsExtendedVectorsRep ], 0,
+    T -> Length( T!.spaceEnumerator ) );
+
+InstallMethod( \[\],
+    "for extended vectors, and positive integer",
+    true,
+    [ IsList and IsExtendedVectorsRep, IsPosInt ], 0,
+function( T, num )
+    num:=Concatenation( T!.spaceEnumerator[ num ], [ T!.one ] );
+    ConvertToVectorRep(num,T!.q);
+    return num;
+end);
+
+BindGlobal("PosExVecEnum",function(arg)
+  return Position( arg[1]!.spaceEnumerator,
+		  arg[2]{ [ 1 .. Length( arg[2] ) - 1 ] } );
+end);
+
+InstallMethod( Position, "for extended vectors, vector, and 0", true,
+    [ IsList and IsExtendedVectorsRep, IsRowVector, IsZeroCyc ], 0,
+    PosExVecEnum);
+
+InstallMethod( PositionCanonical, "for extended vectors and vector", true,
+    [ IsList and IsExtendedVectorsRep, IsRowVector ], 0,
+    PosExVecEnum);
+
+BindGlobal("PosExVecEnumFF",function(arg)
+local v;
+  v:=arg[2];
+  # test whether the vector is indeed compact over the right finite field
+  if not IsDataObjectRep(v) then
+    if ConvertToVectorRep(v,arg[1]!.q)=fail then
+      TryNextMethod(); # cannot convert, wrong type of object
+    fi;
+  fi;
+  # Problem with GF(4) vectors over GF(2)
+  if (IsGF2VectorRep(v) and arg[1]!.q<>2) 
+     or (Is8BitVectorRep(v) and arg[1]!.q=2) then
+    TryNextMethod();
+  fi;
+
+  # compute index via number
+  return QuoInt(NumberFFVector(v,arg[1]!.q),arg[1]!.q)+1;
+end);
+
+InstallMethod( Position, "for extended vectorsFF, FFvec, and 0", true,
+    [ IsList and IsExtendedVectorsFFRep, IsRowVector, IsZeroCyc ], 0,
+    PosExVecEnumFF);
+
+InstallMethod( PositionCanonical, "for extended vectorsFF and FFvec", true,
+    [ IsList and IsExtendedVectorsFFRep, IsRowVector ], 0,
+    PosExVecEnumFF);
+
+
+#############################################################################
+##
+#R  IsOneDimSubspacesTransversalRep( <V> )  . . . . . . . . . . . . . . . . .
+##
+DeclareRepresentation( "IsOneDimSubspacesTransversalRep",
+    IsAttributeStoringRep, [ "enumeratorField", "dimension", "one" ] );
+
 
 #############################################################################
 ##
 #F  OneDimSubspacesTransversal( <V> ) . . . . . . . . . . . . . . . . . . . .
 ##
-DeclareRepresentation( "IsOneDimSubspacesTransversal",
-                                  IsEnumerator and IsAttributeStoringRep,
-                                  [ "enumeratorField", "dimension", "one" ] );
-
-OneDimSubspacesTransversal := function( V )
+BindGlobal( "OneDimSubspacesTransversal", function( V )
     return Objectify( NewType( FamilyObj( V ),
-        IsOneDimSubspacesTransversal ), rec(
+                               IsList and IsOneDimSubspacesTransversalRep ),
+                      rec(
                    enumeratorField := Enumerator( LeftActingDomain( V ) ),
                          dimension := Dimension( V ),
                                one := One( LeftActingDomain( V ) ) ) );
-end;
+end );
 
-InstallMethod( PrintObj, true, [ IsOneDimSubspacesTransversal ], 0,
+InstallMethod( PrintObj,
+    "for transversal of 1-dim. subspaces",
+    true,
+    [ IsList and IsOneDimSubspacesTransversalRep ], 0,
     function( T )
     Print( "P( ", Length( T!.enumeratorField ), "^", T!.dimension, " )" );
 end );
 
-InstallMethod( Length, true, [ IsOneDimSubspacesTransversal ], 0,
+InstallMethod( Length,
+    "for transversal of 1-dim. subspaces",
+    true,
+    [ IsList and IsOneDimSubspacesTransversalRep ], 0,
     function( T )
     local  q,  d;
 
@@ -1710,7 +1845,10 @@ InstallMethod( Length, true, [ IsOneDimSubspacesTransversal ], 0,
     return ( q ^ d - 1 ) / ( q - 1 );
 end );
 
-InstallMethod( \[\], true, [ IsOneDimSubspacesTransversal, IsInt ], 0,
+InstallMethod( \[\],
+    "for transversal of 1-dim. subspaces, and positive integer",
+    true,
+    [ IsList and IsOneDimSubspacesTransversalRep, IsPosInt ], 0,
     function( T, num )
     local   f,  v,  q,  n,  i,  l,  L;
 
@@ -1733,11 +1871,14 @@ InstallMethod( \[\], true, [ IsOneDimSubspacesTransversal, IsInt ], 0,
         v[ i ] := f[ num mod q + 1 ];
         num := QuoInt( num, q );
     od;
+    ConvertToVectorRep(v,q);
     return v;
 end );
 
-InstallMethod( PositionCanonical, true,
-        [ IsOneDimSubspacesTransversal, IsObject ], 0,
+InstallMethod( PositionCanonical,
+    "for transversal of 1-dim. subspaces, and object",
+    true,
+    [ IsList and IsOneDimSubspacesTransversalRep, IsObject ], 0,
     function( T, elm )
     local   f,  zero,  q,  n,  l,  num,  val,  i;
 
@@ -1768,6 +1909,36 @@ end );
 
 #############################################################################
 ##
+#F  IsSubspace( V, U ) . . . . . . . . . . . . . . . . . . . .  check U <= V 
+##
+InstallGlobalFunction( IsSubspace, function( V, U )
+    return IsVectorSpace( U ) and IsSubset( V, U );
+end );
+
+
+#############################################################################
+##
+#F  OrthogonalSpaceInFullRowSpace( U ) . . . . . . . . .compute the dual to U
+##
+InstallMethod( OrthogonalSpaceInFullRowSpace,
+               "dual space for row spaces",
+               true,
+               [IsGaussianRowSpaceRep],
+               0,
+function( U )
+    local base, n, i, null;
+    base := ShallowCopy( Basis( U ) );
+    n := Length( Zero( U ) );
+    for i in [Length(base)+1..n] do
+        Add( base, Zero(U) );
+    od;
+    null := NullspaceMat( TransposedMat( base ) );
+    return VectorSpace( LeftActingDomain(U), null, Zero(U), "basis" ); 
+end );
+
+
+#############################################################################
+##
 #F  OnLines( <vec>, <g> ) . . . . . . . .  for operation on projective points
 ##
 InstallGlobalFunction( OnLines, function( vec, g )
@@ -1788,7 +1959,8 @@ end );
 #T (note that we construct a mutable basis only if we want to do successive
 #T closures)
 
+
 #############################################################################
 ##
-#E  vspcrow.gi  . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
 

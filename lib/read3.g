@@ -5,9 +5,6 @@
 ReadLib( "tuples.gd"   );
 
 ReadLib( "rvecempt.gd" );
-ReadLib( "matrix.gd"   );
-ReadLib( "matint.gd"   );
-ReadLib( "matblock.gd" );
 
 ReadLib( "domain.gd"   );
 ReadLib( "extaset.gd"  );
@@ -17,15 +14,26 @@ ReadLib( "extuset.gd"  );
 
 ReadLib( "mapping.gd"  );
 ReadLib( "mapphomo.gd" );
+ReadLib( "relation.gd");
 
 ReadLib( "magma.gd"    );
+ReadLib( "mgmideal.gd"    );
+ReadLib( "mgmhom.gd" );
+ReadLib( "mgmadj.gd"    );
+ReadLib( "mgmcong.gd");
+ReadLib( "semicong.gd" );
 ReadLib( "semigrp.gd"  );
+ReadLib( "smgideal.gd" );
 ReadLib( "monoid.gd"   );
 ReadLib( "grp.gd"      );
 
 ReadLib( "addmagma.gd" );
 ReadLib( "addcoset.gd" );
+ReadLib( "semiring.gd" );
 ReadLib( "ring.gd"     );
+ReadLib( "matrix.gd"   );
+ReadLib( "matint.gd"   );
+ReadLib( "matblock.gd" );
 ReadLib( "ideal.gd"    );
 ReadLib( "module.gd"   );
 ReadLib( "basis.gd"    );
@@ -53,6 +61,7 @@ ReadLib( "fldabnum.gd" );
 ReadLib( "padics.gd"   );
 ReadLib( "ringpoly.gd" );
 ReadLib( "upoly.gd"    );
+ReadLib( "polyfinf.gd"  );
 ReadLib( "polyrat.gd"  );
 ReadLib( "polyconw.gd" );
 ReadLib( "algfld.gd"   );
@@ -94,12 +103,17 @@ ReadLib( "gprd.gd"     );
 ReadLib( "ghomperm.gd" );
 ReadLib( "gpprmsya.gd" );
 
+# files dealing with quotient computations
+ReadLib( "quotsys.gd" );
+ReadLib( "pquot.gd" );
+
 # family predicates (needed for all 'InstallMethod' and oprt.gd)
 ReadLib( "fampred.g"   );
 
 ReadLib( "oprt.gd"     );
 ReadLib( "stbc.gd"     );
 ReadLib( "clas.gd"     );
+ReadLib( "clashom.gd"  );
 ReadLib( "csetgrp.gd"  );
 ReadLib( "factgrp.gd"  );
 ReadLib( "grpreps.gd" );
@@ -112,10 +126,7 @@ ReadLib( "twocohom.gd" );
 ReadLib( "grppcext.gd");
 ReadLib( "grppcfp.gd");
 ReadLib( "randiso.gd");
-ReadLib( "fratfree.gd");
-ReadLib( "frattext.gd");
 
-ReadLib( "morpheus.gd" );
 ReadLib( "grplatt.gd"  );
 ReadLib( "oprtglat.gd" );
 ReadLib( "grppclat.gd" );
@@ -138,12 +149,13 @@ ReadLib( "dt.g" );
 
 
 ReadLib( "list.gi"     ); # was too early
+ReadLib( "set.gi"      );
 ReadLib( "wpobj.gi"    );
-
 
 # files dealing with nice monomorphism
 # grpnice uses some family predicates, so fampred.g must be known
 ReadLib( "grpnice.gd"  );
+ReadLib( "morpheus.gd" );
 
 
 # files dealing with matrix groups (grpffmat.gd needs grpnice.gd)
@@ -154,3 +166,19 @@ ReadLib( "grpramat.gd" );
 # group library
 ReadGrp( "basic.gd"    );
 ReadGrp( "perf.gd"     );
+
+# files dealing with semigroups - second layer
+ReadLib( "inflist.gd"  );
+ReadLib( "trans.gd");
+ReadLib( "fastendo.gd");
+ReadLib( "fpsemi.gd");
+ReadLib( "kbsemi.gd");
+ReadLib( "tcsemi.gd");
+ReadLib( "semirel.gd");
+ReadLib( "semitran.gd");
+ReadLib( "reesmat.gd");
+ReadLib("semiquo.gd");
+
+# prototyping utilities
+ReadLib("proto.gd");
+

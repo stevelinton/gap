@@ -264,7 +264,7 @@ gap> Dimension( l );
 #############################################################################
 
 gap> sum:= DirectSumOfAlgebras( f, f );
-<algebra of dimension 18 over GF(2)>
+<algebra over GF(2), with 6 generators>
 gap> Dimension( sum ) = 2 * Dimension( f );
 true
 gap> IsFullMatrixModule( sum );
@@ -290,8 +290,8 @@ gap> n:= NullAlgebra( GF(3) );
 <algebra over GF(3)>
 gap> Dimension( n );
 0
-gap> b:= BasisOfDomain( n );
-SemiEchelonBasis( <algebra of dimension 0 over GF(3)>, [  ] )
+gap> b:= Basis( n );
+Basis( <algebra of dimension 0 over GF(3)>, [  ] )
 gap> BasisVectors( b );
 [  ]
 gap> zero:= Zero( n );
@@ -327,7 +327,7 @@ true
 
 #############################################################################
 
-gap> STOP_TEST( "algmat.tst", 2275253357 );
+gap> STOP_TEST( "algmat.tst", 2140820000 );
 
 
 #############################################################################

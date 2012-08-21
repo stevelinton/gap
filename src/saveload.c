@@ -330,8 +330,9 @@ ObjFunc LoadHandler( )
 
 static void SaveBagData (Bag bag)
 {
-  /* Size-type word first */
+  SaveUInt((UInt)PTR_BAG(bag)[-3]);
   SaveUInt((UInt)PTR_BAG(bag)[-2]);
+
 
   /* dispatch */
   (*(SaveObjFuncs[ TNUM_BAG( bag )]))(bag);
@@ -343,16 +344,23 @@ static void SaveBagData (Bag bag)
 static void LoadBagData ( )
 {
   Bag bag;
+#ifndef NEWSHAPE
   UInt sizetype;
+#else
+  UInt size;
+  UInt type;
+#endif
   
   /* Recover the sizetype word */
+#ifndef NEWSHAPE
   sizetype=LoadUInt();
+#else
+  type = LoadUInt();
+  size = LoadUInt();
+#endif
 
 #ifdef DEBUG_LOADING
   {
-    UInt size, type;
-    size = sizetype >> 8;
-    type = sizetype &0xFF;
     if (InfoBags[type].name == NULL)
       {
         Pr("Bad type %d, size %d\n",type,size);
@@ -363,10 +371,18 @@ static void LoadBagData ( )
 #endif  
 
   /* Get GASMAN to set up the bag for me */
+#ifndef NEWSHAPE
   bag = NextBagRestoring( sizetype );
+#else
+  bag = NextBagRestoring( size, type );
+#endif
   
   /* despatch */
+#ifndef NEWSHAPE
   (*(LoadObjFuncs[ sizetype & 0xFFL ]))(bag);
+#else
+  (*(LoadObjFuncs[ type ]))(bag);
+#endif
   
   return;
 }
@@ -476,6 +492,13 @@ static void AddSaveIndex( Bag bag)
   PTR_BAG(bag)[-1] = (Obj)NextSaveIndex++;
 }
 
+static void CheckPlist( Bag bag)
+{
+  if (TNUM_BAG(bag) == 14 && sizeof(UInt)*((UInt)(PTR_BAG(bag)[0])) > SIZE_BAG(bag))
+    Pr("Panic %d %d\n",sizeof(UInt)*((UInt)(PTR_BAG(bag)[0])), SIZE_BAG(bag));
+  return;
+}
+
 static void RemoveSaveIndex( Bag bag)
 {
   PTR_BAG(bag)[-1] = bag;
@@ -561,7 +584,7 @@ Obj SaveWorkspace( Obj fname )
   /* Restore situation by calling all post-save methods */
   for (i = 0; i < NrModules; i++)
     if (Modules[i]->postSave != NULL)
-      (*(Modules[i]->preSave))(Modules[i]);
+      (*(Modules[i]->postSave))(Modules[i]);
 
   return True;
 }

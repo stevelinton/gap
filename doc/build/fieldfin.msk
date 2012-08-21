@@ -8,16 +8,124 @@
 %%
 \Chapter{Finite Fields}
 
-\Declaration{IsFFE}
+This chapter describes the special functionality which exists in
+{\GAP} for finite fields and their elements. Of course the general
+functionality for fields (see chapter "Fields and Division Rings")
+also applies to finite fields. Special representations also exist for
+vectors and matrices over small finite fields (see sections "Row
+Vectors over Finite Fields" and "Matrices over Finite Fields").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{Operations for finite field elements}
+\Section{Finite Field Elements}
+
+\Declaration{IsFFE}
+
+\FileHeader[1]{ffe}
+
+\beginexample
+gap> a:= Z( 32 );
+Z(2^5)
+gap> a+a;
+0*Z(2)
+gap> a*a;
+Z(2^5)^2
+\endexample
+
+Elements of finite fields can be compared using the operators `=' and
+`\<'. The call `<a> = <b>' returns `true' if and only if the finite
+field elements <a> and <b> are equal. Furthermore `<a> \< <b>' tests
+whether <a> is smaller than <b>. Finite field elements are ordered in
+the following way. If the two elements lie in fields of different
+characteristics the one that lies in the field with the smaller
+characteristic is smaller.  If the two elements lie in different
+fields of the same characteristic the one that lies in the smaller
+field is smaller.  If the two elements lie in the same field and one
+is the zero and the other is not, the zero element is smaller.  If the
+two elements lie in the same field and both are nonzero, and are
+represented as $Z(p^d)^{i_1}$ and $Z(p^d)^{i_2}$ respectively, then
+the one with the smaller $i$ is smaller.
+
+
+
+\beginexample
+gap> Z( 16 )^10 = Z( 4 )^2;  # this illustrates the embedding of GF( 4 )
+true                         # in GF( 16 ).
+gap> 0 < 0*Z(101);
+true
+gap> Z(256) > Z(101);
+false
+\endexample
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Operations for Finite Field Elements}
 
 \Declaration{DegreeFFE}
+
+\beginexample
+gap> DegreeFFE( Z( 16 )^10 );
+2
+gap> DegreeFFE( Z( 16 )^11 );
+4
+gap> DegreeFFE( [ Z(2^13), Z(2^10) ] );
+130
+\endexample
+
 \Declaration{LogFFE}
 \Declaration{IntFFE}
 \Declaration{IntVecFFE}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Creating Finite Fields}
+
 \Declaration{GaloisField}
+
+\beginexample
+gap> F:= GF( 3^5 );
+GF(3^5)
+gap> G:= GaloisGroup ( F );
+<group with 1 generators>
+gap> BasisVectors( Basis( F ) );
+[ Z(3)^0, Z(3^5), Z(3^5)^2, Z(3^5)^3, Z(3^5)^4 ]
+\endexample
+
 \Declaration{PrimitiveRoot}
+
+\beginexample
+gap> F:= GF( 3^5 );
+GF(3^5)
+gap> PrimitiveRoot( F );
+Z(3^5)
+\endexample
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{FrobeniusAutomorphism}
+
+\index{homomorphisms!Frobenius, field}%
+\index{field homomorphisms!Frobenius}%
+\index{Image!for Frobenius automorphisms}%
+\index{CompositionMapping!for Frobenius automorphisms}
+
+\Declaration{FrobeniusAutomorphism}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\Section{Internally Represented Finite Field Elements}
+%
+%own chapter for FFEs ??
+%
+%comparison of FFEs !!
+%
+%(what about zmodnz ??)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Conway Polynomials}
+
+\Declaration{ConwayPolynomial}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%E
 

@@ -157,7 +157,8 @@ InstallMethod( KernelOfMultiplicativeGeneralMapping,
     "method for an injective gen. mapping that respects mult. and one",
     true,
     [ IsGeneralMapping and RespectsMultiplication
-                       and RespectsOne and IsInjective ], SUM_FLAGS,
+                       and RespectsOne and IsInjective ],
+    SUM_FLAGS,# can't do better in injective case
     map -> TrivialSubmagmaWithOne( Source( map ) ) );
 
 
@@ -211,7 +212,8 @@ InstallMethod( CoKernelOfMultiplicativeGeneralMapping,
     "method for a single-valued gen. mapping that respects mult. and one",
     true,
     [ IsGeneralMapping and RespectsMultiplication
-                       and RespectsOne and IsSingleValued ], SUM_FLAGS,
+                       and RespectsOne and IsSingleValued ],
+    SUM_FLAGS,# can't do better in single-valued case
 #T SUM_FLAGS ?
     map -> TrivialSubmagmaWithOne( Range( map ) ) );
 
@@ -281,11 +283,6 @@ InstallMethod( ImagesSet,
                GeneratorsOfMagmaWithInverses( 
                    CoKernelOfMultiplicativeGeneralMapping( map ) ),
                genimages ) );
-    if     HasSize( CoKernelOfMultiplicativeGeneralMapping( map ) )
-       and HasSize( elms )  then
-        SetSize( img, Size( CoKernelOfMultiplicativeGeneralMapping( map ) )
-                * Size( elms ) );
-    fi;
     return img;
     end );
 
@@ -302,7 +299,7 @@ InstallMethod( ImagesSet,
                     List( GeneratorsOfMagmaWithInverses( elms ),
                           gen -> ImagesRepresentative( map, gen ) ) );
     UseIsomorphismRelation( elms, img );
-    if     IsOperationHomomorphism( map )
+    if     IsActionHomomorphism( map )
        and HasBaseOfGroup( UnderlyingExternalSet( map ) )
        and not HasBaseOfGroup( img )
        and not HasStabChainMutable( img )  then
@@ -350,9 +347,15 @@ InstallMethod( PreImagesSet,
     CollFamRangeEqFamElms,
     [ IsSPGeneralMapping and RespectsMultiplication and RespectsInverses,
       IsGroup ], 0,
-    function( map, elms )
-    local genpreimages,  pre;
-    genpreimages:= List( GeneratorsOfMagmaWithInverses( elms ),
+  function( map, elms )
+  local genpreimages,  pre;
+    genpreimages:=GeneratorsOfMagmaWithInverses( elms );
+    if Length(genpreimages)>0 and CanEasilyCompareElements(genpreimages[1]) then
+      # remove identities
+      genpreimages:=Filtered(genpreimages,i->i<>One(i));
+    fi;
+
+    genpreimages:= List(genpreimages, 
                       gen -> PreImagesRepresentative( map, gen ) );
     if fail in genpreimages then
       TryNextMethod();
@@ -457,8 +460,8 @@ InstallMethod( RespectsAdditiveInverses,
     local S, R, enum, pair;
     S:= Source( map );
     R:= Range(  map );
-    if not (     IsAdditiveMagmaWithInverses( S )
-             and IsAdditiveMagmaWithInverses( R ) ) then
+    if not (     IsAdditiveGroup( S )
+             and IsAdditiveGroup( R ) ) then
       return false;
     fi;
 
@@ -525,7 +528,8 @@ InstallMethod( KernelOfAdditiveGeneralMapping,
     "method for an injective gen. mapping that respects add. and zero",
     true,
     [ IsGeneralMapping and RespectsAddition
-                       and RespectsZero and IsInjective ], SUM_FLAGS,
+                       and RespectsZero and IsInjective ],
+    SUM_FLAGS,# can't do better in injective case
     map -> TrivialSubadditiveMagmaWithZero( Source( map ) ) );
 
 
@@ -537,7 +541,7 @@ InstallMethod( KernelOfAdditiveGeneralMapping,
     "method for zero mapping",
     true,
     [ IsGeneralMapping and RespectsAddition and RespectsZero and IsZero ],
-    SUM_FLAGS,
+    SUM_FLAGS,# can't do better for zero mapping
     Source );
 
 
@@ -591,7 +595,8 @@ InstallMethod( CoKernelOfAdditiveGeneralMapping,
     "method for a single-valued gen. mapping that respects add. and zero",
     true,
     [ IsGeneralMapping and RespectsAddition
-                       and RespectsZero and IsSingleValued ], SUM_FLAGS,
+                       and RespectsZero and IsSingleValued ],
+    SUM_FLAGS,# can't do better in single-valued case
 #T SUM_FLAGS ?
     map -> TrivialSubadditiveMagmaWithZero( Range( map ) ) );
 
@@ -651,14 +656,14 @@ InstallMethod( ImagesSet,
       IsAdditiveGroup ], 0,
     function( map, elms )
     local genimages;
-    genimages:= List( GeneratorsOfAdditiveMagmaWithInverses( elms ),
+    genimages:= List( GeneratorsOfAdditiveGroup( elms ),
                       gen -> ImagesRepresentative( map, gen ) );
     if fail in genimages then
       TryNextMethod();
     fi;
 
-    return SubadditiveMagmaWithInversesNC( Range( map ), Concatenation(
-               GeneratorsOfAdditiveMagmaWithInverses(
+    return SubadditiveGroupNC( Range( map ), Concatenation(
+               GeneratorsOfAdditiveGroup(
                    CoKernelOfAdditiveGeneralMapping( map ) ),
                genimages ) );
     end );
@@ -696,14 +701,14 @@ InstallMethod( PreImagesSet,
       IsAdditiveGroup ], 0,
     function( map, elms )
     local genpreimages;
-    genpreimages:= List( GeneratorsOfAdditiveMagmaWithInverses( elms ),
+    genpreimages:= List( GeneratorsOfAdditiveGroup( elms ),
                       gen -> PreImagesRepresentative( map, gen ) );
     if fail in genpreimages then
       TryNextMethod();
     fi;
 
-    return SubadditiveMagmaWithInversesNC( Source( map ), Concatenation(
-               GeneratorsOfAdditiveMagmaWithInverses(
+    return SubadditiveGroupNC( Source( map ), Concatenation(
+               GeneratorsOfAdditiveGroup(
                    KernelOfAdditiveGeneralMapping( map ) ),
                genpreimages ) );
     end );
@@ -737,12 +742,15 @@ InstallMethod( RespectsScalarMultiplication,
     if not IsSubset( LeftActingDomain( R ), D ) then
 #T subset is allowed?
       return false;
-    elif not IsFinite( D ) or not IsFinite( map ) then
-      Error( "cannot determine whether infinite mapping <map> ",
+    fi;
+
+    map:= UnderlyingRelation( map );
+
+    if not IsFinite( D ) or not IsFinite( map ) then
+      Error( "cannot determine whether the infinite mapping <map> ",
              "respects scalar multiplication" );
     else
       D:= Enumerator( D );
-      map:= UnderlyingRelation( map );
       for pair in Enumerator( map ) do
         for c in D do
           if not Tuple( [ c * pair[1], c * pair[2] ] ) in map then
@@ -1104,8 +1112,8 @@ InstallEqMethodForMappingsFromGenerators( IsAdditiveMagmaWithZero,
 ##
 #M  \=( <map1>, <map2> )  . . . . for s.v. gen. map. resp. add. and add. inv.
 ##
-InstallEqMethodForMappingsFromGenerators( IsAdditiveMagmaWithInverses,
-    GeneratorsOfAdditiveMagmaWithInverses,
+InstallEqMethodForMappingsFromGenerators( IsAdditiveGroup,
+    GeneratorsOfAdditiveGroup,
     RespectsAddition and RespectsAdditiveInverses,
     " that respect add. and add. inv." );
 

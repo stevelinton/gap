@@ -1,0 +1,8 @@
+@msfiles = ("install","run","sharepkg","refcover","tutcover","prgcover","extcover","ficover");
+@gdfiles = ("package.g","files.gd","system.g");
+$DIR = "../ref";
+$LIB = "../../lib"; 
+versionnumber=4.1
+versionsuffix=4r1
+gapdirname=gap4r1
+ucgapdirname=GAP4R1

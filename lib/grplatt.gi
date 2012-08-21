@@ -53,11 +53,16 @@ InstallMethod(ConjugacyClassSubgroups,IsIdenticalObj,[IsGroup,IsGroup],0,
 function(G,U)
 local filter,cl;
 
+    if CanComputeSizeAnySubgroup(G) then
+      filter:=IsConjugacyClassSubgroupsByStabilizerRep;
+    else
+      filter:=IsConjugacyClassSubgroupsRep;
+    fi;
     cl:=Objectify(NewType(CollectionsFamily(FamilyObj(G)),
-      IsConjugacyClassSubgroupsRep),rec());
+      filter),rec());
     SetActingDomain(cl,G);
     SetRepresentative(cl,U);
-    SetFunctionOperation(cl,OnPoints);
+    SetFunctionAction(cl,OnPoints);
     return cl;
 end);
 
@@ -71,10 +76,20 @@ function( clasa, clasb )
   if not IsIdenticalObj(ActingDomain(clasa),ActingDomain(clasb))
     then TryNextMethod();
   fi;
-  return RepresentativeOperation(ActingDomain(clasa),Representative(clasa),
+  return RepresentativeAction(ActingDomain(clasa),Representative(clasa),
 		 Representative(clasb))<>fail;
 end);
 
+
+#############################################################################
+##
+#M  <G> in <clas> . . . . . . . . . . . . . . . . . . by conjugacy test
+##
+InstallMethod( \in, IsElmsColls, [ IsGroup,IsConjugacyClassSubgroupsRep], 0,
+function( G, clas )
+  return RepresentativeAction(ActingDomain(clas),Representative(clas),G)
+		 <>fail;
+end);
 
 #############################################################################
 ##
@@ -91,6 +106,16 @@ local rep;
   fi;
   return ConjugateSubgroup(rep,c!.normalizerTransversal[nr]);
 end);
+
+InstallMethod( StabilizerOfExternalSet, true, [ IsConjugacyClassSubgroupsRep ], 
+    # override eventual pc method
+    10,
+function(xset)
+  return Normalizer(ActingDomain(xset),Representative(xset));
+end);
+
+InstallOtherMethod( NormalizerOp, true, [ IsConjugacyClassSubgroupsRep ], 0,
+    StabilizerOfExternalSet );
 
 
 #############################################################################
@@ -444,6 +469,10 @@ local   G,		   # group
     lattice!.conjugacyClassesSubgroups:=classes;
     lattice!.group     :=G;
 
+    if func<>false then
+      lattice!.func:=func;
+    fi;
+
     # return the lattice
     return lattice;
 end );
@@ -463,7 +492,11 @@ InstallMethod(PrintObj,"lattice",true,[IsLatticeSubgroupsRep],0,
 function(l)
   Print("LatticeSubgroups(",l!.group,",\# ",
     Length(l!.conjugacyClassesSubgroups)," classes, ",
-    Sum(l!.conjugacyClassesSubgroups,Size)," subgroups)");
+    Sum(l!.conjugacyClassesSubgroups,Size)," subgroups");
+  if IsBound(l!.func) then
+    Print(" under further condition l!.func");
+  fi;
+  Print(")");
 end);
 
 #############################################################################
@@ -507,7 +540,7 @@ InstallMethod(RepresentativesPerfectSubgroups,"using Holt/Plesken library",
   true,[IsGroup],0,
 function(G)
 local badsizes,n,un,cl,r,i,l,u,bw,cnt,gens,go,imgs,bg,bi,emb,nu,k,j,
-      D,params,might;
+      D,params,might,bo;
   if IsSolvableGroup(G) then
     return [TrivialSubgroup(G)];
   else
@@ -552,6 +585,7 @@ local badsizes,n,un,cl,r,i,l,u,bw,cnt,gens,go,imgs,bg,bi,emb,nu,k,j,
 	  if might then
 	    # find a suitable generating system
 	    bw:=infinity;
+	    bo:=[0,0];
 	    cnt:=0;
 	    repeat
 	      if cnt=0 then
@@ -560,18 +594,38 @@ local badsizes,n,un,cl,r,i,l,u,bw,cnt,gens,go,imgs,bg,bi,emb,nu,k,j,
 	      else
 		# then something random
 		repeat
-		  gens:=List(gens,i->Random(u));
-	        until Size(Subgroup(u,gens))=Size(u);
+		  if Length(gens)>2 and Random([1,2])=1 then
+		    # try to get down to 2 gens
+		    gens:=List([1,2],i->Random(u));
+		  else
+		    gens:=List(gens,i->Random(u));
+		  fi;
+                  # try to get small orders
+		  for k in [1..Length(gens)] do
+		    go:=Order(gens[k]);
+		    # try a p-element
+		    if Random([1..2*Length(gens)])=1 then
+		      gens[k]:=gens[k]^(go/(Random(Factors(go))));
+		    fi;
+		  od;
+
+	        until Index(u,SubgroupNC(u,gens))=1;
 	      fi;
 	      go:=List(gens,Order);
 	      imgs:=List(go,i->Filtered(cl,j->Order(Representative(j))=i));
+	      Info(InfoLattice,3,go,":",Product(imgs,i->Sum(i,Size)));
 	      if Product(imgs,i->Sum(i,Size))<bw then
 		bg:=gens;
+		bo:=go;
 		bi:=imgs;
 		bw:=Product(imgs,i->Sum(i,Size));
+	      elif Set(go)=Set(bo) then
+		# we hit the orders again -> sign that we can't be
+		# completely off track
+	        cnt:=cnt+Int(bw/Size(G)*3);
 	      fi;
 	      cnt:=cnt+1;
-	    until bw/Size(G)/10<cnt;
+	    until bw/Size(G)*6<cnt;
 
 	    if bw>0 then
 	      Info(InfoLattice,2,"find ",bw," from ",cnt);
@@ -586,8 +640,9 @@ local badsizes,n,un,cl,r,i,l,u,bw,cnt,gens,go,imgs,bg,bi,emb,nu,k,j,
 	      nu:=[];
 	      for k in emb do
 		k:=Image(k,u);
-		if not ForAny(nu,i->RepresentativeOperation(G,i,k)<>fail) then
+		if not ForAny(nu,i->RepresentativeAction(G,i,k)<>fail) then
 		  Add(nu,k);
+		  k!.perfectType:=[i,j];
 		fi;
 	      od;
 	      Info(InfoLattice,1,Length(nu)," classes");
@@ -627,7 +682,7 @@ function (L)
             Kzups,             # zuppos of a representative in <classes>
             reps,              # transversal of <N> in <G>
 	    grp,	       # the group
-            i,k,l,r;         # loop variables
+            i,k,r;         # loop variables
 
     grp:=L!.group;
     # compute the lattice,fetch the classes,zuppos,and representatives
@@ -729,7 +784,7 @@ function (L)
             Kzups,             # zuppos of a representative in <classes>
             reps,              # transversal of <N> in <G>
 	    grp,	       # the group
-            i,k,l,r;         # loop variables
+            i,k,r;         # loop variables
 
     grp:=L!.group;
     # compute the lattice,fetch the classes,zuppos,and representatives
@@ -820,26 +875,13 @@ end);
 #F  MaximalSubgroupClassReps(<G>) . . . . reps of conjugacy classes of
 #F                                                          maximal subgroups
 ##
-InstallMethod(MaximalSubgroupClassReps,"try solvable",true,[IsGroup],1,
-function (G)
-  if CanEasilyComputePcgs(G) # safety to avoid recursion: Methods are
-                             # ill-sorted
-     or not IsSolvableGroup(G) # not usable
-     then
-    TryNextMethod();
-  fi;
-  return MaximalSubgroupClassReps(G); # this will call *another* method
-end);
-
 InstallMethod(MaximalSubgroupClassReps,"using lattice",true,[IsGroup],0,
 function (G)
     local   maxs,lat;
 
     #AH special AG treatment
-    if IsSolvableGroup(G) then
-      lat:=IsomorphismPcGroup(G);
-      maxs:=MaximalSubgroupClassReps(Image(lat,G));
-      return List(maxs,i->PreImage(lat,i));
+    if not HasIsSolvableGroup(G) and IsSolvableGroup(G) then
+      return MaximalSubgroupClassReps(G);
     fi;
     # simply compute all conjugacy classes and take the maximals
     lat:=LatticeSubgroups(G);
@@ -993,7 +1035,18 @@ local nt,nnt,	# normal subgroups
       # first, we obtain the simple factors T_i/N.
       # we get these as intersections of the conjugates of the subnormal
       # subgroup
-      T:=CompositionSeries(M)[2]; # stored attribute
+      if HasCompositionSeries(M) then
+	T:=CompositionSeries(M)[2]; # stored attribute
+      else
+        T:=false;
+      fi;
+      if not (T<>false and IsSubgroup(T,N)) then
+        # we did not get the right T: must compute
+	hom:=NaturalHomomorphismByNormalSubgroup(M,N);
+	T:=CompositionSeries(Image(hom))[2];
+	T:=PreImage(hom,T);
+      fi;
+
       hom:=NaturalHomomorphismByNormalSubgroup(M,T);
       A:=Image(hom,M);
 
@@ -1047,7 +1100,7 @@ local nt,nnt,	# normal subgroups
 		for k in SmallGeneratingSet(S) do
 		  j:=j^k;
 		  ji:=Image(hom,j);
-		  if ForAll(orbi,l->RepresentativeOperation(A,l,ji)=fail) then
+		  if ForAll(orbi,l->RepresentativeAction(A,l,ji)=fail) then
 		    Add(orb,j);
 		    Add(orbi,ji);
 		  fi;
@@ -1103,6 +1156,100 @@ InstallMethod(NormalSubgroups,"homomorphism principle pc groups",true,
 
 InstallMethod(NormalSubgroups,"homomorphism principle perm groups",true,
   [IsPermGroup],0,NormalSubgroupsCalc);
+
+#############################################################################
+##
+#M  IntermediateSubgroups(<G>,<U>)
+##
+InstallMethod(IntermediateSubgroups,"blocks for coset operation",
+  IsIdenticalObj, [IsGroup,IsGroup],0,
+function(G,U)
+local rt,op,a,l,i,j,u,max,subs;
+  rt:=RightTransversal(G,U);
+  op:=Action(G,rt,OnRight); # use the special trick for right transversals
+  a:=ShallowCopy(AllBlocks(op));
+  l:=Length(a);
+
+  # compute inclusion information among sets
+  Sort(a,function(x,y)return Length(x)<Length(y);end);
+  # this is n^2 but I hope will not dominate everything.
+  subs:=List([1..l],i->Filtered([1..i-1],j->IsSubset(a[i],a[j])));
+      # List the sets we know to be contained in each set
+
+  max:=Set(List(Difference([1..l],Union(subs)), # sets which are
+						# contained in no other
+      i->[i,l+1]));
+
+  for i in [1..l] do
+    #take all subsets
+    if Length(subs[i])=0 then
+      # is minimal
+      AddSet(max,[0,i]);
+    else
+      u:=ShallowCopy(subs[i]);
+      #and remove those which come via other ones
+      for j in u do
+	u:=Difference(u,subs[j]);
+      od;
+      for j in u do
+	#remainder is maximal
+	AddSet(max,[j,i]);
+      od;
+    fi;
+  od;
+
+  return rec(subgroups:=List(a,i->ClosureGroup(U,rt{i})),inclusions:=max);
+end);
+
+InstallMethod(IntermediateSubgroups,"normal case",
+  IsIdenticalObj, [IsGroup,IsGroup],
+  1,# better than the previous method
+function(G,N)
+local hom,F,cl,cls,lcl,sub,sel,unsel,i,j;
+  if not IsNormal(G,N) then
+    TryNextMethod();
+  fi;
+  hom:=NaturalHomomorphismByNormalSubgroup(G,N);
+  F:=Image(hom,G);
+  unsel:=[1,Size(F)];
+  cl:=Filtered(ConjugacyClassesSubgroups(F),
+               i->not Size(Representative(i)) in unsel);
+  Sort(cl,function(a,b)
+            return Size(Representative(a))<Size(Representative(b));
+	  end);
+  cl:=Concatenation(List(cl,AsList));
+  lcl:=Length(cl);
+  cls:=List(cl,Size);
+  sub:=List(cl,i->[]);
+  sub[lcl+1]:=[0..Length(cl)];
+  # now build a list of contained maximal subgroups
+  for i in [1..lcl] do
+    sel:=Filtered([1..i-1],j->IsInt(cls[i]/cls[j]) and cls[j]<cls[i]);
+    # now run through the subgroups in reversed order:
+    sel:=Reversed(sel);
+    unsel:=[];
+    for j in sel do
+      if not j in unsel then
+	if IsSubset(cl[i],cl[j]) then
+	  AddSet(sub[i],j);
+	  UniteSet(unsel,sub[j]); # these are not maximal
+	  RemoveSet(sub[lcl+1],j); # j is not maximal in whole
+	fi;
+      fi;
+    od;
+    if Length(sub[i])=0 then
+      sub[i]:=[0]; # minimal subgroup
+      RemoveSet(sub[lcl+1],0);
+    fi;
+  od;
+  sel:=[];
+  for i in [1..Length(sub)] do
+    for j in sub[i] do
+      Add(sel,[j,i]);
+    od;
+  od;
+  return rec(subgroups:=List(cl,i->PreImage(hom,i)),inclusions:=sel);
+end);
 
 #############################################################################
 ##

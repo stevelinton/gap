@@ -17,7 +17,7 @@ InstallGlobalFunction( RegularModuleByGens, function( G, gens, F )
     mats := List( gens, x -> false );
     elms := AsList( G );
     d    := Length(elms);
-    zero := MutableNullMat( d, d, F );
+    zero := NullMat( d, d, F );
     for i in [1..Length( gens )] do
         mat := List( zero, ShallowCopy ); 
         for j in [1..d] do

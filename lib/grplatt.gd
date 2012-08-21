@@ -24,25 +24,33 @@ DeclareInfoClass("InfoLattice");
 #############################################################################
 ##
 #R  IsConjugacyClassSubgroupsRep(<obj>)
+#R  IsConjugacyClassSubgroupsByStabilizerRep(<obj>)
 ##
-##  This representation indicates conjugacy classes of subgroups. They are
-##  external orbits.
+##  Is the representation {GAP} uses for conjugacy classes of subgroups. It
+##  can be used to check whether an object is a class of subgroups.
+##  The second representation `IsConjugacyClassSubgroupsByStabilizerRep' in
+##  addition is an external orbit by stabilizer and will compute its
+##  elements via a transversal of the stabilizer.
 DeclareRepresentation("IsConjugacyClassSubgroupsRep",
-  IsExternalOrbitByStabilizerRep,[]);
+  IsExternalOrbit,[]);
+DeclareRepresentation("IsConjugacyClassSubgroupsByStabilizerRep",
+  IsConjugacyClassSubgroupsRep and IsExternalOrbitByStabilizerRep,[]);
 
 #############################################################################
 ##
 #O  ConjugacyClassSubgroups(<G>,<U>)
 ##
-##  generates the conjugacy class of subgroups of <G> with representative <U>.
-##  This class is an external set, so functions like `Representative',
-##  `StabilizerOfExternalSet' and `AsList' work for it.
+##  generates the conjugacy class of subgroups of <G> with representative
+##  <U>.  This class is an external set, so functions such as `Representative',
+##  (which returns <U>), `ActingDomain' (which returns <G>),
+##  `StabilizerOfExternalSet' (which returns the normalizer of <U>), and
+##  `AsList' work for it.
 ##  It is possible to use the `[]'
 ##  list access to select elements of the class. *Because of potential other
 ##  methods installed, the `AsList' command may give a different arrangement
 ##  of the class elements!*
 DeclareOperation("ConjugacyClassSubgroups", [IsGroup,IsGroup]);
-#T 1997/01/16 fceller was old 'NewConstructor'
+#T 1997/01/16 fceller was old `NewConstructor'
 
 #############################################################################
 ##
@@ -74,8 +82,8 @@ DeclareAttribute("Zuppos",IsGroup);
 ##  fulfilling <func> (and will also not extend them), returning a partial
 ##  lattice. This can be useful to compute only subgroups with certain
 ##  properties. Note however that this will *not* necessarily yield all
-##  subgroups that fulfill <func>, but the subgroups whose subgroups used
-##  for the construction also fulfill <func> as well.
+##  subgroups that fulfill <func>, but the subgroups whose subgroups are used
+##  for the construction must also fulfill <func> as well.
 DeclareGlobalFunction("LatticeByCyclicExtension");
 
 #############################################################################

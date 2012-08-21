@@ -5,7 +5,7 @@
 #H  @(#)$Id$
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
-#Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  (C) 1999 School Math and Comp. Sci., University of St.  Andrews, Scotland
 ##
 ##  This file contains  the categories, attributes, properties and operations
 ##  for polynomial rings.
@@ -18,7 +18,7 @@ Revision.ringpoly_gd :=
 ##
 #C  IsPolynomialRing( <pring> )
 ##
-##  the category of *full* polynomial rings
+##  is the category of polynomial rings
 ##
 DeclareCategory( "IsPolynomialRing", IsRing );
 
@@ -27,14 +27,14 @@ DeclareCategory( "IsPolynomialRing", IsRing );
 ##
 #C  IsUnivariatePolynomialRing( <pring> )
 ##
-##  is a polynomial ring <pring> with one indeterminate.
+## is the category of polynomial rings with one indeterminate.
 DeclareCategory( "IsUnivariatePolynomialRing", IsPolynomialRing );
 
 #############################################################################
 ##
 #C  IsFiniteFieldPolynomialRing( <pring> )
 ##
-##  is a polynomial ring <pring> over a finite field.
+##  is the category of polynomial rings over a finite field.
 DeclareCategory( "IsFiniteFieldPolynomialRing", IsPolynomialRing );
 
 
@@ -42,7 +42,7 @@ DeclareCategory( "IsFiniteFieldPolynomialRing", IsPolynomialRing );
 ##
 #C  IsRationalsPolynomialRing( <pring> )
 ##
-##  is a polynomial ring <pring> over the rational numbers.
+##  is the category of polynomial rings over the rationals.
 DeclareCategory( "IsRationalsPolynomialRing", IsPolynomialRing );
 
 #############################################################################
@@ -58,7 +58,7 @@ DeclareAttribute( "CoefficientsRing", IsPolynomialRing );
 ##  These indeterminates can be referred to by positive integers. If only a
 ##  number <num> of indeterminates is required they default to `[1..<num>]'.
 ##
-##  It is posible to assign names to indeterminates. These names only
+##  It is possible to assign names to indeterminates. These names only
 ##  provide a means for printing the indeterminates in a nice way, but have
 ##  not necessary any relations to variable names. Indeterminates that have
 ##  not been assigned a name will be printed as ``{`x_<nr>'}''.
@@ -73,7 +73,7 @@ DeclareAttribute( "CoefficientsRing", IsPolynomialRing );
 ##  yet named, name these accordingly and return them. Thus when asking for
 ##  named indeterminates, no relation between names and indeterminate
 ##  numbers can be guaranteed. The attribute
-##  `IndeterminateNumberOfUnivariateLaurentPolynomial(<indet>)' will return
+##  `IndeterminateNumberOfLaurentPolynomial(<indet>)' will return
 ##  the number of the indeterminate <indet>.
 
 
@@ -90,6 +90,13 @@ DeclareAttribute( "CoefficientsRing", IsPolynomialRing );
 ##  <avoid>. The third usage returns an indeterminate called <name> (also
 ##  avoiding the indeterminates in <avoid> if given).
 DeclareOperation( "Indeterminate", [IsRing,IsPosInt] );
+
+
+#############################################################################
+##
+#F  X( <R> )
+##
+DeclareSynonym( "X", Indeterminate );
 
 
 #############################################################################
@@ -148,10 +155,14 @@ DeclareOperation( "CharacteristicPolynomial",
 
 #############################################################################
 ##
-#O  MinimalPolynomial( <ring>, <elm> [,<ind>] )
+#O  MinimalPolynomial( <R>, <elm>[ ,<ind>] )
 ##
-##  returns the minimal polynomial of <elm> over <ring>, expressed in the
-##  indeterminate number <ind>. If <ind> is not given, it defaults to 1.
+##  returns the *minimal polynomial* of <elm> over the ring <R>,
+##  expressed in the indeterminate number <ind>.
+##  If <ind> is not given, it defaults to 1.
+##
+##  The minimal polynomial is the monic polynomial of smallest degree with
+##  coefficients in <R> that has value zero at <elm>.
 ##
 DeclareOperation( "MinimalPolynomial",
     [ IsRing, IsMultiplicativeElement and IsAdditiveElement,
@@ -160,5 +171,5 @@ DeclareOperation( "MinimalPolynomial",
 
 #############################################################################
 ##
-#E  ringpoly.gd . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-##
+#E
+

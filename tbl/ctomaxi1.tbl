@@ -1208,7 +1208,7 @@ ALN("4^2:D12",["2^2+3.s3"]);
 MOT("4^2:D12.2",
 [
 "origin: Dixon's Algorithm,\n",
-"10th maximal subgroup of M12.2,\n",
+"8th maximal subgroup of M12.2,\n",
 "table is sorted w.r. to normal series\n",
 "2^2<4^2<4^2.2<4^2.S3<4^2.D12<4^2.D12.2"
 ],
@@ -1349,7 +1349,7 @@ ALN("M8.S4",["2^{1+4}_+.S3","s2m12","q8.s4"]);
 
 MOT("S4xS3",
 [
-"maximal subgroup of M12.2"
+"9th maximal subgroup of M12.2"
 ],
 0,
 0,
@@ -1541,4 +1541,5 @@ ALN:= NotifyCharTableName;
 
 #############################################################################
 ##
-#E  ctomaxi1.tbl. . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
+

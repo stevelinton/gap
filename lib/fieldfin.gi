@@ -75,10 +75,10 @@ InstallMethod( Units,
     "for a finite field",
     true,
     [ IsField and IsFinite ], 0,
-    F -> Group( PrimitiveRoot( F ) ) );
+    F -> GroupByGenerators( [ PrimitiveRoot( F ) ] ) );
 
 InstallTrueMethod( IsHandledByNiceMonomorphism,
-        IsGroup and IsFFECollection );
+    IsGroup and IsFFECollection );
 
 
 #############################################################################
@@ -122,6 +122,40 @@ end );
 
 #############################################################################
 ##
+#M  \=( <F>, <G> ) . . . . . . . . . . . . . . . . . .  for two finite fields
+##
+##  Note that for two finite fields in the same family,
+##  it suffices to check the dimensions as vector spaces over the (common)
+##  prime field.
+##
+InstallMethod( \=,
+    "for two finite fields in the same family",
+    IsIdenticalObj,
+    [ IsField and IsFinite, IsField and IsFinite ], 0,
+    function ( F, G )
+    return DegreeOverPrimeField( F ) = DegreeOverPrimeField( G );
+    end );
+
+
+#############################################################################
+##
+#M  IsSubset( <F>, <G> )  . . . . . . . . . . . . . . . for two finite fields
+##
+##  Note that for two finite fields in the same family,
+##  it suffices to check the dimensions as vector spaces over the (common)
+##  prime field.
+##
+InstallMethod( IsSubset,
+    "for two finite fields in the same family",
+    IsIdenticalObj,
+    [ IsField and IsFinite, IsField and IsFinite ], 0,
+    function( F, G )
+    return DegreeOverPrimeField( F ) mod DegreeOverPrimeField( G ) = 0;
+    end );
+
+
+#############################################################################
+##
 #M  Subfields( <F> )  . . . . . . . . . . . . . . subfields of a finite field
 ##
 InstallMethod( Subfields,
@@ -152,11 +186,11 @@ InstallTrueMethod( IsFinite, IsBasis and IsBasisFiniteFieldRep );
 
 #############################################################################
 ##
-#M  BasisOfDomain( <F> )
+#M  Basis( <F> )
 ##
 ##  We know a canonical basis for finite fields.
 ##
-InstallMethod( BasisOfDomain,
+InstallMethod( Basis,
     "for a finite field",
     true,
     [ IsField and IsFinite ], 0,
@@ -183,10 +217,10 @@ InstallMethod( NewBasis,
 
 #############################################################################
 ##
-#M  BasisByGenerators( <F>, <gens> )
-#M  BasisByGeneratorsNC( <F>, <gens> )
+#M  Basis( <F>, <gens> )
+#M  BasisNC( <F>, <gens> )
 ##
-InstallMethod( BasisByGenerators,
+InstallMethod( Basis,
     "for a finite field, and a hom. list",
     IsIdenticalObj,
     [ IsField and IsFinite, IsHomogeneousList ], 0,
@@ -224,14 +258,14 @@ InstallMethod( BasisByGenerators,
       Add( mat, cnjs );
     od;
 
-    # It is a basis if and only if `mat' is invertible.
-    if DeterminantMat( mat ) = Zero( F ) then
+    # We have a basis if and only if `mat' is invertible.
+    mat:= mat ^ (-1);
+    if mat = fail then
       return fail;
     fi;
 
     # Add the coefficients information.
-    B!.inverseBase:= mat ^ (-1);
-#T cheaper possibility? (after calling det.)
+    B!.inverseBase:= mat;
     B!.d:= d;
     B!.q:= q;
 
@@ -239,7 +273,7 @@ InstallMethod( BasisByGenerators,
     return B;
     end );
 
-InstallMethod( BasisByGeneratorsNC,
+InstallMethod( BasisNC,
     "for a finite field, and a hom. list",
     IsIdenticalObj,
     [ IsField and IsFinite, IsHomogeneousList ], 10,
@@ -344,8 +378,7 @@ InstallMethod( CanonicalBasis,
           B;         # basis record, result
 
     z:= PrimitiveRoot( F );
-    B:= BasisByGeneratorsNC( F, List( [ 0 .. Dimension( F ) - 1 ],
-                                      i -> z ^ i ) );
+    B:= BasisNC( F, List( [ 0 .. Dimension( F ) - 1 ], i -> z ^ i ) );
     SetIsCanonicalBasis( B, true );
 
     # Return the basis object.
@@ -394,15 +427,18 @@ BindGlobal( "FrobeniusAutomorphismI", function ( F, i )
                       rec() );
 
     frob!.power := i;
-#T make this a list object!!
 
     return frob;
 end );
 
-BindGlobal( "FrobeniusAutomorphism", function ( F )
+InstallMethod( FrobeniusAutomorphism,
+    "for a field",
+    true,
+    [ IsField ], 0,
+    function ( F )
 
     # check the arguments
-    if not IsField( F ) or not IsPosRat( Characteristic( F ) ) then
+    if not IsPosRat( Characteristic( F ) ) then
         Error( "<F> must be a field of nonzero characteristic" );
     fi;
 
@@ -633,7 +669,8 @@ InstallMethod( GaloisGroup,
     "for a finite field",
     true,
     [ IsField and IsFinite ], 0,
-    F -> Group( FrobeniusAutomorphismI( F, Size( LeftActingDomain(F) ) ) ) );
+    F -> GroupByGenerators(
+            [ FrobeniusAutomorphismI( F, Size( LeftActingDomain(F) ) ) ] ) );
 
 
 #############################################################################
@@ -641,10 +678,10 @@ InstallMethod( GaloisGroup,
 #M  MinimalPolynomial( <F>, <z>, <inum> )
 ##
 InstallMethod( MinimalPolynomial,
-    "finite field and finite field element",
-    IsCollsElmsX,
-    [ IsField and IsFinite, IsScalar,IsPosInt ], 0,
-function( F, z,inum )
+    "finite field, finite field element, and indet. number",
+    true,
+    [ IsField and IsFinite, IsScalar, IsPosInt ], 0,
+function( F, z, inum )
     local   df,  dz,  q,  dd,  pol,  deg,  con,  i;
 
     # get the field in which <z> lies
@@ -656,7 +693,7 @@ function( F, z,inum )
     # compute the minimal polynomial simply by multiplying $x-cnj$
     pol := [ One(F) ];
     deg := 0;
-    for con  in Set( List( [ 0 .. dd ], x -> z^(q^x) ) )  do
+    for con  in Set( List( [ 0 .. dd-1 ], x -> z^(q^x) ) )  do
         pol[deg+2] := pol[deg+1];
         for i  in [ deg+1, deg .. 2 ]  do
             pol[i] := pol[i-1] -  con*pol[i];
@@ -673,6 +710,5 @@ end );
 #############################################################################
 ##
 
-#E  fieldfin.gi . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-##
+#E
 

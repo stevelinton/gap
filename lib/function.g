@@ -113,20 +113,27 @@ BIND_GLOBAL( "IdFunc", ID_FUNC );
 
 InstallMethod( ViewObj, "for a function", true, [IsFunction], 0,
         function ( func )
-    local nams, i;
+    local nams, narg, i;
     Print("function( ");
     nams := NAMS_FUNC(func);
+    narg := NARG_FUNC(func);
     if nams = fail then
-        Print( "<",NARG_FUNC(func)," unnamed arguments>" );
-    elif LEN_LIST(nams) > 0 then
+        Print( "<",narg," unnamed arguments>" );
+    elif narg > 0 then
         Print(nams[1]);
-        for i in [2..LEN_LIST(nams)] do
+        for i in [2..narg] do
             Print(", ",nams[i]);
         od;
     fi;
     Print(" ) ... end");
 end);
-        
+
+InstallMethod( ViewObj, "for an operation", true, [IsOperation], 0,
+        function ( op )
+    Print("<Operation \"",NAME_FUNC(op),"\">");
+end);
+
+
 
 #############################################################################
 ##

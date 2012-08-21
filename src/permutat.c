@@ -2319,7 +2319,7 @@ Obj             FuncPermList (
     Int                 i,  k;          /* loop variables                  */
 
     /* check the arguments                                                 */
-    while ( ! IS_LIST( list ) ) {
+    while ( ! IS_SMALL_LIST( list ) ) {
         list = ErrorReturnObj(
             "PermList: <list> must be a list (not a %s)",
             (Int)TNAM_OBJ(list), 0L,
@@ -3544,9 +3544,9 @@ Obj Array2Perm (
     /* loop over the cycles                                                */
     for ( i = 1; i <= LEN_LIST(array); i++ ) {
         cycle = ELM_LIST( array, i );
-        while ( ! IS_LIST(cycle) ) {
+        while ( ! IS_SMALL_LIST(cycle) ) {
             cycle = ErrorReturnObj(
-                "Arra2Perm: <cycle> must be a list (not a %s)",
+                "Arra2Perm: <cycle> must be a small list (not a %s)",
                 (Int)TNAM_OBJ(cycle), 0L,
                 "you can return a list" );
         }

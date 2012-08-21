@@ -24,17 +24,6 @@ Revision.liefam_gi :=
 
 #############################################################################
 ##
-#R  IsLieObjectDefaultRep( <lobj> )
-##
-##  The default representation of the Lie object <lobj> corresponding to the
-##  underlying object <obj> is a list with <obj> at position 1.
-##
-DeclareRepresentation( "IsLieObjectDefaultRep", IsPositionalObjectRep,
-    [ 1 ] );
-
-
-#############################################################################
-##
 #M  LieFamily( <Fam> )
 ##
 ##  We need to distinguish families of arbitrary ring elements and families
@@ -53,7 +42,8 @@ InstallMethod( LieFamily,
     local F;
 
     # Make the family of Lie elements.
-    F:= NewFamily( "LieFamily(...)", IsLieObject );
+    F:= NewFamily( "LieFamily(...)", IsLieObject,CanEasilySortElements,
+				     CanEasilySortElements);
     SetUnderlyingFamily( F, Fam );
 
     if HasCharacteristic( Fam ) then
@@ -62,7 +52,7 @@ InstallMethod( LieFamily,
 #T maintain other req/imp properties as implied properties of `F'?
 
     # Enter the type of objects in the image.
-    F!.packedType:= NewType( F, IsLieObject and IsLieObjectDefaultRep );
+    F!.packedType:= NewType( F, IsLieObject and IsPackedElementDefaultRep );
 
     # Return the Lie family.
     return F;
@@ -87,7 +77,7 @@ InstallMethod( LieFamily,
 
     # Enter the type of objects in the image.
     F!.packedType:= NewType( F,     IsLieObject
-                                and IsLieObjectDefaultRep
+                                and IsPackedElementDefaultRep
                                 and IsLieMatrix );
 
     # Return the Lie family.
@@ -114,7 +104,7 @@ InstallMethod( LieObject,
 InstallMethod( PrintObj,
     "for a Lie object in default representation",
     true,
-    [ IsLieObject and IsLieObjectDefaultRep ], SUM_FLAGS,
+    [ IsLieObject and IsPackedElementDefaultRep ], SUM_FLAGS,
     function( obj )
     Print( "LieObject( ", obj![1], " )" );
     end );
@@ -130,7 +120,7 @@ InstallMethod( PrintObj,
 InstallMethod( ViewObj,
     "for a Lie matrix in default representation",
     true,
-    [ IsLieMatrix and IsLieObjectDefaultRep ], SUM_FLAGS,
+    [ IsLieMatrix and IsPackedElementDefaultRep ], SUM_FLAGS,
     function( obj )
     Print( "LieObject( " ); View( obj![1] ); Print(  " )" );
     end );
@@ -144,15 +134,15 @@ InstallMethod( ViewObj,
 InstallMethod( \=,
     "for two Lie objects in default representation",
     IsIdenticalObj,
-    [ IsLieObject and IsLieObjectDefaultRep,
-      IsLieObject and IsLieObjectDefaultRep ], 0,
+    [ IsLieObject and IsPackedElementDefaultRep,
+      IsLieObject and IsPackedElementDefaultRep ], 0,
     function( x, y ) return x![1] = y![1]; end );
 
 InstallMethod( \<,
     "for two Lie objects in default representation",
     IsIdenticalObj,
-    [ IsLieObject and IsLieObjectDefaultRep,
-      IsLieObject and IsLieObjectDefaultRep ], 0,
+    [ IsLieObject and IsPackedElementDefaultRep,
+      IsLieObject and IsPackedElementDefaultRep ], 0,
     function( x, y ) return x![1] < y![1]; end );
 
 
@@ -171,14 +161,14 @@ InstallMethod( \<,
 InstallMethod( \+,
     "for two Lie objects in default representation",
     IsIdenticalObj,
-    [ IsLieObject and IsLieObjectDefaultRep,
-      IsLieObject and IsLieObjectDefaultRep ], 0,
+    [ IsLieObject and IsPackedElementDefaultRep,
+      IsLieObject and IsPackedElementDefaultRep ], 0,
     function( x, y ) return LieObject( x![1] + y![1] ); end );
 
 InstallMethod( \+,
     "for Lie object in default representation, and ring element",
     true,
-    [ IsLieObject and IsLieObjectDefaultRep, IsRingElement ], 0,
+    [ IsLieObject and IsPackedElementDefaultRep, IsRingElement ], 0,
     function( x, y )
     local z;
     z:= x![1] + y;
@@ -192,7 +182,7 @@ InstallMethod( \+,
 InstallMethod( \+,
     "for ring element, and Lie object in default representation",
     true,
-    [ IsRingElement, IsLieObject and IsLieObjectDefaultRep ], 0,
+    [ IsRingElement, IsLieObject and IsPackedElementDefaultRep ], 0,
     function( x, y )
     local z;
     z:= x + y![1];
@@ -206,14 +196,14 @@ InstallMethod( \+,
 InstallMethod( \-,
     "for two Lie objects in default representation",
     IsIdenticalObj,
-    [ IsLieObject and IsLieObjectDefaultRep,
-      IsLieObject and IsLieObjectDefaultRep ], 0,
+    [ IsLieObject and IsPackedElementDefaultRep,
+      IsLieObject and IsPackedElementDefaultRep ], 0,
     function( x, y ) return LieObject( x![1] - y![1] ); end );
 
 InstallMethod( \-,
     "for Lie object in default representation, and ring element",
     true,
-    [ IsLieObject and IsLieObjectDefaultRep, IsRingElement ], 0,
+    [ IsLieObject and IsPackedElementDefaultRep, IsRingElement ], 0,
     function( x, y )
     local z;
     z:= x![1] - y;
@@ -227,7 +217,7 @@ InstallMethod( \-,
 InstallMethod( \-,
     "for ring element, and Lie object in default representation",
     true,
-    [ IsRingElement, IsLieObject and IsLieObjectDefaultRep ], 0,
+    [ IsRingElement, IsLieObject and IsPackedElementDefaultRep ], 0,
     function( x, y )
     local z;
     z:= x - y![1];
@@ -241,14 +231,14 @@ InstallMethod( \-,
 InstallMethod( \*,
     "for two Lie objects in default representation",
     IsIdenticalObj,
-    [ IsLieObject and IsLieObjectDefaultRep,
-      IsLieObject and IsLieObjectDefaultRep ], 0,
+    [ IsLieObject and IsPackedElementDefaultRep,
+      IsLieObject and IsPackedElementDefaultRep ], 0,
     function( x, y ) return LieObject( LieBracket( x![1], y![1] ) ); end );
 
 InstallMethod( \*,
     "for Lie object in default representation, and ring element",
     true,
-    [ IsLieObject and IsLieObjectDefaultRep, IsRingElement ], 0,
+    [ IsLieObject and IsPackedElementDefaultRep, IsRingElement ], 0,
     function( x, y )
     local z;
     z:= x![1] * y;
@@ -262,7 +252,7 @@ InstallMethod( \*,
 InstallMethod( \*,
     "for ring element, and Lie object in default representation",
     true,
-    [ IsRingElement, IsLieObject and IsLieObjectDefaultRep ], 0,
+    [ IsRingElement, IsLieObject and IsPackedElementDefaultRep ], 0,
     function( x, y )
     local z;
     z:= x * y![1];
@@ -276,7 +266,7 @@ InstallMethod( \*,
 InstallMethod( \^,
     "for Lie object in default representation, and positive integer",
     true,
-    [ IsLieObject and IsLieObjectDefaultRep, IsPosInt ], 0,
+    [ IsLieObject and IsPackedElementDefaultRep, IsPosInt ], 0,
     function( x, n )
     if 1 < n then
       return LieObject( Zero( x![1] ) );
@@ -288,20 +278,20 @@ InstallMethod( \^,
 
 #############################################################################
 ##
-#M  Zero( <lie_obj> ) . . . . . . . . . . . . . . . . . . .  for a Lie object
+#M  ZeroOp( <lie_obj> ) . . . . . . . . . . . . . . . . . .  for a Lie object
 ##
-InstallMethod( Zero,
+InstallMethod( ZeroOp,
     "for Lie object in default representation",
     true,
-    [ IsLieObject and IsLieObjectDefaultRep ], SUM_FLAGS,
+    [ IsLieObject and IsPackedElementDefaultRep ], SUM_FLAGS,
     x -> LieObject( Zero( x![1] ) ) );
 
 
 #############################################################################
 ##
-#M  One( <lie_obj> )  . . . . . . . . . . . . . . . . . . .  for a Lie object
+#M  OneOp( <lie_obj> )  . . . . . . . . . . . . . . . . . .  for a Lie object
 ##
-InstallOtherMethod( One,
+InstallOtherMethod( OneOp,
     "for Lie object",
     true,
     [ IsLieObject ], 0,
@@ -310,9 +300,9 @@ InstallOtherMethod( One,
 
 #############################################################################
 ##
-#M  Inverse( <lie_obj> )  . . . . . . . . . . . . . . . . .  for a Lie object
+#M  InverseOp( <lie_obj> )  . . . . . . . . . . . . . . . .  for a Lie object
 ##
-InstallOtherMethod( Inverse,
+InstallOtherMethod( InverseOp,
     "for Lie object",
     true,
     [ IsLieObject ], 0,
@@ -321,12 +311,12 @@ InstallOtherMethod( Inverse,
 
 #############################################################################
 ##
-#M  AdditiveInverse( <lie_obj> )  . . . . . . . . . . . . .  for a Lie object
+#M  AdditiveInverseOp( <lie_obj> )  . . . . . . . . . . . .  for a Lie object
 ##
-InstallMethod( AdditiveInverse,
+InstallMethod( AdditiveInverseOp,
     "for Lie object in default representation",
     true,
-    [ IsLieObject and IsLieObjectDefaultRep ], 0,
+    [ IsLieObject and IsPackedElementDefaultRep ], 0,
     x -> LieObject( - x![1] ) );
 
 
@@ -340,25 +330,25 @@ InstallMethod( AdditiveInverse,
 InstallMethod( \[\],
     "for Lie matrix in default representation, and positive integer",
     true,
-    [ IsLieMatrix and IsLieObjectDefaultRep, IsPosInt ], 0,
+    [ IsLieMatrix and IsPackedElementDefaultRep, IsPosInt ], 0,
     function( mat, i ) return mat![1][i]; end );
 
 InstallMethod( Length,
     "for Lie matrix in default representation",
     true,
-    [ IsLieMatrix and IsLieObjectDefaultRep ], 0,
+    [ IsLieMatrix and IsPackedElementDefaultRep ], 0,
     mat -> Length( mat![1] ) );
 
 InstallMethod( IsBound\[\],
     "for Lie matrix in default representation, and integer",
     true,
-    [ IsLieMatrix and IsLieObjectDefaultRep, IsPosInt ], 0,
+    [ IsLieMatrix and IsPackedElementDefaultRep, IsPosInt ], 0,
     function( mat, i ) return IsBound( mat![1][i] ); end );
 
 InstallMethod( Position,
     "for Lie matrix in default representation, row vector, and integer",
     true,
-    [ IsLieMatrix and IsLieObjectDefaultRep, IsRowVector, IsInt ], 0,
+    [ IsLieMatrix and IsPackedElementDefaultRep, IsRowVector, IsInt ], 0,
     function( mat, v, pos ) return Position( mat![1], v, pos ); end );
 
 
@@ -418,7 +408,7 @@ InstallMethod( PreImagesElm,
     "for Lie embedding and Lie object in default representation",
     FamRangeEqFamElm,
     [ IsGeneralMapping and IsLieEmbeddingRep,
-      IsLieObject and IsLieObjectDefaultRep ], 0,
+      IsLieObject and IsPackedElementDefaultRep ], 0,
     function( emb, elm )
     return [ elm![1] ];
     end );
@@ -458,8 +448,8 @@ DeclareRepresentation( "IsLieObjectsModuleRep",
 
 #############################################################################
 ##
-#M  MutableBasisByGenerators( <R>, <lieelms> )
-#M  MutableBasisByGenerators( <R>, <lieelms>, <zero> )
+#M  MutableBasis( <R>, <lieelms> )
+#M  MutableBasis( <R>, <lieelms>, <zero> )
 ##
 ##  In general, we choose a mutable basis that stores a mutable basis for a
 ##  nice module.
@@ -468,13 +458,13 @@ DeclareRepresentation( "IsLieObjectsModuleRep",
 ##  since the space may be Gaussian and thus handled in a completely
 ##  different way.
 ##
-InstallMethod( MutableBasisByGenerators,
+InstallMethod( MutableBasis,
     "for ring and collection of Lie elements",
     function( F1, F2 ) return not IsElmsCollLieColls( F1, F2 ); end,
     [ IsRing, IsLieObjectCollection ], 0,
     MutableBasisViaNiceMutableBasisMethod2 );
 
-InstallOtherMethod( MutableBasisByGenerators,
+InstallOtherMethod( MutableBasis,
     "for ring, (possibly empty) list, and Lie zero",
     function( F1, F2, F3 ) return not IsElmsLieColls( F1, F3 ); end,
     [ IsRing, IsList, IsLieObject ], 0,
@@ -496,7 +486,7 @@ InstallMethod( LeftModuleByGenerators,
     function( F1, F2 ) return not IsElmsCollLieColls( F1, F2 ); end,
     [ IsRing, IsLieObjectCollection and IsList ], 0,
     function( R, lieelms )
-    local dims, V;
+    local V;
 
     V:= Objectify( NewType( FamilyObj( lieelms ),
                                 IsFreeLeftModule
@@ -568,7 +558,7 @@ InstallMethod( NiceVector,
     "for free module of Lie objects, and Lie object",
     IsCollsElms,
     [ IsFreeLeftModule and IsLieObjectsModuleRep,
-      IsLieObject and IsLieObjectDefaultRep ], 0,
+      IsLieObject and IsPackedElementDefaultRep ], 0,
     function( M, lieelm )
     return lieelm![1];
     end );
@@ -731,7 +721,5 @@ InstallMethod( RightIdealByGenerators,
 
 #############################################################################
 ##
-#E  liefam.gi . . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-
-
+#E
 

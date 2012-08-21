@@ -5,7 +5,7 @@
 #H  @(#)$Id$
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
-#Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  (C) 1999 School Math and Comp. Sci., University of St.  Andrews, Scotland
 ##
 ##  This file contains attributes, properties and operations for univariate
 ##  polynomials
@@ -26,10 +26,16 @@ DeclareAttribute("IrrFacsPol",IsPolynomial,"mutable");
 
 #############################################################################
 ##
+#F  StoreFactorsPol( <pring>, <upol>, <factlist> ) . . . . store factors list
+##
+DeclareGlobalFunction("StoreFactorsPol");
+
+#############################################################################
+##
 #O  FactorsSquarefree( <pring>, <upol> )
 ##
 ##  returns a squarefree factorization of <upoly> over the ring <pring>.
-##  this function is used by factoring algorithms.
+##  This function is used by the factoring algorithms.
 DeclareOperation("FactorsSquarefree",[IsPolynomialRing,
                                        IsUnivariatePolynomial]);
 
@@ -71,6 +77,19 @@ DeclareGlobalFunction( "CyclotomicPol" );
 ##
 DeclareGlobalFunction( "CyclotomicPolynomial" );
 
+#############################################################################
+##
+#F  CompanionMat( <poly> )
+##
+##  computes a companion matrix of the polynomial <poly>. This matrix has
+##  <poly> as its minimal polynomial.
+DeclareGlobalFunction( "CompanionMat" );
+
+#############################################################################
+##
+#F  AllIrreducibleMonicPolynomials( <degree>, <field> )
+##
+DeclareGlobalFunction( "AllIrreducibleMonicPolynomials" );
 
 #############################################################################
 ##

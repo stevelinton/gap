@@ -751,7 +751,27 @@ ARC("L2(11).2","projectives",["2.L2(11).2",[[12,0,0,2,2,0,1,0,0,0,0,0,0],[10,
 -E(20)^13+E(20)^17,0,0],
 [GALOIS,[5,7]]],]);
 ARC("L2(11).2","tomidentifier","L2(11).2");
+ALF("L2(11).2","M12.2",[1,3,4,7,7,9,12,13,14,17,18,20,21],[
+"novelty L2(11).2 contains 2B elements,\n",
+"and then the fusion is unique up to Galois automorphisms"
+]);
 ALN("L2(11).2",["pgl(2,11)"]);
+
+MOT("M12.2M3",
+[
+"3rd maximal subgroup of M12.2,\n",
+"differs from M12.2M2 only by fusion map"
+],
+0,
+0,
+0,
+0,
+ConstructDirectProduct);
+ARC("M12.2M3","factors",[["M12.2M2"]]);
+ALF("M12.2M3","M12.2",[1,2,5,7,7,8,12,13,15,17,18,19,19],[
+"extension of maximal L2(11) of M12 contains 2A elements,\n",
+"and then the fusion is unique up to Galois automorphisms"
+]);
 
 MOT("L2(13)",
 [
@@ -2381,7 +2401,7 @@ text:=Concatenation(
 " test:      orth.1, min",
 ""))]);
 ARC("L2(8)","isSimple",true);
-ARC("L2(8)","extInfo",["2","3"]);
+ARC("L2(8)","extInfo",["","3"]);
 ARC("L2(8)","tomidentifier","L2(8)");
 ALF("L2(8)","L2(8).3",[1,2,3,4,4,4,5,5,5]);
 ALN("L2(8)",["R(3)'","A1(8)","U2(8)","S2(8)","O3(8)","2G2(3)","psl(2,8)"]);
@@ -2444,4 +2464,5 @@ ALN:= NotifyCharTableName;
 
 #############################################################################
 ##
-#E  ctoline1.tbl. . . . . . . . . . . . . . . . . . . . . . . . . . ends here
+#E
+

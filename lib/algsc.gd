@@ -140,7 +140,7 @@ DeclareRepresentation( "IsSCAlgebraObjSpaceRep",
 ##  `IsSCAlgebraObjSpaceRep', which means that the free module is handled by
 ##  a nice module.
 ##
-##  This allows to omit special methods for `LeftModuleByGenerators' and
+##  This allows one to omit special methods for `LeftModuleByGenerators' and
 ##  `FLMLORByGenerators' (which would differ from the default methods only
 ##  by setting this flag).
 ##

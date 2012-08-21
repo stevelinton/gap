@@ -390,7 +390,6 @@ InstallOtherMethod( Zero,
 #############################################################################
 ##
 #M  Enumerator( <I> ) . . . . . . . . . . . . . . . . . . . . .  for an ideal
-#M  EnumeratorSorted( <I> ) . . . . . . . . . . . . . . . . . .  for an ideal
 ##
 EnumeratorOfIdeal := function( I )
 
@@ -511,24 +510,6 @@ InstallMethod( Enumerator,
     [ IsRing and HasGeneratorsOfIdeal ], 0,
     EnumeratorOfIdeal );
 
-
-InstallMethod( EnumeratorSorted,
-    "generic method for a left ideal with known generators",
-    true,
-    [ IsRing and HasGeneratorsOfLeftIdeal ], 0,
-    EnumeratorOfIdeal );
-
-InstallMethod( EnumeratorSorted,
-    "generic method for a right ideal with known generators",
-    true,
-    [ IsRing and HasGeneratorsOfRightIdeal ], 0,
-    EnumeratorOfIdeal );
-
-InstallMethod( EnumeratorSorted,
-    "generic method for a two-sided ideal with known generators",
-    true,
-    [ IsRing and HasGeneratorsOfIdeal ], 0,
-    EnumeratorOfIdeal );
 
 
 #############################################################################

@@ -43,6 +43,10 @@ Revision.vspchom_gi :=
 #T \= methods for m.b.m. and g.m.b.i. (if bases coincide, compare data)
 #T parent dependencies for nat. hom.
 
+#T put bases into mappings;
+#T check that they are really bases of source/range!
+
+
 #############################################################################
 ##
 ##  1. methods for linear general mappings given by images
@@ -293,7 +297,7 @@ MakeImagesInfoLinearGeneralMappingByImages := function( map )
       # given by `ech.coeffs'.
 
       ech:= SemiEchelonMatTransformation( map!.generators );
-      map!.basispreimage       := Immutable( SemiEchelonBasisByGeneratorsNC(
+      map!.basispreimage       := Immutable( SemiEchelonBasisNC(
                                       preimage, ech.vectors ) );
       map!.corelations         := Immutable( ech.relations );
       map!.imagesbasispreimage := Immutable( ech.coeffs * map!.genimages );
@@ -301,10 +305,10 @@ MakeImagesInfoLinearGeneralMappingByImages := function( map )
     else
 
       # Delegate the work to the associated row space.
-      B:= BasisOfDomain( preimage );
+      B:= Basis( preimage );
       ech:= SemiEchelonMatTransformation( List( map!.generators,
                      x -> Coefficients( B, x ) ) );
-      map!.basispreimage       := Immutable( BasisByGeneratorsNC(
+      map!.basispreimage       := Immutable( BasisNC(
                                       preimage,
                                       List( ech.vectors,
                                         x -> LinearCombination( B, x ) ) ) );
@@ -339,7 +343,7 @@ MakePreImagesInfoLinearGeneralMappingByImages := function( map )
       # given by `ech.coeffs'.
 
       ech:= SemiEchelonMatTransformation( map!.genimages );
-      map!.basisimage          := Immutable( SemiEchelonBasisByGeneratorsNC(
+      map!.basisimage          := Immutable( SemiEchelonBasisNC(
                                       image, ech.vectors ) );
       map!.relations           := Immutable( ech.relations );
       map!.preimagesbasisimage := Immutable( ech.coeffs * map!.generators );
@@ -347,10 +351,10 @@ MakePreImagesInfoLinearGeneralMappingByImages := function( map )
     else
 
       # Delegate the work to the associated row space.
-      B:= BasisOfDomain( image );
+      B:= Basis( image );
       ech:= SemiEchelonMatTransformation( List( map!.genimages,
                      x -> Coefficients( B, x ) ) );
-      map!.basisimage          := Immutable( BasisByGeneratorsNC(
+      map!.basisimage          := Immutable( BasisNC(
                                       image,
                                       List( ech.vectors,
                                         x -> LinearCombination( B, x ) ) ) );
@@ -602,9 +606,9 @@ InstallMethod( \*,
 
 #############################################################################
 ##
-#M  AdditiveInverse( <map> )  . . . . . . . . . . . . . . for linear g.m.b.i.
+#M  AdditiveInverseOp( <map> )  . . . . . . . . . . . . . for linear g.m.b.i.
 ##
-InstallMethod( AdditiveInverse,
+InstallMethod( AdditiveInverseOp,
     "for linear g.m.b.i.",
     true,
     [ IsGeneralMapping and IsLinearGeneralMappingByImagesDefaultRep ], 0,
@@ -718,7 +722,12 @@ InstallMethod( CompositionMapping2,
 ##  If both general mappings respect zero, additive inverses, scalar
 ##  multiplication then the sum also does.
 ##
-SumOfGMBIAndGeneralMapping := function( map1, map2 )
+InstallOtherMethod( \+,
+    "for linear g.m.b.i. and general mapping",
+    IsIdenticalObj,
+    [ IsGeneralMapping and IsLinearGeneralMappingByImagesDefaultRep,
+      IsGeneralMapping ], 0,
+    function( map1, map2 )
 
     local gens,
           genimages,
@@ -728,9 +737,8 @@ SumOfGMBIAndGeneralMapping := function( map1, map2 )
     if    Source( map1 ) <> Source( map2 )
        or Range( map1 ) <> Range( map2 ) then
       Error( "<map1> and <map2> must have same source and range" );
-    elif  PreImagesRange( map1 ) <> PreImagesRange( map2 )
-       or ImagesSource( map1 ) <> ImagesSource( map2 ) then
-      Error( "<map1> and <map2> must have same (pre)image" );
+    elif  PreImagesRange( map1 ) <> PreImagesRange( map2 ) then
+      Error( "<map1> and <map2> must have same preimage" );
     fi;
 
     if     IsLinearGeneralMappingByImagesDefaultRep( map2 )
@@ -772,15 +780,7 @@ SumOfGMBIAndGeneralMapping := function( map1, map2 )
 
     # Return the sum.
     return sum;
-end;
-
-
-InstallOtherMethod( \+,
-    "for linear g.m.b.i. and general mapping",
-    IsIdenticalObj,
-    [ IsGeneralMapping and IsLinearGeneralMappingByImagesDefaultRep,
-      IsGeneralMapping ], 0,
-    SumOfGMBIAndGeneralMapping );
+end );
 
 InstallOtherMethod( \+,
     "for general mapping and linear g.m.b.i.",
@@ -788,8 +788,59 @@ InstallOtherMethod( \+,
     [ IsGeneralMapping,
       IsGeneralMapping and IsLinearGeneralMappingByImagesDefaultRep ], 0,
     function( map1, map2 )
-    return SumOfGMBIAndGeneralMapping( map2, map1 );
-    end );
+
+    local gens,
+          genimages,
+          sum;
+
+    # Check that the linear mappings can be added.
+    if    Source( map1 ) <> Source( map2 )
+       or Range( map1 ) <> Range( map2 ) then
+      Error( "<map1> and <map2> must have same source and range" );
+    elif  PreImagesRange( map1 ) <> PreImagesRange( map2 ) then
+      Error( "<map1> and <map2> must have same preimage" );
+    fi;
+
+    if     IsLinearGeneralMappingByImagesDefaultRep( map1 )
+       and map1!.generators = map2!.generators then
+
+      # If the generators in both general mappings are the same,
+      # it suffices to add the images.
+      gens      := map1!.generators;
+      genimages := map1!.genimages + map2!.genimages;
+
+    else
+
+      # Compute images of the generators of `map1' under `map2'.
+      # (Note that both general mappings must be described in terms of
+      # `generators' in order to keep the meaning of `corelations'.)
+      gens:= map2!.generators;
+      genimages:=   List( map2!.generators,
+                          v -> ImagesRepresentative( map1, v ) )
+                  + map2!.genimages;
+
+    fi;
+
+    # Construct the linear general mapping.
+    sum:= LeftModuleGeneralMappingByImages(
+              Source( map1 ), Range( map1 ), gens, genimages );
+
+    # Maintain images info (only if `gens' is not a basis).
+    if     IsLinearGeneralMappingByImagesDefaultRep( sum )
+       and IsLinearGeneralMappingByImagesDefaultRep( map1 )
+       and not IsBound( sum!.basispreimage  )
+       and IsBound( map1!.basispreimage )
+       and IsBound( map2!.basispreimage )
+       and map1!.basispreimage = map2!.basispreimage then
+      sum!.basispreimage       := map1!.basispreimage;
+      sum!.corelations         := map1!.corelations;
+      sum!.imagesbasispreimage :=
+          map1!.imagesbasispreimage + map2!.imagesbasispreimage;
+    fi;
+
+    # Return the sum.
+    return sum;
+end );
 
 
 #############################################################################
@@ -800,7 +851,12 @@ InstallOtherMethod( \+,
 ##  advantage from the fact that `generators' and `basispreimage' components
 ##  need not be distinguished since the `corelations' component is empty.
 ##
-SumOfMBIAndMapping := function( map1, map2 )
+InstallOtherMethod( \+,
+    "for linear m.b.i. and mapping",
+    IsIdenticalObj,
+    [ IsMapping and IsLinearGeneralMappingByImagesDefaultRep,
+      IsMapping ], 0,
+    function( map1, map2 )
 
     local gens,
           genimages,
@@ -860,15 +916,7 @@ SumOfMBIAndMapping := function( map1, map2 )
 
     # Return the sum.
     return sum;
-end;
-
-
-InstallOtherMethod( \+,
-    "for linear m.b.i. and mapping",
-    IsIdenticalObj,
-    [ IsMapping and IsLinearGeneralMappingByImagesDefaultRep,
-      IsMapping ], 0,
-    SumOfMBIAndMapping );
+    end );
 
 InstallOtherMethod( \+,
     "for mapping and linear m.b.i.",
@@ -876,7 +924,64 @@ InstallOtherMethod( \+,
     [ IsMapping,
       IsMapping and IsLinearGeneralMappingByImagesDefaultRep ], 0,
     function( map1, map2 )
-    return SumOfMBIAndMapping( map2, map1 );
+
+    local gens,
+          genimages,
+          sum;
+
+    # Check that the linear mappings can be added.
+    if    Source( map1 ) <> Source( map2 )
+       or Range( map1 ) <> Range( map2 ) then
+      Error( "<map1> and <map2> must have same source and range" );
+    elif  PreImagesRange( map1 ) <> PreImagesRange( map2 )
+       or ImagesSource( map1 ) <> ImagesSource( map2 ) then
+      Error( "<map1> and <map2> must have same (pre)image" );
+    fi;
+
+    if     IsBound( map2!.basispreimage ) then
+
+      # Use the basis in the construction.
+      gens:= map2!.basispreimage;
+
+      if     IsLinearGeneralMappingByImagesDefaultRep( map1 )
+         and IsBound( map1!.basispreimage )
+         and map1!.basispreimage = map2!.basispreimage then
+
+        genimages := map1!.imagesbasispreimage + map2!.imagesbasispreimage;
+
+      else
+
+        genimages:=   List( gens, v -> ImagesRepresentative( map1, v ) )
+                    + map2!.imagesbasispreimage;
+
+      fi;
+
+    elif     IsLinearGeneralMappingByImagesDefaultRep( map1 )
+         and map1!.generators = map2!.generators then
+
+      # If the generators in both general mappings are the same,
+      # it suffices to add the images.
+      gens      := map1!.generators;
+      genimages := map1!.genimages + map2!.genimages;
+
+    else
+
+      # Compute images of the generators of `map2' under `map1'.
+      # (Note that both general mappings must be described in terms of
+      # `generators' in order to keep the meaning of `corelations'.)
+      gens:= map2!.generators;
+      genimages:=   List( map2!.generators,
+                          v -> ImagesRepresentative( map1, v ) )
+                  + map2!.genimages;
+
+    fi;
+
+    # Construct the linear mapping.
+    sum:= LeftModuleHomomorphismByImagesNC(
+              Source( map1 ), Range( map1 ), gens, genimages );
+
+    # Return the sum.
+    return sum;
     end );
 
 
@@ -1013,8 +1118,8 @@ MakePreImagesInfoLinearMappingByMatrix := function( map )
           B;
 
     ech:= SemiEchelonMatTransformation( map!.matrix );
-    B:= BasisOfDomain( Range( map ) );
-    map!.basisimage          := Immutable( BasisByGeneratorsNC(
+    B:= Basis( Range( map ) );
+    map!.basisimage          := Immutable( BasisNC(
                                     ImagesSource( map ),
                                     List( ech.vectors,
                                       x -> LinearCombination( B, x ) ) ) );
@@ -1150,7 +1255,8 @@ InstallMethod( PrintObj,
 InstallMethod( NaturalHomomorphismBySubspace,
     "for left module and trivial left module",
     IsIdenticalObj,
-    [ IsFreeLeftModule, IsFreeLeftModule and IsTrivial ], SUM_FLAGS,
+    [ IsFreeLeftModule, IsFreeLeftModule and IsTrivial ],
+    SUM_FLAGS, # better than everything else
     function( V, W )
     return IdentityMapping( V );
     end );
@@ -1158,14 +1264,9 @@ InstallMethod( NaturalHomomorphismBySubspace,
 
 #############################################################################
 ##
-#M  NaturalHomomorphismBySubspace( <V>, <W> ) . . . for two free left modules
+#F  NaturalHomomorphismBySubspaceOntoFullRowSpace( <V>, <W> )
 ##
-##  return a left module m.b.m.
-##
-InstallMethod( NaturalHomomorphismBySubspace,
-    "for two finite dimensional free left modules",
-    IsIdenticalObj,
-    [ IsFreeLeftModule, IsFreeLeftModule ], 0,
+InstallGlobalFunction( NaturalHomomorphismBySubspaceOntoFullRowSpace,
     function( V, W )
 
     local F,
@@ -1183,13 +1284,8 @@ InstallMethod( NaturalHomomorphismBySubspace,
     # Check that the modules are finite dimensional.
     if not IsFiniteDimensional( V ) or not IsFiniteDimensional( W ) then
       TryNextMethod();
-    fi;
-
-    # If `V' is equal to `W', return a zero mapping.
-    if not IsSubset( V, W ) then
+    elif not IsSubset( V, W ) then
       Error( "<W> must be contained in <V>" );
-    elif Dimension( V ) = Dimension( W ) then
-      return ZeroMapping( V, FullRowModule( LeftActingDomain( V ), 0 ) );
     fi;
 
     # If the left acting domains are different, adjust them.
@@ -1200,17 +1296,26 @@ InstallMethod( NaturalHomomorphismBySubspace,
       W:= AsLeftModule( F, W );
     fi;
 
+    # If `V' is equal to `W', return a zero mapping.
+    if Dimension( V ) = Dimension( W ) then
+      return ZeroMapping( V, FullRowModule( F, 0 ) );
+    fi;
+
     # Compute a basis of `V' through a basis of `W'.
-    Wvectors:= BasisVectors( BasisOfDomain( W ) );
-    mb:= MutableBasisByGenerators( F, Wvectors );
+    Wvectors:= BasisVectors( Basis( W ) );
+    if IsEmpty( Wvectors ) then
+      mb:= MutableBasis( F, Wvectors, Zero( W ) );
+    else
+      mb:= MutableBasis( F, Wvectors );
+    fi;
     compl:= [];
-    for gen in BasisVectors( BasisOfDomain( V ) ) do
+    for gen in BasisVectors( Basis( V ) ) do
       if not IsContainedInSpan( mb, gen ) then
         Add( compl, gen );
         CloseMutableBasis( mb, gen );
       fi;
     od;
-    B:= BasisByGeneratorsNC( V, Concatenation( Wvectors, compl ) );
+    B:= BasisNC( V, Concatenation( Wvectors, compl ) );
 
     # Compute the linear mapping by images.
     img:= FullRowModule( F, Length( compl ) );
@@ -1235,6 +1340,19 @@ InstallMethod( NaturalHomomorphismBySubspace,
 
     return nathom;
     end );
+
+
+#############################################################################
+##
+#M  NaturalHomomorphismBySubspace( <V>, <W> ) . . . for two free left modules
+##
+##  return a left module m.b.m.
+##
+InstallMethod( NaturalHomomorphismBySubspace,
+    "for two finite dimensional free left modules",
+    IsIdenticalObj,
+    [ IsFreeLeftModule, IsFreeLeftModule ], 0,
+    NaturalHomomorphismBySubspaceOntoFullRowSpace );
 
 
 #############################################################################
@@ -1293,9 +1411,9 @@ InstallMethod( \*,
 
 #############################################################################
 ##
-#M  AdditiveInverse( <map> )  . . . . . . . . . . . . . . . for linear m.b.m.
+#M  AdditiveInverseOp( <map> )  . . . . . . . . . . . . . . for linear m.b.m.
 ##
-InstallMethod( AdditiveInverse,
+InstallMethod( AdditiveInverseOp,
     "for linear m.b.m.",
     true,
     [ IsGeneralMapping and IsLinearMappingByMatrixDefaultRep ], 0,
@@ -1356,7 +1474,7 @@ InstallMethod( CompositionMapping2,
       if not IsFiniteDimensional( BR ) then
         TryNextMethod();
       fi;
-      BR:= BasisOfDomain( BR );
+      BR:= Basis( BR );
       mat2:= List( BasisVectors( map1!.basisrange ),
                  v -> Coefficients( BR, ImagesRepresentative( map2, v ) ) );
 
@@ -1384,9 +1502,7 @@ InstallMethod( CompositionMapping2,
 ##
 SumOfMBMAndMapping := function( map1, map2 )
 
-    local gens,
-          genimages,
-          sum;
+    local sum;
 
     # Check that the linear mappings can be added.
     if    Source( map1 ) <> Source( map2 )
@@ -1422,6 +1538,43 @@ SumOfMBMAndMapping := function( map1, map2 )
     return sum;
 end;
 
+SumOfMappingAndMBM := function( map1, map2 )
+
+    local sum;
+
+    # Check that the linear mappings can be added.
+    if    Source( map1 ) <> Source( map2 )
+       or Range( map1 ) <> Range( map2 ) then
+      Error( "<map1> and <map2> must have same source and range" );
+    fi;
+
+    if    IsLinearMappingByMatrixDefaultRep( map1 )
+       and map1!.basissource = map2!.basissource
+       and map1!.basisrange  = map2!.basisrange then
+
+      # If the bases in both mappings are the same,
+      # it suffices to add the matrices.
+      sum:= LeftModuleHomomorphismByMatrix(
+                map1!.basissource,
+                map1!.matrix + map2!.matrix,
+                map1!.basisrange );
+
+    else
+
+      # Compute images of the generators of `map2' under `map1'.
+      sum:= LeftModuleHomomorphismByMatrix(
+                map2!.basissource,
+                List( BasisVectors( map2!.basissource ),
+                      v -> Coefficients( map2!.basisrange,
+                               ImagesRepresentative( map1, v ) ) )
+                + map2!.matrix,
+                map2!.basisrange );
+
+    fi;
+
+    # Return the sum.
+    return sum;
+end;
 
 InstallOtherMethod( \+,
     "for linear m.b.m. and mapping",
@@ -1435,9 +1588,7 @@ InstallOtherMethod( \+,
     IsIdenticalObj,
     [ IsMapping,
       IsMapping and IsLinearMappingByMatrixDefaultRep ], 0,
-    function( map1, map2 )
-    return SumOfMBMAndMapping( map2, map1 );
-    end );
+    SumOfMappingAndMBM );
 
 
 #############################################################################
@@ -1456,9 +1607,7 @@ InstallMethod( \+,
     IsIdenticalObj,
     [ IsMapping and IsLinearGeneralMappingByImagesDefaultRep,
       IsMapping and IsLinearMappingByMatrixDefaultRep ], 0,
-    function( map1, map2 )
-    return SumOfMBMAndMapping( map2, map1 );
-    end );
+    SumOfMappingAndMBM );
 
 
 #############################################################################
@@ -1554,7 +1703,6 @@ InstallMethod( NiceVector,
     [ IsFreeLeftModule and IsLinearMappingsSpaceDefaultRep,
       IsMapping and IsLinearMappingByMatrixDefaultRep ], 0,
     function( V, v )
-    local M, i, c;
     if V!.basissource = v!.basissource and V!.basisrange = v!.basisrange then
       return v!.matrix;
     else
@@ -1622,8 +1770,8 @@ InstallMethod( LeftModuleByGenerators,
     SetLeftActingDomain( V, F );
     SetGeneratorsOfLeftModule( V, gens );
 
-    V!.basissource := BasisOfDomain( S );
-    V!.basisrange  := BasisOfDomain( R );
+    V!.basissource := Basis( S );
+    V!.basisrange  := Basis( R );
 
     return V;
     end );
@@ -1672,8 +1820,8 @@ InstallOtherMethod( LeftModuleByGenerators,
     SetGeneratorsOfLeftModule( V, AsList( gens ) );
     SetZero( V, zero );
 
-    V!.basissource := BasisOfDomain( S );
-    V!.basisrange  := BasisOfDomain( R );
+    V!.basissource := Basis( S );
+    V!.basisrange  := Basis( R );
 
     return V;
     end );
@@ -1817,7 +1965,7 @@ InstallMethod( FLMLORByGenerators,
     SetLeftActingDomain( A, F );
     SetGeneratorsOfLeftOperatorRing( A, AsList( maps ) );
 
-    A!.basissource := BasisOfDomain( S );
+    A!.basissource := Basis( S );
     A!.basisrange  := A!.basissource;
 
     # Return the result.
@@ -1845,7 +1993,7 @@ InstallOtherMethod( FLMLORByGenerators,
     SetGeneratorsOfLeftModule( A, empty );
     SetZero( A, zero );
 
-    A!.basissource := BasisOfDomain( Source( zero ) );
+    A!.basissource := Basis( Source( zero ) );
     A!.basisrange  := A!.basissource;
 
     # Return the result.
@@ -1883,7 +2031,7 @@ InstallOtherMethod( FLMLORByGenerators,
     SetGeneratorsOfLeftOperatorRing( A, AsList( maps ) );
     SetZero( A, zero );
 
-    A!.basissource := BasisOfDomain( Source( zero ) );
+    A!.basissource := Basis( Source( zero ) );
     A!.basisrange  := A!.basissource;
 
     # Return the result.
@@ -1921,7 +2069,7 @@ InstallMethod( FLMLORWithOneByGenerators,
     SetLeftActingDomain( A, F );
     SetGeneratorsOfLeftOperatorRingWithOne( A, AsList( maps ) );
 
-    A!.basissource := BasisOfDomain( S );
+    A!.basissource := Basis( S );
     A!.basisrange  := A!.basissource;
 
     # Return the result.
@@ -1949,7 +2097,7 @@ InstallOtherMethod( FLMLORWithOneByGenerators,
     SetGeneratorsOfLeftOperatorRingWithOne( A, empty );
     SetZero( A, zero );
 
-    A!.basissource := BasisOfDomain( Source( zero ) );
+    A!.basissource := Basis( Source( zero ) );
     A!.basisrange  := A!.basissource;
 
     # Return the result.
@@ -1987,7 +2135,7 @@ InstallOtherMethod( FLMLORWithOneByGenerators,
     SetGeneratorsOfLeftOperatorRingWithOne( A, AsList( maps ) );
     SetZero( A, zero );
 
-    A!.basissource := BasisOfDomain( Source( zero ) );
+    A!.basissource := Basis( Source( zero ) );
     A!.basisrange  := A!.basissource;
 
     # Return the result.
@@ -2105,7 +2253,7 @@ InstallMethod( FLMLORWithOneByGenerators,
     SetLeftActingDomain( A, F );
     SetGeneratorsOfLeftOperatorRingWithOne( A, AsList( maps ) );
 
-    A!.basissource := BasisOfDomain( S );
+    A!.basissource := Basis( S );
     A!.basisrange  := A!.basissource;
 
     # Return the result.
@@ -2133,7 +2281,7 @@ InstallOtherMethod( FLMLORWithOneByGenerators,
     SetGeneratorsOfLeftOperatorRingWithOne( A, empty );
     SetZero( A, zero );
 
-    A!.basissource := BasisOfDomain( Source( zero ) );
+    A!.basissource := Basis( Source( zero ) );
     A!.basisrange  := A!.basissource;
 
     # Return the result.
@@ -2171,7 +2319,7 @@ InstallOtherMethod( FLMLORWithOneByGenerators,
     SetGeneratorsOfLeftOperatorRingWithOne( A, AsList( maps ) );
     SetZero( A, zero );
 
-    A!.basissource := BasisOfDomain( Source( zero ) );
+    A!.basissource := Basis( Source( zero ) );
     A!.basisrange  := A!.basissource;
 
     # Return the result.
@@ -2246,7 +2394,7 @@ StandardGeneratorsOfFullHomModule := function( M )
     one:= One( R );
     m:= Dimension( UnderlyingLeftModule( BS ) );
     n:= Dimension( UnderlyingLeftModule( BR ) );
-    zeromat:= MutableNullMat( m, n, R );
+    zeromat:= NullMat( m, n, R );
     gens:= [];
     for i in [ 1 .. m ] do
       for j in [ 1 .. n ] do
@@ -2408,9 +2556,9 @@ InstallMethod( Coefficients,
 
 #############################################################################
 ##
-#M  BasisOfDomain( <M> )  . . . . . . . . . . . . . . . . for full hom module
+#M  Basis( <M> )  . . . . . . . . . . . . . . . . . . . . for full hom module
 ##
-InstallMethod( BasisOfDomain,
+InstallMethod( Basis,
     "for full hom space of linear mappings",
     true,
     [ IsFreeLeftModule and IsFullHomModule ], 100,
@@ -2460,8 +2608,8 @@ InstallMethod( Hom,
 
     SetLeftActingDomain( M, F );
 
-    M!.basissource := BasisOfDomain( V );
-    M!.basisrange  := BasisOfDomain( W );
+    M!.basissource := Basis( V );
+    M!.basisrange  := Basis( W );
 
     return M;
     end );
@@ -2491,7 +2639,7 @@ InstallMethod( End,
     fi;
 
     n:= Dimension( V );
-    gens:= MutableNullMat( n, n, F );
+    gens:= NullMat( n, n, F );
     gens:= [ gens, List( gens, ShallowCopy ) ];
     one:= One( F );
 
@@ -2501,7 +2649,7 @@ InstallMethod( End,
     for i in [ 2 .. n ] do
       gens[2][i][i-1]:= one;
     od;
-    B:= BasisOfDomain( V );
+    B:= Basis( V );
     gens:= List( gens, mat -> LeftModuleHomomorphismByMatrix( B, mat, B ) );
 
     # Construct the FLMLOR.
@@ -2518,7 +2666,5 @@ InstallMethod( End,
 
 #############################################################################
 ##
-#E  vspchom.gi  . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
-
-
+#E
 
