@@ -187,15 +187,35 @@ DeclareGlobalFunction("SetReducedMultiplication");
 
 #############################################################################
 ##
-#A  FpElmKBRWS(<fam>)
+#A  FpElementNFFunction(<fam>)
 ##
-##  If <fam> is the elements family of a finitely presented group this
-##  attribute returns a list [<iso>,<k>,<id>] where <iso> is a isomorphism to an
-##  fp monoid, <k> a confluent rewriting system for the image of <iso> and
-##  <id> the element in the free monoid corresponding to the image of the
-##  identity element under <iso>.
+##  <ManSection>
+##  <Attr Name="FpElementNFFunction" Arg='fam'/>
 ##
-DeclareAttribute( "FpElmKBRWS",IsElementOfFpGroupFamily);
+##  <Description>
+##  If <A>fam</A> is the elements family of a finitely presented group this
+##  attribute returns a function <A>f</A>, which, when applied to the
+##  <b>underlying element</b> of an element of <A>fam</A> returns a <b>normal
+##  form</b> (whose format is not defined and will differ on the method used).
+##  This normal form can be used (and is used by
+##  <tt>SetReducedMultiplication</tt>) to
+##  compare elements or to reduce long products.
+##  </Description>
+##  </ManSection>
+##
+DeclareAttribute( "FpElementNFFunction",IsElementOfFpGroupFamily);
+
+# #############################################################################
+# ##
+# #A  FpElmKBRWS(<fam>)
+# ##
+# ##  If <fam> is the elements family of a finitely presented group this
+# ##  attribute returns a list [<iso>,<k>,<id>] where <iso> is a isomorphism to an
+# ##  fp monoid, <k> a confluent rewriting system for the image of <iso> and
+# ##  <id> the element in the free monoid corresponding to the image of the
+# ##  identity element under <iso>.
+# ##
+# DeclareAttribute( "FpElmKBRWS",IsElementOfFpGroupFamily);
 
 
 #############################################################################
@@ -619,6 +639,22 @@ DeclareGlobalFunction("FibonacciGroup");
 
 #############################################################################
 ##
+#A  FPFaithHom(<fam>)
+##
+##  <ManSection>
+##  <Attr Name="FPFaithHom" Arg='fam'/>
+##
+##  <Description>
+##  For the elements family <A>fam</A> of a finite fp group <A>G</A> this returns an 
+##  isomorphism to a permutation
+##  or a pc group isomorphic to <A>G</A>.
+##  </Description>
+##  </ManSection>
+##
+DeclareAttribute("FPFaithHom",IsFamily);
+
+#############################################################################
+##
 #F  ParseRelators(<gens>,<rels>)
 ##
 ##  <#GAPDoc Label="ParseRelators">
@@ -651,6 +687,46 @@ DeclareGlobalFunction("FibonacciGroup");
 ##
 DeclareGlobalFunction("ParseRelators");
 
+
+############################################################################
+##
+#F  IsomorphismFpMonoidInversesFirst(<G>)
+##
+##  <ManSection>
+##  <Func Name="IsomorphismFpMonoid" Arg='G'/>
+##
+##  <Description>
+##  for a finitely presented group <A>G</A> this function
+##  returns an isomorphism from <A>G</A> to an fp monoid <A>M</A>. The
+##  generators of <A>M</A> are chosen to correspond to the generators of
+##  <A>G</A> in the sequence <A>x_1^{-1},x_1,x_2^{-1},x_2,\ldots</A>.
+##  If the option <tt>relations</tt> is given, it must be a list of relations
+##  given by words in the free group. The monoid then is created with these
+##  relations (plus the ``inverse'' relations <A>x\cdot x^{-1}=1</A>).
+##  </Description>
+##  </ManSection>
+##
+DeclareGlobalFunction("IsomorphismFpMonoidInversesFirst");
+
+############################################################################
+##
+#F  IsomorphismFpMonoidGeneratorsFirst(<G>)
+##
+##  <ManSection>
+##  <Func Name="IsomorphismFpMonoid" Arg='G'/>
+##
+##  <Description>
+##  for a finitely presented group <A>G</A> this function
+##  returns an isomorphism from <A>G</A> to an fp monoid <A>M</A>. The
+##  generators of <A>M</A> are chosen to correspond to the generators of
+##  <A>G</A> in the sequence <A>x_1,x_1^{-1},x_2,x_2^{-1},\ldots</A>.
+##  If the option <tt>relations</tt> is given, it must be a list of relations
+##  given by words in the free group. The monoid then is created with these
+##  relations (plus the ``inverse'' relations <A>x\cdot x^{-1}=1</A>).
+##  </Description>
+##  </ManSection>
+##
+DeclareGlobalFunction("IsomorphismFpMonoidGeneratorsFirst");
 
 #############################################################################
 ##

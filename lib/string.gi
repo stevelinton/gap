@@ -13,12 +13,10 @@
 Revision.string_gi :=
     "@(#)$Id$";
 
-
 #############################################################################
 ##
 #F  IsDigitChar(<c>)
 ##
-BIND_GLOBAL("CHARS_DIGITS",Immutable(SSortedList("0123456789")));
 
 InstallGlobalFunction(IsDigitChar,x->x in CHARS_DIGITS);
 
@@ -27,8 +25,6 @@ InstallGlobalFunction(IsDigitChar,x->x in CHARS_DIGITS);
 ##
 #F  IsUpperAlphaChar(<c>)
 ##
-BIND_GLOBAL("CHARS_UALPHA",
-  Immutable(SSortedList("ABCDEFGHIJKLMNOPQRSTUVWXYZ")));
 
 InstallGlobalFunction(IsUpperAlphaChar,x->x in CHARS_UALPHA);
 
@@ -37,8 +33,6 @@ InstallGlobalFunction(IsUpperAlphaChar,x->x in CHARS_UALPHA);
 ##
 #F  IsLowerAlphaChar(<c>)
 ##
-BIND_GLOBAL("CHARS_LALPHA",
-  Immutable(SSortedList("abcdefghijklmnopqrstuvwxyz")));
 
 InstallGlobalFunction(IsLowerAlphaChar,x->x in CHARS_LALPHA);
 
@@ -324,6 +318,26 @@ InstallGlobalFunction(LowercaseString , function( str )
   # now delegate to kernels TranslateString
   res := ShallowCopy(str);
   TranslateString(res, LOWERCASETRANSTABLE);
+  return res;
+end);
+
+#############################################################################
+##
+#F  UppercaseString( <string> ) . . . string consisting of upper case letters
+##
+UPPERCASETRANSTABLE := 0;
+InstallGlobalFunction(UppercaseString , function( str )
+  local res;
+  # initialize translation table before first use
+  if UPPERCASETRANSTABLE = 0 then
+    UPPERCASETRANSTABLE := List([0..255], CHAR_INT);
+    UPPERCASETRANSTABLE{1+[97..122]} := UPPERCASETRANSTABLE{1+[65..90]};
+    UPPERCASETRANSTABLE{33+[192..214]} := UPPERCASETRANSTABLE{1+[192..214]};
+    UPPERCASETRANSTABLE{33+[216..221]} := UPPERCASETRANSTABLE{1+[216..221]};
+  fi;
+  # now delegate to kernels TranslateString
+  res := ShallowCopy(str);
+  TranslateString(res, UPPERCASETRANSTABLE);
   return res;
 end);
 

@@ -2,8 +2,6 @@
 ##
 #W  files.gd                    GAP Library                      Frank Celler
 ##
-#H  @(#)$Id$
-##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 #Y  Copyright (C) 2002 The GAP Group
@@ -12,7 +10,6 @@
 ##
 Revision.files_gd :=
     "@(#)$Id$";
-
 
 #############################################################################
 ##
@@ -243,13 +240,28 @@ BIND_GLOBAL( "DirectoryTemporary", function( arg )
     fi;
 
     # create temporary directory
-    dir := TmpDirectory();
-    if dir = fail  then
-        return fail;
+
+    if ARCH_IS_WINDOWS() then
+      # Under Windows, the cygwin environment may return a path under /tmp,
+      # but this is actually mapped to
+      # C:/Documents and Settings/Username/.../Temp
+      # A path /tmp/... then causes problems with external binaries that do not
+      # use cygwin. Therefore it seems to be better to use the Windows Temp
+      # directory. The lack of subdirectories then potentially could cause
+      # problems if several instances of a package run at the same time,
+      # however -- Windows being primarily single-user -- this seems
+      # unlikely.
+      #T Create subdirectories with random name. (How to create directory?)
+      dir:="C:/WINDOWS/Temp/";
+    else
+      dir := TmpDirectory();
+      if dir = fail  then
+	return fail;
+      fi;
+      # remember directory name
+      Add( GAPInfo.DirectoriesTemporary, dir );
     fi;
 
-    # remember directory name and return
-    Add( GAPInfo.DirectoriesTemporary, dir );
     return Directory(dir);
 end );
 
@@ -413,6 +425,14 @@ DeclareGlobalFunction( "CreateCompletionFiles" );
 #O  CheckCompletionFiles()  . . . . . . . . . . .  check the completion files
 ##
 DeclareGlobalFunction("CheckCompletionFiles");
+
+# the character set definitions might be needed when processing files, thus
+# they must come earlier.
+BIND_GLOBAL("CHARS_DIGITS",Immutable(SSortedList("0123456789")));
+BIND_GLOBAL("CHARS_UALPHA",
+  Immutable(SSortedList("ABCDEFGHIJKLMNOPQRSTUVWXYZ")));
+BIND_GLOBAL("CHARS_LALPHA",
+  Immutable(SSortedList("abcdefghijklmnopqrstuvwxyz")));
 
 
 #############################################################################

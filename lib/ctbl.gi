@@ -1709,6 +1709,13 @@ InstallMethod( \.,
     fi;
     end );
 
+#############################################################################
+##
+#F  ColumnCharacterTable( <tbl>,<nr> )
+##
+InstallGlobalFunction(ColumnCharacterTable,function(T,n)
+  return Irr(T){[1..Length(Irr(T))]}[n];
+end);
 
 #############################################################################
 ##

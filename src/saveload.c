@@ -95,7 +95,9 @@ static void CloseAfterSave( void )
       SyExit(2);
     }
 
-  write(syBuf[SaveFile].fp, LoadBuffer, LBPointer-LoadBuffer);
+  if (write(syBuf[SaveFile].fp, LoadBuffer, LBPointer-LoadBuffer) < 0)
+    ErrorQuit("Cannot write to file descriptor %d, see 'LastSystemError();'\n",
+               syBuf[SaveFile].fp, 0L);
   SyFclose(SaveFile);
   SaveFile = -1;
 }
@@ -146,7 +148,9 @@ void SAVE_BYTE_BUF( void )
 
 void SAVE_BYTE_BUF( void )
 {
-  write(syBuf[SaveFile].fp, LoadBuffer, LBEnd-LoadBuffer);
+  if (write(syBuf[SaveFile].fp, LoadBuffer, LBEnd-LoadBuffer) < 0)
+    ErrorQuit("Cannot write to file descriptor %d, see 'LastSystemError();'\n",
+               syBuf[SaveFile].fp, 0L);
   LBPointer = LoadBuffer;
   return;
 }
@@ -412,7 +416,7 @@ Obj LoadSubObj()
   if ((word & 0x3) == 1 || (word & 0x3) == 2)
     return (Obj) word;
   else
-    return (Obj)(MptrBags + (word >> 2));
+    return (Obj)(MptrBags + (word >> 2)-1);
 }
 
 void SaveHandler( ObjFunc hdlr )
@@ -637,7 +641,7 @@ Obj FuncFindBag( Obj self, Obj minsize, Obj maxsize, Obj tnum )
 **  The return value is either True or Fail
 */
 
-static UInt NextSaveIndex;
+static UInt NextSaveIndex = 1;
 
 static void AddSaveIndex( Bag bag)
 {
@@ -679,7 +683,7 @@ static void WriteSaveHeader( void )
     if (GlobalBags.cookie[i] != NULL)
       globalcount++;
   SaveUInt(globalcount);
-  SaveUInt(NextSaveIndex);
+  SaveUInt(NextSaveIndex-1);
   SaveUInt(AllocBags - OldBags);
   
   SaveCStr("Loaded Modules");
@@ -702,6 +706,7 @@ static void WriteSaveHeader( void )
     }
 }
 
+static Obj ProtectFname;
 
 Obj SaveWorkspace( Obj fname )
 {
@@ -721,11 +726,16 @@ Obj SaveWorkspace( Obj fname )
         return Fail;
       }
   
+  /* For some reason itanium GC seems unable to spot fname */
+  ProtectFname = fname;
+
   /* Do a full garbage collection */
   CollectBags( 0, 1);
   
+  ProtectFname = (Obj)0L;
+
   /* Add indices in link words of all bags, for saving inter-bag references */
-  NextSaveIndex = 0;
+  NextSaveIndex = 1;
   CallbackForAllBags( AddSaveIndex );
 
   /* Now do the work */
@@ -907,7 +917,7 @@ void LoadWorkspace( Char * fname )
   if (SyStrcmp(buf,"Kernel to WS refs") != 0)
     {
       Pr("Bad divider\n",0L,0L);
-      SyExit(1);
+       SyExit(1);
     }
   SortGlobals(2);               /* globals by cookie for quick
                                  lookup */
@@ -1063,6 +1073,8 @@ static Int InitKernel (
 {
     /* init filters and functions                                          */
     InitHdlrFuncsFromTable( GVarFuncs );
+
+    InitGlobalBag(&ProtectFname, "Protected Filename for SaveWorkspace");
 
     /* return success                                                      */
     return 0;

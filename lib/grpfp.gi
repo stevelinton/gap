@@ -3,7 +3,6 @@
 #W  grpfp.gi                    GAP library                    Volkmar Felsch
 #W                                                           Alexander Hulpke
 ##
-##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 #Y  Copyright (C) 2002 The GAP Group
@@ -109,14 +108,18 @@ InstallOtherMethod( Length,
 ##
 #M  InverseOp( <elm> )  . . . . . . . . . . . . . . for element of f.p. group
 ##
-InstallMethod( InverseOp,
-    "for an element of an f.p. group",
-    true,
-    [ IsElementOfFpGroup ],
-    0,
-    obj -> ElementOfFpGroup( FamilyObj( obj ),
-                             Inverse( UnderlyingElement( obj ) ) ) );
-
+InstallMethod( InverseOp, "for an element of an f.p. group", true,
+    [ IsElementOfFpGroup ],0,
+function(obj)
+local fam,w;
+  fam:= FamilyObj( obj );
+  w:=Inverse(UnderlyingElement(obj));
+  if HasFpElementNFFunction(fam) and 
+    IsBound(fam!.reduce) and fam!.reduce=true then
+    w:=FpElementNFFunction(fam)(w);
+  fi;
+  return ElementOfFpGroup( fam,w);
+end );
 
 #############################################################################
 ##
@@ -141,76 +144,6 @@ InstallMethod( One, "for an f.p. group element", true, [ IsElementOfFpGroup ],
 InstallMethod( OneOp, "for an f.p. group element", true,[IsElementOfFpGroup ],
     0, obj -> One( FamilyObj( obj ) ) );
 
-InstallGlobalFunction(SetReducedMultiplication,function(o)
-  FamilyObj(One(o))!.reduce:=true;
-end);
-
-################################################
-# Gpword2MSword
-# Change a word in the free group into a word
-# in the free monoid: Generator numbers doubled
-# The first <shift> generators in the semigroup are used for identity elements
-BindGlobal("Gpword2MSword",function(id, w,shift)
-local
-    wlist,    # external rep of the word
-    i;        # loop variable
-
-  wlist:=LetterRepAssocWord(w);
-  if Length(wlist) = 0 then # it is the identity
-    return id;
-  fi;
-  wlist:=ShallowCopy(2*wlist);
-  for i in [1..Length(wlist)] do
-    if wlist[i]<0 then
-      wlist[i]:=-wlist[i]-1;
-    fi;
-  od;
-  return AssocWordByLetterRep(FamilyObj(id),wlist+shift);
-end);
-
-################################################
-# MSword2gpword
-# Change a word in the free monoid into a word
-# in the free group monoid: Generator numbers halved
-# The first <shift> generators in the semigroup are used for identity elements
-BindGlobal("MSword2gpword",function( id, w,shift )
-local  wlist, i,l;
-
-  wlist:=LetterRepAssocWord(w);
-  if Length(wlist) = 0 then # it is the identity
-    return id;
-  fi;
-  wlist:=ShallowCopy(1/2*(wlist-shift));
-  #zero entries correspond to identity elements (in semigroup case)
-
-  for i in [1..Length(wlist)] do
-    if not IsInt(wlist[i]) then
-      wlist[i]:=-wlist[i]-1/2;
-    fi;
-  od;
-
-  # free cancellation and removal of identities
-  w:=[];
-  l:=0;
-  i:=1;
-  while i<=Length(wlist) do
-    if wlist[i]<>0 then
-      if l=0 or w[l]<>-wlist[i] then
-	l:=l+1;
-        w[l]:=wlist[i];
-      else
-        l:=l-1;
-      fi;
-    fi;
-    i:=i+1;
-  od;
-  if l<Length(w) then
-    w:=w{[1..l]};
-  fi;
-
-  return AssocWordByLetterRep(FamilyObj(id),w);
-end);
-
 
 #############################################################################
 ##
@@ -219,19 +152,14 @@ end);
 InstallMethod( \*, "for two f.p. group elements",
     IsIdenticalObj, [ IsElementOfFpGroup, IsElementOfFpGroup ], 0,
 function( left, right )
-local fam,k;
+local fam,w;
   fam:= FamilyObj( left );
-  if IsBound(fam!.reduce) and fam!.reduce=true then
-    k:=FpElmKBRWS(fam);
-    return ElementOfFpGroup( fam,
-	     MSword2gpword(UnderlyingElement(One(fam)),
-	       ReducedForm(k[2],
-		 Gpword2MSword(k[3],
-		   UnderlyingElement(left)*UnderlyingElement(right),0)),0));
-  else
-    return ElementOfFpGroup( fam,
-	      UnderlyingElement( left ) * UnderlyingElement( right ) );
+  w:=UnderlyingElement(left)*UnderlyingElement(right);
+  if HasFpElementNFFunction(fam) and 
+    IsBound(fam!.reduce) and fam!.reduce=true then
+    w:=FpElementNFFunction(fam)(w);
   fi;
+  return ElementOfFpGroup( fam,w);
 end );
 
 #############################################################################
@@ -259,7 +187,8 @@ function( left, right )
   return FpElmComparisonMethod(FamilyObj(left))(left,right);
 end );
 
-BindGlobal("FPFaithHom",function( fam )
+InstallMethod(FPFaithHom,"try perm or pc hom",true,[IsFamily],0,
+function( fam )
 local hom,gp,f;
   gp:=CollectionsFamily(fam)!.wholeGroup;
   if HasIsFinite(gp) and not IsFinite(gp) then
@@ -274,6 +203,14 @@ local hom,gp,f;
     fi;
   fi;
   if HasIsPGroup(gp) and IsPGroup(gp) then
+    if Size(gp)=1 then
+      # special case trivial group
+      hom:=GroupHomomorphismByImagesNC(gp,Group(()),
+	     GeneratorsOfGroup(gp),
+	     List(GeneratorsOfGroup(gp),x->()));
+      SetEpimorphismFromFreeGroup(Image(hom),hom);
+      return hom;
+    fi;
     # nilpotent
     f:=Factors(Size(gp));
     hom:=EpimorphismPGroup(gp,f[1],Length(f));
@@ -287,6 +224,9 @@ local hom,gp,f;
     hom:=IsomorphismPermGroup(gp);
   else
     hom:=IsomorphismPermGroupOrFailFpGroup(gp);
+  fi;
+  if hom<>fail then
+    SetEpimorphismFromFreeGroup(Image(hom),hom);
   fi;
   return hom;
 end);
@@ -321,25 +261,13 @@ local hom;
 	 end;
 end );
 
-InstallMethod( FpElmKBRWS, "via Knuth-Bendix", true,
-  [IsElementOfFpGroupFamily],0,
-function( fam )
-local iso,k,id;
-  iso:=IsomorphismFpMonoid(CollectionsFamily(fam)!.wholeGroup);
-  id:=UnderlyingElement(Image(iso,One(fam)));
-  k:=ReducedConfluentRewritingSystem(Image(iso));
-  return [iso,k,id];
-end );
-
 InstallMethod( FpElmEqualityMethod, "via Knuth-Bendix", true,
   [IsElementOfFpGroupFamily],0,
 function( fam )
-local iso,k,id;
-  id:=FpElmKBRWS(fam);
-  iso:=id[1];k:=id[2];id:=id[3];
+local f;
+  f:=FpElementNFFunction(fam);
   return function(left,right);
-	   return ReducedForm(k,Gpword2MSword(id,UnderlyingElement(left),0))
-	         =ReducedForm(k,Gpword2MSword(id,UnderlyingElement(right),0));
+	   return f(UnderlyingElement(left))=f(UnderlyingElement(right));
 	 end;
 end );
 
@@ -348,12 +276,10 @@ end );
 InstallMethod( FpElmComparisonMethod, "via Knuth-Bendix", true,
   [IsElementOfFpGroupFamily],0,
 function( fam )
-local iso,k,id;
-  id:=FpElmKBRWS(fam);
-  iso:=id[1];k:=id[2];id:=id[3];
+local f;
+  f:=FpElementNFFunction(fam);
   return function(left,right);
-	   return ReducedForm(k,Gpword2MSword(id,UnderlyingElement(left),0))
-	         <ReducedForm(k,Gpword2MSword(id,UnderlyingElement(right),0));
+	   return f(UnderlyingElement(left))<f(UnderlyingElement(right));
 	 end;
 end );
 
@@ -363,12 +289,27 @@ end );
 ##
 InstallMethod( Order,"fp group element", [ IsElementOfFpGroup ],0,
 function( elm )
-local gp;
-   gp:=CollectionsFamily(FamilyObj(elm))!.wholeGroup;
-   if not HasIsomorphismPermGroup(gp) then
+local fam;
+   fam:=FamilyObj(elm);
+   if not HasFPFaithHom(fam) or FPFaithHom(fam)=fail then
      TryNextMethod(); # don't try the hard way
    fi;
-   return Order(Image(IsomorphismPermGroup(gp),elm));
+   return Order(Image(FPFaithHom(fam),elm));
+end );
+
+#############################################################################
+##
+#M  Random <gp> ) 
+##
+InstallMethod( Random,"fp group", [ IsSubgroupFpGroup and IsFinite],0,
+function( gp )
+local fam,hom;
+  fam:=ElementsFamily(FamilyObj(gp));
+  hom:=FPFaithHom(fam);
+  if hom=fail then
+     TryNextMethod(); 
+  fi;
+  return PreImagesRepresentative(hom,Random(Image(hom,gp)));
 end );
 
 #############################################################################
@@ -515,7 +456,7 @@ local S;
 end);
 
 
-MakeNiceDirectQuots:=function(G,H)
+BindGlobal("MakeNiceDirectQuots",function(G,H)
   local hom, a, b;
   if not ((IsPermGroup(G!.quot) and IsPermGroup(H!.quot)) or
           (IsPcGroup(G!.quot) and IsPcGroup(H!.quot))) then
@@ -537,7 +478,7 @@ MakeNiceDirectQuots:=function(G,H)
     fi;
   fi;
   return [G,H];
-end;
+end);
 
 
 InstallGlobalFunction(TracedCosetFpGroup,function(t,elm,p)
@@ -1144,11 +1085,11 @@ BindGlobal("GTC_CosetTableFromGensAndRels",function(arg)
                 lastDef  := app[9];
 
                 # give some information
-                while nrinf <= nrdef+nrdel  do
+                if nrinf <= nrdef+nrdel then
                     Info( InfoFpGroup, 3, "\t", nrdef, "\t", nrinf-nrdef,
                           "\t", 2*nrdef-nrinf, "\t", nrmax );
-                    nrinf := nrinf + 1000;
-                od;
+                    nrinf := ( Int(nrdef+nrdel)/1000 + 1 ) * 1000;
+                fi;
 
             fi;
         od;
@@ -1563,11 +1504,9 @@ InstallMethod( CanComputeIndex,"subgroup of full fp groups",IsIdenticalObj,
 ##
 #M  IndexInWholeGroup( <H> )  . . . . . .  index of a subgroup in an fp group
 ##
-InstallMethod( IndexInWholeGroup, "for subgroups of fp groups",
-    [ IsSubgroupFpGroup ],
+InstallMethod(IndexInWholeGroup,"subgroup fp",true,[IsSubgroupFpGroup],0,
 function( H )
 local T,i;
-
     # Get the coset table of <H> in its whole group.
     T := CosetTableInWholeGroup( H );
     i:=IndexCosetTab( T );
@@ -1576,7 +1515,6 @@ local T,i;
     fi;
     return i;
 end );
-
 
 InstallMethod(IndexInWholeGroup,"subgroup fp by quotient",true,
   [IsSubgroupFpGroup and IsSubgroupOfWholeGroupByQuotientRep],0,
@@ -1850,16 +1788,20 @@ local d,A,B,e1,e2,Ag,Bg,s,sg,u,v;
   # intersection
 
   u:=PreImagesSet(Projection(d,1),G!.sub);
-  SetSize(u,Size(G!.sub)*Size(B));
+  if HasSize(B) then
+    SetSize(u,Size(G!.sub)*Size(B));
+  fi;
   v:=PreImagesSet(Projection(d,2),H!.sub);
-  SetSize(v,Size(H!.sub)*Size(A));
+  if HasSize(A) then
+    SetSize(v,Size(H!.sub)*Size(A));
+  fi;
   u:=Intersection(u,v);
-  if Size(s)<Size(d) then
+  if Size(u)>1 and Size(s)<Size(d) then
     u:=Intersection(u,s);
   fi;
 
   # reduce
-  if IsPermGroup(s) and (Size(s)=Size(A) or Size(s)=Size(B)) then
+  if HasSize(s) and IsPermGroup(s) and (Size(s)=Size(A) or Size(s)=Size(B)) then
     d:=SmallerDegreePermutationRepresentation(s);
     A:=Image(d,s);
     if NrMovedPoints(A)<NrMovedPoints(s) then
@@ -2017,14 +1959,13 @@ InstallMethod( IsTrivial,
     0,
 
 function( G )
-
-    if 0 = Length( GeneratorsOfGroup( G ) )  then
-        return true;
-    else
-        return Size( G ) = 1;
-    fi;
-
+  if 0 = Length( GeneratorsOfGroup( G ) )  then
+    return true;
+  else
+    return Size( G ) = 1;
+  fi;
 end );
+#T why is this just a method for f.p. groups?
 
 
 #############################################################################
@@ -4381,7 +4322,7 @@ local fgens,grels,max,gens,t,Attempt;
   t:=MostFrequentGeneratorFpGroup(G);
   gens:=Concatenation([t,
     #pseudorandom element - try if it works
-    Product([1..7],i->Random(gens)^Random([1,-1]))],
+    Product([1..Random([2,3])],i->Random(gens)^Random([1,-1]))],
     Filtered(gens,j->UnderlyingElement(j)<>UnderlyingElement(t)));
 
   # recursive search (via smaller and smaller partitions) for a finite index
@@ -4515,7 +4456,15 @@ end);
 ##
 InstallGlobalFunction(IsomorphismPermGroupOrFailFpGroup, 
 function(arg)
-local G,t,p,H,max,sz,gens,rels,comb,l,m,i,j,trial,gen,bad;
+  local mappow, G, max, p, gens, rels, comb, i, l, m, H, t, gen, silent, sz, t1, bad, trial, b, bs, r, nl, o, u, rp, eo, rpo, e, e2, sc, j, z;
+
+  mappow:=function(n,g,e)
+    while e>0 do
+      n:=n^g;
+      e:=e-1;
+    od;
+    return n;
+  end;
 
   G:=arg[1];
   if HasIsomorphismPermGroup(G) then
@@ -4609,6 +4558,7 @@ local G,t,p,H,max,sz,gens,rels,comb,l,m,i,j,trial,gen,bad;
     max:=sz*10;
   fi;
 
+  t1:=Runtime();
   bad:=[];
   i:=1; 
   while Size(H)<sz and i<=Length(comb) do 
@@ -4646,12 +4596,74 @@ local G,t,p,H,max,sz,gens,rels,comb,l,m,i,j,trial,gen,bad;
   fi;
 
   Info(InfoFpGroup,1,"faithful representation of degree ",NrMovedPoints(H));
+
+  # regular case?
+  if Size(H)=NrMovedPoints(H) then
+    t1:=Runtime()-t1;
+    # try to find a cyclic subgroup that gives a faithful rep.
+    b:=fail;
+    bs:=1;
+    t1:=t1*4;
+    repeat
+      t1:=t1+Runtime();
+      r:=Random(H);
+      nl:=[];
+      o:=Order(r);
+      Info(InfoFpGroup,3,"try ",o);
+      u:=DivisorsInt(o);
+      for i in u do
+	if i>bs and not ForAny(nl,z->IsInt(i/z)) then
+	  rp:=r^(o/i);
+	  eo:=[1]; # {1} is a base
+	  for z in [2..i] do
+	    Add(eo,eo[Length(eo)]^rp);
+	  od;
+	  rpo:=[0..i-1];
+	  SortParallel(eo,rpo);
+	  e:=ShallowCopy(eo);
+	  repeat
+	    bad:=false;
+	    for z in GeneratorsOfGroup(H) do
+	      e2:=Set(List(e,j->mappow(1/z,rp,rpo[Position(eo,j)])^z));
+	      if not 1 in e2 then
+		Error("one!");
+	      fi;
+              e:=Filtered(e,i->i in e2);
+	      bad:=bad or Length(e)<Length(e2);
+	    od;
+	  until not bad;
+	  sc:=Length(e);
+	  if sc=1 then
+	    b:=rp;
+	    bs:=i;
+	    Info(InfoFpGroup,3,"better order ",bs);
+	  else
+	    Info(InfoFpGroup,3,"core size ",sc);
+	    AddSet(nl,sc); # collect core sizes
+	  fi;
+	fi;
+      od;
+      t1:=t1-Runtime();
+    until t1<0;
+    if b<>fail then
+      b:=Orbit(H,Set(OrbitPerms([b],1)),OnSets);
+      b:=ActionHomomorphism(H,b,OnSets);
+      H:=Group(List(GeneratorsOfGroup(H),i->Image(b,i)),());
+      Info(InfoFpGroup,2,"nonregular degree ",NrMovedPoints(H));
+      SetSize(H,sz);
+    fi;
+
+  fi;
+
   p:=SmallerDegreePermutationRepresentation(H);
   # tell the family that we can now compare elements
   SetCanEasilyCompareElements(FamilyObj(One(G)),true);
 
-  p:= GroupHomomorphismByImagesNC(G,Image(p),GeneratorsOfGroup(G),
+  r:=Range(p);
+  SetSize(r,Size(H));
+  p:= GroupHomomorphismByImagesNC(G,r,GeneratorsOfGroup(G),
 			List(GeneratorsOfGroup(H),i->Image(p,i)));
+  SetIsInjective(p,true);
   i:=NrMovedPoints(Range(p));
   if i<NrMovedPoints(H) then
     Info(InfoFpGroup,1,"improved to degree ",i);
@@ -4667,6 +4679,27 @@ InstallMethod(IsomorphismPermGroup,"for full finitely presented groups",
     RankFilter(IsFinite and IsGroup),
 function(G)
   return IsomorphismPermGroupOrFailFpGroup(G,10^30);
+end);
+
+InstallMethod(IsomorphismPermGroup,"for subgroups of finitely presented groups",
+    true, [ IsGroup and IsSubgroupFpGroup ],
+    # even if we don't demand to know to be finite, we have to assume it.
+    RankFilter(IsFinite and IsGroup),
+function(G)
+local P,imgs,hom;
+  Size(G);
+  P:=FamilyObj(G)!.wholeGroup;
+  if (HasSize(P) and Size(P)<10^6) or HasIsomorphismPermGroup(P) then
+    hom:=IsomorphismPermGroup(P);
+    imgs:=List(GeneratorsOfGroup(G),i->Image(hom,i));
+    hom:=GroupHomomorphismByImagesNC(G,Subgroup(Range(hom),imgs),
+       GeneratorsOfGroup(G),imgs);
+  else
+    hom:=IsomorphismFpGroup(P);
+    hom:=hom*IsomorphismPermGroup(Image(hom));
+  fi;
+  SetIsBijective(hom,true);
+  return hom;
 end);
 
 InstallOtherMethod(IsomorphismPermGroup,"for family of fp words",true,
@@ -5002,9 +5035,16 @@ local Fgens,	# generators of F
   val:=Product(pimgs,i->Sum(i,Size));
   Info(InfoMorph,2,List(pimgs,Length)," possibilities, Value: ",val);
 
-  h:=MorClassLoop(G,pimgs, rec(gens:=Fgens,to:=G,from:=F,
-			       free:=FreeGeneratorsOfFpGroup(F),
-                               rels:=List(RelatorsOfFpGroup(F),i->[i,1])),13);
+  if ValueOption("findall")=false then
+    h:=MorClassLoop(G,pimgs, rec(gens:=Fgens,to:=G,from:=F,
+				free:=FreeGeneratorsOfFpGroup(F),
+				rels:=List(RelatorsOfFpGroup(F),i->[i,1])),5);
+    if not IsList(h) then h:=[h];fi;
+  else
+    h:=MorClassLoop(G,pimgs, rec(gens:=Fgens,to:=G,from:=F,
+				free:=FreeGeneratorsOfFpGroup(F),
+				rels:=List(RelatorsOfFpGroup(F),i->[i,1])),13);
+  fi;
   Info(InfoMorph,2,"Found ",Length(h)," maps, test kernels");
   imgos:=[];
   cl:=[];
@@ -5032,6 +5072,105 @@ local e,fpi;
   fpi:=IsomorphismFpGroup(F);
   e:=GQuotients(Range(fpi),G);
   return List(e,i->fpi*i);
+end);
+
+# new style conversion functions
+BindGlobal("GroupwordToMonword",function(id,w)
+local m,i;
+  m:=[];
+  for i in LetterRepAssocWord(w) do
+    if i>0 then 
+      Add(m,2*i-1);
+    else
+      Add(m,-2*i);
+    fi;
+  od;
+  return AssocWordByLetterRep(FamilyObj(id),m);
+end);
+
+BindGlobal("MonwordToGroupword",function(id,w)
+local g,i,x;
+  g:=[];
+  for i in LetterRepAssocWord(w) do
+    if IsOddInt(i) then
+      x:=(i+1)/2;
+    else
+      x:=-i/2;
+    fi;
+    # free cancellation
+    if Length(g)>0 and x=-g[Length(g)] then
+      Unbind(g[Length(g)]);
+    else
+      Add(g,x);
+    fi;
+  od;
+  return AssocWordByLetterRep(FamilyObj(id),g);
+end);
+
+################################################
+# Gpword2MSword
+# Change a word in the free group into a word
+# in the free monoid: Generator numbers doubled
+# The first <shift> generators in the semigroup are used for identity elements
+BindGlobal("Gpword2MSword",function(id, w,shift)
+local
+    wlist,    # external rep of the word
+    i;        # loop variable
+
+  wlist:=LetterRepAssocWord(w);
+  if Length(wlist) = 0 then # it is the identity
+    return id;
+  fi;
+  wlist:=ShallowCopy(2*wlist);
+  for i in [1..Length(wlist)] do
+    if wlist[i]<0 then
+      wlist[i]:=-wlist[i]-1;
+    fi;
+  od;
+  return AssocWordByLetterRep(FamilyObj(id),wlist+shift);
+end);
+
+################################################
+# MSword2gpword
+# Change a word in the free monoid into a word
+# in the free group monoid: Generator numbers halved
+# The first <shift> generators in the semigroup are used for identity elements
+BindGlobal("MSword2gpword",function( id, w,shift )
+local  wlist, i,l;
+
+  wlist:=LetterRepAssocWord(w);
+  if Length(wlist) = 0 then # it is the identity
+    return id;
+  fi;
+  wlist:=ShallowCopy(1/2*(wlist-shift));
+  #zero entries correspond to identity elements (in semigroup case)
+
+  for i in [1..Length(wlist)] do
+    if not IsInt(wlist[i]) then
+      wlist[i]:=-wlist[i]-1/2;
+    fi;
+  od;
+
+  # free cancellation and removal of identities
+  w:=[];
+  l:=0;
+  i:=1;
+  while i<=Length(wlist) do
+    if wlist[i]<>0 then
+      if l=0 or w[l]<>-wlist[i] then
+	l:=l+1;
+        w[l]:=wlist[i];
+      else
+        l:=l-1;
+      fi;
+    fi;
+    i:=i+1;
+  od;
+  if l<Length(w) then
+    w:=w{[1..l]};
+  fi;
+
+  return AssocWordByLetterRep(FamilyObj(id),w);
 end);
 
 #############################################################################
@@ -5125,9 +5264,118 @@ end);
 ##
 ##  for a free group or a finitely presented group.
 ##  Returns an isomorphism to a finitely presented monoid.
+##  If the option ``relations'' is given, it must be a list of relations
+##  given by words in the free group. The monoid then is created with these
+##  relations (plus the ``inverse'' relations).
 ##
+
+InstallGlobalFunction("IsomorphismFpMonoidGeneratorsFirst",
+function(g)
+local freegp, gens, mongens, s, t, p, freemon, gensmon, id, newrels,
+      rels, w, monrel, mon, monfam, isomfun, idg, invfun, hom, i, j, rel;
+
+  # can we use attribute?
+  if HasIsomorphismFpMonoid(g) and IsBound(IsomorphismFpMonoid(g)!.type) and
+    IsomorphismFpMonoid(g)!.type=1 then
+    return IsomorphismFpMonoid(g);
+  fi;
+
+  # first we create the fp mon
+
+  # get the free group underlying the fp group given
+  freegp := FreeGroupOfFpGroup( g );
+  gens:=GeneratorsOfGroup(g);
+
+  # make monoid generators. Inverses are chosen to be bigger than original
+  # elements
+  mongens:=[];
+  for i in gens do
+    s:=String(i);
+    Add(mongens,s);
+    if ForAll(s,x->x in CHARS_UALPHA or x in CHARS_LALPHA) then
+      # inverse: change casification
+      t:="";
+      for j in [1..Length(s)] do
+	p:=Position(CHARS_LALPHA,s[j]);
+	if p<>fail then
+	  Add(t,CHARS_UALPHA[p]);
+	else
+	  p:=Position(CHARS_UALPHA,s[j]);
+	  Add(t,CHARS_LALPHA[p]);
+	fi;
+	s:=t;
+      od;
+    else
+      s:=Concatenation(s,"^-1");
+    fi;
+    Add(mongens,s);
+  od;
+
+  freemon:=FreeMonoid(mongens);
+  gensmon:=GeneratorsOfMonoid( freemon);
+  id:=Identity(freemon);
+  newrels:=[];
+  # inverse relators
+  for i in [1..Length(gens)] do
+    Add(newrels,[gensmon[2*i-1]*gensmon[2*i],id]);
+    Add(newrels,[gensmon[2*i]*gensmon[2*i-1],id]);
+  od;
+
+  rels:=ValueOption("relations");
+  if rels=fail then
+    # now add the relations from the fp group to newrels
+    # We have to transform relators into relations in the free monoid
+    # (in particular we have to transform the words in the free
+    # group to words in the free monoid)
+    rels := RelatorsOfFpGroup( g );
+    for rel in rels do
+      w:=rel;
+      #w:=LetterRepAssocWord(rel);
+      #l:=QuoInt(Length(w)+1,2);
+      #v:=[];
+      #for  i in [Length(w),Length(w)-1..l+1] do
+      #  Add(v,-w[i]);
+      #od;
+      #w:=w{[1..l]};
+      w:=GroupwordToMonword(id,w);
+      #v:=Gpword2MSword(idmon,AssocWordByLetterRep(FamilyObj(rel),v),0);
+      #Info(InfoFpGroup,1,rel," : ",w," -> ",v);
+      monrel:= [w,id];
+      Add( newrels, monrel );
+    od;
+  else
+    if not ForAll(Flat(rels),x->x in FreeGroupOfFpGroup(g)) then
+      Info(InfoFpGroup,1,"Converting relation words into free group");
+      rels:=List(rels,i->List(i,UnderlyingElement));
+    fi;
+    for rel in rels do
+      Add(newrels,List(rel,x->GroupwordToMonword(id,x)));
+    od;
+  fi;
+
+  # finally create the fp monoid
+  mon := FactorFreeMonoidByRelations( freemon, newrels);
+  gens := GeneratorsOfMonoid( mon);
+  monfam := FamilyObj(Representative(mon));
+  
+  isomfun := x -> ElementOfFpMonoid( monfam,
+                  GroupwordToMonword( id, UnderlyingElement(x) ));
+
+  idg := One( freegp );
+  invfun := x -> ElementOfFpGroup( FamilyObj(One(g)),
+     MonwordToGroupword( idg, UnderlyingElement( x ) ) );
+  hom:=MagmaIsomorphismByFunctionsNC(g, mon, isomfun, invfun);
+  hom!.type:=1;
+  if not HasIsomorphismFpMonoid(g) then
+    SetIsomorphismFpMonoid(g,hom);
+  fi;
+  return hom;
+end);
+
 InstallMethod(IsomorphismFpMonoid,"for an fp group",
-  true, [IsFpGroup], 0,
+  true, [IsFpGroup], 0, IsomorphismFpMonoidGeneratorsFirst);
+
+InstallGlobalFunction("IsomorphismFpMonoidInversesFirst",
 function(g)
 
   local i, rel,       # loop variable
@@ -5143,10 +5391,16 @@ function(g)
         mon ,         # fp monoid
         isomfun,      # the isomorphism function
         invfun,       # the inverse isomorphism function
-        famg,
-        fammon,       # the families of elements in g and mon
+        monfam,       # the family of the monoid's elements
         gens,
+	l,v,w,
 	hom;
+
+  # can we use attribute?
+  if HasIsomorphismFpMonoid(g) and IsBound(IsomorphismFpMonoid(g)!.type) and
+    IsomorphismFpMonoid(g)!.type=0 then
+    return IsomorphismFpMonoid(g);
+  fi;
 
   # first we create the fp mon
 
@@ -5173,33 +5427,80 @@ function(g)
   od;
 
   # now add the relations from the fp group to newrels
-  # We have to transform relators into relations in the free monoid
-  # (in particular we have to transform the words in the free
-  # group to words in the free monoid)
-  rels := RelatorsOfFpGroup( g );
-  for rel in rels do
-     monrel:= [Gpword2MSword(idmon, rel,0), idmon];
-     Add( newrels, monrel );
-  od;
+  rels:=ValueOption("relations");
+  if rels=fail then
+
+    # We have to transform relators into relations in the free monoid
+    # (in particular we have to transform the words in the free
+    # group to words in the free monoid)
+    rels := RelatorsOfFpGroup( g );
+    for rel in rels do
+      w:=LetterRepAssocWord(rel);
+      l:=QuoInt(Length(w)+1,2);
+      v:=[];
+      for  i in [Length(w),Length(w)-1..l+1] do
+	Add(v,-w[i]);
+      od;
+      w:=w{[1..l]};
+      w:=Gpword2MSword(idmon,AssocWordByLetterRep(FamilyObj(rel),w),0);
+      v:=Gpword2MSword(idmon,AssocWordByLetterRep(FamilyObj(rel),v),0);
+      Info(InfoFpGroup,1,rel," : ",w," -> ",v);
+      monrel:= [w,v];
+      Add( newrels, monrel );
+    od;
+  else
+    if not ForAll(Flat(rels),x->x in FreeGroupOfFpGroup(g)) then
+      Info(InfoFpGroup,1,"Converting relation words into free group");
+      rels:=List(rels,i->List(i,UnderlyingElement));
+    fi;
+    for rel in rels do
+      Add(newrels,List(rel,x->Gpword2MSword(idmon,x,0)));
+    od;
+  fi;
 
   # finally create the fp monoid
   mon := FactorFreeMonoidByRelations( freemon, newrels);
   gens := GeneratorsOfMonoid( mon);
-
-  famg := FamilyObj(One(g));
-  fammon := FamilyObj(One(mon));
-
-  isomfun := x -> ElementOfFpMonoid( fammon,
+  monfam := FamilyObj(Representative(mon));
+  
+  isomfun := x -> ElementOfFpMonoid( monfam,
                   Gpword2MSword( idmon, UnderlyingElement(x),0 ));
 
   id := One( freegp );
-  invfun := x -> ElementOfFpGroup( famg,
+  invfun := x -> ElementOfFpGroup( FamilyObj(One(g)),
      MSword2gpword( id, UnderlyingElement( x ),0 ) );
   hom:=MagmaIsomorphismByFunctionsNC(g, mon, isomfun, invfun);
+  hom!.type:=0;
+  if not HasIsomorphismFpMonoid(g) then
+    SetIsomorphismFpMonoid(g,hom);
+  fi;
   return hom;
 end);
 
+InstallGlobalFunction(SetReducedMultiplication,function(o)
+local fam;
+  fam:=FamilyObj(One(o));
+  fam!.reduce:=true; # turn on reduction
+  # force determination of the attribute
+  FpElementNFFunction(fam);
+end);
 
+InstallMethod(FpElementNFFunction,true,[IsElementOfFpGroupFamily],0,
+# default reduction -- 
+function(fam)
+local iso,k,id;
+  # first try whether the group is ``small''
+  iso:=FPFaithHom(fam);
+  if iso<>fail and Size(Image(iso))<50000 then
+    k:=Image(iso);
+    return w->UnderlyingElement(Factorization(k,Image(iso,ElementOfFpGroup(fam,w))));
+  fi;
+  iso:=IsomorphismFpMonoidGeneratorsFirst(CollectionsFamily(fam)!.wholeGroup);
+  k:=ReducedConfluentRewritingSystem(Image(iso));
+  id:=UnderlyingElement(Image(iso,One(fam)));
+  return w->MonwordToGroupword(UnderlyingElement(One(fam)),
+	       ReducedForm(k,GroupwordToMonword(id,w)));
+end);
 
 #############################################################################
 ##
@@ -5457,7 +5758,7 @@ local G,T,gens,g,reps,ng,index,i,j,ndef,n,iso;
       if not IsBound(reps[n]) then
         reps[n] := reps[j]*gens[i];
         #This assumes that reps[j] is already defined - but
-        #hopefully this is true because T is 'standardized' ?
+        #this is true because T is 'standardized' 
         ndef := ndef+1;
 	if ndef=index then 
 	  return Objectify( NewType( FamilyObj( OG ),
@@ -5481,6 +5782,21 @@ function( cs, num )
   return cs!.reps[num];
 end );
 
+InstallOtherMethod( Position,"right transversal fp gp.",
+    [ IsList and IsRightTransversalFpGroupRep,
+    IsMultiplicativeElementWithInverse,IsZeroCyc ], 0,
+function( cs, elm,zero )
+local a;
+  a:=TracedCosetFpGroup(cs!.table,
+           UnderlyingElement(ImagesRepresentative(cs!.iso,elm)),1);
+  if (HasIsTrivial(cs!.subgroup) and IsTrivial(cs!.subgroup)) 
+      or cs!.reps[a]=elm then
+    return a;
+  else
+    return fail;
+  fi;
+end );
+
 InstallMethod( PositionCanonical,"right transversal fp gp.", IsCollsElms,
     [ IsList and IsRightTransversalFpGroupRep,
     IsMultiplicativeElementWithInverse ], 0,
@@ -5489,8 +5805,11 @@ function( cs, elm )
            UnderlyingElement(ImagesRepresentative(cs!.iso,elm)),1);
 end );
 
+InstallMethod( Enumerator,"fp gp.", true,[IsSubgroupFpGroup and IsFinite],0,
+  G->RightTransversal(G,TrivialSubgroup(G)));
+
 InstallGlobalFunction(NewmanInfinityCriterion,function(G,p)
-local GO,q,d,e,b,r,val,agemo;
+local GO,q,d,e,b,r,val,agemo,ngens;
   if not IsPrimeInt(p) then
     Error("<p> must be a prime");
   fi;
@@ -5501,9 +5820,11 @@ local GO,q,d,e,b,r,val,agemo;
   b:=Length(GeneratorsOfGroup(G));
   r:=Length(RelatorsOfFpGroup(G));
   val:=fail;
-  q:=PQuotient(G,p,2,
-    # this is a very heuristic formula for generator numbers to be safe;
-    Minimum(8192,(2*Length(GeneratorsOfGroup(G)))^2));
+  ngens:=32;
+  repeat
+    ngens:=ngens*8;
+    q:=PQuotient(G,p,2,ngens);
+  until q<>fail;
   q:=Image(EpimorphismQuotientSystem(q));
   q:=PCentralSeries(q,p);
   if Length(q)=1 then
@@ -5521,10 +5842,15 @@ local GO,q,d,e,b,r,val,agemo;
     if q<d^2/2+d/2-e then
       Info(InfoFpGroup,1,"infinite by criterion 1");
       val:=true;
+    else
+      Info(InfoFpGroup,2,"r-b=",r-b," d^2/2+d/2-d-e=",d^2/2-d/2-e);
     fi;
-    if q<=d^2/2+d/2-e+(e-d/2-d^2/4)*d/2 then
+    if q<=d^2/2-d/2-e+(e-d/2-d^2/4)*d/2 then
       Info(InfoFpGroup,1,"infinite by criterion 2");
       val:=true;
+    else
+      Info(InfoFpGroup,2,"r-b=",r-b," d^2/2-d/2-e+(e-d/2-d^2/4)*d/2-d=",
+           d^2/2-d/2-e+(e-d/2-d^2/4)*d/2-d);
     fi;
   else
     # can we cut short the agemo calculation?
@@ -5599,7 +5925,7 @@ InstallMethod( DirectProductOp,
           p1,p2,         # Position indices for embeddings and projections
           i,j,gi,gj;     # index vaiables
 
-
+    
     ## Check the arguments. Each element of the list must be an FpGroup
     ##
     if ForAny( list, G -> not IsFpGroup( G ) ) then
@@ -5632,12 +5958,12 @@ InstallMethod( DirectProductOp,
 
             for gi in geni do
                 for gj in genj do
-                    Add(rels, UnderlyingElement(Comm(gi,gj)));
-                od;
+                    Add(rels, UnderlyingElement(Comm(gi,gj)));  
+                od; 
             od;
         od;
 
-    od;
+    od; 
 
     ## Create the direct product as an FpGroup
     ##
@@ -5646,7 +5972,7 @@ InstallMethod( DirectProductOp,
     ## Initialize the directproduct info
     ##
     dinfo := rec(groups := list, embeddings := [], projections := []);
-
+    
     ## Build embeddings and projections for direct product info
     ##
     ## Initialize generator index in free product
@@ -5655,11 +5981,11 @@ InstallMethod( DirectProductOp,
 
     for i in [1..Length(list)] do
 
-        ## Compute the generator index to map embedding 
+        ## Compute the generator indices to map embedding 
         ## into direct product
         ##
         geni := GeneratorsOfGroup(Image(Embedding(freeprod,i)));
-        p2 := p1+Length(geni)-1;
+        p2 := p1+Length(geni)-1;        
 
         ## Compute a list of generators most of which are the
         ## identity to compute the projection mapping
@@ -5670,21 +5996,21 @@ InstallMethod( DirectProductOp,
 
         ## Build the embedding for group list[i]
         ##
-        dinfo.embeddings[i] :=
+        dinfo.embeddings[i] := 
             GroupHomomorphismByImagesNC(list[i], dirprod,
                 GeneratorsOfGroup(list[i]),
                 GeneratorsOfGroup(dirprod){[p1..p2]});
 
         ## Build the projection for group list[i]
         ##
-        dinfo.projections[i] :=
+        dinfo.projections[i] := 
             GroupHomomorphismByImagesNC(dirprod,list[i],
                 GeneratorsOfGroup(dirprod), idgens);
 
         ## Set next starting point.
         ##
-        p1 := p2+1;
-    od;
+        p1 := p2+1;                                   
+    od;    
 
     ## Set information and return dirprod
     ##
@@ -5693,6 +6019,57 @@ InstallMethod( DirectProductOp,
 
     end
 );
+
+
+# Textbook application of Smith normal form.
+# The function is careful to handle empty matrices and to return
+# the generators in the order corresponding to AbelianInvariants.
+# If the FpGroup is abelian, then it is suitable as a method for
+# IndependentGeneratorsOfAbelianGroup.
+IndependentGeneratosOfMaximalAbelianQuotientOfFpGroup := function( G )
+  local gens, matrix, snf, base, ord, cti, row, g, o, cf, j, i;
+
+  gens := FreeGeneratorsOfFpGroup( G );
+  if Size( gens ) = 0 then return []; fi;
+  matrix := List( RelatorsOfFpGroup( G ), rel ->
+    List( gens, gen -> ExponentSumWord( rel, gen ) ) );
+  if Size( matrix ) = 0 then return gens; fi;
+  snf := NormalFormIntMat( matrix, 1+8+16 );
+
+  base := [];
+  ord := [];
+  cti := snf.coltrans^-1;
+  for i in [ 1 .. Length(cti) ] do
+    row := cti[i];
+    if i < Length( snf.normal ) then o := snf.normal[i][i]; else o := 0; fi;
+    if o <> 1 then
+      # get the involved prime factors
+      g := LinearCombinationPcgs( gens, row, One(G) );
+      cf := Collected( Factors( o ) );
+      if Length( cf ) > 1 then
+        for j in cf do
+	  j := j[1] ^ j[2];
+	  Add( ord, j );
+	  Add( base, g^(o/j) );
+	od;
+      else
+	Add( base, g );
+	Add( ord, o );
+      fi;
+    fi;
+  od;
+  SortParallel( ord, base );
+  base := List( base, gen -> MappedWord( gen, gens, GeneratorsOfGroup( G ) ) );
+  return base;
+end;
+
+InstallMethod( IndependentGeneratorsOfAbelianGroup,
+  "For abelian fpgroup, use Smith normal form",
+  [ IsFpGroup and IsAbelian ],
+  IndependentGeneratosOfMaximalAbelianQuotientOfFpGroup );
+
+
 #############################################################################
 ##
 #E
+

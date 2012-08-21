@@ -2587,6 +2587,7 @@ void            IntrUnbLVar (
     else
       {
 	ASS_LVAR(lvar,0);
+	PushVoidObj();
       }
 }
 
@@ -2681,6 +2682,7 @@ void            IntrUnbHVar (
     else
       {
 	ASS_HVAR(hvar, 0);
+	PushVoidObj();
       }
 }
 
@@ -3194,25 +3196,13 @@ void            IntrElmList ( void )
     list = PopObj();
 
     
-    if ( ! IS_INTOBJ(pos))
+    if ( ! IS_INTOBJ(pos)  || (p = INT_INTOBJ(pos)) <= 0)
       {
-	if (TNUM_OBJ(pos) != T_INTPOS)
-	  {
-	    ErrorQuit("List Element: <position> must be a positive integer (not a %s)",
-		      (Int)TNAM_OBJ(pos), 0);
-	  }
+	/* This mostly dispatches to the library */
 	elm = ELMB_LIST( list, pos);
       }
     else
       {
-	if (INT_INTOBJ(pos) <= 0 ) {
-	  ErrorQuit(
-		    "List Element: <position> must be positive (not a %d)",
-		    INT_INTOBJ(pos), 0L );
-	}
-	p = INT_INTOBJ( pos );
-	
-	
 	/* get the element of the list                                         */
 	elm = ELM_LIST( list, p );
       }

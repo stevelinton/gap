@@ -258,6 +258,8 @@ DeclareGlobalFunction("DegreeNaturalHomomorphismsPool");
 ##
 DeclareGlobalFunction("CloseNaturalHomomorphismsPool");
 
+DeclareGlobalFunction("PullBackNaturalHomomorphismsPool");
+DeclareGlobalFunction("EraseNaturalHomomorphismsPool");
 
 #############################################################################
 ##

@@ -243,7 +243,8 @@ InstallHandlingByNiceBasis( "IsNonGaussianRowSpace", rec(
 ##  relative basis.
 ##  (So there is no need for `IsBasisGaussianRowSpace').
 ##
-##  If basis vectors are known then the component `heads' is bound.
+##  If basis vectors are known and if the space is nontrivial
+##  then the component `heads' is bound.
 ##
 DeclareRepresentation( "IsSemiEchelonBasisOfGaussianRowSpaceRep",
     IsAttributeStoringRep,
@@ -287,6 +288,9 @@ InstallMethod( Coefficients,
     # Check whether the vector has the right length.
     # (The heads info is not stored before the basis vectors are known.)
     vectors:= BasisVectors( B );
+    if IsEmpty( vectors ) then
+      return [];
+    fi;
     heads:= B!.heads;
     len:= Length( v );
     if len <> Length( heads ) then
@@ -984,6 +988,11 @@ InstallMethod( CanonicalBasis,
 
     ech:= SemiEchelonBasis( V );
     vectors:= BasisVectors( ech );
+    if IsEmpty( vectors ) then
+      SetIsEmpty( ech, true );
+      SetIsCanonicalBasis( ech, true );
+      return ech;
+    fi;
     heads := ShallowCopy( ech!.heads );
     n:= Length( heads );
 
@@ -1010,11 +1019,7 @@ InstallMethod( CanonicalBasis,
                             and IsSemiEchelonBasisOfGaussianRowSpaceRep
                             and IsCanonicalBasis ),
                    rec() );
-    if IsEmpty( vectors ) then
-      SetIsEmpty( B, true );
-    else
-      SetIsRectangularTable( B, true );
-    fi;
+    SetIsRectangularTable( B, true );
     SetUnderlyingLeftModule( B, V );
     SetBasisVectors( B, base );
 

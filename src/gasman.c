@@ -1626,7 +1626,7 @@ void GenStackFuncBags ()
     /* Itanium has two stacks */
     top = ItaniumRegisterStackTop();
     for ( i = 0; i < sizeof(Bag*); i += StackAlignBags ) {
-	for ( p = (Bag*)((char*)ItaniumRegisterStackBottom + i); p < top; p++ )
+	for ( p = (Bag*)((char*)ItaniumRegisterStackBottom + i); p <= top; p++ )
 	    MARK_BAG( *p );
     }
 #endif

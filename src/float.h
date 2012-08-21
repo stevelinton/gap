@@ -16,7 +16,7 @@ const char * Revision_float_h =
 #endif
 
 
-typedef double Double;
+typedef long double Double;
 
 
 /*F * * * * * * * * * * * * * initialize package * * * * * * * * * * * * * * **/

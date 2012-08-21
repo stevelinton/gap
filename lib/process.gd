@@ -2,8 +2,6 @@
 ##
 #W  process.gd                  GAP Library                      Frank Celler
 ##
-#H  @(#)$Id$
-##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 #Y  Copyright (C) 2002 The GAP Group
@@ -156,6 +154,14 @@ UNBIND_GLOBAL( "Process" );
 DeclareOperation( "Process",
     [ IsDirectory, IsString, IsInputStream, IsOutputStream, IsList ] );
 
+#############################################################################
+##
+#F ShortFileNameWindows(<name>)
+##
+##  returns a short file name (http://en.wikipedia.org/wiki/8.3_filename)
+##  for use under Windows. Paths can contain either / or \ separators,
+##  either will be permitted.
+DeclareGlobalFunction("ShortFileNameWindows");
 
 #############################################################################
 ##

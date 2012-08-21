@@ -14,7 +14,6 @@
 Revision.grp_gi :=
     "@(#)$Id$";
 
-
 #############################################################################
 ##
 #M  IsFinitelyGeneratedGroup( <G> ) . . test if a group is finitely generated
@@ -2101,10 +2100,26 @@ InstallMethod( IndexOp,
 ##
 #M  IndexNC( <G>, <H> )
 ##
+##  We install the method that returns the quotient of the group orders
+##  twice, once as the generic method and once for the situation that the
+##  group orders are known;
+##  in the latter case, we choose a high enough rank, in order to avoid the
+##  unnecessary computation of nice monomorphisms, images of the groups, and
+##  orders of these images.
+##
 InstallMethod( IndexNC,
     "generic method for two groups",
     IsIdenticalObj,
     [ IsGroup, IsGroup ],
+    function( G, H )
+    return Size( G ) / Size( H );
+    end );
+
+InstallMethod( IndexNC,
+    "for two groups with known Size value",
+    IsIdenticalObj,
+    [ IsGroup and HasSize, IsGroup and HasSize and IsFinite ],
+    2 * RankFilter( IsHandledByNiceMonomorphism ),
     function( G, H )
     return Size( G ) / Size( H );
     end );
@@ -4278,10 +4293,10 @@ InstallSubsetMaintenance( CanComputeSizeAnySubgroup,
 ##
 InstallGlobalFunction(Factorization,function(G,elm)
 # code based on work by N. Rohrbacher
-  local one, maxlist, rvalue, setrvalue, hom, names, F, gens, letters, info,
-  e, cnt, S, i, p, objelm, objnum, numobj, actobj, l, rs, idword, aim, ll,
-  from, to, diam, write, count, cont, ri, old, new, stop, pool, newpool, a,
-  w, na, rna, num, hold, nword, g,SC,olens,stblst,total,dist;
+  local maxlist, rvalue, setrvalue, one, hom, names, F, gens, letters, info,
+  iso, e, objelm, objnum, numobj, actobj, S, cnt, SC, i, p, olens, stblst,
+  l, rs, idword, dist, aim, ll, from, to, total, diam, write, count, cont,
+  ri, old, new, a, rna, w, stop, num, hold, g,OG;
 
   # A list can have length at most 2^27
   maxlist:=2^27;
@@ -4329,14 +4344,30 @@ InstallGlobalFunction(Factorization,function(G,elm)
 
   one:=One(G);
 
+  OG:=G;
   if not IsBound(G!.factorinfo) then
     hom:=EpimorphismFromFreeGroup(G:names:="x");
     G!.factFreeMap:=hom; # compatibility
     F:=Source(hom);
     gens:=ShallowCopy(MappingGeneratorsImages(hom)[2]);
-    letters:=ShallowCopy(MappingGeneratorsImages(hom)[1]);
-    info:=rec();
+    letters:=List(MappingGeneratorsImages(hom)[1],UnderlyingElement);
+    info:=rec(hom:=hom);
 
+    iso:=fail;
+    if not (IsPermGroup(G) or IsPcGroup(G)) then
+      # the group likely does not have a good enumerator
+      iso:=IsomorphismPermGroup(G);
+      G:=Image(iso,G);
+      one:=One(G);
+      gens:=List(gens,i->Image(iso,i));
+      hom:=GroupHomomorphismByImagesNC(F,G,
+	       MappingGeneratorsImages(hom)[1],gens);
+      if not HasEpimorphismFromFreeGroup(G) then
+	SetEpimorphismFromFreeGroup(G,hom);
+	G!.factFreeMap:=hom; # compatibility
+      fi;
+    fi;
+    info.iso:=iso;
     e:= Enumerator(G);
     objelm:=x->x;
     objnum:=x->e[x];
@@ -4457,6 +4488,7 @@ InstallGlobalFunction(Factorization,function(G,elm)
 
     info.mygens:=gens;
     info.mylett:=letters;
+    info.fam:=FamilyObj(One(Source(hom)));
 
     # initialize all lists
     rs:=List([1..QuoInt(2*Size(G),maxlist)],i->BlistList([1..maxlist],[]));
@@ -4470,14 +4502,21 @@ InstallGlobalFunction(Factorization,function(G,elm)
     info.to:=1;
 
     info.diam:=0;
-    G!.factorinfo:=info;
+    OG!.factorinfo:=info;
 
   else
     info:=G!.factorinfo;
     rs:=info.prodlist;
+    if info.iso<>fail then
+      G:=Image(info.iso);
+    fi;
   fi;
 
-  hom:=EpimorphismFromFreeGroup(G);
+  hom:=info.hom;
+  if info.iso<>fail then
+    elm:=Image(info.iso,elm);
+  fi;
+
   F:=Source(hom);
   idword:=One(F);
   if IsOne(elm) then return idword;fi; # special treatment length 0
@@ -4574,42 +4613,34 @@ InstallGlobalFunction(Factorization,function(G,elm)
     info.diam:=diam;
   fi;
 
-  stop:=false;
 
-  one:=objelm(one);
-  pool:=[];
-  pool[1]:=[objelm(elm), idword];
+  # no pool needed: If the length of w is n, and g is a generator, the
+  # length of w/g can not be less than n-1 (otherwise (w/g)*g is a shorter
+  # word) and cannot be more than n+1 (otherwise w/g is a shorter word for
+  # it). Thus, if the length of w/g is OK mod 3, it is the right path.
 
-  repeat
-    newpool:=[];
-    for p in pool do
-      a:=p[1];
-      w:=p[2];
-      na:=numobj(a);
-      rna:=rvalue(na);
-
-      num:=1;
-      while num<=Length(gens) and stop=false do
-	old:=actobj(a,gens[num]^-1);
-	hold:=numobj(old);
-
-	if rvalue(hold)= (rna - 1) mod 3 then
-	  nword:=w/letters[num];
-
-	  if one = old then 
-	    stop :=true;
-	  else
-	    Add(newpool, [old,nword]);
-	  fi;
-	fi;
-	num:=num+1;
-      od;
+  one:=objelm(One(G));
+  a:=objelm(elm);
+  rna:=rvalue(numobj(a));
+  w:=UnderlyingElement(idword);
+  while a<>one do
+    stop:=false;
+    num:=1;
+    while num<=Length(gens) and stop=false do
+      old:=actobj(a,gens[num]^-1);
+      hold:=numobj(old);
+      if rvalue(hold)= (rna - 1) mod 3 then
+	# reduced to shorter
+	a:=old;
+	w:=w/letters[num];
+	rna:=rna-1;
+	stop:=true;
+      fi;
+      num:=num+1;
     od;
+  od;
+  return ElementOfFpGroup(info.fam,w^-1);
 
-    pool:=newpool;
-
-  until stop;
-  return nword^-1;
 end);
 
 

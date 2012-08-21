@@ -2,8 +2,6 @@
 ##
 #W  ctblgrp.gi                   GAP library                 Alexander Hulpke
 ##
-#H  @(#)$Id$
-##
 #Y  Copyright (C) 1993, 1997
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 #Y  Copyright (C) 2002 The GAP Group
@@ -2446,7 +2444,8 @@ local G,chi,reps,r,i,gensp;
     fi;
     Add(reps,r);
   od;
-  if Length(reps)=1 and Length(arg)>1 and IsCharacter(arg[2]) then
+  if Length(reps)=1 and Length(arg)>1 and (not IsList(arg[2][1]))
+    and IsCharacter(arg[2]) then
     return r;
   fi;
   return reps;

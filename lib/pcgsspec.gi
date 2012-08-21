@@ -2,8 +2,6 @@
 ##
 #W  pcgsspec.gi                 GAP library                      Bettina Eick
 ##
-#H  @(#)$Id$
-##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 #Y  Copyright (C) 2002 The GAP Group
@@ -156,6 +154,7 @@ PcgsSystemWithWf := function( pcgs, wf )
         newpcgs := pcgs;
     else
         newpcgs := PcgsByPcSequenceNC( FamilyObj(OneOfPcgs(pcgs)), list );
+        SetRelativeOrders(newpcgs, List(weights, x -> x[3]));
         SetOneOfPcgs( newpcgs, OneOfPcgs(pcgs) );
     fi;
 
@@ -970,6 +969,13 @@ InstallOtherMethod( PcgsCentralSeries, "for pc groups use SpecialPcgs",
 
 InstallOtherMethod( PcgsPCentralSeriesPGroup, "for pc groups use SpecialPcgs",
   true,[IsPcGroup],0,DoCentralSeriesPcgsIfNilpot);
+
+InstallOtherMethod( PcgsCentralSeries, "for pcgs computable use SpecialPcgs",
+  true,[CanEasilyComputePcgs],0,DoCentralSeriesPcgsIfNilpot);
+
+InstallOtherMethod( PcgsPCentralSeriesPGroup,
+  "for pcgs computable use SpecialPcgs",
+  true,[CanEasilyComputePcgs],0,DoCentralSeriesPcgsIfNilpot);
 
 PcgsElAbSerFromSpecPcgs:=function(G)
 local s;

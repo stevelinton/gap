@@ -5,8 +5,6 @@
 #W                                                            Juergen Mueller
 #W                                                           Alexander Hulpke
 ##
-#H  @(#)$Id$
-##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1999 School Math and Comp. Sci., University of St.  Andrews, Scotland
 #Y  Copyright (C) 2002 The GAP Group
@@ -292,9 +290,13 @@ end;
 UNIV_FUNC_BY_EXTREP:=function(rfam,ncof,dcof,val,inum)
 local f;
 
-  # constand denominator -> ratfun
+  # constant denominator -> ratfun
   if Length(dcof)=1 then
-    return LAUR_POL_BY_EXTREP(rfam,ncof/dcof[1],val,inum);
+    if not IsOne(dcof[1]) then
+      return LAUR_POL_BY_EXTREP(rfam,1/dcof[1]*ncof,val,inum);
+    else
+      return LAUR_POL_BY_EXTREP(rfam,ncof,val,inum);
+    fi;
   fi;
 
   # slightly better to do this after the Length id determined 

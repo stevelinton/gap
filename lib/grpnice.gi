@@ -200,7 +200,7 @@ function( elm, G )
     local   nice,  img;
  
     nice := NiceMonomorphism( G );
-    img  := ImagesRepresentative( nice, elm );
+    img  := ImagesRepresentative( nice, elm:actioncanfail:=true );
     return img<>fail and img in NiceObject( G )
        and PreImagesRepresentative( nice, img ) = elm;
 end );
@@ -793,7 +793,7 @@ GroupSeriesMethodByNiceMonomorphism( UpperCentralSeriesOfGroup,
 
 #############################################################################
 ##
-#M  RepresentativeAction( <G> )  . . . . upper central series of a group
+#M  RepresentativeAction( <G> )
 ##
 InstallOtherMethod(RepresentativeActionOp,"nice group on elements",
   IsCollsElmsElmsX,[IsHandledByNiceMonomorphism and IsGroup,
@@ -805,8 +805,11 @@ local hom,rep;
     TryNextMethod();
   fi;
   hom:=NiceMonomorphism(G);
-  rep:=RepresentativeAction(NiceObject(G),Image(hom,a),Image(hom,b),
-                               OnPoints);
+  if not ( a in Source( hom ) and b in Source( hom ) ) then
+    TryNextMethod();
+  fi;
+  rep:= RepresentativeAction( NiceObject( G ),
+            ImageElm( hom, a ), ImageElm( hom, b ), OnPoints );
   if rep<>fail then
     rep:=PreImagesRepresentative(hom,rep);
   fi;

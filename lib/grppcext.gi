@@ -990,13 +990,13 @@ function( G, aut, N )
           rel, new, g, e, t, l, i, j, k, H, m, relsN, relsG;
     
     pcgsG := Pcgs( G );
-    fpg   := Range( IsomorphismFpGroup( G ) );
+    fpg   := Range( IsomorphismFpGroupByPcgs( pcgsG, "g" ) );
     n     := Length( pcgsG );
     gensG := GeneratorsOfGroup( FreeGroupOfFpGroup( fpg ) );
     relsG := RelatorsOfFpGroup( fpg );
 
     pcgsN := Pcgs( N );
-    fpn   := Range( IsomorphismFpGroup( N ) );
+    fpn   := Range( IsomorphismFpGroupByPcgs( pcgsN, "n" ) );
     d     := Length( pcgsN );
     gensN := GeneratorsOfGroup( FreeGroupOfFpGroup( fpn ) );
     relsN := RelatorsOfFpGroup( fpn );
@@ -1081,7 +1081,7 @@ function( G, aut, p )
 
     pcgs := Pcgs( G );
     n    := Length( pcgs );
-    R    := Range( IsomorphismFpGroup( G ) );
+    R    := Range( IsomorphismFpGroupByPcgs( G, "g" ) );
     gensR := GeneratorsOfGroup( FreeGroupOfFpGroup( R ) );
     
     F := FreeGroup(IsSyllableWordsFamily, n + 1 );

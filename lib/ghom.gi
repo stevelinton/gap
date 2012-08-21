@@ -4,7 +4,6 @@
 #W                                                           Alexander Hulpke
 #W                                                             Heiko Thei"sen
 ##
-#H  @(#)$Id$
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
@@ -1186,13 +1185,23 @@ end );
 #M  IsomorphismPermGroup( <G> ) . . . . . . . . .  by right regular operation
 ##
 InstallMethod( IsomorphismPermGroup, "right regular operation", true,
-        [ IsGroup and IsFinite ], 0,
-    function( G )
-    local   nice;
-    
-    nice := ActionHomomorphism( G, G, OnRight,"surjective" );
-    SetIsBijective( nice, true );
-    return nice;
+        [ IsGroup ], 0,
+function( G )
+local   nice;
+  if not HasIsFinite(G) then
+    Info(InfoWarning,1,"Testing finiteness of <G>. This might not terminate");
+  fi;
+  if not IsFinite(G) then
+    Error("<G> must be finite");
+  fi;
+  
+  if Size(G)>10^6 then
+    Info(InfoWarning,1,
+    "Trying regular permutation representation of group of order >10^6");
+  fi;
+  nice := ActionHomomorphism( G, G, OnRight,"surjective" );
+  SetIsBijective( nice, true );
+  return nice;
 end );
 
 #############################################################################

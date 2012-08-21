@@ -490,8 +490,20 @@ local s,t,p,w,c,q,chom,tg,thom,hi,i,lp,max;
   s:=Source(hom);
   if HasIsWholeFamily(s) and IsWholeFamily(s) then
     t:=List(GeneratorsOfGroup(s),i->Image(hom,i));
+    if IsPermGroup(Range(hom)) and LargestMovedPoint(t)<>NrMovedPoints(t) then
+      c:=MappingPermListList(MovedPoints(t),[1..NrMovedPoints(t)]);
+      t:=List(t,i->i^c);
+      u:=u^c;
+    else
+      c:=false;
+    fi;
     p:=GroupWithGenerators(t);
-    SetParent(p,Range(hom));
+    if HasImagesSource(hom) and HasSize(Image(hom)) then
+      SetSize(p,Size(Image(hom)));
+    fi;
+    if c=false then
+      SetParent(p,Range(hom));
+    fi;
     if HasIsSurjective(hom) and IsSurjective(hom) then
       SetIndexInParent(p,1);
     fi;

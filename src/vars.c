@@ -1392,15 +1392,9 @@ Obj             EvalElmList (
 
     /* evaluate and check the position                                     */
     pos = EVAL_EXPR( ADDR_EXPR(expr)[1] );
-    while ( TNUM_OBJ(pos) != T_INTPOS && (! IS_INTOBJ(pos) || INT_INTOBJ(pos) <= 0) ) {
-        pos = ErrorReturnObj(
-            "List Element: <position> must be a positive integer (not a %s)",
-            (Int)TNAM_OBJ(pos), 0L,
-            "you can replace <position> via 'return <position>;'" );
-    }
-    if (IS_INTOBJ(pos))
+    
+    if (IS_INTOBJ(pos) && (p = INT_INTOBJ( pos )) > 0)
       {
-	p = INT_INTOBJ( pos );
 	
 	/* special case for plain lists (use generic code to signal errors)    */
 	tnum = TNUM_OBJ(list);

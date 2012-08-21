@@ -2,8 +2,6 @@
 ##
 #W  csetgrp.gi                      GAP library              Alexander Hulpke
 ##
-#H  @(#)$Id$
-##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
 #Y  Copyright (C) 2002 The GAP Group
@@ -101,8 +99,7 @@ local o,b,img,G1;
     if HasSize(G) then
       SetSize(G1,Size(G));
     fi;
-  else
-    G1:=G;
+    G:=G1;
   fi;
   o:=ActionHomomorphism(G,RightTransversal(G,U),OnRight,"surjective");
   img:=Range(o);
@@ -809,7 +806,7 @@ function( G, U )
   if IsSubgroupFpGroup(G) then
     TryNextMethod(); # this method is bad for the fp groups.
   fi;
-  return EnumeratorSorted( G );
+  return Enumerator( G );
 end );
 
 

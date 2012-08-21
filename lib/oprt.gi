@@ -120,10 +120,23 @@ InstallMethod( Enumerator,"external set -> HomeEnumerator", true,
 InstallMethod( FunctionAction,"ExternalSetByActorsRep", true,
   [ IsExternalSetByActorsRep ], 0,
     xset -> function( p, g )
-    local   D;
-        D := Enumerator( xset );
-        return D[ PositionCanonical( D, p ) ^
-                  ( g ^ ActionHomomorphismAttr( xset ) ) ];
+      local pos,actor;
+      pos:=Position(xset!.generators,g);
+      if pos<>fail then
+        actor:=xset!.operators[pos];
+      else
+	pos:=Position(xset!.generators,g^-1);
+	if pos<>fail then
+	  actor:=xset!.operators[pos]^-1;
+	else
+	  Error("need to factor -- not yet implemented");
+	fi;
+      fi;
+      return xset!.funcOperation(p,actor);
+#    local   D;
+#        D := Enumerator( xset );
+#        return D[ PositionCanonical( D, p ) ^
+#                  ( g ^ ActionHomomorphismAttr( xset ) ) ];
     end );
 
 #############################################################################
@@ -2436,9 +2449,15 @@ local   G,  D,  d,  e,  gens,  acts,  act,  xset,  hom,  p,  rep;
 	  acts := arg[ p + 3 ];
 	  if not IsPcgs( gens )  and  not IsIdenticalObj( gens, acts )  then
 	    if not IsBound( D )  then
-		D := OrbitOp( G, d, gens, acts, act );
+	      D := OrbitOp( G, d, gens, acts, act );
+	      # don't make it a subset!
+	      xset:=ExternalSet(G,D,gens,acts,act);
+	    else
+	      D := OrbitOp( G, D,d, gens, acts, act );
+	      # don't make it a subset!
+	      xset:=ExternalSet(G,D,gens,acts,act);
+	      #xset:=ExternalOrbitOp( G, D, d, gens, acts, act );
 	    fi;
-	    xset:=ExternalOrbitOp( G, D, d, gens, acts, act );
 	  fi;
         fi;
     fi;

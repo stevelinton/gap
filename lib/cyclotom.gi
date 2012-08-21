@@ -637,7 +637,7 @@ InstallGlobalFunction( NK, function( n, k, deriv )
           if deriv = 0 then return nk; fi;
           deriv:= deriv - 1;
         fi;
-        if (nk^6) mod n=1 and (nk^2) mod n<>1 and (-(nk^3) mod n)+n<>1 then
+        if (nk^6) mod n = 1 and (nk^2) mod n <> 1 and -(nk^3) mod n <> 1 then
           if deriv = 0 then return -nk; fi;
           deriv:= deriv - 1;
         fi;

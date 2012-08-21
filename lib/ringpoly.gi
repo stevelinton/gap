@@ -12,7 +12,6 @@
 Revision.ringpoly_gi :=
     "@(#)$Id$";
 
-
 #############################################################################
 ##
 #M  GiveNumbersNIndeterminates(<ratfunfam>,<count>,<names>,<avoid>)
@@ -460,7 +459,7 @@ function( ogens )
          HasCoefficientsOfLaurentPolynomial(ogens[i]));
 
     univ:=Filtered(ogens{g},
-	     i->DegreeOfUnivariateLaurentPolynomial(i)>-1 and
+	     i->DegreeOfUnivariateLaurentPolynomial(i)>0 and
 		DegreeOfUnivariateLaurentPolynomial(i)<infinity);
 
     gens:=ogens{Difference([1..Length(ogens)],g)};

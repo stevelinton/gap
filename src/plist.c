@@ -2633,6 +2633,7 @@ void MakeImmutablePlistInHom( Obj list )
 {
   UInt i;
   Obj elm;
+  RetypeBag( list, IMMUTABLE_TNUM(TNUM_OBJ(list)));
   for (i = 1; i <= LEN_PLIST(list); i++)
     {
       elm = ELM_PLIST( list, i);
@@ -2642,7 +2643,6 @@ void MakeImmutablePlistInHom( Obj list )
 	  CHANGED_BAG(list);
 	}
     }
-  RetypeBag( list, IMMUTABLE_TNUM(TNUM_OBJ(list)));
 }
 
 /****************************************************************************
@@ -4847,6 +4847,10 @@ static Int InitKernel (
 
     for (t1 = T_PLIST_DENSE_NHOM; t1 <= T_PLIST_FFE; t1 += 2 ) 
       MakeImmutableObjFuncs[ t1 ] = MakeImmutablePlistNoMutElms;
+
+    /* mutable tables may have mutable rows */
+      MakeImmutableObjFuncs[T_PLIST_TAB] = MakeImmutablePlistInHom;
+    
 
 
       

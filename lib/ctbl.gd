@@ -998,6 +998,18 @@ DeclareOperation( "ClassNames", [ IsNearlyCharacterTable, IsString ] );
 DeclareAttributeSuppCT( "CharacterNames", IsNearlyCharacterTable,
     [ "character" ] );
 
+#############################################################################
+##
+#F  ColumnCharacterTable( <tbl>,<nr> )
+##
+##  <ManSection>
+##  <Func Name="GroupString" Arg='T, n'/>
+##  <Description>
+##  returns a column vector that is the <A>nr</A>-th column of the character
+##  table <A>tbl</A>.
+##  </Description>
+##  </ManSection>
+DeclareGlobalFunction("ColumnCharacterTable");
 
 #############################################################################
 ##

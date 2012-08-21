@@ -4,7 +4,6 @@
 #W                                                             Andrew Solomon
 #W                                                           Alexander Hulpke
 ##
-#H  @(#)$Id$
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1999 School Math and Comp. Sci., University of St.  Andrews, Scotland
@@ -203,15 +202,15 @@ end);
 InstallGlobalFunction( CIUnivPols, function(f,g)
 local d,x;
 
-  if HasIndeterminateNumberOfLaurentPolynomial(f) and
-    HasIndeterminateNumberOfLaurentPolynomial(g) then
-    x:=IndeterminateNumberOfLaurentPolynomial(f);
-    if x<>IndeterminateNumberOfLaurentPolynomial(g) then
-      return fail;
-    else
-      return x;
-    fi;
-  fi;
+  #if HasIndeterminateNumberOfLaurentPolynomial(f) and
+  #  HasIndeterminateNumberOfLaurentPolynomial(g) then
+  #  x:=IndeterminateNumberOfLaurentPolynomial(f);
+  #  if x<>IndeterminateNumberOfLaurentPolynomial(g) then
+  #    return fail;
+  #  else
+  #    return x;
+  #  fi;
+  #fi;
 
   if IsLaurentPolynomial(f) and IsLaurentPolynomial(g) then
     # is either polynomial constant? if yes we must permit different
@@ -572,8 +571,8 @@ end);
 ##  While w rely for ordinary rat. fun. on a*Inverse(b) we do not want this
 ##  for laurent polynomials, as the inverse would have to be represented as
 ##  a rational function, not a laurent polynomial.
-InstallMethod(\/,"upol/upol",true,[IsLaurentPolynomial and IsPolynomial,
-  IsLaurentPolynomial and IsPolynomial],2,
+InstallMethod(\/,"upol/upol",true,
+  [IsUnivariatePolynomial,IsUnivariatePolynomial],2,
 function(a,b)
 local q;
   q:=QuotRemLaurpols(a,b,4);
@@ -588,7 +587,8 @@ end);
 #M  QuotientRemainder( [<pring>,] <upol>, <upol> )
 ##
 InstallMethod(QuotientRemainder,"laurent, ring",IsCollsElmsElms,
-  [IsPolynomialRing,IsLaurentPolynomial,IsLaurentPolynomial],0,
+  [IsPolynomialRing,IsUnivariatePolynomial,
+                    IsUnivariatePolynomial],0,
 function (R,f,g)
 local q;
   q:=QuotRemLaurpols(f,g,3);
@@ -600,10 +600,10 @@ end);
 
 RedispatchOnCondition(QuotientRemainder,IsCollsElmsElms,
   [IsPolynomialRing,IsRationalFunction,IsRationalFunction],
-                [,IsLaurentPolynomial,IsLaurentPolynomial],0);
+                [,IsUnivariatePolynomial,IsUnivariatePolynomial],0);
 
 InstallOtherMethod(QuotientRemainder,"laurent",IsIdenticalObj,
-                [IsLaurentPolynomial,IsLaurentPolynomial],0,
+                [IsUnivariatePolynomial,IsUnivariatePolynomial],0,
 function (f,g)
 local q;
   q:=QuotRemLaurpols(f,g,3);
@@ -615,7 +615,7 @@ end);
 
 RedispatchOnCondition(QuotientRemainder,IsIdenticalObj,
   [IsRationalFunction,IsRationalFunction],
-  [IsLaurentPolynomial,IsLaurentPolynomial],0);
+  [IsUnivariatePolynomial,IsUnivariatePolynomial],0);
 
 #############################################################################
 ##
@@ -628,10 +628,15 @@ function (R,f,g)
 end);
 
 InstallOtherMethod(Quotient,"laurent",IsIdenticalObj,
-  [IsLaurentPolynomial,IsLaurentPolynomial],0,
+  [IsUnivariatePolynomial,IsUnivariatePolynomial],0,
 function (f,g)
   return QuotRemLaurpols(f,g,4);
 end);
+
+
+RedispatchOnCondition(Quotient,IsIdenticalObj,
+  [IsLaurentPolynomial,IsLaurentPolynomial],
+  [IsUnivariatePolynomial,IsUnivariatePolynomial],0);
 
 #############################################################################
 ##
@@ -647,7 +652,8 @@ local f,g,h,fs,gs,hs,q,t;
         g := t[2];       gs := fs - t[1]*gs;
         f := h;          fs := hs;
     od;
-    q:=QuotRemLaurpols(r,f,1);
+    Error("QQQ");
+    q:=QuotRemLaurpols(r,f,4);
     if q = fail  then
         return fail;
     else
@@ -656,14 +662,22 @@ local f,g,h,fs,gs,hs,q,t;
 end);
 
 InstallMethod(QuotientMod,"laurent,ring",IsCollsElmsElmsElms,
-  [IsRing,IsLaurentPolynomial,IsLaurentPolynomial,IsLaurentPolynomial],0,
+  [IsRing,IsUnivariatePolynomial,IsUnivariatePolynomial,IsUnivariatePolynomial],0,
 function (R,r,s,m)
   return QUOMOD_UPOLY(r,s,m);
 end);
 
+RedispatchOnCondition(QuotientMod,IsCollsElmsElmsElms,
+  [IsRing,IsLaurentPolynomial,IsLaurentPolynomial,IsLaurentPolynomial],
+  [,IsUnivariatePolynomial,IsUnivariatePolynomial,IsUnivariatePolynomial],0);
+
 InstallOtherMethod(QuotientMod,"laurent",IsFamFamFam,
+  [IsUnivariatePolynomial,IsUnivariatePolynomial,IsUnivariatePolynomial],0,
+  QUOMOD_UPOLY);
+
+RedispatchOnCondition(QuotientMod,IsFamFamFam,
   [IsLaurentPolynomial,IsLaurentPolynomial,IsLaurentPolynomial],
-  0,QUOMOD_UPOLY);
+  [IsUnivariatePolynomial,IsUnivariatePolynomial,IsUnivariatePolynomial],0);
 
 #############################################################################
 ##
@@ -721,13 +735,21 @@ local val,brci,fam;
 end);
 
 InstallMethod(PowerMod,"laurent,ring ",IsCollsElmsXElms,
-   [IsPolynomialRing,IsLaurentPolynomial,IsInt,IsLaurentPolynomial],0,
+   [IsPolynomialRing,IsUnivariatePolynomial,IsInt,IsUnivariatePolynomial],0,
 function(R,g,e,m)
   return POWMOD_UPOLY(g,e,m);
 end);
 
+RedispatchOnCondition(PowerMod,IsCollsElmsXElms,
+   [IsPolynomialRing,IsLaurentPolynomial,IsInt,IsLaurentPolynomial],
+   [,IsUnivariatePolynomial,,IsUnivariatePolynomial],0);
+
 InstallOtherMethod(PowerMod,"laurent",IsFamXFam,
-   [IsLaurentPolynomial,IsInt,IsLaurentPolynomial],0,POWMOD_UPOLY);
+   [IsUnivariatePolynomial,IsInt,IsUnivariatePolynomial],0,POWMOD_UPOLY);
+
+RedispatchOnCondition(PowerMod,IsFamXFam,
+   [IsLaurentPolynomial,IsInt,IsLaurentPolynomial],
+   [IsUnivariatePolynomial,,IsUnivariatePolynomial],0);
 
 #############################################################################
 ##
@@ -867,14 +889,14 @@ InstallMethod( LeadingMonomial,"for a univariate laurent polynomial", true,
 ##
 #M  EuclideanDegree( <pring>, <upol> )
 ##
-InstallOtherMethod(EuclideanDegree,"laurent,ring",IsCollsElms,
-	      [IsPolynomialRing,IsLaurentPolynomial],0,
+InstallOtherMethod(EuclideanDegree,"univariate,ring",IsCollsElms,
+	      [IsPolynomialRing,IsUnivariatePolynomial],0,
 function(R,a)
   return DegreeOfLaurentPolynomial(a);
 end);
 
-InstallOtherMethod(EuclideanDegree,"laurent",true,
-	      [IsLaurentPolynomial],0,DegreeOfLaurentPolynomial);
+InstallOtherMethod(EuclideanDegree,"univariate",true,
+	      [IsUnivariatePolynomial],0,DegreeOfLaurentPolynomial);
 
 #############################################################################
 ##
@@ -890,20 +912,32 @@ local q;
 end);
 
 InstallOtherMethod(EuclideanRemainder,"laurent,ring",IsCollsElmsElms,
-	      [IsPolynomialRing,IsLaurentPolynomial,IsLaurentPolynomial],0,
+	  [IsPolynomialRing,IsUnivariatePolynomial,IsUnivariatePolynomial],0,
 function(R,a,b)
   return MOD_UPOLY(a,b);
 end);
 
+RedispatchOnCondition(EuclideanRemainder,IsCollsElmsElms,
+  [IsPolynomialRing,IsLaurentPolynomial,IsLaurentPolynomial],
+  [,IsUnivariatePolynomial,IsUnivariatePolynomial],0);
+
 InstallOtherMethod(EuclideanRemainder,"laurent",IsIdenticalObj,
-	      [IsLaurentPolynomial,IsLaurentPolynomial],0,MOD_UPOLY);
+	    [IsUnivariatePolynomial,IsUnivariatePolynomial],0,MOD_UPOLY);
+
+RedispatchOnCondition(EuclideanRemainder,IsIdenticalObj,
+  [IsLaurentPolynomial,IsLaurentPolynomial],
+  [IsUnivariatePolynomial,IsUnivariatePolynomial],0);
 
 #############################################################################
 ##
 #M  \mod( <upol>, <upol> )
 ##
 InstallMethod(\mod,"laurent",IsIdenticalObj,
-	      [IsLaurentPolynomial,IsLaurentPolynomial],0,MOD_UPOLY);
+	      [IsUnivariatePolynomial,IsUnivariatePolynomial],0,MOD_UPOLY);
+
+RedispatchOnCondition(\mod,IsIdenticalObj,
+	[IsLaurentPolynomial,IsLaurentPolynomial],
+	[IsUnivariatePolynomial,IsUnivariatePolynomial],0);
 
 #T use different coeffs gcd methods depending on base ring
 InstallGlobalFunction(GcdCoeffs,GCD_COEFFS);
@@ -1018,7 +1052,7 @@ RedispatchOnCondition(Derivative,true,
 ##
 #F  Discriminant( <f> ) . . . . . . . . . . . . discriminant of polynomial f
 ##
-InstallOtherMethod(Discriminant,"laurent",true,[IsLaurentPolynomial],0,
+InstallOtherMethod(Discriminant,"univariate",true,[IsUnivariatePolynomial],0,
 function(f)
 local d;
   # the discriminant is \prod_i\prod_{j\not= i}(\alpha_i-\alpha_j), but
@@ -1031,7 +1065,7 @@ local d;
 end);
 
 RedispatchOnCondition(Discriminant,true,
-  [IsPolynomial],[IsLaurentPolynomial],0);
+  [IsRationalFunction],[IsUnivariatePolynomial],0);
 
 #############################################################################
 ##
@@ -1202,7 +1236,7 @@ end);
 
 #############################################################################
 ##
-#M  UnivariateRationalFunctionByCoefficients( <fam>, <cofs>, <val>, <ind> )
+#M  UnivariateRationalFunctionByCoefficients( <fam>, <cofs>, <denom-cofs>, <val>, <ind> )
 ##
 InstallMethod( UnivariateRationalFunctionByCoefficients,
   "with indeterminate", true,
@@ -1219,7 +1253,7 @@ function( fam, cofs,dc, val, ind )
   fi;
   if Length(dc)>0 and (IsZero(dc[1]) or IsZero(dc[Length(dc)])) then
     if not IsMutable(dc) then
-      cofs:=ShallowCopy(dc);
+      dc:=ShallowCopy(dc);
     fi;
     val:=val-RemoveOuterCoeffs(dc,fam!.zeroCoefficient);
   fi;

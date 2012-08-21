@@ -543,7 +543,7 @@ InstallMethod( \^,
 ##
 InstallOtherMethod( \^,
     "for class function and Galois automorphism",
-    [ IsClassFunction, IsGeneralMapping and IsANFAutomorphismRep ],
+    [ IsClassFunction, IsGeneralMapping ],
     function( chi, galaut )
     if IsANFAutomorphismRep( galaut ) then
       galaut:= galaut!.galois;
@@ -1787,14 +1787,34 @@ InstallMethod( CentreOfCharacter,
 ##
 #M  ClassPositionsOfCentre( <chi> )  . . classes in the centre of a character
 ##
+##  We know that an algebraic integer $\alpha$ is a root of unity
+##  if and only if all conjugates of $\alpha$ have absolute value at most 1.
+##  Since $\alpha^{\ast} \overline{\alpha^{\ast}} = 1$ holds for a Galois
+##  automorphism $\ast$ if and only if $\alpha \overline{\alpha} = 1$ holds,
+##  a cyclotomic integer is a root of unity iff its absolute value is $1$.
+##
+##  Cf. the comment about the `Order' method for cyclotomics in the file
+##  `lib/cyclotom.g'.
+##
+##  The `IsCyc' test is necessary to avoid errors in the case that <chi>
+##  contains unknowns.
+##
 InstallMethod( ClassPositionsOfCentre,
     "for a homogeneous list",
     [ IsHomogeneousList ],
-    chi -> Filtered( [ 1 .. Length( chi ) ],
-                     i -> chi[i] = chi[1] or
-                          chi[i] = - chi[1] or
-                          IsCyc( chi[i] ) and ForAny( COEFFS_CYC( chi[i] ),
-                                            x -> AbsInt( x ) = chi[1] ) ) );
+    function( chi )
+    local deg, mdeg, degsquare;
+
+    deg:= chi[1];
+    mdeg:= - deg;
+    degsquare:= deg^2;
+
+    return Filtered( [ 1 .. Length( chi ) ],
+               i -> chi[i] = deg or chi[i] = mdeg or
+                    ( ( not IsInt( chi[i] ) ) and IsCyc( chi[i] )
+                      and IsCycInt( chi[i] )
+                      and chi[i] * GaloisCyc( chi[i], -1 ) = degsquare ) );
+    end );
 
 
 #############################################################################

@@ -200,7 +200,7 @@ BindGlobal( "AttributeMethodByNiceMonomorphismCollElm", function( oper, par )
         function( obj1, obj2 )
             local   nice,img;
 	    nice:=NiceMonomorphism(obj1);
-            img := ImagesRepresentative( nice, obj2 );
+            img := ImagesRepresentative( nice, obj2:actioncanfail:=true );
             if img = fail or 
 	      not (img in ImagesSource(nice) and
 		PreImagesRepresentative(nice,img)=obj2) then
@@ -354,7 +354,7 @@ BindGlobal( "GroupMethodByNiceMonomorphismCollElm", function( oper, par )
         function( obj1, obj2 )
             local   nice,  img,  img1;
             nice := NiceMonomorphism(obj1);
-            img  := ImagesRepresentative( nice, obj2 );
+            img  := ImagesRepresentative( nice, obj2:actioncanfail:=true );
             if img = fail or 
 	      not (img in ImagesSource(nice) and
 		PreImagesRepresentative(nice,img)=obj2) then
@@ -521,7 +521,7 @@ BindGlobal( "SubgroupMethodByNiceMonomorphismCollElm", function( oper, par )
         function( obj1, obj2 )
             local   nice,  img,  img1,  sub;
             nice := NiceMonomorphism(obj1);
-            img  := ImagesRepresentative( nice, obj2 );
+            img  := ImagesRepresentative( nice, obj2:actioncanfail:=true );
             if img = fail or 
 	      not (img in ImagesSource(nice) and
 		PreImagesRepresentative(nice,img)=obj2) then
@@ -693,7 +693,7 @@ BindGlobal( "GroupSeriesMethodByNiceMonomorphismCollElm",
         function( obj1, obj2 )
             local   nice,  img,  list,  i;
             nice := NiceMonomorphism(obj1);
-            img  := ImagesRepresentative( nice, obj2 );
+            img  := ImagesRepresentative( nice, obj2:actioncanfail:=true );
             if img = fail or 
 	      not (img in ImagesSource(nice) and
 		PreImagesRepresentative(nice,img)=obj2) then

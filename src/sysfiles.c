@@ -158,6 +158,17 @@ extern int             kill ( int, int );
 extern OSErr SyLastMacErrorCode; /* MacOS error code, similar to errno on Unix */
 #endif
 
+/* utility to check return value of 'write'  */
+ssize_t writeandcheck(int fd, const char *buf, size_t count) {
+  int ret;
+  ret = write(fd, buf, count);
+  if (ret < 0) 
+    ErrorQuit("Cannot write to file descriptor %d, see 'LastSystemError();'\n",
+               fd, 0L);
+  return ret;
+}
+    
+
 /****************************************************************************
 **
 
@@ -801,7 +812,7 @@ void syWinPut (
     else                         fd = syBuf[fid].fp;
 
     /* print the cmd                                                       */
-    write( fd, cmd, SyStrlen(cmd) );
+    writeandcheck( fd, cmd, SyStrlen(cmd) );
 
     /* print the output line, duplicate '@' and handle <ctr>-<chr>         */
     s = str;  t = tmp;
@@ -816,12 +827,12 @@ void syWinPut (
             *t++ = *s++;
         }
         if ( 128 <= t-tmp ) {
-            write( fd, tmp, t-tmp );
+            writeandcheck( fd, tmp, t-tmp );
             t = tmp;
         }
     }
     if ( 0 < t-tmp ) {
-        write( fd, tmp, t-tmp );
+        writeandcheck( fd, tmp, t-tmp );
     }
 }
 
@@ -2646,6 +2657,8 @@ SYS_SIG_T syWindowChangeIntr (
             LI = win.ws_row;
         if(!SyNrColsLocked && win.ws_col > 0)
           CO = win.ws_col - 1;        /* never trust last column */
+        if (CO < 20) CO = 20;
+        if (CO > 256) CO = 256;
     }
 
 #if defined(SYS_HAS_SIG_T) && ! HAVE_SIGNAL_VOID
@@ -2691,12 +2704,14 @@ void getwindowsize( void )
 	}
       }
 #endif
-      
       /* if nothing worked, use 24x80 */
       if (CO <= 0)
 	CO = 80;
       if (LI <= 0)
 	LI = 24;
+      /* reset CO if value is strange */
+      if (CO < 20) CO = 20;
+      if (CO > 256) CO = 256;
 }
 
 #undef CO
@@ -2769,12 +2784,12 @@ void syEchoch (
 
     /* write the character to the associate echo output device             */
     ch2 = ch;
-    write( syBuf[fid].echo, (char*)&ch2, 1 );
+    writeandcheck( syBuf[fid].echo, (char*)&ch2, 1 );
 
     /* if running under a window handler, duplicate '@'                    */
     if ( SyWindow && ch == '@' ) {
         ch2 = ch;
-        write( syBuf[fid].echo, (char*)&ch2, 1 );
+        writeandcheck( syBuf[fid].echo, (char*)&ch2, 1 );
     }
 }
 
@@ -2795,12 +2810,12 @@ void syEchoch (
 
     /* write the character to the associate echo output device             */
     ch2 = ch;
-    write( syBuf[fid].echo, (char*)&ch2, 1 );
+    writeandcheck( syBuf[fid].echo, (char*)&ch2, 1 );
 
     /* if running under a window handler, duplicate '@'                    */
     if ( SyWindow && ch == '@' ) {
         ch2 = ch;
-        write( syBuf[fid].echo, (char*)&ch2, 1 );
+        writeandcheck( syBuf[fid].echo, (char*)&ch2, 1 );
     }
 }
 
@@ -2821,12 +2836,12 @@ void syEchoch (
 
     /* write the character to the associate echo output device             */
     ch2 = ch;
-    write( syBuf[fid].echo, (char*)&ch2, 1 );
+    writeandcheck( syBuf[fid].echo, (char*)&ch2, 1 );
 
     /* if running under a window handler, duplicate '@'                    */
     if ( SyWindow && ch == '@' ) {
         ch2 = ch;
-        write( syBuf[fid].echo, (char*)&ch2, 1 );
+        writeandcheck( syBuf[fid].echo, (char*)&ch2, 1 );
     }
 }
 
@@ -2879,7 +2894,7 @@ void syEchoch (
 
     /* write the character to the associate echo output device             */
     ch2 = ch;
-    write( syBuf[fid].echo, (char*)&ch2, 1 );
+    writeandcheck( syBuf[fid].echo, (char*)&ch2, 1 );
 }
 
 #endif
@@ -2985,7 +3000,7 @@ void syEchos (
 
     /* otherwise, write it to the associate echo output device             */
     else
-        write( syBuf[fid].echo, str, SyStrlen(str) );
+        writeandcheck( syBuf[fid].echo, str, SyStrlen(str) );
 }
 
 #endif
@@ -3007,7 +3022,7 @@ void syEchos (
 
     /* otherwise, write it to the associate echo output device             */
     else
-        write( syBuf[fid].echo, str, SyStrlen(str) );
+        writeandcheck( syBuf[fid].echo, str, SyStrlen(str) );
 }
 
 #endif
@@ -3029,7 +3044,7 @@ void syEchos (
 
     /* otherwise, write it to the associate echo output device             */
     else
-        write( syBuf[fid].echo, str, SyStrlen(str) );
+        writeandcheck( syBuf[fid].echo, str, SyStrlen(str) );
 }
 
 #endif
@@ -3091,7 +3106,7 @@ void            syEchos (
     Char *              str,
     Int                 fid )
 {
-    write( syBuf[fid].echo, str, SyStrlen(str) );
+    writeandcheck( syBuf[fid].echo, str, SyStrlen(str) );
 }
 
 #endif
@@ -3179,7 +3194,7 @@ void SyFputs (
     /* otherwise, write it to the output file                              */
     else
 #if ! SYS_MAC_MPW
-        write( syBuf[fid].fp, line, i );
+        writeandcheck( syBuf[fid].fp, line, i );
 #else
         fputs( line, syBuf[fid].fp );
 #endif
@@ -3308,7 +3323,7 @@ void SyFputs (
 
     /* ordinary file                                                       */
     else {
-        write( syBuf[fid].fp, line, SyStrlen(line) );
+        writeandcheck( syBuf[fid].fp, line, SyStrlen(line) );
     }
 
 }
@@ -3997,7 +4012,7 @@ extern Int SyPutc
     Int                 fid,
     Char                c )
 {
-  write(syBuf[fid].fp,&c,1);
+  writeandcheck(syBuf[fid].fp,&c,1);
   return 0;         
 }
 #endif

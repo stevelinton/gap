@@ -406,7 +406,7 @@ BIND_GLOBAL( "DeclareOperation", function ( name, filters )
 
         # `gvar' is an attribute (tester) or property (tester).
         pos:= POS_LIST_DEFAULT( FILTERS, gvar, 0 );
-        if pos = 0 then
+        if pos = fail then
 
           # `gvar' is an attribute.
           Error( "operation `", name,
@@ -651,7 +651,7 @@ end );
 
 #############################################################################
 ##
-#F  NewAttribute( <name>, <filter> [,"mutable"] [,<rank>] ) . . new attribute
+#F  NewAttribute( <name>, <filter>[, "mutable"][, <rank>] ) . . new attribute
 ##
 ##  is a new attribute getter with name  <name> that is applicable to objects
 ##  with the property <filter>.  If the optional third argument is given then
@@ -730,10 +730,9 @@ end );
 
 #############################################################################
 ##
-#F  DeclareAttribute( <name>, <filter> [,"mutable"] [,<rank>] ) new attribute
+#F  DeclareAttribute( <name>, <filter>[, "mutable"][, <rank>] ) new attribute
 ##
 BIND_GLOBAL( "DeclareAttribute", function ( arg )
-
     local attr, name, nname, gvar, pos, filter;
 
     name:= arg[1];

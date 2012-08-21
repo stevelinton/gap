@@ -69,3 +69,6 @@ ReadLib( "attr.gd"     );
 ReadLib( "attr.gi"     );
 
 ReadLib( "float.g"     );
+
+ReadLib( "string.gd"   );
+

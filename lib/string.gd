@@ -221,6 +221,15 @@ DeclareGlobalFunction( "WordAlp" );
 ##
 DeclareGlobalFunction( "LowercaseString" );
 
+#########################################################################
+##
+#F  UppercaseString( <string> ) . . . string consisting of upper case letters
+##
+##  returns a uppercase version of the string <string>,
+##  that is, a string in which each lowercase alphabet character is replaced
+##  by the corresponding uppercase character.
+##
+DeclareGlobalFunction( "UppercaseString" );
 
 #############################################################################
 ##

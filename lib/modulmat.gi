@@ -95,8 +95,11 @@ InstallMethod( IsMatrixModule,
     function( M )
     local gens;
     gens:= GeneratorsOfLeftModule( M );
-    return    ( IsEmpty( gens ) and IsMatrix( Zero( M ) ) )
-           or ForAll( gens, IsMatrix );
+    if IsEmpty( gens ) then
+      return IsMatrix( Zero( M ) );
+    else
+      return ForAll( gens, IsMatrix );
+    fi;
     end );
 
 

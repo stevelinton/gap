@@ -1169,7 +1169,7 @@ local column, gens, i, range, table, transversal;
   # construct a permutations representation of G on the cosets of H.
   gens := GeneratorsOfGroup(G);
   if not (IsPermGroup(G) and IsPermGroup(H) and
-          Length(Orbit(G,1))=NrMovedPoints(G) and H=Stabilizer(G,1)) then
+                IsEqualSet(Orbit(G,1),[1..NrMovedPoints(G)]) and H=Stabilizer(G,1)) then
     transversal := RightTransversal( G, H );
     gens := List( gens, gen -> Permutation( gen, transversal,OnRight ) );
     range := [ 1 .. Length( transversal ) ];

@@ -11,7 +11,6 @@
 Revision.oprtperm_gi :=
     "@(#)$Id$";
 
-
 #############################################################################
 ##
 #M  Orbit( <G>, <pnt>, <gens>, <acts>, <OnPoints> ) . . . . . . . on integers
@@ -1347,21 +1346,23 @@ end );
 ##
 #M  Stabilizer( <G>, <d>, <gens>, <gens>, <act> ) . . . . . . for perm groups
 ##
-InstallOtherMethod( StabilizerOp, "permutation group", true,
-        [ IsPermGroup, IsObject,
-          IsList,
-          IsList,
-          IsFunction ],
-  # the objects might be a group element: rank up	
-  RankFilter(IsMultiplicativeElementWithInverse)
-  # and we are better even if the group is solvable
-  +RankFilter(IsSolvableGroup)
-  ,
-    function( G, d, gens, acts, act )
+
+PermGroupStabilizerOp:=function(arg)
     local   K,          # stabilizer <K>, result
-            S,  base;
+            S,  base,
+	    G,d,gens,acts,act,dom;
+
+ # get arguments, ignoring a given domain
+ G:=arg[1];
+ K:=Length(arg);
+ act:=arg[K];
+ acts:=arg[K-1];
+ gens:=arg[K-2];
+ d:=arg[K-3];
 
     if gens <> acts  then
+	#TODO: Check whether  acts is permutations and one could work in the
+	#permutation image (even if G is not permgroups)
         TryNextMethod();
     fi;
 
@@ -1437,7 +1438,31 @@ InstallOtherMethod( StabilizerOp, "permutation group", true,
 
     # return the stabilizer
     return K;
-end );
+end;
+
+InstallOtherMethod( StabilizerOp, "permutation group with generators list",
+       true,
+        [ IsPermGroup, IsObject,
+          IsList,
+          IsList,
+          IsFunction ],
+  # the objects might be a group element: rank up	
+  RankFilter(IsMultiplicativeElementWithInverse)
+  # and we are better even if the group is solvable
+  +RankFilter(IsSolvableGroup),
+  PermGroupStabilizerOp);
+
+InstallOtherMethod( StabilizerOp, "permutation group with domain",true,
+        [ IsPermGroup, IsObject,
+	  IsObject,
+          IsList,
+          IsList,
+          IsFunction ],
+  # the objects might be a group element: rank up	
+  RankFilter(IsMultiplicativeElementWithInverse)
+  # and we are better even if the group is solvable
+  +RankFilter(IsSolvableGroup),
+  PermGroupStabilizerOp);
 
 #############################################################################
 ##

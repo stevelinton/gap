@@ -49,7 +49,7 @@ extern void SaveDouble( Double d);
 #include <stdlib.h>
 
 #define VAL_FLOAT(obj) (*(Double *)ADDR_OBJ(obj))
-#define SET_VAL_FLOAT(obj, val) (*(Double *)ADDR_OBJ(obj) = val)
+#define SET_VAL_FLOAT(obj, val) (*(Double *)ADDR_OBJ(obj) = (Double)val)
 #define IS_FLOAT(obj) (TNUM_OBJ(obj) == T_FLOAT)
 #define SIZE_FLOAT   sizeof(Double)
 
@@ -100,7 +100,7 @@ void PrintFloat (
     Obj                 x )
 {
   Char buf[32];
-  sprintf(buf, "%g",VAL_FLOAT(x));
+  sprintf(buf, "%.20Lg",VAL_FLOAT(x));
   Pr("%s",(Int)buf, 0);
 }
 #endif
@@ -349,7 +349,7 @@ Obj FuncFLOAT_STRING( Obj self, Obj s)
       s = ErrorReturnObj("FLOAT_STRING: object to be converted must be a string not a %s",
 			 (Int)(InfoBags[TNUM_OBJ(s)].name),0,"You can return a string to continue" );
     }
-  return NEW_FLOAT((Double) atof((char*)CHARS_STRING(s)));
+  return NEW_FLOAT((Double) strtold((char*)CHARS_STRING(s),NULL));
 }
 
 /****************************************************************************
@@ -375,6 +375,36 @@ Obj FuncSIN_FLOAT( Obj self, Obj f)
   return NEW_FLOAT(sin(VAL_FLOAT(f)));
 }
 
+Obj FuncCOS_FLOAT( Obj self, Obj f)
+{
+  return NEW_FLOAT(cos(VAL_FLOAT(f)));
+}
+
+Obj FuncTAN_FLOAT( Obj self, Obj f)
+{
+  return NEW_FLOAT(tan(VAL_FLOAT(f)));
+}
+
+Obj FuncASIN_FLOAT( Obj self, Obj f)
+{
+  return NEW_FLOAT(asin(VAL_FLOAT(f)));
+}
+
+Obj FuncACOS_FLOAT( Obj self, Obj f)
+{
+  return NEW_FLOAT(acos(VAL_FLOAT(f)));
+}
+
+Obj FuncATAN_FLOAT( Obj self, Obj f)
+{
+  return NEW_FLOAT(atan(VAL_FLOAT(f)));
+}
+
+Obj FuncATAN2_FLOAT( Obj self, Obj f, Obj g)
+{
+  return NEW_FLOAT(atan2(VAL_FLOAT(f),VAL_FLOAT(g)));
+} 
+
 Obj FuncLOG_FLOAT( Obj self, Obj f)
 {
   return NEW_FLOAT(log(VAL_FLOAT(f)));
@@ -385,9 +415,19 @@ Obj FuncEXP_FLOAT( Obj self, Obj f)
   return NEW_FLOAT(exp(VAL_FLOAT(f)));
 }
 
+Obj FuncSQRT_FLOAT( Obj self, Obj f )
+{
+  return NEW_FLOAT(sqrt(VAL_FLOAT(f)));
+}
+
 Obj FuncRINT_FLOAT( Obj self, Obj f)
 {
   return NEW_FLOAT(rint(VAL_FLOAT(f)));
+}
+
+Obj FuncINTFLOOR_FLOAT( Obj self, Obj f )
+{
+  return INTOBJ_INT((Int)floor(VAL_FLOAT(f)));
 }
 
 Obj FuncFLOOR_FLOAT( Obj self, Obj f)
@@ -400,7 +440,7 @@ Obj FuncSTRING_FLOAT( Obj self, Obj f)
   Char buf[32];
   Obj str;
   UInt len;
-  sprintf(buf, "%g",VAL_FLOAT(f));
+  sprintf(buf, "%.20Lg",(Double)VAL_FLOAT(f));
   len = SyStrlen(buf);
   str = NEW_STRING(len);
   SyStrncat(CSTR_STRING(str),buf,len);
@@ -436,11 +476,30 @@ static StructGVarFunc GVarFuncs [] = {
   { "FLOAT_INT", 1, "int",
     FuncFLOAT_INT, "src/float.c:FLOAT_INT" },
 
-  { "FLOAT_STRING", 1, "int",
+  { "FLOAT_STRING", 1, "string",
     FuncFLOAT_STRING, "src/float.c:FLOAT_STRING" },
 
   { "SIN_FLOAT", 1, "float",
     FuncSIN_FLOAT, "src/float.c:SIN_FLOAT" },
+
+  { "COS_FLOAT", 1, "float",
+    FuncCOS_FLOAT, "src/float.c:COS_FLOAT" },
+
+  { "TAN_FLOAT", 1, "float",
+    FuncTAN_FLOAT, "src/float.c:TAN_FLOAT" },
+
+  { "ASIN_FLOAT", 1, "float",
+    FuncASIN_FLOAT, "src/float.c:ASIN_FLOAT" },
+
+  { "ACOS_FLOAT", 1, "float",
+    FuncACOS_FLOAT, "src/float.c:ACOS_FLOAT" },
+
+  { "ATAN_FLOAT", 1, "float",
+    FuncATAN_FLOAT, "src/float.c:ATAN_FLOAT" },
+
+  { "ATAN2_FLOAT", 2, "real, imag",
+    FuncATAN2_FLOAT, "src/float.c:ATAN2_FLOAT" },
+
 
   { "LOG_FLOAT", 1, "float",
     FuncLOG_FLOAT, "src/float.c:LOG_FLOAT" },
@@ -448,8 +507,14 @@ static StructGVarFunc GVarFuncs [] = {
   { "EXP_FLOAT", 1, "float",
     FuncEXP_FLOAT, "src/float.c:EXP_FLOAT" },
 
+  { "SQRT_FLOAT", 1, "float",
+    FuncSQRT_FLOAT, "src/float.c:SQRT_FLOAT" },
+
   { "RINT_FLOAT", 1, "float",
     FuncRINT_FLOAT, "src/float.c:RINT_FLOAT" },
+
+  { "INTFLOOR_FLOAT", 1, "float",
+    FuncINTFLOOR_FLOAT, "src/float.c:INTFLOOR_FLOAT" },
 
   { "FLOOR_FLOAT", 1, "float",
     FuncFLOOR_FLOAT, "src/float.c:FLOOR_FLOAT" },

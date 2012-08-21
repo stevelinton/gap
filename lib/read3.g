@@ -54,8 +54,6 @@ ReadLib( "integer.gd"  );
 ReadLib( "numtheor.gd" );
 ReadLib( "contfrac.gd" );
 
-ReadLib( "string.gd"   );
-
 ReadLib( "ratfun.gd"   );
 
 ReadLib( "field.gd"    );

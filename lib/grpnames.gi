@@ -575,6 +575,10 @@ InstallMethod( IsPSL,
 
     if not IsFinite(G) then TryNextMethod(); fi;
 
+    if Size(G)>12 and not IsSimpleGroup(G) then
+      return false;
+    fi;
+
     # check if G has appropiate size
     npes := LinearGroupParameters(Size(G)).npePSL;
     if Length(npes) = 0 then return false; fi;

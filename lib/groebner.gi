@@ -1048,6 +1048,16 @@ local ov,i,d;
   return GroebnerBasisNC(elms,order);
 end);
 
+InstallOtherMethod(GroebnerBasis,"fix function",true,
+  [IsObject,IsFunction],0,
+function(obj,f)
+  if f=MonomialLexOrdering or f=MonomialGrlexOrdering or
+    f=MonomialGrevlexOrdering then
+    return GroebnerBasis(obj,f());
+  fi;
+  TryNextMethod();
+end);
+
 InstallMethod(StoredGroebnerBasis,"ideal",true,
   [IsPolynomialRingIdeal],0,function(I)
 local ord;
@@ -1126,6 +1136,16 @@ local bas;
     SetStoredGroebnerBasis(I,[bas,order]);
   fi;
   return bas;
+end);
+
+InstallOtherMethod(ReducedGroebnerBasis,"fix function",true,
+  [IsObject,IsFunction],0,
+function(obj,f)
+  if f=MonomialLexOrdering or f=MonomialGrlexOrdering or
+    f=MonomialGrevlexOrdering then
+    return ReducedGroebnerBasis(obj,f());
+  fi;
+  TryNextMethod();
 end);
 
 InstallMethod(\in,"polynomial ideal",true,

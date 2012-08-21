@@ -21,6 +21,7 @@ const char * Revision_lists_h =
 #endif
 
 
+
 extern  Obj             TYPE_LIST_EMPTY_MUTABLE;
 extern  Obj             TYPE_LIST_EMPTY_IMMUTABLE;
 
@@ -247,9 +248,10 @@ extern Obj (*ElmListFuncs[LAST_REAL_TNUM+1]) ( Obj list, Int pos );
 **  'ELMB_LIST' and install it  in 'ElmbListFuncs[<type>]'.  This function must
 **  signal an error if <pos> is larger than the length of <list> or if <list>
 **  has no assigned object at <pos>.
-*/
+
 extern Obj (*ElmbListFuncs[LAST_REAL_TNUM+1]) ( Obj list, Obj pos );
 
+*/
 
 /****************************************************************************
 **
@@ -269,7 +271,10 @@ extern Obj (*ElmbListFuncs[LAST_REAL_TNUM+1]) ( Obj list, Obj pos );
 **  It is intended as an interface for access to elements of large external
 **  lists, on the rare occasions when the kernel needs to do this.
 */
-#define ELMB_LIST(list,pos)      ((*ElmbListFuncs[TNUM_OBJ(list)])(list,pos))
+extern Obj ELMB_LIST( Obj list, Obj pos);
+
+
+
 
 
 /****************************************************************************

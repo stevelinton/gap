@@ -4,6 +4,7 @@
 #W							         Scott Murray
 #W                                                           Alexander Hulpke
 ##
+#H  @(#)$Id$
 ##
 #Y  Copyright (C)  1999,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1999 School Math and Comp. Sci., University of St.  Andrews, Scotland
@@ -13,7 +14,6 @@
 ##
 Revision.dict_gi :=
     "@(#)$Id$";
-
 ##
 ## List and Sort dictionaries
 ##
@@ -923,7 +923,7 @@ InstallMethod(DenseIntKey,"for lists of vectors",true,
     [ IsFFECollColl,IsObject ], 0,
 function(m,v)
 local f,n;
-  if not IsList(m) and ForAll(m,i->IsRowVector(i)) then
+if not (IsList(m) and IS_PLIST_REP(m) and ForAll(m,i->IsRowVector(i))) then
     TryNextMethod();
   fi;
   f:=DefaultFieldOfMatrix(m);
