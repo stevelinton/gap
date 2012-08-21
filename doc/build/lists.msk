@@ -6,6 +6,7 @@
 %A  @(#)$Id$
 %%
 %Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+%Y  Copyright (C) 2002 The GAP Group
 %%
 \Chapter{Lists}
 
@@ -749,20 +750,24 @@ false
 \endexample
 
 This definition will cause problems with lists which are their own entries.
-Comparing such lists for equality may lead to an infinite recursion in the
-kernel if the list comparison has to compare the list entries which are in
-fact the lists themselves.
+Comparing two such lists for equality may lead to an infinite recursion in
+the kernel if the list comparison has to compare the list entries which are
+in fact the lists themselves,
+and then {\GAP} crashes.
 
 \>`<list1> \<\ <list2>'{list smaller!comparison}
 \){\fmark <list1> \<= <list2>}
 
 Lists are ordered *lexicographically*.
 Unbound entries are smaller than any bound entry.
-That means the following. Let <i> be the smallest positive integer <i>,
-such that neither entries `<list1>[<i>]' and `<list2>[<i>]' are
-unbound, nor are either bound or equal. Then <list1> is less than <list2>
-if either `<list1>[<i>]' is unbound (and `<list2>[<i>]' is not) or both
-are bound and `<list1>[<i>] \< <list2>[<i>]' is `true'.
+That implies the following behaviour.
+Let <i> be the smallest positive integer <i> such that <list1> and <list2>
+at position <i> differ,
+i.e., either exactly one of `<list1>[i]', `<list2>[i]' is bound or both
+entries are bound and differ.
+Then <list1> is less than <list2> if either `<list1>[<i>]' is unbound
+(and `<list2>[<i>]' is not)
+or both are bound and `<list1>[<i>] \< <list2>[<i>]' is `true'.
 
 \beginexample
 gap> [ 1, 2, 3, 4 ] < [ 1, 2, 4, 8 ];
@@ -787,12 +792,19 @@ see~"Families".
 \index{operators!for lists}
 
 It is convenient to have arithmetic operations for lists,
-in particular because in {\GAP},
+in particular because in {\GAP}
 row vectors and matrices are special kinds of lists.
-However, it is the wide variance of list objects because of which we
+However, it is the wide variety of list objects because of which we
 prescribe arithmetic operations *not for all* of them.
 (Keep in mind that ``list'' means just an object in the category `IsList',
 see~"IsList".)
+
+(Due to the intended generality and flexibility,
+the definitions given in the following sections are quite technical.
+But for not too complicated cases
+such as matrices (see~"Operators for Matrices")
+and row vectors (see~"Operators for Row Vectors") whose entries aren't lists,
+the resulting behaviour should be intuitive.)
 
 For example, we want to deal with matrices which can be added and
 multiplied in the usual way, via the infix operators `+' and `*';
@@ -800,12 +812,6 @@ and we want also Lie matrices, with the same additive behaviour but with
 the multiplication defined by the Lie bracket.
 Both kinds of matrices shall be lists, with the usual access to their rows,
 with `Length' (see~"Length") returning the number of rows etc.
-
-Due to the intended generality and flexibility,
-the definitions given in the following sections are quite technical.
-But for not too complicated cases such as matrices and row vectors
-whose entries aren't lists,
-the resulting behaviour should be intuitive.
 
 For the categories and attributes that control the arithmetic behaviour
 of lists, see~"Filters Controlling the Arithmetic Behaviour of Lists".
@@ -848,11 +854,7 @@ gap> IsGeneralizedRowVector( liemat );
 true
 gap> IsMultiplicativeGeneralizedRowVector( liemat );
 false
-gap> bl:= BlockMatrix( [], 2, 3, 2, 3, 0 );
-<block matrix of dimensions (2*2)x(3*3)>
-gap> IsMultiplicativeGeneralizedRowVector( bl );
-true
-gap> bas:= CanonicalBasis( Rationals^3 );
+gap> bas:= CanonicalBasis( FullRowSpace( Rationals, 3 ) );
 CanonicalBasis( ( Rationals^3 ) )
 gap> IsMultiplicativeGeneralizedRowVector( bas );
 true
@@ -866,7 +868,7 @@ gap> v:= [ 1, 2 ];;  m:= [ v, 2*v ];;
 gap> IsListDefault( v );  IsListDefault( m );
 true
 true
-gap> IsListDefault( bas );  IsListDefault( bl );
+gap> IsListDefault( bas );  IsListDefault( liemat );
 true
 false
 \endexample
@@ -904,9 +906,10 @@ For unary operations (zero and additive inverse),
 the unique argument must be in `IsGeneralizedRowVector';
 for binary operations (addition and subtraction),
 at least one argument must be in `IsGeneralizedRowVector',
-and the other either not a list or also in `IsGeneralizedRowVector'.
+and the other either is not a list or also in `IsGeneralizedRowVector'.
 
-(For non-list {\GAP} objects, defining the result is not an issue here,
+(For non-list {\GAP} objects, defining the results of unary operations is not
+an issue here,
 and if at least one argument is a list not in `IsGeneralizedRowVector',
 it shall be left to this argument whether the result in question is defined
 and what it is.)
@@ -953,8 +956,9 @@ is a shallow copy (see~"ShallowCopy") of $x[i]$ or $y[i]$ if the other
 argument is not bound at position $i$,
 and is unbound if both $x$ and $y$ are unbound at position $i$.
 
-If $x$ is in `IsGeneralizedRowVector' and $y$ is either not a list or is
+If $x$ is in `IsGeneralizedRowVector' and $y$ is
 in `IsGeneralizedRowVector' and has lower additive nesting depth,
+or is neither a list nor a domain,
 the sum $x + y$ is defined as a list whose entry at position $i$ is
 $x[i] + y$ if $x$ is bound at position $i$, and is unbound if not.
 The equivalent holds in the reversed case,
@@ -992,9 +996,8 @@ gap> l1 + [];
 \index{list and non-list!difference}
 
 For two {\GAP} objects $x$ and $y$ of which one is in
-`IsGeneralizedRowVector' and the other is either not a list or is
-also in `IsGeneralizedRowVector',
-$x - y$ is defined as $x + (-y)$.
+`IsGeneralizedRowVector' and the other is also in `IsGeneralizedRowVector'
+or is neither a list nor a domain, $x - y$ is defined as $x + (-y)$.
 
 \beginexample
 gap> l1 - l2;
@@ -1022,8 +1025,8 @@ at least one argument must be in `IsMultiplicativeGeneralizedRowVector',
 and the other either not a list or also in
 `Is\-Multiplicative\-Generalized\-Row\-Vector'.
 
-(For non-list {\GAP} objects, defining the result is not an issue here,
-and if at least one argument is a list not in
+(For non-list {\GAP} objects, defining the results of unary operations is not
+an issue here, and if at least one argument is a list not in
 `IsMultiplicativeGeneralizedRowVector',
 it shall be left to this argument whether the result in question is defined
 and what it is.)
@@ -1099,8 +1102,8 @@ Note that this is asymmetric.
 Now we can state the general multiplication rules.
 
 If exactly one argument is in `IsMultiplicativeGeneralizedRowVector'
-then we regard the other argument (which is then not a list) as a scalar,
-and specify result (L) or (R), depending on ordering.
+then we regard the other argument (which is then neither a list nor a domain)
+as a scalar, and specify result (L) or (R), depending on ordering.
 
 In the remaining cases, both $x$ and $y$ are in
 `IsMultiplicativeGeneralizedRowVector', and we distinguish the possibilities
@@ -1149,8 +1152,8 @@ true
 \index{list and non-list!quotient}
 
 For two {\GAP} objects $x$ and $y$ of which one is in
-`IsMultiplicativeGeneralizedRowVector' and the other is either not a list or is
-also in `IsMultiplicativeGeneralizedRowVector',
+`IsMultiplicativeGeneralizedRowVector' and the other is also in
+`IsMultiplicativeGeneralizedRowVector' or is neither a list nor a domain,
 $x / y$ is defined as $x * y^{-1}$.
 
 \beginexample
@@ -1175,9 +1178,9 @@ is a shallow copy (see~"ShallowCopy") of $x[i]$ or $y[i]$ if the other
 argument is not bound at position $i$,
 and is unbound if both $x$ and $y$ are unbound at position $i$.
 
-If $x$ is in `IsMultiplicativeGeneralizedRowVector' and $y$ is either not a
-list or is in `Is\-Multiplicative\-Generalized\-Row\-Vector' and has lower
-multiplicative nesting depth,
+If $x$ is in `IsMultiplicativeGeneralizedRowVector' and $y$ is in
+`Is\-Multiplicative\-Generalized\-Row\-Vector' and has lower multiplicative
+nesting depth or is neither a list nor a domain,
 $x `mod' y$ is defined as a list whose entry at position $i$ is
 $x[i] `mod' y$ if $x$ is bound at position $i$, and is unbound if not.
 The equivalent holds in the reversed case,
@@ -1198,8 +1201,8 @@ gap> [ 10, 12, 14, 16 ] mod [ 3, 5, 7 ];
 \index{list and non-list!left quotient}
 
 For two {\GAP} objects $x$ and $y$ of which one is in
-`IsMultiplicativeGeneralizedRowVector' and the other is either not a list or
-is also in `IsMultiplicativeGeneralizedRowVector',
+`IsMultiplicativeGeneralizedRowVector' and the other is also in
+`IsMultiplicativeGeneralizedRowVector' or is neither a list nor a domain,
 $`LeftQuotient'( x, y )$ is defined as $x^{-1} * y$.
 
 \beginexample

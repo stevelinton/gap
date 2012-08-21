@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains the methods for process.
 ##
@@ -157,7 +158,7 @@ InstallMethod( Process,
       IsOutputTextStream,
       IsList ],
 function( dir, prg, input, output, args )
-    local   name_input,  new,  name_output,  res,  new_output;
+    local   name_input,  new,  name_output,  res,  new_output, alloutput,allinput;
 
     # convert input into a file
     if not IsInputTextFileRep(input)  then
@@ -167,7 +168,11 @@ function( dir, prg, input, output, args )
         od;
         name_input := PROCESS_INPUT_TEMPORARY;
         new := OutputTextFile( name_input, true );
-        WriteAll( new, ReadAll(input) );
+        allinput := ReadAll(input);
+        if allinput= fail then
+            allinput := "";
+        fi;
+        WriteAll( new, allinput );
         CloseStream(new);
         input := InputTextFile( name_input );
     fi;
@@ -196,9 +201,12 @@ function( dir, prg, input, output, args )
     if IsBound(name_output)  then
         CloseStream(new_output);
         new := InputTextFile(name_output);
-        WriteAll( output, ReadAll(new) );
+        alloutput := ReadAll(new);
         CloseStream(new);
         RemoveFile(name_output);
+        if alloutput <> fail then
+            WriteAll( output, alloutput );
+        fi;
     fi;
 
     # return result of process

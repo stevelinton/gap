@@ -132,6 +132,7 @@ Proposer: Alexander, 20-Apr-01
 Seconder: Steve, 23-May-01
 Files: grpfp
 Author: Volkmar Felsch, Alexander Hulpke, Martin Schoenert
+Maintainer: Volkmar Felsch, Alexander Hulpke
 Description: Methods for subgroups and elements of finitely presented
 groups (excludes subgroup presentations and Tietze transformations).
 

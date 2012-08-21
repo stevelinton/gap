@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains those functions that are used to construct maps,
 ##  (mostly fusion maps and power maps).
@@ -2438,17 +2439,18 @@ end );
 #F  IntScalarProducts( <tbl>, <chars>, <candidate> )
 ##
 InstallGlobalFunction( IntScalarProducts, function( tbl, chars, candidate )
-
-    local i, classes, order, char, weighted;
+    local classes, order, weighted, i, char;
 
     classes:= SizesConjugacyClasses( tbl );
     order:= Size( tbl );
     weighted:= [];
-    for char in chars do
-      for i in [ 1 .. Length( char ) ] do
-        weighted[i]:= classes[i] * char[i];
-      od;
-      if not IsInt( weighted * candidate / order ) then return false; fi;
+    for i in [ 1 .. Length( candidate ) ] do
+      weighted[i]:= classes[i] * candidate[i];
+    od;
+    for char in List( chars, ValuesOfClassFunction ) do
+      if not IsInt( ( weighted * char ) / order ) then
+        return false;
+      fi;
     od;
     return true;
 end );
@@ -2460,18 +2462,19 @@ end );
 ##
 InstallGlobalFunction( NonnegIntScalarProducts,
     function( tbl, chars, candidate )
-
-    local i, sc, classes, order, char, weighted;
+    local classes, order, weighted, i, char, sc;
 
     classes:= SizesConjugacyClasses( tbl );
     order:= Size( tbl );
     weighted:= [];
-    for char in chars do
-      for i in [ 1 .. Length( char ) ] do
-        weighted[i]:= classes[i] * char[i];
-      od;
-      sc:= weighted * candidate / order;
-      if not IsInt( sc ) or IsNegRat( sc ) then return false; fi;
+    for i in [ 1 .. Length( candidate ) ] do
+      weighted[i]:= classes[i] * candidate[i];
+    od;
+    for char in List( chars, ValuesOfClassFunction ) do
+      sc:= ( weighted * char ) / order;
+      if ( not IsInt( sc ) ) or IsNegRat( sc ) then
+        return false;
+      fi;
     od;
     return true;
 end );

@@ -4,6 +4,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen, Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  The  '<Something>RowVector' functions operate  on row vectors, that is to
 ##  say (where it  makes sense) that the vectors  must have the  same length,
@@ -1271,6 +1272,8 @@ end,
             od;
         od;
         b:=A_CLOS_VEC(veclis,vec,cnt-1,stop);
+	ConvertToVectorRep(b,2);
+	return b;
     elif q <= 256 then
         #
         # 8 bit case, have to get everything over one field!
@@ -1424,7 +1427,7 @@ InstallMethod(CosetLeadersMatFFE,"generic",IsCollsElms,
     od;
     v := ListWithIdenticalEntries(n, felts[1]);
     w := ZeroOp(t[1]);
-    if 2 < q and q < 256 then
+    if 2 <= q and q < 256 then
         
         # 8 bit case, need to get all vectors over the right field
         ok8 := true;

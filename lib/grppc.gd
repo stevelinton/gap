@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains the operations for groups with a polycyclic collector.
 ##
@@ -143,7 +144,12 @@ DeclareAttribute(
 ##  `HasPcgs' is *not* set for <G>!
 DeclareAttribute( "Pcgs", IsGroup );
 
-
+#############################################################################
+##
+#A  GeneralizedPcgs( <G> )  . . . . . . . . . . . . . . . . . pcgs of a group
+##
+##  returns a generalized pcgs for the group <G>.
+DeclareAttribute( "GeneralizedPcgs", IsGroup );
 
 #############################################################################
 ##

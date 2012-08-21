@@ -48,7 +48,7 @@ standalone programs often run only in a UNIX environment.
 Typically, a {\GAP} package is installed  by copying its directory (or
 unpacking its distribution file using `unzoo') into the
 `pkg' directory of the {\GAP} distribution. 
-The files `acceptedpkg{{versionsuffix}}.zoo' and `deppkg{{versionsuffix}}.zoo'
+The files `accpkg{{versionsuffix}}.zoo' and `deppkg{{versionsuffix}}.zoo'
 each contain several {\GAP} packages, but each package can also be
 obtained individually from each of the {\GAP} web sites; just follow the
 links from the `GAP Packages' link. The easiest procedure is to change 
@@ -59,7 +59,7 @@ file to that directory and do:
 
 This   typically   creates   a   subdirectory   <package>   (or   several
 subdirectories    in    the    case    of    the    omnibus     archives:
-`acceptedpkg{{versionsuffix}}.zoo'  and  `deppkg{{versionsuffix}}.zoo')
+`accpkg{{versionsuffix}}.zoo'  and  `deppkg{{versionsuffix}}.zoo')
 in the directory `pkg'. Such subdirectories of `pkg' are called the *home
 directories* for these {\GAP} packages. It is possible  to  have  several
 {\GAP} root directories (see~"GAP Root Directory"); therefore it is  easy

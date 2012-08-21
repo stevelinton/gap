@@ -79,9 +79,9 @@ transferred to St Andrews.  A complete internal redesign and almost
 complete rewrite of the system, which was already in progress in
 Aachen, was completed and following five, increasingly usable,
 beta-test releases, version 4.1, released July 1999, was the first
-version of the rewritten system to be released without qualification
+version of the rewritten system to be released without any restriction
 for general use. Version 4.2 followed in spring 2000 and, this
-version, {\GAP} 4.3 is being released in April 2002.
+version, {\GAP} 4.3 is being released in May 2002.
 
 More information on the motivation and development of {\GAP} to date,
 can be found on our Web pages in a section entitled ``Release history
@@ -133,7 +133,7 @@ a number of packages. The core system consists of four main parts.
 
   \item{3.}  
 	A *library of group theoretical data* which contains
-  various libraries of groups, including the *library of small groups*
+  various libraries of groups, including the library of small groups
   (containing all groups of order at most 2000, except those of order
   1024) and others. Large libraries of ordinary and Brauer character
   tables and Tables of Marks are included as packages.
@@ -157,7 +157,7 @@ the `RequirePackage' command, and both the package and its
 documentation are then available just as if they were parts of the
 core system. Some packages may be loaded automatically, when {\GAP} is
 started, if they are present. Some packages, because they depend on
-external programs, may only be available on the Operating Systems
+external programs, may only be available on the operating systems
 where those programs are available (usually UNIX). You should note
 that, while the packages included with this release are the most
 recent versions ready for release at this time, new packages and new
@@ -214,7 +214,7 @@ library of small groups has been refereed and accepted on exactly the
 same basis as the accepted  packages.
 
 We also include with this distribution, in a separate archive, a
-number of packages which have not been accepted through our refereeing
+number of packages which have not (yet) gone through our refereeing
 process. Some may be accepted in the future, in other cases the
 authors have chosen not to submit them.  More information can be found
 on our World Wide Web site, see section "Further Information about
@@ -250,15 +250,16 @@ Alexander Hulpke has remained a tower of strength, with unparalleled
 oversight of many parts of the library, despite now having a teaching
 post; Thomas Breuer continues to develop many areas of the system, and
 to play a vital role in clarifying our underlying concepts, despite
-now working in industry; Frank L\accent127ubeck and Max Neunh\accent127offer have
-brought much fresh insight to bear on the design of crucial parts of
-the kernel; Greg Gamble and Volkmar Felsch have both brought enormous
-persistence to correcting very many details of the documentation,
-improving error messages and generally polishing the system; and very
-many others have contributed ideas, insight and hard work to produce
-this release. Senior colleagues, especially Joachim Neub\accent127user, Edmund
-Robertson, and Charlie Wright continue to provide encouragement
-support and constructive criticism.
+now working in industry; Frank L\accent127ubeck and Max
+Neunh\accent127offer have brought much fresh insight to bear on the
+design of crucial parts of the system, and also done a lot of the
+ensuing work; Greg Gamble and Volkmar Felsch have both brought
+enormous persistence to correcting very many details of the
+documentation, improving error messages and generally polishing the
+system; and very many others have contributed ideas, insight and hard
+work to produce this release. Senior colleagues, especially Joachim
+Neub\accent127user, Edmund Robertson, and Charlie Wright, continue to
+provide encouragement support and constructive criticism.
 
 
 
@@ -269,7 +270,219 @@ support and constructive criticism.
 The main changes between {\GAP} 4.2 and {\GAP} 4.3 are:
 
 
-The most important changes between {\GAP} 4.2 and {\GAP} 4.1 were:
+
+*Potentially Incompatible Changes*
+
+\beginlist%unordered
+
+\item{--}
+There have been many adjustments to the arithmetic of lists (including
+matrices and vectors). These include performance enhancements in many
+areas, and also extended, and more precisely documented, rules for the
+results of arithmetic operations applied to lists, including rules for
+the mutability of the results. The main visible consequences of this
+are that a lot of operations that previously gave errors now give
+results, but, in a few unusual cases, the mutability status, or even
+the value, of the results may be different. More specifically:
+
+\itemitem{\*}
+    The scope of the arithmetic operations is extended to some objects for
+    which it is currently undefined, or unimplemented.
+
+\itemitem{\*}
+    The mutability of the results of unary arithmetic operations such
+    as unary -, multiplication by zero, and raising to the power 0 or
+    -1, applied to immutable lists has changed.  See section
+    "ref:Arithmetic for Lists" for details.
+
+\itemitem{\*}
+    The behaviour under multiplication of lists of nesting depth three or
+    more is changed.
+
+\item{--} Finitely-presented monoids have been added to the system as
+objects in their own right.  Dividing a free monoid by a list of
+relations now produced a finitely-presented monoid, whereas previously
+it produced a finitely-presented semigroup. 
+
+\item{--} A number of documented functions which have been renamed, or
+whose functionality is now unnecessary or better achieved in other
+ways have been declared ``obsolescent'' and will be removed in {\GAP}
+4.4. These functions have been moved to the file `obsolete.g' in the
+{\GAP} library. Perhaps the best known of these functions are the
+permutation group functions with the old `Operation' names (such as
+`OperationHomomorphism'. These all have replacements like
+`ActionHomomorphism' with `Action' names.
+
+\endlist
+These changes are, in some respects, departures from our policy of
+maintaining upwards compatibility of documented functions between
+releases. In the first case, we felt that the old behaviour was
+sufficiently inconsistent, illogical, and impossible to document that
+we had no alternative but to change it. In the second case the change
+was necessary to introduce new functionality. The planned and phased
+removal of a few unnecessary functions or symonyms is needed to avoid
+becoming buried in ``legacy'' interfaces, but we remain committed to
+our policy of maintaining upwards compatibility whenever sensibly possible.
+
+*Changes to Mathematical Functionality*
+
+\beginlist%unordered
+
+\item{--}
+The performance of several routines has been substantially improved (e.g.
+File I/O, large degree permutation groups, finite field matrices, matrix
+groups, double cosets, permutation group homomorphisms, Solvable quotient,
+Knuth-Bendix)
+
+\item{--}
+Many bugs have been fixed. This release thus incorporates the contents
+of all the bugfixes which were released for {\GAP} 4.2. It also fixes
+a number of bugs discovered since the last bugfix.
+
+
+\item{--}
+The functionality for finitely presented groups has been improved, including 
+the addition of effective support for homomorphisms for finitely presented groups.
+
+\item{--}
+Routines for the calculation of the Schur multiplier and a
+Schur Cover of finite permutation groups are now available.
+
+\item{--}
+An implementation of Dixon's method for computing ordinary representations of groups has been added.
+
+\item{--}
+The methods for decomposing a group element as a word in  given generators and for
+computing a presentation of a given group have been substantially enhanced.
+
+\item{--}
+More general methods to form group products are available.
+
+\item{--}
+Generators for orthogonal groups of odd dimension in characteristic 2 have been added.
+
+\item{--}
+Methods for `NrConjugacyClasses' have been added for many classical groups.
+
+\item{--}
+Errors in the (theoretical) classification of irreducible solvable matrix
+groups have been resolved.
+
+\item{--}
+A special representation for univariate rational functions was added.
+
+\item{--}
+Straight line program elements have been added.
+
+\item{--}
+The built-in MeatAxe now can treat the so-called ``bad case'' well.
+
+\item{--}
+The list of Conway polynomials for finite fields has been extended.
+\endlist
+
+*Changes to the Data Libraries*
+\beginlist%unordered
+
+\item{--}
+The library of transitive permutation groups has been extended from degree
+23 to degree 31.
+
+\item{--}
+The library of irreducible maximal finite integral matrix groups has
+been extended from degree 24 to degree 31.
+
+\item{--}
+The library of character tables and the library of tables of marks
+have been moved into packages for easier maintenance and upgrade. Some
+new tables have been added.
+
+\endlist
+
+*Changes to the System*
+
+\beginlist%unordered
+
+\item{--}
+Limitations on the length of integers and strings that can be read
+into {\GAP} have been removed, integers can also be read in in
+hexadecimal format.
+
+\item{--}
+The ability to read and write binary strings has been added.
+
+\item{--}
+A filename starting with a tilde now refers by default to the home
+directory.
+
+\item{--}
+The online help interface has been greatly improved. Further help viewers have been added (in
+particular viewers for `dvi' and `pdf' files).
+
+\item{--}
+The Windows installation has been simplified for the case where you
+are installing GAP in its standard location.
+
+\item{--}
+Utilities for editing {\GAP} files with `vim' or `emacs' are provided.
+
+\item{--}
+The `-K' option can be used to limit the amount of workspace used. 
+
+\item{--}
+New interfaces allow more control of the user interface, for instance
+colouring the `gap>' prompt, or modifying break loop behaviour.
+
+\item{--}
+A `continue' statement has been added to the {\GAP} language,
+analagous to that in C
+
+\item{--} 
+Numerous unreliable or potentially confusing C constructions reported
+by various C compilers have been removed. The system now compiles with
+few or no warnings on all the compilers we could test.
+\endlist
+
+
+The most important changes between {\GAP} 4.1 and {\GAP} 4.2 were:
+
+\beginlist%unordered
+\item{--}
+A much extended and improved library of small groups as well as
+associated IdGroup routines.
+
+\item{--}
+The primitive groups library has been made more independent of the
+rest of GAP, some errors were corrected.
+
+\item{--}
+New (and often much faster) infrastructure for orbit computation, based on a
+general ``dictionary'' abstraction.
+
+\item{--}
+New functionality for dealing with representations of algebras, and
+in particular for semisimple Lie algebras. 
+
+\item{--}
+New functionality for binary relations on arbitrary sets, magmas and
+semigroups.
+
+\item{--}
+Bidirectional streams, allowing an external process to be started and then
+controlled ``interactively'' by GAP 
+
+\item{--}
+A prototype implementation of algorithms using general subgroup chains.
+
+\item{--}
+Changes in the behaviour of vectors over small finite fields.
+
+\item{--}
+A fifth book ``New features for Developers'' has been added to the GAP manual.
+
+\item{--}
+Numerous bug fixes and performance improvements 
+\endlist
 
 
 The changes between the final release of {\GAP} 3 (version 3.4.4) and
@@ -349,7 +562,7 @@ A very few features of {\GAP}~3 are not yet available in  {\GAP}~4.
 
 \beginlist%unordered
    \item{--}
-     Only a few of the {\GAP}~3 packages have yet been converted
+     Not all of the {\GAP}~3 packages have yet been converted
      for use with  {\GAP}~4 (although several new packages are available
      only in  {\GAP}~4). 
 
@@ -363,10 +576,6 @@ A very few features of {\GAP}~3 are not yet available in  {\GAP}~4.
    \item{--} The library of crystallographic groups which was present in
      {\GAP}~3 is now part of a {\GAP}~4 package `crystcat'.
 
-   \item{--} The p-quotient and soluble quotient algorithms are
-   implemented in the {\GAP}~4 library, but those implementations are not
-   yet described in the documentation. If you have a pressing need to use
-   them, please contact `gap-trouble'.
 \endlist
 
 
@@ -422,7 +631,7 @@ whenever you publish scientific results obtained using {\GAP}.
 It finally remains  for me to wish you  all pleasure and success in using
 {\GAP}, and to invite your constructive comment and criticism.
 
-St Andrews April 2002\hfill Steve Linton
+St Andrews May 2002\hfill Steve Linton
 
 
 

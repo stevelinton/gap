@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 Revision.grpperm_gi :=
     "@(#)$Id$";
@@ -361,17 +362,18 @@ MovedPointsPerms:= function( C )
     return Set( mov );
 end;
 
-InstallMethod( MovedPoints,
-    "for a collection of permutations",
-    true,
+InstallMethod( MovedPoints, "for a collection of permutations", true,
     [ IsPermCollection ], 0,
     MovedPointsPerms );
 
-InstallMethod( MovedPoints,
-    "for an empty list",
-    true,
+InstallMethod( MovedPoints, "for an empty list", true,
     [ IsList and IsEmpty ], 0,
     MovedPointsPerms );
+
+InstallMethod( MovedPoints, "for a permutation", true, [ IsPerm ], 0,
+function(p)
+  return MovedPointsPerms([p]);
+end);
 
 
 #############################################################################
@@ -1269,12 +1271,28 @@ InstallOtherMethod( ElementaryAbelianSeries, "perm group", true,
   RankFilter(IsPermGroup and CanEasilyComputePcgs and IsFinite)
   -RankFilter(IsPermGroup and IsFinite),
 function(G)
-local pcgs;
+local pcgs,ser,i,j,u,v;
   pcgs:=PcgsElementaryAbelianSeries(G);
   if not IsPcgs(pcgs) then
     TryNextMethod();
   fi;
-  return NormalSeriesByPcgs(pcgs);
+  ser:=NormalSeriesByPcgs(pcgs);
+  # work around inconsistency -- check that the series is indeed elab
+  i:=2;
+  while i<=Length(ser) do
+    if not HasElementaryAbelianFactorGroup(ser[i-1],ser[i]) then
+      u:=Core(G,CompositionSeries(ser[i-1])[2]);
+      v:=Concatenation([u],List(ser{[i..Length(ser)]},j->Intersection(u,j)));
+      ser:=ser{[1..i-1]};
+      for j in v do
+	if Size(j)<Size(ser[Length(ser)]) then
+	  Add(ser,j);
+	fi;
+      od;
+    fi;
+    i:=i+1;
+  od;
+  return ser;
 end);
 
 #InstallOtherMethod( ElementaryAbelianSeries, fam -> IsIdenticalObj
@@ -1519,6 +1537,8 @@ InstallMethod( FrattiniSubgroup,"for permgrp", true, [ IsPermGroup ], 0,
     fac := Set( FactorsInt( Size( G ) ) );
     if Length( fac ) > 1  then
         TryNextMethod();
+    elif fac[1]=1 then
+      return G;
     fi;
     p := fac[ 1 ];
     l := GeneratorsOfGroup( G );

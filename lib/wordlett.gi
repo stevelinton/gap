@@ -5,6 +5,7 @@
 #H  @(#)$Id$
 ##
 #Y  (C) 2001 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This  file contains  methods for   associative words  in letter
 ##  representation

@@ -150,7 +150,6 @@ gap> CheckMutabilityStatus := function( opname, list )
 >   val:= sm( list );
 >   if     val <> fail
 >      and IsCopyable( val )
-> and opname <> "Inverse"      #T change this after Steve's fixes!! 
 >      and ImmutabilityLevel( sm( list ) ) <> ImmutabilityLevel( list ) then
 >     error( opname, "SM: mutability problem for ", list,
 >            " (", ImmutabilityLevel( list ), ")\n" );
@@ -214,9 +213,11 @@ gap> CompareTest := function( opname, operands, result, desired )
 >   # Check the mutability status.
 >   if     Length( operands ) = 2
 >      and IsList( result ) and IsCopyable( result )
-> and ( opname <> "Subtraction" or operands[1] <> [] ) #T change this after Steve's fixes!!
 >      and ImmutabilityLevel( result )
->          <> Minimum( List( operands, ImmutabilityLevel ) ) then
+>          <> Minimum( List( operands, ImmutabilityLevel ) ) 
+>      and not (ImmutabilityLevel(result)=infinity and
+>                NestingDepthM(result) = 
+>                       Minimum( List( operands, ImmutabilityLevel ) )) then
 >     error( opname, ": mutability problem for ", operands[1], " (",
 >            ImmutabilityLevel( operands[1] ), ") and ", operands[2], " (",
 >            ImmutabilityLevel( operands[2] ), ")\n" );
@@ -734,11 +735,24 @@ gap> TestOfMultiplicativeListArithmetic := function( R, dim )
 #F  TestOfListArithmetic( <R>, <dimlist> )
 ##
 gap> TestOfListArithmetic := function( R, dimlist )
->   local n;
+>   local n, len, bools, i;
+> 
+>   len:= 100;
+>   bools:= [ true, false ];
 > 
 >   for n in dimlist do
 >     TestOfAdditiveListArithmetic( R, n );
 >     TestOfMultiplicativeListArithmetic( R, n );
+>     R:= List( [ 1 .. len ], x -> Random( R ) );
+>     if IsMutable( R[1] ) and not ForAll( R, IsZero ) then
+>       for i in [ 1 .. len ] do
+>         if Random( bools ) then
+>           R[i]:= Immutable( R[i] );
+>         fi;
+>       od;
+>       TestOfAdditiveListArithmetic( R, n );
+>       TestOfMultiplicativeListArithmetic( R, n );
+>     fi;
 >   od;
 > end;;
 
@@ -762,7 +776,6 @@ gap> TestOfListArithmetic( GF(25), stddims );
 # over a big finite (prime) field
 gap> p:= NextPrimeInt( MAXSIZE_GF_INTERNAL );;
 gap> TestOfListArithmetic( GF( p ), stddims );
-gap> TestOfMultiplicativeListArithmetic( GF( p ), 5 );
 
 # over the rationals
 gap> TestOfListArithmetic( Rationals, [ 4 ] );
@@ -779,7 +792,7 @@ gap> TestOfListArithmetic( GF(2)^[2,3], [ 4, 5, 6 ] );
 
 # over a matrix space/algebra over another small finite field
 # (compressed elements)
-gap> TestOfAdditiveListArithmetic( GF(5)^[2,3], [ 4, 5, 6 ] );
+gap> TestOfListArithmetic( GF(5)^[2,3], [ 4, 5, 6 ] );
 
 # over a matrix space/algebra over a big finite (prime) field
 gap> p:= NextPrimeInt( MAXSIZE_GF_INTERNAL );;
@@ -788,11 +801,11 @@ gap> TestOfListArithmetic( GF( p )^[2,3], [ 4, 5, 6 ] );
 # over a matrix space/algebra over the rationals
 gap> TestOfListArithmetic( Rationals^[2,3], [ 4, 5, 6 ] );
 
-# over a class function space
+# over a class function space (the elements are not mult. grvs)
 gap> TestOfAdditiveListArithmetic( Irr( SymmetricGroup( 4 ) ), 4 );
 
-# over a space of Lie matrices
-#T gap> TestOfAdditiveListArithmetic( LieAlgebra( GF(3)^[2,2] ), 4 );
+# over a space of Lie matrices (the elements are not mult. grvs)
+gap> TestOfAdditiveListArithmetic( LieAlgebra( GF(3)^[2,2] ), 4 );
 
 # # over a group of block matrices
 # gap> hom:= IrreducibleRepresentations( SymmetricGroup( 4 ) )[3];;

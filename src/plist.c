@@ -6,6 +6,7 @@
 **
 *Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 *Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+*Y  Copyright (C) 2002 The GAP Group
 **
 **  This file contains the functions that deal with plain lists.
 **
@@ -1661,7 +1662,20 @@ void AssPlistFfe   (
 	FF ffval;
 	Obj elm1;
 	FF ffelm1;
-	elm1 = ELM_PLIST( list, 1);
+	UInt otherpos;
+
+	/* Here we select an other element to compare the field and
+	   possibly characteristic of the assigned value to This will
+	   code will never select pos, where the assignment has
+	   already been done, unless we are replacing the only entry
+	   of a length 1 list, in which case the result will always
+	   still be a vecffe, so we are happy */
+	
+	if (pos == 1)
+	  otherpos = len;
+	else
+	  otherpos = 1;
+	elm1 = ELM_PLIST( list, otherpos);
 	ffval = FLD_FFE(val);
 	ffelm1 = FLD_FFE(elm1);
 	if( ffval != ffelm1 ) {

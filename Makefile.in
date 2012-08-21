@@ -32,7 +32,7 @@ CC=@CC@
 BASECC=@BASECC@
 @SET_MAKE@
 
-default: compile
+default: strip
 
 config: bin/@target@-@BASECC@/configure bin/@target@-@BASECC@/Makefile 
 
@@ -53,7 +53,11 @@ strip: compile
 	( cd bin/@target@-@BASECC@ ; strip gap)
        
 
-clean:
+rebuild:
+	rm -f config.cache config.log config.status
+	touch src/*
+
+clean: rebuild
+	rm Makefile
 	rm -rf bin/@target@-@BASECC@
-	rm -f config.cache config.log config.status Makefile
 	rm -f bin/gap.sh

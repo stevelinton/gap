@@ -509,7 +509,7 @@ End( GF(3), End( GF(3), GF(3^3) ) )
 gap> Dimension( endoendo );
 81
 
-gap> STOP_TEST( "vspchom.tst", 42737500 );
+gap> STOP_TEST( "vspchom.tst",85550000 );
 
 
 #############################################################################

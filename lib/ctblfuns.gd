@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains the definition of categories of class functions,
 ##  and the corresponding properties, attributes, and operations.
@@ -308,7 +309,7 @@ DeclareAttribute( "ValuesOfClassFunction", IsClassFunction );
 ##  is a more interesting operation than the vector product of plain lists.
 ##  (Another candidate for a multiplication of compatible class functions
 ##  would have been the inner product, which is implemented via the function
-##  `ScalarProduct', see~"ScalarProduct".)
+##  `ScalarProduct', see~"ScalarProduct!for characters".)
 ##  In terms of filters, the arithmetic of class functions is based on the
 ##  decision that they lie in `IsGeneralizedRowVector',
 ##  with additive nesting depth $1$,

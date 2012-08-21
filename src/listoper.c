@@ -6,6 +6,7 @@
 **
 *Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 *Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+*Y  Copyright (C) 2002 The GAP Group
 **
 **  This file contains  the functions of the  package with the operations for
 **  generic lists.
@@ -978,6 +979,7 @@ Obj             ProdListList (
     Obj                 elmR;           /* one element of the right list   */
     Int                 lenL,lenR,len; /* length                          */
     Int                 i;              /* loop variable                   */
+    Int                 imm;
 
     /* get and check the length                                            */
     lenL = LEN_LIST( listL );
@@ -994,6 +996,7 @@ Obj             ProdListList (
 #endif
     /* loop over the entries and multiply and accumulate                   */
     listP = 0;
+    imm = 0;
     for (i = 1; i <= len; i++)
       {
         elmL = ELM0_LIST( listL, i );
@@ -1004,19 +1007,19 @@ Obj             ProdListList (
 	    if (listP)
 	      listP = SUM( listP, elmP );
 	    else
-	      listP = elmP;
+	      {
+		listP = elmP;
+		imm = !IS_MUTABLE_OBJ(listP);
+	      }
 	  }
     }
+
+    if (imm && IS_MUTABLE_OBJ(listP))
+      MakeImmutable(listP);
 
     if (!listP)
       ErrorMayQuit("Inner product multiplication of lists: no summands", 0, 0);
     
-    /* adjust mutability */
-
-    if ((IS_MUTABLE_OBJ(listL) || IS_MUTABLE_OBJ(listR))
-	&& !IS_MUTABLE_OBJ(listP))
-      listP = SHALLOW_COPY_OBJ(listP);
-
     /* return the result                                                   */
     return listP;
 }
@@ -1040,9 +1043,31 @@ Obj             ProdListSclHandler (
 Obj             ProdListListHandler (
     Obj                 self,
     Obj                 listL,
-    Obj                 listR )
+    Obj                 listR,
+    Obj                 depthdiff)
 {
-    return ProdListList( listL, listR );
+  Obj prod;
+  prod = ProdListList( listL, listR );
+
+  /* possibly adjust mutability */
+  if (!IS_MUTABLE_OBJ(prod))
+    switch (INT_INTOBJ(depthdiff)) {
+    case -1:
+      if (IS_MUTABLE_OBJ(listL))
+	prod = SHALLOW_COPY_OBJ(prod);
+      break;
+    case 1:
+      if (IS_MUTABLE_OBJ(listR))
+	prod = SHALLOW_COPY_OBJ(prod);
+      break;
+    case 0:
+      break;
+    default:
+      ErrorReturnVoid("PROD_LIST_LIST_DEFAULT: depth difference should be -1, 0 or 1, not %i",
+		      INT_INTOBJ(depthdiff),0L,"you can return to carry on anyway");
+    }
+  return prod;
+	
 }
 
 
@@ -2160,7 +2185,7 @@ static StructGVarFunc GVarFuncs [] = {
     { "PROD_LIST_SCL_DEFAULT", 2, "listL, listR",
       ProdListSclHandler, "src/listoper.c:PROD_LIST_SCL_DEFAULT" },
 
-    { "PROD_LIST_LIST_DEFAULT", 2, "listL, listR",
+    { "PROD_LIST_LIST_DEFAULT", 3, "listL, listR, depthDiff",
       ProdListListHandler, "src/listoper.c:PROD_LIST_LIST_DEFAULT" },
 
     { "ONE_MATRIX_MUTABLE", 1, "list",

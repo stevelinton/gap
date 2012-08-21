@@ -7,6 +7,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains methods for `FFE's.
 ##  Note that we must distinguish finite fields and fields that consist of
@@ -53,45 +54,43 @@ Revision.ffe_gi :=
 ##
 InstallMethod( \+,
     "for a FFE and a rational",
-    true,
-    [ IsFFE, IsRat ], 0,
+    [ IsFFE, IsRat ],
     function( ffe, rat )
-    rat:= ( NumeratorRat( rat ) * One( ffe ) ) / DenominatorRat( rat );
+    rat:= (rat mod Characteristic(ffe))*One(ffe);
     return ffe + rat;
     end );
 
 InstallMethod( \+,
     "for a rational and a FFE",
-    true,
-    [ IsRat, IsFFE ], 0,
+    [ IsRat, IsFFE ],
     function( rat, ffe )
-    rat:= ( NumeratorRat( rat ) * One( ffe ) ) / DenominatorRat( rat );
+    rat:= (rat mod Characteristic(ffe))*One(ffe);
     return rat + ffe;
     end );
 
 InstallMethod( \*,
     "for a FFE and a rational",
-    true,
-    [ IsFFE, IsRat ], 0,
+    [ IsFFE, IsRat ],
     function( ffe, rat )
     if IsInt( rat ) then
       # Avoid the recursion trap.
       TryNextMethod();
     fi;
-    rat:= ( NumeratorRat( rat ) * One( ffe ) ) / DenominatorRat( rat );
+    # Replace the rational by an equivalent integer.
+    rat:= rat mod Characteristic(ffe);
     return ffe * rat;
     end );
 
 InstallMethod( \*,
     "for a rational and a FFE",
-    true,
-    [ IsRat, IsFFE ], 0,
+    [ IsRat, IsFFE ],
     function( rat, ffe )
     if IsInt( rat ) then
       # Avoid the recursion trap.
       TryNextMethod();
     fi;
-    rat:= ( NumeratorRat( rat ) * One( ffe ) ) / DenominatorRat( rat );
+    # Replace the rational by an equivalent integer.
+    rat:= rat mod Characteristic(ffe);
     return rat * ffe;
     end );
 

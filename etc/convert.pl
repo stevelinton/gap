@@ -850,6 +850,7 @@ sub macro_replace {
         }
         if (defined $accents{$macro})     { return do_accent($rest, $macro); }
         elsif (defined $acc_0arg{$macro}) { return ($rest, $acc_0arg{$macro}); }
+        elsif ($macro eq "copyright")     { return ($rest, "&copy;"); }
         elsif ($macro eq "aa")            { return ($rest, "&aring;"); }
         elsif ($macro eq "AA")            { return ($rest, "&Aring;"); }
         elsif ($macro eq "lq")            { return ($rest, "`"); }
@@ -978,7 +979,7 @@ sub begin_list {
 
 sub convert_text {
     my $fname = $_[0];
-    my $refchars = '[\\w\\s-`\',./:!()?$]'; # these make up cross references
+    my $refchars = '[\-\\w\\s`\',./:!()?$]'; # these make up cross references
     my $ref = "";
     my $endline = "";    # used for </code> at the end of line
     my $mode = "normal"; # $mode can be: 
@@ -1180,7 +1181,11 @@ sub convert_text {
           # ... this way if this feature is undesirable we can easily get
           #     rid of it
           my $comment = "";
-          if (/^\\>.*;/) {
+          # These cases [<something>] is not a comment:
+          # \><anything>;   # [<arg>] here is treated as an optional arg
+          # \>`<func-with-args>'{<func>![gdfile]} # possibility from
+          #                                       # buildman.pe \Declaration
+          if (/^\\>(.*;|`[^\']+\'{[^}!]*!\[[^\]]*\]})/) {
               ;
           } elsif (/^\\>.*\(/) {
               if (s/^(\\>[^(]*\([^)]*\)[^\[]*)(\[[^\]]*\])/$1/) {

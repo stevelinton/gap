@@ -5,6 +5,7 @@
 #H  @(#)$Id$
 ##
 #Y  (C) 1999 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains functions that compute the conjugacy classes of a
 ##  finite group by homomorphic images.
@@ -208,7 +209,7 @@ end);
 
 #############################################################################    
 AutomorphismRepresentingGroup := function(G,autos)
-local cnt,iso,Gi,ai,dom,s,u,a;
+local cnt,iso,Gi,ai,dom,s,u,a,red,degs;
 # assumes G simple!
   cnt:=2;
   dom:=Set(Orbit(G,LargestMovedPoint(G)));
@@ -220,11 +221,17 @@ local cnt,iso,Gi,ai,dom,s,u,a;
     Info(InfoHomClass,2,"block refinement");
     iso:=ActionHomomorphism(G,s,OnSets,"surjective");
   fi;
+  red:=true;
+  degs:=[];
   repeat
     Gi:=ImagesSet(iso,G);
-    ai:=SmallerDegreePermutationRepresentation(Gi);
-    Gi:=ImagesSet(ai,Gi);
-    iso:=iso*ai;
+    AddSet(degs,NrMovedPoints(Gi));
+    if red then
+      # reduce degree
+      ai:=SmallerDegreePermutationRepresentation(Gi);
+      Gi:=ImagesSet(ai,Gi);
+      iso:=iso*ai;
+    fi;
     ai:=List(autos,i->GroupHomomorphismByImagesNC(Gi,Gi,GeneratorsOfGroup(Gi),
              List(GeneratorsOfGroup(Gi),
 	          j->Image(iso,Image(i,PreImagesRepresentative(iso,j))))));
@@ -257,6 +264,7 @@ local cnt,iso,Gi,ai,dom,s,u,a;
     until Index(G,u)>1 and Index(G,u)<cnt*10*Length(dom);
     # next attempt at iso
     iso:=ActionHomomorphism(G,RightTransversal(G,u),OnRight,"surjective");
+    red:=not (Index(G,u) in degs);
   until false;
 end;
 

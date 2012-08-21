@@ -35,6 +35,8 @@ echo "Cleaning up before wrapping"
 
 rm -rf doc/build doc/abattoir doc/Makefile alpha beta dev dev \
   config.*
+
+find . -name .cvsignore -exec rm {} \;
 )
 
 
@@ -44,29 +46,30 @@ echo "$0: zooing version $VERSION of $DATE"
 #echo "README file"
 #cp ${DISTNAME}/etc/README .
 
-addtext () {
-    archivename=$1
-    shift 
-    ${BINDIR}/saytext | zoo ahc ${archivename}.zoo $* >& /dev/null &
-    zip -l ${archivename}.zip $* > /dev/null  &
-    tar rf ${archivename}.tar $* &
-    wait
-}
-
-addbin () {
-    archivename=$1
-    shift 
-    ${BINDIR}/saybin | zoo ahc ${archivename}.zoo $* >& /dev/null & 
-    zip  ${archivename}.zip $* > /dev/null &
-    tar rf ${archivename}.tar $* &
-    wait
-}
+. ${BINDIR}/zoofuncs
 
 (cd $DISTROOT;
 
 
 echo "Removing old attempts"
 
+
+
+echo "Supplemental packages"
+
+rm -rf supppkgs
+mkdir supppkgs
+( cd supppkgs
+  ../${DISTNAME}/etc/GETPKG/getpkg S ../${DISTNAME}/etc/GETPKG/pkg$RBVERSION )
+
+
+
+for j in supppkgs/*.zoo; do
+    ${DISTNAME}/etc/zoomerge3 xtom$RBVERSION $j ${DISTNAME}/pkg
+done;
+
+#    (cd supppkgs
+#    addtext ../xtom$RBVERSION READM*    )
 
 
 
@@ -85,6 +88,7 @@ for j in lib grp tst pkg/example pkg/example/src pkg/example/doc pkg/example/gap
 done
 
 addtext basic$RBVERSION ${DISTNAME}/etc/*.vim ${DISTNAME}/etc/emacs/* ${DISTNAME}/etc/xrmtcmd.c
+addtext basic$RBVERSION ${DISTNAME}/etc/GPL
 
 touch ${DISTNAME}/pkg/NOAUTO
 addtext basic$RBVERSION ${DISTNAME}/pkg/ALLPKG ${DISTNAME}/pkg/NOAUTO
@@ -116,6 +120,8 @@ cp basic$RBVERSION.zip macpc.zip
 cp basic$RBVERSION.tar macpc.tar
 
 echo "Source files"
+
+cp ${BINDIR}/FILES .
 
 cp INSTALL ${DISTNAME}
 
@@ -182,7 +188,7 @@ for j in ref tut ext prg new; do
     done
 done
 
-for i in ${DISTNAME}/doc/htm/*.htm; do
+for i in ${DISTNAME}/doc/htm/*.htm ${DISTNAME}/pkg/example/htm/*.htm; do
     for k in html$RBVERSION macpc gap$RBVERSION; do
 	addtext $k $i
     done
@@ -207,13 +213,23 @@ for j in split/small$RBVERSION gdat$RBVERSION macpc gap$RBVERSION; do
     addtext $j ${DISTNAME}/small/*.*
 done
 
-for k in id2 id3 id4 id5 id6 small2 small3 small4 small5 small6 small7 small8; do
+for k in id2 id3 id4 id5 small2 small3 small4 small5 small6 small7 small8; do
     echo "     " $k
     for j in split/${k}$RBVERSION gdat$RBVERSION macpc gap$RBVERSION; do
 	addtext $j ${DISTNAME}/small/${k}/*
     done
 done
 
+#
+# Have to do id6 separately because it's too many files
+#
+
+echo "     " id6
+for j in split/id6$RBVERSION gdat$RBVERSION macpc gap$RBVERSION; do
+    addtext $j ${DISTNAME}/small/id6/id1152.*
+    addtext $j ${DISTNAME}/small/id6/id1920.*
+    addtext $j ${DISTNAME}/small/id6/*.g
+done
 
 echo "Prim"
 
@@ -231,16 +247,33 @@ done
 
 chmod 755 ${DISTNAME}/etc/zoomerge3
 
-echo "Character Tables and Tables of Marks"
+echo "Core packages"
 
-for j in /home/ftp/pub/gappre/sys$RBVERSION/*.zoo; do
-    for i in tdat$RBVERSION macpc gap$RBVERSION; do
+# sys$RBVERSION is SL's temp. dir. containing the package .zoo files
+# for Character Tables and Tables of Marks that were up to GAP 4.2
+# in the library
+
+rm -rf syspkgs
+mkdir syspkgs
+( cd syspkgs
+  ../${DISTNAME}/etc/GETPKG/getpkg C ../${DISTNAME}/etc/GETPKG/pkg$RBVERSION )
+
+for i in tdat$RBVERSION macpc gap$RBVERSION; do
+    for j in syspkgs/*.zoo; do
 	${DISTNAME}/etc/zoomerge3 $i $j ${DISTNAME}/pkg
     done;
+    (cd syspkgs
+    mkdir pkg
+    mv READM* pkg
+    addtext ../$i pkg/READM*    )
 done;
 
+echo "tools"
 
-
+addtext tools${RBVERSION} ${DISTNAME}/doc/{allmanualsindex,gapmacro.tex,make_doc,mrabbrev.bib}
+addtext tools${RBVERSION} ${DISTNAME}/doc/{fullindex.tex,fullindex.mst}
+addtext tools${RBVERSION} ${DISTNAME}/doc/{manualindex,htm/Makefile,htm/allhtmlindex,htm/onehtmlindex}
+addtext tools${RBVERSION} ${DISTNAME}/etc/{buildman.pe,convert.pl,packpack,unzoo.c,README.tools}
 
 echo "------------------------------"
 
@@ -265,15 +298,15 @@ cp ${DISTNAME}/bin/i686-pc-cygwin-gcc/gap.exe ${DISTNAME}/bin/gapw95.exe
 cp /gap/4.0/bin/cygwin1.dll ${DISTNAME}/bin
 for i in ${DISTNAME}/bin/gapw95.exe ${DISTNAME}/bin/cygwin1.dll; do
     addbin gappc$RBVERSION $i 
-    addbin winbin$RBVERSION $i
+    addbin wbin$RBVERSION $i
 done
 
 addtext gappc$RBVERSION ${DISTNAME}/bin/gap.bat
-addtext winbin$RBVERSION ${DISTNAME}/bin/gap.bat
+addtext wbin$RBVERSION ${DISTNAME}/bin/gap.bat
 addbin gappc$RBVERSION ${DISTNAME}/bin/gap.pif
-addbin winbin$RBVERSION ${DISTNAME}/bin/gap.pif
+addbin wbin$RBVERSION ${DISTNAME}/bin/gap.pif
 addbin gappc$RBVERSION ${DISTNAME}/bin/gapicon.bmp
-addbin winbin$RBVERSION ${DISTNAME}/bin/gapicon.bmp
+addbin wbin$RBVERSION ${DISTNAME}/bin/gapicon.bmp
 # instwin is obsolete now
 #for i in ${DISTNAME}/bin/gap.bat ${DISTNAME}/instwin.bat; do
 #    addtext gappc$RBVERSION $i 
@@ -297,40 +330,7 @@ addtext gapmac$RBVERSION ${DISTNAME}/INSTALL-MAC.TXT
 ##  echo "Mac src"
 ##  find ${DISTNAME}/{macsrc,macgac} -print | zoo ahI macsrc$RBVERSION.zoo > /dev/null
 
-
-echo "Accepted Share Packages"
-# touch allshare$RBVERSION.zoo allshare$RBVERSION.zip allshare$RBVERSION.tar
-
-for i in /home/ftp/pub/gappre/share$RBVERSION/*.zoo; do
-    ${DISTNAME}/etc/zoomerge3 allshare$RBVERSION $i
-done
-
-for i in /home/ftp/pub/gappre/share$RBVERSION/README*; do
-cp $i .
-done
-cp ${DISTNAME}/mkdistrib/README.allshare README
-for i in READM*; do
-    addtext allshare$RBVERSION $i
-done
-rm -f README*
-
-echo "Deposited  Packages"
-# touch deppack$RBVERSION.zoo deppack$RBVERSION.zip deppack$RBVERSION.tar
-
-for i in /home/ftp/pub/gappre/dep$RBVERSION/*.zoo; do
-    ${DISTNAME}/etc/zoomerge3 deppack$RBVERSION $i
-done
-
-for i in /home/ftp/pub/gappre/dep$RBVERSION/README*; do
-cp $i .
-done
-
-cp ${DISTNAME}/mkdistrib/README.deppack README
-for i in READM*; do
-    addtext deppack$RBVERSION $i
-done
-rm -f README*
-
+${BINDIR}/wrappkgs $RBVERSION $DISTNAME $BINDIR
 
 echo "Compressing tar files"
 gzip *.tar split/*.tar

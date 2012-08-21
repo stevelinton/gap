@@ -7,6 +7,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains methods for modules over Lie algebras.
 ##
@@ -401,6 +402,7 @@ InstallHandlingByNiceBasis( "IsCochainsSpace", rec(
       for k in [1..Length(l)] do
         for i in [1..Length(l[k])] do
           p:= Position( tt, l[k][i][1] );
+          if p = fail then return fail; fi;
           v[(k-1)*Length(tt)+p]:= l[k][i][2];
         od;
       od;

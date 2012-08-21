@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains  the  functions   needed  for a  direct computation of
 ##  the  character values of  wreath  products  of a  group  $G$  with $S_n$,
@@ -380,6 +381,9 @@ end );
 ##
 #V  CharTableSymmetric  . . . .  generic character table of symmetric groups.
 ##
+##  Note that this record is accessed in the `Irr' method for natural
+##  symmetric groups.
+##
 InstallValue( CharTableSymmetric, Immutable( rec(
     isGenericTable:=
         true,
@@ -421,7 +425,6 @@ InstallValue( CharTableSymmetric, Immutable( rec(
             end ] ],
     matrix:=
         function(n)
-  
           local scheme, beta, pm, i, m, k, t, col, np, res, charCol;
       
           scheme:= InductionScheme(n);
@@ -498,7 +501,6 @@ InstallValue( CharTableAlternating, Immutable( rec(
         "generic character table for alternating groups",
     classparam:=
         [ function(n)
-
             local labels, pi, pdodd;
         
             pdodd:= function(pi)
@@ -530,7 +532,6 @@ InstallValue( CharTableAlternating, Immutable( rec(
           end ],
     charparam:=
         [ function(n)
-
             local alpha, labels;
         
             labels:= [];
@@ -591,7 +592,6 @@ InstallValue( CharTableAlternating, Immutable( rec(
           end ],
     irreducibles:=
         [ [ function(n, alpha, pi)
-
               local val;
           
               if Length(alpha) = 2 and not IsInt(alpha[2]) then
@@ -634,7 +634,6 @@ InstallValue( CharTableAlternating, Immutable( rec(
 #F  CharValueWeylB( <n>, <beta>, <pi> ) . . . . . character value in 2 wr Sn.
 ##
 InstallGlobalFunction( CharValueWeylB, function(n, beta, pi)
-
     local i, j, k, lb, o, s, t, gamma, rho, sign, val;
 
     #  termination condition.
@@ -685,7 +684,7 @@ InstallGlobalFunction( CharValueWeylB, function(n, beta, pi)
              fi;
 
              #  construct new beta set.
-             gamma:= ShallowCopy(beta);
+             gamma:= List(beta, ShallowCopy);
              SubtractSet(gamma[s], [i]);
              AddSet(gamma[s], i-k);
 
@@ -724,7 +723,6 @@ InstallValue( CharTableWeylB, Immutable( rec(
         [ function(n, lbl) return CentralizerWreath([2, 2], lbl); end ],
     orders:=
         [ function(n, lbl)
-
             local ord;
             
             ord:= 1;
@@ -761,7 +759,7 @@ InstallValue( CharTableWeylB, Immutable( rec(
 ##
 #V  CharTableWeylD  . . . . generic character table of Weyl groups of type D.
 ##
-InstallValue( CharTableWeylD, Immutable( rec(
+InstallValue( CharTableWeylD, rec(
     isGenericTable:=
         true,
     identifier:=
@@ -774,7 +772,6 @@ InstallValue( CharTableWeylD, Immutable( rec(
         "generic character table for Weyl groups of type D",
     classparam:=
         [ function(n)
-
             local labels, pi;
         
             labels:= [];
@@ -793,7 +790,6 @@ InstallValue( CharTableWeylD, Immutable( rec(
           end ],
     charparam:=
         [ function(n)
-
             local alpha, labels;
         
             labels:= [];
@@ -819,7 +815,6 @@ InstallValue( CharTableWeylD, Immutable( rec(
           end ],
     orders:=
         [ function(n, lbl)
-
             local ord;
         
             ord:= 1;
@@ -834,7 +829,6 @@ InstallValue( CharTableWeylD, Immutable( rec(
           end ],
     powermap:=
         [ function(n, lbl, pow)
-
             local power;
         
             if not IsList(lbl[2]) then
@@ -855,7 +849,6 @@ InstallValue( CharTableWeylD, Immutable( rec(
 
     irreducibles:=
         [ [ function(n, alpha, pi)
-        
               local delta, val;
           
               if not IsList(alpha[2]) then
@@ -888,8 +881,51 @@ InstallValue( CharTableWeylD, Immutable( rec(
             end ] ],
     domain:=
         ( n -> IsInt(n) and n > 1 )
-    ) ) );
+    ) );
+CharTableWeylD.matrix := function(n)
+  local matB, matA, paramA, paramB, clp, chp, res, ctb, cta, val;
+  matB := CharTableWeylB!.matrix(n);
+  if n mod 2 = 0 then
+    matA := CharTableSymmetric!.matrix(n/2);
+    paramA := Partitions(n/2);
+  fi;
+  paramB := PartitionTuples(n, 2);
+  clp := CharTableWeylD!.classparam[1](n);
+  chp := CharTableWeylD!.charparam[1](n);
+  res := NullMat(Length(chp), Length(clp));
+  ctb := function(alpha, pi)
+    return matB[Position(paramB, alpha)][Position(paramB, pi)];
+  end;
+  cta := function(alpha, pi)
+    return matA[Position(paramA, alpha)][Position(paramA, pi)];
+  end;
 
+  val := function(alpha, pi)
+    local delta, val;
+    if not IsList(alpha[2]) then
+      delta := [alpha[1], alpha[1]];
+      if not IsList(pi[2]) then
+        val := ctb(delta, [pi[1], []])/2;
+        if alpha[2] = pi[2] then
+          val := val + 2^(Length(pi[1])-1) * cta(alpha[1], pi[1]/2);
+        else
+          val := val - 2^(Length(pi[1])-1) * cta(alpha[1], pi[1]/2);
+        fi;
+      else
+        val := ctb(delta, pi)/2;
+      fi;
+    else
+      if not IsList(pi[2]) then
+        val := ctb(alpha, [pi[1], []]);
+      else
+        val := ctb(alpha, pi);
+      fi;
+    fi;
+    return val;
+  end;
+  return List(chp, alpha-> List(clp, pi-> val(alpha, pi)));
+end;
+MakeImmutable(CharTableWeylD);
 
 #############################################################################
 ##
@@ -897,7 +933,6 @@ InstallValue( CharTableWeylD, Immutable( rec(
 #F                                        . . . . character value in G wr Sn.
 ##
 InstallGlobalFunction( CharValueWreathSymmetric, function(sub, n, beta, pi)
-
     local i, j, k, lb, o, s, t, r, gamma, rho, sign, val, subirreds;
 
     #  termination condition.
@@ -970,7 +1005,6 @@ end );
 #F  CharacterTableWreathSymmetric( <sub>, <n> )  . .  char. table of G wr Sn.
 ##
 InstallGlobalFunction( CharacterTableWreathSymmetric, function( sub, n )
-
     local i, j,             # loop variables
           tbl,              # character table, result
           ident,            # identifier of 'tbl'
@@ -1038,49 +1072,76 @@ InstallGlobalFunction( CharacterTableWreathSymmetric, function( sub, n )
     return tbl;
 end );
 
+
 #############################################################################
 ##
-#M  Irr(<Sn>)
+#M  Irr( <Sn> )
+##
+##  Use `CharTableSymmetric' (see above) for computing the irreducibles;
+##  use the class parameters (partitions) in order to make the table
+##  compatible with the conjugacy classes of <Sn>.
+##
+##  Note that we do *not* call `CharacterTable( "Symmetric", <n> )' directly
+##  because the character table library may be not installed.
 ##
 InstallMethod( Irr,
     "ordinary characters for natural symmetric group",
     [ IsNaturalSymmetricGroup, IsZeroCyc ],
-function( G, zero )
-local irr,c,deg,dom,cG,cp,clasperm,i,pow,inv;
-  dom:=MovedPoints(G);
-  deg:=Length(dom);
-  if deg = 0 then
-    deg:= 1;
-    dom:= [ 1 ];
-  fi;
-  cG:=CharacterTable(G);
-  c:=CharacterTable("Symmetric",deg);
-  # if necessary permute the classes
-  cp:=List(ClassParameters(c),i->i[2]); # partitions
-  clasperm:=[];
-  for i in ConjugacyClasses(G) do
-    i:=List(Orbits(Subgroup(G,[Representative(i)]),dom),Length);
-    Sort(i);
-    i:=Reversed(i);
-    Add(clasperm,Position(cp,i));
-  od;
-  irr:=[];
-  for i in Irr(c) do
-    Add(irr,Character(cG,AsList(i){clasperm}));
-  od;
-  SetIrr( cG , irr );
-  SetCharacterParameters(cG,CharacterParameters(c));
-  SetClassParameters(cG,ClassParameters(c){clasperm});
-  cp:=ComputedPowerMaps(cG);
-  pow:=ComputedPowerMaps(c);
-  inv:=[];
-  inv{clasperm}:=[1..Length(clasperm)];
-  for i in [1..Length(pow)] do
-    if IsBound(pow[i]) and not IsBound(cp[i]) then
-      cp[i]:=inv{pow[i]{clasperm}};
+    function( G, zero )
+    local gentbl, dom, deg, cG, cp, perm, i, irr, pow, fun, p;
+
+    gentbl:= CharTableSymmetric;
+    dom:= MovedPoints( G );
+    deg:= Length( dom );
+    if deg = 0 then
+      dom:= [ 1 ];
+      deg:= 1;
     fi;
-  od;
-  return irr;
+    cG:= CharacterTable( G );
+
+    # Compute the correspondence of classes.
+    cp:= gentbl.classparam[1]( deg );
+    perm:= [];
+    for i in ConjugacyClasses( G ) do
+      i:= List( Orbits( SubgroupNC( G, [ Representative(i) ] ), dom ),
+                Length );
+      Sort( i );
+      Add( perm, Position( cp, Reversed( i ) ) );
+    od;
+
+    # Compute the irreducibles.
+    irr:= List( gentbl.matrix( deg ), i -> Character( cG, i{ perm } ) );
+    MakeImmutable( irr );
+    SetIrr( cG, irr );
+
+    # Store the class and character parameters.
+    cp:= List( cp{ perm }, x -> [ 1, x ] );
+    MakeImmutable( cp );
+    SetClassParameters( cG, cp );
+    SetCharacterParameters( cG, cp );
+
+    # Compute and store the power maps.
+    pow:= ComputedPowerMaps( cG );
+    fun:= gentbl.powermap[1];
+    for p in Set( Factors( Size( G ) ) ) do
+      if not IsBound( pow[p] ) then
+        pow[p]:= List( cp, x -> Position( cp, fun( deg, x[2], p ) ) );
+      fi;
+    od;
+
+    # Compute and store centralizer orders and representative orders.
+    if not HasSizesCentralizers( cG ) then
+      SetSizesCentralizers( cG,
+          List( cp, x -> gentbl.centralizers[1]( deg, x[2] ) ) );
+    fi;
+    if not HasOrdersClassRepresentatives( cG ) then
+      SetOrdersClassRepresentatives( cG,
+          List( cp, x -> gentbl.orders[1]( deg, x[2] ) ) );
+    fi;
+    SetInfoText( cG, Concatenation( "computed using ", gentbl.text ) );
+
+    # Return the irreducibles.
+    return irr;
 end );
 
 

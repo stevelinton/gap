@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file is a first stab at a special posobj-based representation 
 ##  for 8 bit matrices, mimicking the one for GF(2)
@@ -692,10 +693,10 @@ InstallGlobalFunction( RepresentationsOfMatrix,
             Print(" compressed over GF(",Q_VEC8BIT(m),") ");
         elif IsPlistRep(m) then
             Print(" plain list, tnum: ",TNUM_OBJ(m)," ");
-            if TNUM_OBJ_INT(m) in [48,49] then
+            if TNUM_OBJ_INT(m) in [54,55] then
                 Print("known to be vecffe over GF(",CHAR_FFE_DEFAULT(m[1]),"^",
                       DEGREE_FFE_DEFAULT(m[1]),") ");
-            elif TNUM_OBJ_INT(m) in [42,43] then
+            elif TNUM_OBJ_INT(m) in [48..53] then
                 Print("known to be vector of cyclotomics ");
             else 
                 Print("TNUM: ",TNUM_OBJ(m), " ");
@@ -944,6 +945,13 @@ InstallMethod(NestingDepthA, [Is8BitMatrixRep], m->2);
 InstallMethod(NestingDepthM, [Is8BitVectorRep], m->1);
 InstallMethod(NestingDepthA, [Is8BitVectorRep], m->1);
 
+InstallMethod(PostMakeImmutable, [Is8BitMatrixRep], 
+        function(m)
+    local i;
+    for i in [2..m![1]] do
+        MakeImmutable(m![i]);
+    od;
+end);
 
 
 #############################################################################

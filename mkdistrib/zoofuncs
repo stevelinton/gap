@@ -1,0 +1,18 @@
+
+addtext () {
+    archivename=$1
+    shift 
+    ${BINDIR}/saytext | zoo ahc ${archivename}.zoo $* >& /dev/null &
+    zip -l ${archivename}.zip $* > /dev/null  &
+    tar rf ${archivename}.tar $* &
+    wait
+}
+
+addbin () {
+    archivename=$1
+    shift 
+    ${BINDIR}/saybin | zoo ahc ${archivename}.zoo $* >& /dev/null & 
+    zip  ${archivename}.zip $* > /dev/null &
+    tar rf ${archivename}.tar $* &
+    wait
+}

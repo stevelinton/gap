@@ -7,6 +7,7 @@
 **
 *Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 *Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+*Y  Copyright (C) 2002 The GAP Group
 **
 **  This file contains the  various read-eval-print loops and streams related
 **  stuff.  The system depend part is in "sysfiles.c".
@@ -1655,7 +1656,7 @@ Obj FuncREAD_ALL_FILE (
 	SET_LEN_STRING(str, len);
 	syBuffers[bufno].bufstart += lstr;
       }
-#ifdef CYGWIN
+#if SYS_IS_CYGWIN32
  getmore:
 #endif
     while (ilim == -1 || len < ilim ) {
@@ -1696,7 +1697,7 @@ Obj FuncREAD_ALL_FILE (
 
     /* fix the length of <str>                                             */
     len = GET_LEN_STRING(str);
-#ifdef CYGWIN
+#if SYS_IS_CYGWIN32
     /* line end hackery */
     {
       UInt i = 0,j = 0;
@@ -1940,7 +1941,7 @@ Obj FuncREAD_STRING_FILE (
             "you can replace <fid> via 'return <fid>;'" );
     }
 
-#ifndef CYGWIN
+#if ! SYS_IS_CYGWIN32
     /* fstat seems completely broken under CYGWIN */
 #if HAVE_STAT
     /* first try to get the whole file as one chunk, this avoids garbage

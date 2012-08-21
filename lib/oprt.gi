@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen, Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 Revision.oprt_gi :=
     "@(#)$Id$";
@@ -1258,7 +1259,11 @@ local   orb,  stb,  rep,  p,  q,  img,  sch,  i,d,act,
 
   # can we compute the index from the orbit length?
   if HasSize(G) then
-    SetSize(stb,Size(G)/Length(orb));
+    if IsFinite(G) then
+      SetSize(stb,Size(G)/Length(orb));
+    else
+      SetSize(stb,infinity);
+    fi;
   fi;
 
   # do we care about a blist?

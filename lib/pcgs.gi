@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains the methods for polycylic generating systems.
 ##
@@ -792,7 +793,7 @@ end );
 #M  RelativeOrderOfPcElement( <pcgs>, <elm> )
 ##
 InstallMethod( RelativeOrderOfPcElement,
-    "generic method using RelativeOrders",
+    "for IsPrimeOrdersPcgs using RelativeOrders",
     IsCollsElms,
     [ IsPcgs and IsPrimeOrdersPcgs,
       IsObject ],
@@ -808,6 +809,27 @@ function( pcgs, elm )
         return RelativeOrders(pcgs)[d];
     fi;
 end );
+
+InstallMethod( RelativeOrderOfPcElement,
+    "general method using RelativeOrders",
+    IsCollsElms,
+    [ IsPcgs, IsObject ],
+    0,
+
+function( pcgs, elm )
+    local   d,  e,  ro;
+
+    d := DepthOfPcElement(pcgs,elm);
+    if d > Length(pcgs)  then
+         return 1;
+    fi;
+
+    e  := ExponentOfPcElement( pcgs, elm, d );
+    ro := RelativeOrders(pcgs)[d];
+
+    return ro / Gcd( e, ro );
+end );
+
 
 #############################################################################
 ##

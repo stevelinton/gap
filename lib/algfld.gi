@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1999 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains the methods for algebraic elements and their families
 ##
@@ -855,9 +856,12 @@ InstallMethod( CanonicalBasis,
 ##
 InstallMethod( BasisVectors,
     "for canon. basis of an algebraic extension",
-    true,
-    [ IsCanonicalBasisAlgebraicExtension ], 0,
-    F -> List( [ 0 .. Dimension( F ) - 1 ], i -> PrimitiveElement( F )^i ) );
+    [ IsCanonicalBasisAlgebraicExtension ],
+    function( B )
+    local F;
+    F:= UnderlyingLeftModule( B );
+    return List( [ 0 .. Dimension( F ) - 1 ], i -> PrimitiveElement( F )^i );
+    end );
 
 
 #############################################################################

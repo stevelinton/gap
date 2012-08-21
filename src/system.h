@@ -13,6 +13,7 @@
 **
 *Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 *Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+*Y  Copyright (C) 2002 The GAP Group
 **
 **  The  file 'system.c'  declares  all operating system  dependent functions
 **  except file/stream handling which is done in "sysfiles.h".
@@ -444,7 +445,7 @@ extern const Char * SyKernelVersion;
 
 /****************************************************************************
 **
-*V  SyAutoloadSharePackages  . . . . . . . .automatically load share packages
+*V  SyAutoloadSharePackages  . . . . . . . . . .  automatically load packages
 **
 **  0: no 
 **  1: yes
@@ -857,7 +858,7 @@ extern UInt SyTime ( void );
 **  the range 'a..zA..Z' and 0 otherwise.
 */
 #include <ctype.h>
-#define IsAlpha(ch)     (isalpha(ch))
+#define IsAlpha(ch)     (isalpha((int)ch))
 
 
 /****************************************************************************
@@ -867,7 +868,16 @@ extern UInt SyTime ( void );
 **  'IsDigit' returns 1 if its character argument is a digit from  the  range
 **  '0..9' and 0 otherwise.
 */
-#define IsDigit(ch)     (isdigit(ch))
+#define IsDigit(ch)     (isdigit((int)ch))
+
+/****************************************************************************
+**
+*F  IsSpace( <ch> ) . . . . . . . . . . . . . . . .is a character whitespace
+**
+**  'IsDigit' returns 1 if its character argument is whitespace: ' ', tab,
+**  carriage return, linefeed or vertical tab
+*/
+#define IsSpace(ch)     (isspace((int)ch))
 
 
 /****************************************************************************

@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C) 1993, 1997
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains the implementation of the Dixon-Schneider algorithm
 ##
@@ -2237,17 +2238,23 @@ end );
 # Amer. Math. Soc., Providence, RI, 1993. 
 
 BindGlobal("DixonRepGHchi",function(G,H,chi)
-local cg,ch,d,i,j,pos,theta,hl,alpha,A,x,ra,l,r,res,mats,alonin,hom,rt,rti,
-      rtl,wert,bw,bx,AF,cnt,sum,sp;
-  cg:=ConjugacyClasses(G);
+local tblG, cg, d, tblH, res, pos, theta, hl, sp, ch, alpha, AF, bw, cnt,
+      sum, A, x, ra, l, rt, rti, rtl, r, alonin, wert, bx, mats, hom, i;
+
+  tblG:=UnderlyingCharacterTable(chi);
+  if UnderlyingGroup(tblG)<>G then
+    Error("inconsistent groups");
+  fi;
+  cg:=ConjugacyClasses(tblG);
   d:=chi[1];
 
-  Irr(H);
-  FusionConjugacyClasses(H,G);
-  res:=Restricted(chi,H);
+  tblH:=CharacterTable(H);
+  Irr(tblH);
+  FusionConjugacyClasses(tblH,tblG);
+  res:=Restricted(chi,tblH);
   pos:=1;
   theta:=fail;
-  hl:=Filtered(Irr(H),i->i[1]=1);
+  hl:=Filtered(Irr(tblH),i->i[1]=1);
   while theta=fail and pos<=Length(hl) do
     sp:=ScalarProduct(res,hl[pos]);
     if sp=1 then
@@ -2264,7 +2271,7 @@ local cg,ch,d,i,j,pos,theta,hl,alpha,A,x,ra,l,r,res,mats,alonin,hom,rt,rti,
 
   Info(InfoCharacterTable,2,"DixonRepGHchi ",Size(G),",",Size(H),":\n",chi);
 
-  ch:=ConjugacyClasses(H);
+  ch:=ConjugacyClasses(tblH);
 
   alpha:=function(t)
   local ti,s,hi,z,elm,pos;

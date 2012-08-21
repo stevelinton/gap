@@ -497,7 +497,7 @@ DECLARE_PROJECTIVE_GROUPS_OPERATION("SpecialUnitaryGroup","SU",2,
 
 #PseudoDeclare("ProjectiveSymplecticGroup");
 #PseudoDeclare("PSP");
-DECLARE_PROJECTIVE_GROUPS_OPERATION("SymplecticGroup","SP",2,
+DECLARE_PROJECTIVE_GROUPS_OPERATION("SymplecticGroup","SP",1,
   # size function
   function(n,q,g)
     return Size(g)/Gcd(2,q-1);

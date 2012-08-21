@@ -8,6 +8,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  1. Functions for creating group general mappings by images
 ##  2. Functions for creating natural homomorphisms
@@ -270,7 +271,8 @@ local   filter,  hom,pcgs,imgso,mapi;
   # (So we can used MappedWord for mapping)?
   if IsSubgroupFpGroup(G) then
     if HasIsWholeFamily(G) and IsWholeFamily(G) 
-      and gens=GeneratorsOfGroup(G) then
+      and List(gens,UnderlyingElement)
+          =List(GeneratorsOfGroup(G),UnderlyingElement) then
       filter := filter and IsFromFpGroupStdGensGeneralMappingByImages;
     else
       filter := filter and IsFromFpGroupGeneralMappingByImages;

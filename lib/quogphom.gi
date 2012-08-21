@@ -7,6 +7,7 @@
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1999 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 Revision.quogphom_gi :=
     "@(#)$Id$";
@@ -279,7 +280,7 @@ InstallOtherMethod( One, "for quotient groups", true,
 	    return One( Q.1 );
 
 	elif HasOne(Q) then 
-	    return Q!.One;
+	    return Q!.OneImmutable;
 
         # Some G had:  GeneratorsOfMagmaWithInverses (length 0),
         # GeneratorsOfMagma (length 1), and GeneratorsOfMagmaWithOne (length 1).

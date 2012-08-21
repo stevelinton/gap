@@ -252,6 +252,9 @@ end;
 
 SMTX.IsAbsolutelyIrreducible:=function(module)
   if not IsBound(module.IsAbsolutelyIrreducible) then
+    if not SMTX.IsIrreducible(module) then
+      return false;
+    fi;
     module.IsAbsolutelyIrreducible:=SMTX.AbsoluteIrreducibilityTest(module);
   fi;
   return module.IsAbsolutelyIrreducible;
@@ -458,7 +461,9 @@ SMTX_SubGModule := function(module, subspace)
   return SMTX.SpinnedBasis(subspace, SMTX.Generators(module),
                                     SMTX.Field(module));
 end;
+
 SMTX.SubGModule := SMTX_SubGModule;
+SMTX.SubmoduleGModule := SMTX_SubGModule;
 
 #############################################################################
 ##
@@ -1332,6 +1337,7 @@ SMTX_RandomIrreducibleSubGModule := function ( module )
       # this is done by triangulization
       F := SMTX.Field(module);
       subbasis2 := ranSub[1] * subbasis;
+      subbasis2:=List(subbasis2,ShallowCopy);
       TriangulizeMat(subbasis2);
 
       # But now since we've normed the basis subbasis2, 
@@ -1986,13 +1992,14 @@ end;
 ## number of times it occurs in module.
 ##
 SMTX_CollectedFactors:= function ( module )
-local dim, factors, factorsout, queue, cmod, new,
+  local field,dim, factors, factorsout, queue, cmod, new,
       d, i, j, l, lq, lf, q, smod, ds, homs, mat;
    if SMTX.IsMTXModule (module) = false then
       return Error ("Argument is not a module.");
    fi;
 
    dim := SMTX.Dimension(module);
+   field:= SMTX.Field(module);
    factors := [];
    for i in [1..dim] do
       factors[i] := [];
@@ -2067,7 +2074,8 @@ local dim, factors, factorsout, queue, cmod, new,
                mat := Concatenation(mat,homs[i]);
              od;
              TriangulizeMat(mat);
-             MakeImmutable(mat);
+	     mat:=Filtered(mat,i->not IsZero(i));
+	     mat:=ImmutableMatrix(field,mat);
              queue[lq + 1] := SMTX.InducedActionFactorModule(cmod, mat);
            fi;
          else

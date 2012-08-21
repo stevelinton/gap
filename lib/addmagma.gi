@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 Revision.addmagma_gi :=
     "@(#)$Id$";
@@ -563,6 +564,16 @@ InstallMethod( Representative,
     true,
     [ IsAdditiveMagmaWithZero and HasZero ], SUM_FLAGS,
     Zero );
+
+InstallMethod( Representative,
+    "for additive-magma-with-zero with stored parent",
+    [ IsAdditiveMagmaWithZero and HasParentAttr ],
+    function( A )
+    if not IsIdenticalObj( A, Parent( A ) ) then
+      return Zero( Representative( Parent( A ) ) );
+    fi;
+    TryNextMethod();
+    end );
 
 
 #############################################################################

@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1997,  St. Andrews
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains functions that compute Hermite and Smith normal forms 
 ##  of integer matrices, with or without the HNF/SNF  expressed as the linear 

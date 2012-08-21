@@ -6,6 +6,7 @@
 %A  @(#)$Id$
 %%
 %Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+%Y  Copyright (C) 2002 The GAP Group
 %%
 %%  The documentation in this chapter corresponds to the declarations in the
 %%  library files `ctbl.gd', `ctblauto.gd', `ctblgrp.gd', `ctblothe.gd',

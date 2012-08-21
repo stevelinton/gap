@@ -7,6 +7,7 @@
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains the methods for groups with a polycyclic collector.
 ##
@@ -176,6 +177,12 @@ InstallMethod( Pcgs,
     0,
     FamilyPcgs );
 
+
+#############################################################################
+##
+#M  GeneralizedPcgs( <G> )
+##
+InstallImmediateMethod( GeneralizedPcgs, IsGroup and HasPcgs, 0, Pcgs );
 
 #############################################################################
 ##
@@ -915,9 +922,7 @@ function( G, n )
             modu,  max,  series,  comps,  sub,  new,  index,  order;
 
     spec := SpecialPcgs( G );
-    if Length( spec ) = 0 then
-        return 1;
-    fi;
+    if Length( spec ) = 0 then return 1; fi;
     first := LGFirst( spec );
     weights := LGWeights( spec );
     m := Length( spec );
@@ -925,13 +930,12 @@ function( G, n )
     # the first head
     i := 1;
     phi := 1;
-    while weights[first[i]][1] = 1 and weights[first[i]][2] = 1 do
+    while i <= Length(first)-1 and 
+          weights[first[i]][1] = 1 and weights[first[i]][2] = 1 do
         start := first[i];
         next  := first[i+1];
         p     := weights[start][3];
         d     := next - start;
-        r     := Length( Filtered( weights, x -> x[1] = 1 and x[3] = p ) );
-        phi   := phi * p^( n * ( r - d ) ); 
         for j in [0..d-1] do
             phi := phi * (p^n - p^j);
         od;
@@ -995,7 +999,10 @@ function( G, n )
 end );
 
 RedispatchOnCondition(EulerianFunction,true,[IsGroup,IsPosInt],
-  [IsSolvableGroup,IsPosInt],0);
+  [IsSolvableGroup,IsPosInt], 
+  1 # make the priority higher than the default method computing
+    # the table of marks
+  ); 
 
 #############################################################################
 ##
@@ -1410,6 +1417,11 @@ local G,	   # common parent
 	Add(eas,i);
       fi;
     od;
+    for i in eas do
+      if not HasHomePcgs(i) then
+	SetHomePcgs(i,home);
+      fi;
+    od;
 
     Hp:=InducedPcgs(home,H);
 
@@ -1493,6 +1505,10 @@ local i,P;
   G:=AsSubgroup(P,G);
   return G;
 end);
+
+# enforce solvability check.
+RedispatchOnCondition(CentralizerModulo,true,[IsGroup,IsGroup,IsObject],
+  [IsGroup and IsSolvableGroup,IsGroup and IsSolvableGroup,IsObject],0);
 
 #############################################################################
 ##

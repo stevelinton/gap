@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains methods for Molien series.
 ##
@@ -231,6 +232,7 @@ InstallGlobalFunction( MolienSeries, function( arg )
           series,       # Molien series, result
           denom,        # smallest common denominator for the summands
           denomstring,  # string of `denom', in factored form
+          c,            # coefficients & valuation
           numerstring,  # string of `numer'
           denominfo,    # list of pairs `[ r, k ]' in the denominator
           rkpairs,      # list of pairs of the form `[ r, k ]'
@@ -527,8 +529,9 @@ InstallGlobalFunction( MolienSeries, function( arg )
     denomstring:= denomstring{ [ 1 .. Length(denomstring)-1] };
     ConvertToStringRep( denomstring );
 
+    c:= CoefficientsOfLaurentPolynomial( numer );
     numerstring:= StringOfUnivariateRationalPolynomialByCoefficients(
-        CoefficientsOfLaurentPolynomial( numer )[1], "z" );
+        Concatenation( ListWithIdenticalEntries( c[2], 0 ), c[1] ), "z" );
 
     # Compute the series.
     series:= numer / denom;

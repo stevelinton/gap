@@ -8,6 +8,7 @@
 **
 *Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 *Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+*Y  Copyright (C) 2002 The GAP Group
 **
 **  The  files  "system.c" and  "sysfiles.c"   contain  all operating  system
 **  dependent functions.  File and  stream operations are implemented in this
@@ -1068,6 +1069,10 @@ Int SyFopen (
 	SyExit(2);
       }
     
+#if SYS_IS_CYGWIN32
+    if(SyStrlen(mode) >= 2 && mode[1] == 'b')
+       flags |= O_BINARY;
+#endif
     /* try to open the file                                                */
     if ( 0 <= (syBuf[fid].fp = open(name,flags, 0644)) ) {
         syBuf[fid].pipe = 0;
@@ -3470,7 +3475,7 @@ Int SyFseek (
  * (actually linux missing)
  */
 
-#if CYGWIN
+#if SYS_IS_CYGWIN32
 #  define LINE_END_HACK 1
 #endif
 

@@ -4,6 +4,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen, Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains some functions to convert a pc group into an
 ##  fp group and vice versa.
@@ -711,7 +712,6 @@ local field, dim, rep, lift,all,dims,allmo,mo,start,found,genum,genepi;
   field := GF(prime);
   start:=epi;
   dims:=List(CharacterDegrees(epi.image,prime),i->i[1]);
-dims:=[1..4];
 
   genum:=Length(Pcgs(epi.image)); # number of generators of the starting
                                   # group. (We need to consider nontrivial

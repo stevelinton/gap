@@ -3,6 +3,7 @@
 #W  ghomfp.gi                   GAP library                  Alexander Hulpke
 ##
 #Y  (C) 2000 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 Revision.ghomfp_gi :=
     "@(#)$Id$";
@@ -558,7 +559,7 @@ InstallMethod( CompositionMapping2,
       IsGroupHomomorphism and IsFromFpGroupGeneralMappingByImages and
       HasCosetTableFpHom], 0,
 function( hom1, hom2 )
-local map,tab,tab2;
+local map,tab,tab2,i;
   if IsNiceMonomorphism(hom2) then
     # this is unlikely, but who knows of the things to come...
     TryNextMethod();
@@ -573,7 +574,12 @@ local map,tab,tab2;
   SetIsMapping(map,true);
   tab:=CosetTableFpHom(hom2);
   tab2:=CopiedAugmentedCosetTable(tab);
-  tab2.primaryImages:=List(tab.primaryImages,i->ImagesRepresentative(hom1,i));
+  tab2.primaryImages:=[];
+  for i in [1..Length(tab.primaryImages)] do
+    if IsBound(tab.primaryImages[i]) then
+      tab2.primaryImages[i]:=ImagesRepresentative(hom1,tab.primaryImages[i]);
+    fi;
+  od;
   TrySecondaryImages(tab2);
   SetCosetTableFpHom(map,tab2);
   return map;

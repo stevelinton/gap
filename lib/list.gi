@@ -6,15 +6,17 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains methods for lists in general.
 ##
 Revision.list_gi :=
     "@(#)$Id$";
 
+
 #############################################################################
 ##
-#M  methods for nesting depths for some quick cases 
+#M  methods for nesting depths for some quick cases
 ##
 
 InstallMethod(NestingDepthA, [IsCyclotomicCollection and IsGeneralizedRowVector],
@@ -30,7 +32,7 @@ InstallMethod(NestingDepthA, [IsCyclotomicCollColl and
         IsGeneralizedRowVector],
         m->2);
 
-InstallMethod(NestingDepthM, [IsCyclotomicCollColl and 
+InstallMethod(NestingDepthM, [IsCyclotomicCollColl and
         IsOrdinaryMatrix and IsMultiplicativeGeneralizedRowVector],
         function( m )
     local t;
@@ -39,13 +41,13 @@ InstallMethod(NestingDepthM, [IsCyclotomicCollColl and
         TryNextMethod();
     else
         return 2;
-    fi;    
+    fi;
 end );
 
 #T just a temporary (?) hack in order to exclude lists of class functions
 
 InstallMethod(NestingDepthA, [IsFFECollColl and IsGeneralizedRowVector],
-        
+
         m->2);
 
 InstallMethod(NestingDepthM, [IsFFECollColl and IsOrdinaryMatrix and IsMultiplicativeGeneralizedRowVector],
@@ -2450,12 +2452,13 @@ InstallOtherMethod( AdditiveInverseSameMutability,
 #M  <nonlist> + <grv>  . . . . . . . . . .  for small list in `IsListDefault'
 ##
 ##  Default methods are installed only for small lists in `IsListDefault'.
-##  For those lists, the sum with a non-list is defined pointwise.
+##  For those lists, the sum with an object that is neither a list nor a
+##  domain is defined pointwise.
 ##
 InstallOtherMethod( \+,
     [ IsListDefault and IsSmallList, IsObject ],
     function( list, nonlist )
-    if IsList( nonlist ) then
+    if IsList( nonlist ) or IsDomain( nonlist ) then
       TryNextMethod();
     else
       return SUM_LIST_SCL_DEFAULT( list, nonlist );
@@ -2465,7 +2468,7 @@ InstallOtherMethod( \+,
 InstallOtherMethod( \+,
     [ IsObject, IsListDefault and IsSmallList ],
     function( nonlist, list )
-    if IsList( nonlist ) then
+    if IsList( nonlist ) or IsDomain( nonlist ) then
       TryNextMethod();
     else
       return SUM_SCL_LIST_DEFAULT( nonlist, list );
@@ -2535,12 +2538,6 @@ end );
 ##  depth at least $3$, `SUM_LISTS_SPECIAL' is called by the generic `\+'
 ##  method for two small lists in `IsListDefault'.
 ##
-
-
-
-                      
-    
-    
 BindGlobal( "SUM_LISTS_SPECIAL",
     function( left, right, depthleft, depthright )
     local result, len1, len2, i, depth, depth2, x;
@@ -2548,7 +2545,6 @@ BindGlobal( "SUM_LISTS_SPECIAL",
     result:= [];
     len1:= Length( left );
     len2:= Length( right );
-    
 
     # Compute the sum.
     if depthleft = depthright then
@@ -2698,7 +2694,7 @@ InstallOtherMethod( OneOp,
       TryNextMethod();
     fi;
     end );
-    
+
 InstallOtherMethod( OneSameMutability,
     [ IsListDefault ],
     function( mat )
@@ -2718,7 +2714,6 @@ InstallOtherMethod( OneSameMutability,
 ##  The `INV_MAT_DEFAULT' methods are faster for lists of FFEs because they
 ##  use `AddRowVector', etc.
 ##
-    
 InstallOtherMethod( InverseOp,
     "for default list whose rows are vectors of FFEs",
     [ IsListDefault and IsRingElementTable and IsFFECollColl ],
@@ -2748,7 +2743,7 @@ InstallOtherMethod( InverseOp,
       TryNextMethod();
     fi;
     end );
-    
+
 InstallOtherMethod( InverseSameMutability,
     "for default list whose rows are vectors of FFEs",
     [ IsListDefault and IsRingElementTable and IsFFECollColl ],
@@ -2791,19 +2786,19 @@ InstallOtherMethod( \^,
     PROD );
 
 
-
 #############################################################################
 ##
 #M  <mgrv> * <nonlist> . . . . . . . . . .  for small list in `IsListDefault'
 #M  <nonlist> * <mgrv> . . . . . . . . . .  for small list in `IsListDefault'
 ##
 ##  Default methods are installed only for small lists in `IsListDefault'.
-##  For those lists, the product with a non-list is defined pointwise.
+##  For those lists, the product with an object that is neither a list nor a
+##  domain is defined pointwise.
 ##
 InstallOtherMethod( \*,
     [ IsListDefault and IsSmallList, IsObject ],
     function( list, nonlist )
-    if IsList( nonlist ) then
+    if IsList( nonlist ) or IsDomain( nonlist ) then
       TryNextMethod();
     else
       return PROD_LIST_SCL_DEFAULT( list, nonlist );
@@ -2813,7 +2808,7 @@ InstallOtherMethod( \*,
 InstallOtherMethod( \*,
     [ IsObject, IsListDefault and IsSmallList ],
     function( nonlist, list )
-    if IsList( nonlist ) then
+    if IsList( nonlist ) or IsDomain( nonlist ) then
       TryNextMethod();
     else
       return PROD_SCL_LIST_DEFAULT( nonlist, list );
@@ -2827,7 +2822,7 @@ InstallOtherMethod( \*,
 ##
 BindGlobal( "LIST_WITH_HOLES", function( list, func )
     local result, i;
- 
+
     result:= [];
     for i in [ 1 .. Length( list ) ] do
       if IsBound( list[i] ) then
@@ -2931,17 +2926,23 @@ BindGlobal( "PROD_LISTS_SPECIAL",
 InstallOtherMethod( \*,
     [ IsListDefault and IsSmallList, IsListDefault and IsSmallList ],
     function( left, right )
-    local depth1, depth2;
+    local depth1, depth2, depthDiff, prod;
 
     depth1:= NestingDepthM( left );
     depth2:= NestingDepthM( right );
     if    (2 < depth1 and not IsDenseList( left ))
-       or (2 < depth2 and not IsDenseList( right )) then
+          or (2 < depth2 and not IsDenseList( right )) 
+          or  3 < depth1 or 3 < depth2 then
       return PROD_LISTS_SPECIAL( left, right, depth1, depth2 );
     elif IsOddInt( depth1 ) then
       if IsOddInt( depth2 ) or depth1 < depth2 then
-        # <vec> * <vec> or <vec> * <mat>
-        return PROD_LIST_LIST_DEFAULT( left, right );
+          # <vec> * <vec> or <vec> * <mat>
+          depthDiff := depth1 - depth2;
+          if depthDiff < -1 or depthDiff > 1 then
+              return PROD_LISTS_SPECIAL(left, right, depth1, depth2 );
+          else
+              return PROD_LIST_LIST_DEFAULT( left, right, depthDiff );
+          fi;
       else
         # <vec> * <scl>
         return PROD_LIST_SCL_DEFAULT( left, right );
@@ -2949,10 +2950,18 @@ InstallOtherMethod( \*,
     elif depth1 < depth2 then
       # <scl> * <vec> or <scl> * <mat>
       return PROD_SCL_LIST_DEFAULT( left, right );
-    else
-      # <mat> * <scl> or <mat> * <vec> or <mat> * <mat>
+  elif IsEvenInt(depth1) and IsOddInt(depth2) and depth1 > depth2 then
+      # <mat>*<vec> may need to adjust mutability
+      prod := PROD_LIST_SCL_DEFAULT( left, right );
+      if IsMutable(prod) and not IsMutable(right) and 
+         not IsMutable(left[PositionBound(left)]) then
+          MakeImmutable(prod);
+      fi;
+      return prod;
+  else
+      # <mat> * <scl> or  <mat> * <mat>
       return PROD_LIST_SCL_DEFAULT( left, right );
-    fi;
+  fi;
 end );
 
 
@@ -2963,7 +2972,7 @@ InstallMethod( \*,
           IsListDefault and IsSmallList and IsCyclotomicCollColl and
           IsPlistRep and IsRectangularTable],
         PROD_VECTOR_MATRIX);
-    
+
 InstallMethod( \*,
         "More efficient non-recursive method for matrix*matrix of cyclotomics",
         [ IsListDefault and IsSmallList and IsCyclotomicCollColl,
@@ -2980,8 +2989,8 @@ InstallMethod( \*,
     fi;
     return prod;
 end);
-    
-    
+
+
 #############################################################################
 ##
 #F  MOD_LIST_SCL_DEFAULT( <list>, <scalar> )
@@ -3560,14 +3569,9 @@ end);
 
 InstallMethod(IntersectSet,
         "for two ranges",
-        [IsRange and IsRangeRep and IsMutable, 
+        [IsRange and IsRangeRep and IsMutable,
          IsRange and IsRangeRep ],
         INTER_RANGE);
-
-
-            
-    
-    
 
 
 #############################################################################

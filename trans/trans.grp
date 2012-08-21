@@ -676,7 +676,7 @@ local i,j,a,b,l,p,deg,gut,g,grp,nr,f;
   if not IsInt(l) then
     Error("wrong arguments");
   fi;
-  deg:=[1..TRANSDEGREES];
+  deg:=[2..TRANSDEGREES];
   p:=Position(arglis,NrMovedPoints);
   if p<>fail then
     p:=arglis[p+1];
@@ -766,7 +766,7 @@ local i,j,a,b,l,p,deg,gut,g,grp,nr,f;
   od;
 
   if f then
-    Print("#W  AllTransitiveGroups: Degree restricted to [1..",
+    Print("#W  AllTransitiveGroups: Degree restricted to [2..",
           TRANSDEGREES,"]\n");
   fi;
 

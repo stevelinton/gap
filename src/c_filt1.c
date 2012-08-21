@@ -1251,23 +1251,23 @@ static Int InitKernel ( StructInitInfo * module )
  InitCopyGVar( "RANK_FILTER_COUNT", &GC_RANK__FILTER__COUNT );
  
  /* information for the functions */
- InitGlobalBag( &DefaultName, "GAPROOT/lib/filter1.g:DefaultName(-123512854)" );
- InitHandlerFunc( HdlrFunc1, "GAPROOT/lib/filter1.g:HdlrFunc1(-123512854)" );
- InitGlobalBag( &(NameFunc[1]), "GAPROOT/lib/filter1.g:NameFunc[1](-123512854)" );
- InitHandlerFunc( HdlrFunc2, "GAPROOT/lib/filter1.g:HdlrFunc2(-123512854)" );
- InitGlobalBag( &(NameFunc[2]), "GAPROOT/lib/filter1.g:NameFunc[2](-123512854)" );
- InitHandlerFunc( HdlrFunc3, "GAPROOT/lib/filter1.g:HdlrFunc3(-123512854)" );
- InitGlobalBag( &(NameFunc[3]), "GAPROOT/lib/filter1.g:NameFunc[3](-123512854)" );
- InitHandlerFunc( HdlrFunc4, "GAPROOT/lib/filter1.g:HdlrFunc4(-123512854)" );
- InitGlobalBag( &(NameFunc[4]), "GAPROOT/lib/filter1.g:NameFunc[4](-123512854)" );
- InitHandlerFunc( HdlrFunc5, "GAPROOT/lib/filter1.g:HdlrFunc5(-123512854)" );
- InitGlobalBag( &(NameFunc[5]), "GAPROOT/lib/filter1.g:NameFunc[5](-123512854)" );
- InitHandlerFunc( HdlrFunc6, "GAPROOT/lib/filter1.g:HdlrFunc6(-123512854)" );
- InitGlobalBag( &(NameFunc[6]), "GAPROOT/lib/filter1.g:NameFunc[6](-123512854)" );
- InitHandlerFunc( HdlrFunc7, "GAPROOT/lib/filter1.g:HdlrFunc7(-123512854)" );
- InitGlobalBag( &(NameFunc[7]), "GAPROOT/lib/filter1.g:NameFunc[7](-123512854)" );
- InitHandlerFunc( HdlrFunc8, "GAPROOT/lib/filter1.g:HdlrFunc8(-123512854)" );
- InitGlobalBag( &(NameFunc[8]), "GAPROOT/lib/filter1.g:NameFunc[8](-123512854)" );
+ InitGlobalBag( &DefaultName, "GAPROOT/lib/filter1.g:DefaultName(16960121)" );
+ InitHandlerFunc( HdlrFunc1, "GAPROOT/lib/filter1.g:HdlrFunc1(16960121)" );
+ InitGlobalBag( &(NameFunc[1]), "GAPROOT/lib/filter1.g:NameFunc[1](16960121)" );
+ InitHandlerFunc( HdlrFunc2, "GAPROOT/lib/filter1.g:HdlrFunc2(16960121)" );
+ InitGlobalBag( &(NameFunc[2]), "GAPROOT/lib/filter1.g:NameFunc[2](16960121)" );
+ InitHandlerFunc( HdlrFunc3, "GAPROOT/lib/filter1.g:HdlrFunc3(16960121)" );
+ InitGlobalBag( &(NameFunc[3]), "GAPROOT/lib/filter1.g:NameFunc[3](16960121)" );
+ InitHandlerFunc( HdlrFunc4, "GAPROOT/lib/filter1.g:HdlrFunc4(16960121)" );
+ InitGlobalBag( &(NameFunc[4]), "GAPROOT/lib/filter1.g:NameFunc[4](16960121)" );
+ InitHandlerFunc( HdlrFunc5, "GAPROOT/lib/filter1.g:HdlrFunc5(16960121)" );
+ InitGlobalBag( &(NameFunc[5]), "GAPROOT/lib/filter1.g:NameFunc[5](16960121)" );
+ InitHandlerFunc( HdlrFunc6, "GAPROOT/lib/filter1.g:HdlrFunc6(16960121)" );
+ InitGlobalBag( &(NameFunc[6]), "GAPROOT/lib/filter1.g:NameFunc[6](16960121)" );
+ InitHandlerFunc( HdlrFunc7, "GAPROOT/lib/filter1.g:HdlrFunc7(16960121)" );
+ InitGlobalBag( &(NameFunc[7]), "GAPROOT/lib/filter1.g:NameFunc[7](16960121)" );
+ InitHandlerFunc( HdlrFunc8, "GAPROOT/lib/filter1.g:HdlrFunc8(16960121)" );
+ InitGlobalBag( &(NameFunc[8]), "GAPROOT/lib/filter1.g:NameFunc[8](16960121)" );
  
  /* return success */
  return 0;
@@ -1441,7 +1441,7 @@ static StructInitInfo module = {
  /* revision_c  = */ 0,
  /* revision_h  = */ 0,
  /* version     = */ 0,
- /* crc         = */ -123512854,
+ /* crc         = */ 16960121,
  /* initKernel  = */ InitKernel,
  /* initLibrary = */ InitLibrary,
  /* checkInit   = */ 0,

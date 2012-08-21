@@ -16,7 +16,7 @@
 ##  
 ##  The "obvious text files" are currently: 
 ##  *.txt, *.gi, *.gd, *.g, *.c, *.h, *.htm, *.html, *.xml, *.tex, 
-##  *.six, *.bib, README.*, INSTALL.*, Makefile
+##  *.six, *.bib, *.tst, README.*, INSTALL.*, Makefile
 ##  
 
 pname=$1
@@ -32,7 +32,7 @@ rm -f $1.zoo
 zoo ah $1.zoo $allfiles
 
 # mark some files as text files
-for a in `find $1 -regex ".*\(\.txt\|\.gi\|\.gd\|\.g\|\.c\|\.h\|\.htm\|\.html\|\.xml\|\.tex\|\.six\|\.bib\|README.*\|INSTALL.*\|Makefile\)"`
+for a in `find $1 -regex ".*\(\.txt\|\.gi\|\.gd\|\.g\|\.c\|\.h\|\.htm\|\.html\|\.xml\|\.tex\|\.six\|\.bib\|\.tst\|README.*\|INSTALL.*\|Makefile\)"`
 do
   (echo '!TEXT!'; echo '/END') | zoo c $1.zoo $a
 done
@@ -46,10 +46,10 @@ rm -f $1-w.zip
 zip -9 $1 $allfiles
 
 # for Windows-version first the files considered as binary
-zip -9 $1-w `find $1 -regex ".*\(\.txt\|\.gi\|\.gd\|\.g\|\.c\|\.h\|\.htm\|\.html\|\.xml\|\.tex\|\.six\|\.bib\|README.*\|INSTALL.*\|Makefile\|/CVS\|/CVS/.*\|~\)" -prune -o -print`
+zip -9 $1-w `find $1 -regex ".*\(\.txt\|\.gi\|\.gd\|\.g\|\.c\|\.h\|\.htm\|\.html\|\.xml\|\.tex\|\.six\|\.bib\|\.tst\|README.*\|INSTALL.*\|Makefile\|/CVS\|/CVS/.*\|~\)" -prune -o -print`
 
 # text files with CR-LF line ends
-zip -9 -l $1-w `find $1 -regex ".*\(\.txt\|\.gi\|\.gd\|\.g\|\.c\|\.h\|\.htm\|\.html\|\.xml\|\.tex\|\.six\|\.bib\|README.*\|INSTALL.*\|Makefile\)"`
+zip -9 -l $1-w `find $1 -regex ".*\(\.txt\|\.gi\|\.gd\|\.g\|\.c\|\.h\|\.htm\|\.html\|\.xml\|\.tex\|\.six\|\.bib\|\.tst\|README.*\|INSTALL.*\|Makefile\)"`
 
 
 #############    tar.gz   ########################

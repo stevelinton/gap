@@ -7,6 +7,7 @@
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains support for {\GAP} packages.
 ##
@@ -71,9 +72,26 @@ local i,j,a,b;
   return true;
 end);
 
+#############################################################################
+##  
+#V  LOADED_PACKAGES
+##
+##  This is a mutable record, the component names are the packages that are
+##  currently loaded.
+##  The component for each package is a list of length two,
+##  the first entry being the path to the {\GAP} root directory that contains
+##  the package, 
+##  and the second being a list used by `CreateCompletionFilesPkg'.
+##
+##  For each package, the component with its first entry get bound in the
+##  `RequirePackage' call, and the second entry gets bound in the
+##  `ReadOrComplete' call (in `ReadOrCompletePkg').
+##
 BindGlobal( "LOADED_PACKAGES", rec() );
-BindGlobal( "PACKAGES_VERSIONS", rec() );
-BindGlobal( "PACKAGES_NAMES", rec() );
+
+BindGlobal( "PACKAGES_AVAILABLE_VERSIONS", rec() ); 
+BindGlobal( "PACKAGES_VERSIONS", rec() ); # versions of *loaded* packages
+BindGlobal( "PACKAGES_NAMES", rec() );    # names of *loaded* packages
 
 # CURRENTLY_TESTED_PACKAGES contains the version numbers of packages
 # which are currently tested for availability
@@ -98,8 +116,11 @@ IS_IN_PACKAGE_TEST := false; # indicates whether package
 IS_IN_PACKAGE_LOAD := false; # indicates whether currently
                              # already a package is being
                              # loaded
-AUTOLOAD_LOAD_DOCU := false; # used to permit documentation
-                             # loading if desired
+AUTOLOAD_LOAD_DOCU := false; # set to `true' to enable
+                             # `DeclarePackageAutoDocumentation'
+                             # during `TestPackageAvailability' of autoload
+                             # when the package itself is *not* to be loaded 
+                             # (i.e. at the same time disables `Re(re)adPkg') 
 
 #############################################################################
 ##
@@ -116,6 +137,13 @@ AUTOLOAD_LOAD_DOCU := false; # used to permit documentation
 BindGlobal( "TestPackageAvailability", function(name,ver)
 local init,path,isin;
  
+  if IS_IN_AUTOLOAD and IS_IN_PACKAGE_TEST then 
+                             # necessary because `TestPackageAvailability'
+    return false;            # may occur in a package's init.g file
+  fi;                        # ... don't return `fail' here as a workaround
+                             # for package NQ which may o/wise do Error in
+                             # autoloading
+
   name := LowercaseString(name);
   # Is the package already installed?
   if IsBound(PACKAGES_VERSIONS.(name)) and 
@@ -147,6 +175,8 @@ local init,path,isin;
   # read the `init' file once, ignoring all but `Declare(Auto)Package'
   isin:=IS_IN_PACKAGE_TEST;
   IS_IN_PACKAGE_TEST:=true;
+  Info(InfoWarning, 3, "TestPackageAvailability: reading init.g of package ",
+                       name); 
   Read(init);
   IS_IN_PACKAGE_TEST:=isin;
 
@@ -156,13 +186,10 @@ local init,path,isin;
   fi;
 
   if not IsBound(PACKAGES_VERSIONS.(name)) then
-    if AUTOLOAD_LOAD_DOCU=true then
-      # the package does not claim to be autoloadable.
-      AUTOLOAD_LOAD_DOCU:=false; 
-      return fail;
+    if not AUTOLOAD_LOAD_DOCU then
+      # the package requirements were not fulfilled
+      Info(InfoWarning,3,"Package ``",name,"'' has unfulfilled requirements");
     fi;
-    # the package requirements were not fulfilled
-    Info(InfoWarning,3,"Package ``",name,"'' has unfulfilled requirements");
     return fail;
   fi;
 
@@ -268,6 +295,77 @@ end);
 
 #############################################################################
 ##
+#F  TestIfPackageCurrent(<name>,<forauto>)
+##
+##  This function tests, whether the package <name> might require an update
+##  for loading. It returns `true' if the package should still be loaded and
+##  `false' otherwise.
+##  The <forauto> flag indicates whether we are in an autoload
+##  situation.
+##  This function uses the variable `UPDATED_PACKAGES' which is defined in
+##  `version.g'.
+BindGlobal("TestIfPackageCurrent",function(name,forauto)
+local pkg;
+  if name = "anupq" and TestPackageAvailability(name, "1.5") = fail and
+	TestPackageAvailability(name, "1.4") <> fail then
+	Print("\n","  This version (1.4) of the ANUPQ package contains ",
+	"known, dandgerous bugs\n     in the PqDescendants function\n",
+        "    Please upgrade to version 1.5 if it is avaiable yet. In the meantime\n",
+	"    please do not trust results from PqDescendants\n\n");		
+    return true;		
+  fi;			
+  if IsBound( UPDATED_PACKAGES.(name) ) then
+    pkg := UPDATED_PACKAGES.(name);
+    if TestPackageAvailability(name, pkg.safeversion) = fail then
+      if IsBound(pkg.quietAutoload) and pkg.quietAutoload=true
+	and IS_IN_AUTOLOAD then
+	Info(InfoWarning,3,"Package ",name, " ignoring test");
+	return true;
+      elif not IsBound( PACKAGES_AVAILABLE_VERSIONS.(name) ) then
+        # package is either not installed in any version or 
+        # its installation is incomplete
+        return false;
+      fi;
+
+      Print("\n",
+            "  The package `",name,"' is installed in a ",
+                "version older than ", pkg.safeversion, ".\n",
+            "  ", pkg.message, "\n",
+            "  It is strongly recommended to update to the ",
+                "most recent version which can\n",
+            "  be found at URL:\n",
+            "      ", pkg.urlForUpdate, "\n");
+      if pkg.refuseLoad then
+	  Print(
+            "  The non-upgraded package cannot be loaded.\n",
+            "\n");
+          return false;
+      elif forauto then
+        if pkg.refuseAutoload then
+	  Print(
+            "  The package will not autoload in this ",
+                "non-upgraded version.\n",
+            "  It is still possible to load it by hand by issuing ",
+                "the command:\n",
+            "      RequirePackage(\"",name,"\");\n",
+            "\n");
+	  return false;
+	else
+	  Print(
+            "  The package is still autoloaded, but you ",
+                "might encounter problems when\n",
+	    "  using package functionality.\n");
+	fi;
+      fi;
+      Print("\n");
+    fi;
+  fi;
+  return true;
+end);
+
+
+#############################################################################
+##
 #F  RequirePackage( <name>, [<version>] )
 ##  
 ##  loads  the  {\GAP}  package  <name>.  If  the  optional  version  string
@@ -288,6 +386,8 @@ DELAYED_PACKAGE_LOAD := [];
 BindGlobal( "RequirePackage", function(arg)
 local name,ver,init,path,isin, package, isauto;
 
+  Info(InfoWarning, 3, "testing? ", IS_IN_PACKAGE_TEST, " autoload? ",
+                       IS_IN_AUTOLOAD);
   if IS_IN_PACKAGE_TEST=true then
     # if we are testing the availability of another package, a
     # `RequirePackage' in its `init.g' file will be ignored.
@@ -295,10 +395,19 @@ local name,ver,init,path,isin, package, isauto;
   fi;
 
   name:= LowercaseString( arg[1] );
+
+
   if Length(arg)>1 then
     ver:=arg[2];
   else
     ver:="";
+  fi;
+
+  if not IS_IN_AUTOLOAD then
+    # issue warning, and possibly fail, if old version
+    if not TestIfPackageCurrent(name,false) then
+      return fail;
+    fi;
   fi;
 
   # test whether the package is available for requiring
@@ -310,7 +419,11 @@ local name,ver,init,path,isin, package, isauto;
     return true; # package already loaded
   fi;
 
-  init := Filename( path, "init.g" );
+  
+  # Store the directory containing the `init.g' file as the first entry.
+  LOADED_PACKAGES.( name ):= [ path ];
+
+  init:= Filename( path, "init.g" );
 
   isin:=IS_IN_PACKAGE_LOAD;
   IS_IN_PACKAGE_LOAD:=true;
@@ -384,6 +497,9 @@ BindGlobal( "DeclareAutoPackage", function( name, version, tester )
 
   # normalize name to lowercase
   lname := LowercaseString(name);
+  Info(InfoWarning, 3, "Declared package `", name, "' version: ", version);
+
+  AUTOLOAD_LOAD_DOCU:=false;
   CURRENTLY_TESTED_PACKAGES.(lname):=version;
   # test availability
   if IS_IN_PACKAGE_TEST=false then
@@ -394,14 +510,23 @@ BindGlobal( "DeclareAutoPackage", function( name, version, tester )
     tester:=tester();
   fi;
   if tester=true then
-    PACKAGES_VERSIONS.(lname):=Immutable(version);
-    PACKAGES_NAMES.(lname):=Immutable(name);
+    PACKAGES_AVAILABLE_VERSIONS.(lname):=version;
+    if not (IsBound(UPDATED_PACKAGES.(lname)) and
+            not CompareVersionNumbers(
+                    version, UPDATED_PACKAGES.(lname).safeversion) and
+            (UPDATED_PACKAGES.(lname).refuseLoad or
+             IS_IN_AUTOLOAD and UPDATED_PACKAGES.(lname).refuseAutoload)) then
+      PACKAGES_VERSIONS.(lname):=Immutable(version);
+      PACKAGES_NAMES.(lname):=Immutable(name);
+    fi;
+  else
+    AUTOLOAD_LOAD_DOCU:=true;
   fi;
 end );
 
-BindGlobal( "DeclarePackage", function( name, version,tester )
+BindGlobal( "DeclarePackage", function( name, version, tester )
   if IS_IN_AUTOLOAD=false then
-    DeclareAutoPackage( name, version,tester );
+    DeclareAutoPackage( name, version, tester );
     AUTOLOAD_LOAD_DOCU:=false;
   else
     # the package is not intended for autoloading. So at least we give the
@@ -437,6 +562,12 @@ end );
 BindGlobal( "DeclarePackageAutoDocumentation", function( arg )
   local pkg, doc, short, long, file;
 
+  if IS_IN_PACKAGE_TEST and not AUTOLOAD_LOAD_DOCU then 
+    # `DeclarePackage(Auto)Documentation' is a noop during
+    # `TestPackageAvailability' but not during a `RequirePackage'
+    return;
+  fi;
+
   pkg := arg[1];
   doc := arg[2];
   if Length(arg) > 2 then
@@ -449,30 +580,26 @@ BindGlobal( "DeclarePackageAutoDocumentation", function( arg )
   else
     long := Concatenation("GAP Package `", pkg, "'" );
   fi;
+
+  Info(InfoWarning, 3, "(auto)loading documentation for: ", pkg);
   
-  # on the second (true) read 
-  if IS_IN_PACKAGE_TEST=false 
-     or AUTOLOAD_LOAD_DOCU=true
-  #install the documentation
-   then
-    # test for the existence of a `manual.six' file
-    file := Filename(DirectoriesPackageLibrary(LowercaseString(pkg),doc),
-                     "manual.six");
-    if file = fail then
-      # if we are not autoloading print a warning that the documentation
-      # is not available.
-      Info(InfoWarning,1,"Package `",pkg,
-	  "': cannot load documentation, no manual index file `",doc,
-	  "/manual.six'" );
-    else
-      # declare the location
-      doc := Directory(file{[1..Length(file)-10]});
-      if AUTOLOAD_LOAD_DOCU then
-	# indicate that the package still needs requiring
-        short := Concatenation(short," (not loaded)");
-      fi;
-      HELP_ADD_BOOK(short, long, doc);
+  # test for the existence of a `manual.six' file
+  file := Filename(DirectoriesPackageLibrary(LowercaseString(pkg),doc),
+                   "manual.six");
+  if file = fail then
+    # if we are not autoloading print a warning that the documentation
+    # is not available.
+    Info(InfoWarning,1,"Package `",pkg,
+         "': cannot load documentation, no manual index file `",doc,
+         "/manual.six'" );
+  else
+    # declare the location
+    doc := Directory(file{[1..Length(file)-10]});
+    if not IsBound(LOADED_PACKAGES.(LowercaseString(pkg))) then
+      # indicate that the package still needs requiring
+      short := Concatenation(short," (not loaded)");
     fi;
+    HELP_ADD_BOOK(short, long, doc);
   fi;
 
 end );
@@ -550,7 +677,7 @@ BindGlobal("AutoloadablePackagesList",function()
           Append(paks, Filtered(List(RECORDS_FILE(f), LowercaseString), test));
       fi;
     od;
-    return paks;
+    return Set( paks );
 
 end);
 
@@ -564,10 +691,10 @@ end);
 ##
 BindGlobal( "ReadPkg", function( arg )
 # This must be a wrapper to be skipped when `init.g' is read the first
-# time.
+# time. It must also be skipped if Declare(Auto)Package returns fail
+# (in this case, AUTOLOAD_LOAD_DOCU is true).
 local path;
-  if IS_IN_PACKAGE_TEST=false and
-    AUTOLOAD_LOAD_DOCU=false then
+  if IS_IN_PACKAGE_TEST=false and AUTOLOAD_LOAD_DOCU=false then
     # normalize package name to lower case
     arg[1] := LowercaseString(arg[1]);
     if Length(arg)=1 then

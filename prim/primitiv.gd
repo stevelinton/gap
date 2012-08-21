@@ -101,7 +101,7 @@ DeclareGlobalFunction( "NrPrimitiveGroups" );
 
 #2
 ##  The selection functions (see~"Selection functions") for the primitive
-##  groups library are `AllTransitiveGroups' and `OneTransitiveGroup'. They
+##  groups library are `AllPrimitiveGroups' and `OnePrimitiveGroup'. They
 ##  obtain the following properties from the database without having to
 ##  compute them anew: 
 ##

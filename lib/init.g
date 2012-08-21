@@ -8,6 +8,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file initializes GAP.
 ##
@@ -548,7 +549,7 @@ local PL,P,COMPONENTNAME,N;
 	  PL:=PL+Length(COMPONENTNAME)+2;
 	  P:=true;
 	od;
-	Print("  installed.\n");
+	Print("  loaded.\n");
       fi;
       if LOADED_PACKAGES<>rec() then
 	Print("Packages:    ");
@@ -571,7 +572,7 @@ local PL,P,COMPONENTNAME,N;
 	  PL:=PL+Length(N)+2;
 	  P:=true;
 	od;
-	Print("  installed.\n");
+	Print("  loaded.\n");
       fi;
     fi;
   fi;
@@ -618,15 +619,23 @@ fi;
 ##
 ##  Autoload packages (suppressing banners)
 ##
+INFOWARNING_LEVEL_ORIG := InfoLevel( InfoWarning );
 BANNER_ORIG := BANNER;
 MakeReadWriteGVar("BANNER"); BANNER := false;
 IS_IN_AUTOLOAD:=true;
 for COMPONENTNAME in AUTOLOAD_PACKAGES do
-  Info(InfoWarning,2,"autoloading:",COMPONENTNAME);
-  RequirePackage(COMPONENTNAME);
+  if TestIfPackageCurrent(COMPONENTNAME,true) then
+    Info(InfoWarning,2,"autoloading:",COMPONENTNAME);
+    RequirePackage(COMPONENTNAME);
+  fi;
 od;
+AUTOLOAD_LOAD_DOCU:=false;
 IS_IN_AUTOLOAD:=false;
 BANNER := BANNER_ORIG; MakeReadOnlyGVar("BANNER");
+
+# temporary workaround in case a package reset the info level of
+# InfoWarning.
+SetInfoLevel( InfoWarning, INFOWARNING_LEVEL_ORIG );
 
 #############################################################################
 ##

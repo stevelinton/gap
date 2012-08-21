@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains  the basic methods for  creating and doing  arithmetic
 ##  with GF2 vectors and matrices.
@@ -831,6 +832,9 @@ InstallMethod( InverseSameMutability,
         function(m)
     local inv,i;
     inv := INV_PLIST_GF2VECS_DESTRUCTIVE(List(m, ShallowCopy));
+    if inv = TRY_NEXT_METHOD then
+        TryNextMethod();
+    fi;
     if IsMutable(m) then
         if not IsMutable(m[1]) then
             for i in [1..Length(m)] do
@@ -1887,6 +1891,14 @@ InstallMethod(NestingDepthM, [IsGF2MatrixRep], m->2);
 InstallMethod(NestingDepthA, [IsGF2MatrixRep], m->2);
 InstallMethod(NestingDepthM, [IsGF2VectorRep], m->1);
 InstallMethod(NestingDepthA, [IsGF2VectorRep], m->1);
+
+InstallMethod(PostMakeImmutable, [IsGF2MatrixRep], 
+        function(m)
+    local i;
+    for i in [2..m![1]] do
+        MakeImmutable(m![i]);
+    od;
+end);
 
 #############################################################################
 ##

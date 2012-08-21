@@ -6,6 +6,7 @@
 **
 *Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 *Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+*Y  Copyright (C) 2002 The GAP Group
 **
 **  This file contains the functions concerned with saving and loading
 **  the workspace. There are support functions in gasman.c and elsewhere
@@ -30,6 +31,7 @@ const char * Revision_saveload_c =
 #include        "sysfiles.h"            /* file input/output               */
 #include        "plist.h"               /* plain lists                     */
 #include        "float.h"               /* floating points */
+#include        "compstat.h"            /* statically compiled modules     */
 
 #define INCLUDE_DECLARATION_PART
 #include        "saveload.h"            /* saving and loading              */
@@ -679,6 +681,7 @@ static void WriteSaveHeader( void )
 
   for ( i = NrBuiltinModules; i < NrModules; i++)
     {
+      SaveUInt(Modules[i]->type);
       SaveUInt(Modules[i]->isGapRootRelative);
       SaveCStr(Modules[i]->filename);
     }
@@ -811,29 +814,51 @@ void LoadWorkspace( Char * fname )
 
   for (i = 0; i < nMods; i++)
     {
+      UInt type = LoadUInt();
       isGapRootRelative = LoadUInt();
       LoadCStr(buf,256);
       if (isGapRootRelative)
         READ_GAP_ROOT( buf);
       else
 	{
-	  InitInfoFunc init;
 	  StructInitInfo *info = NULL;
-	  
-	  init = SyLoadModule(buf);
-	  if ((Int)init == 1 || (Int) init == 3 || (Int) init == 5 || (Int) init == 7 ||
-	      0 == (info = (*init)()) )
-	    {
-	      Pr("Failed to load needed dynamic module %s, error code %d\n",
-		 (Int)buf, (Int) init);
+ 	  /* Search for user module static case first */
+	  if (type == MODULE_STATIC) { 
+	    UInt k;
+	    for ( k = 0;  CompInitFuncs[k];  k++ ) {
+	      info = (*(CompInitFuncs[k]))();
+	      if ( info == 0 ) {
+		continue;
+	      }
+	      if ( ! SyStrcmp( buf, info->name ) ) {
+		break;
+	      }
+	    }
+	    if ( CompInitFuncs[k] == 0 ) {
+	      Pr( "Static module %s not found in loading kernel\n",
+		  (Int)buf, 0L );
 	      SyExit(1);
 	    }
-	      /* link and init me                                                    */
-	  info->isGapRootRelative = 0;
-	  (info->initKernel)(info);
-	  RecordLoadedModule(info, buf);
-	}
-
+	
+	  } else {
+	    /* and dynamic case */
+	    InitInfoFunc init; 
+	    init = SyLoadModule(buf);
+	    
+	    if ((Int)init == 1 || (Int) init == 3 || (Int) init == 5 || (Int) init == 7 ||
+		0 == (info = (*init)()) )
+	      {
+		Pr("Failed to load needed dynamic module %s, error code %d\n",
+		   (Int)buf, (Int) init);
+		SyExit(1);
+	      }
+	  }
+	/* link and init me                                                    */
+	info->isGapRootRelative = 0;
+	(info->initKernel)(info);
+	RecordLoadedModule(info, buf);
+      }
+      
     }
 
   /* Now the kernel variables that point into the workspace */

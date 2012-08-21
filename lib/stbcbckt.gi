@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen, Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains the basic   routines for permutation group   backtrack
 ##  algorithms that are based  on partitions. These  routines are used in the
@@ -1200,6 +1201,7 @@ InstallGlobalFunction( PartitionBacktrack,
             
         fi;
         a := rbase.base[ d ];
+        Info(InfoBckt,4,d,"th basepoint: ",a);
         
         # Intersect  the current cell of <P>  with  the mapped basic orbit of
         # <G> (and also with the one of <H> in the intersection case).
@@ -1227,6 +1229,11 @@ InstallGlobalFunction( PartitionBacktrack,
                 fi;
             od;
         fi;
+	if d=1 and ForAll(GeneratorsOfGroup(G),x->a^x=a) then
+	  orb[d][a]:=true; # ensure a is a possible image (can happen if
+			  # acting on permutations with more points)
+	fi;
+
         orB[ d ] := StructuralCopy( orb[ d ] );
         
         # Loop  over the candidate images  for the  current base point. First
@@ -1313,6 +1320,7 @@ InstallGlobalFunction( PartitionBacktrack,
                 # refinement was impossible, give up for this image.
                 image.bimg[ d ] := b;
                 IsolatePoint( image.partition, b );
+
                 if ProcessFixpoint( image, a, b, org[ d ][ b ] )  then
                     t := RRefine( rbase, image, false );
                 else
@@ -2386,8 +2394,9 @@ InstallGlobalFunction( IsomorphismPermGroups, function( arg )
         F := First( GeneratorsOfGroup( F ), gen -> Order( gen ) <> 1 );
         return RepOpElmTuplesPermGroup( true, G, [ E ], [ F ], L, R );
     fi;
-    Omega := MovedPoints( Concatenation( GeneratorsOfGroup( G ),
-                     GeneratorsOfGroup( E ), GeneratorsOfGroup( F ) ) );
+    # `Suborbits' uses all points. (AH, 7/17/02)
+    Omega := [1..Maximum(MovedPoints( Concatenation( GeneratorsOfGroup( G ),
+	     GeneratorsOfGroup( E ), GeneratorsOfGroup( F ) ) ))];
 
     # test whether we have a chance mapping the groups (as their orbits fit
     # together)
@@ -2418,6 +2427,7 @@ InstallGlobalFunction( IsomorphismPermGroups, function( arg )
         Add( data, rbase.reggrp( F, Omega ) );
     fi;
 
+
     return PartitionBacktrack( G, Pr, true, rbase, data, L, R );
 end );
 
@@ -2441,8 +2451,9 @@ local   G,  E,  div, Omega,  Pr, rbase,  data,  N,  B,  L;
                      gen -> Order( gen ) <> 1 ) ];
         return RepOpElmTuplesPermGroup( false, G, E, E, L, L );
     fi;
-    Omega := MovedPoints( Concatenation( GeneratorsOfGroup( G ),
-                     GeneratorsOfGroup( E ) ) );
+    # `Suborbits' uses all points. (AH, 7/17/02)
+    Omega := [1..Maximum(MovedPoints( Concatenation( GeneratorsOfGroup( G ),
+	     GeneratorsOfGroup( E ) ) ))];
     Pr := gen -> ForAll( GeneratorsOfGroup( E ), g -> g ^ gen in E );
     if   Length( arg ) = 3  then  L := arg[ 3 ];
     elif IsSubset( G, E )   then  L := E;

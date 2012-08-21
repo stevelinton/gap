@@ -11,12 +11,6 @@
 Revision.primitiv_gi:=
   "@(#)$Id$";
 
-#############################################################################
-##
-## tell GAP about the component
-##
-DeclareComponent("trans","1.0");
-
 Unbind(PRIMGRP);
 
 #############################################################################
@@ -121,7 +115,7 @@ InstallMethod(PrimitiveIdentification,"generic",true,[IsPermGroup],0,
 function(grp)
 local dom,deg,PD,s,cand,a,p,b,i,ag,bg,q;
   dom:=MovedPoints(grp);
-  if not IsTransitive(grp,dom) and IsPrimitive(grp,dom) then
+  if not (IsTransitive(grp,dom) and IsPrimitive(grp,dom)) then
     Error("Group must operate primitively");
   fi;
   deg:=Length(dom);

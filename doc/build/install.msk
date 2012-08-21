@@ -13,6 +13,7 @@
 %%
 %Y  Copyright 1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,   Germany
 %Y  (C) 1998 School Math and Comp. Sci., University of St  Andrews, Scotland
+%Y  Copyright (C) 2002 The GAP Group
 %%
 %%  This file contains the  description of the installation procedure 
 %%  for various operating systems.
@@ -85,9 +86,9 @@ are using {\GAP} and get feedback regarding difficulties (hopefully none)
 that users may have had with installation.)
 
 You might also want to unpack and install {\GAP} packages.
-Generally, this involves first getting `acceptedpkg{{versionsuffix}}.zoo' and
+Generally, this involves first getting `accpkg{{versionsuffix}}.zoo' and
 `deppkg{{versionsuffix}}.zoo' (these have all the accepted/refereed and
-all the submitted but not yet refereed {\GAP} packages, respectively) or 
+all the deposited but not yet refereed {\GAP} packages, respectively) or 
 visiting the {\GAP} website again and first looking for the `GAP Packages'
 link and following through to the individual {\GAP} package `.zoo' files you
 want. The package `.zoo' files should all be `unzoo'-ed in the `pkg'
@@ -135,6 +136,11 @@ installation, including all {\GAP} packages and data libraries can use 200MB
 and more of disk space. {\GAP} will compile on pentium (586) processors, 
 though a faster machine is recommended.
 
+We list and describe the extraction from `.zoo' archives below. As of 
+{\GAP}~4.3, however, we also supply the equivalent `.zip' and `.tar.gz' 
+archives (simply download the archive type you prefer and use the
+corresponding extraction command).
+
 (If you already downloaded an installation archive, you may ignore the rest of
 this section.)
 
@@ -142,14 +148,14 @@ The easiest way to get {\GAP} for most users is probably via the
 World Wide Web. The main {\GAP} Web site is found at
 \URL{http://www.gap-system.org}
 
-There are three *mirror sites* updated automatically each night, at:
+There are two *mirror sites* updated automatically each night, at:
 
 \URL{http://www.math.rwth-aachen.de/~GAP}
 
 \URL{http://www.ccs.neu.edu/mirrors/GAP} and
 
-\URL{http://wwwmaths.anu.edu.au/research.groups/algebra/GAP/www/}
-
+%\URL{http://wwwmaths.anu.edu.au/research.groups/algebra/GAP/www/}
+%
 At these sites you can browse this manual, download the system and
 contributed extensions, read past postings to the {\GAP} forum, and
 find out about authors of and contributors to {\GAP}, publications
@@ -172,13 +178,13 @@ servers.
   College of Computer Science,
   Northeastern University, Boston, USA.
   Directory `/pub/mirrors/ftp-gap.dcs.st-and.ac.uk/pub/gap/gap4'.
-
-`pell.anu.edu.au':&
-  School of Mathematical Sciences, Australian National University,
-  Canberra, Australia.
-  Directory `/pub/algebra/gap4/'.
 \enditems
 
+%`pell.anu.edu.au':&
+%  School of Mathematical Sciences, Australian National University,
+%  Canberra, Australia.
+%  Directory `/pub/algebra/gap4/'.
+%
 %`math.ucla.edu':
 %
 % Math. Dept., Univ. of California at Los Angeles,
@@ -206,17 +212,21 @@ version of {\GAP} available.
 The WWW page for the {\GAP} distribution and the `ftp' directory
 contain the following files. Please check first
 which files you need, to avoid transferring those that you do not need.
+Except for the package archives all archives should be extracted at the
+``top'' level level (i.e.~they contain a `gap{{versionsuffix}}' directory).
 
 \beginitems
 `INSTALL', `INSTALL.WIN', `INSTALL-MAC.TXT':&
-  Installation files, one of which you are currently reading.
+ Installation files, one of which you are currently reading.
 
 `FILES':&
-  More detailed description of the available files.
+ More detailed description of the available files.
 
 `gap{{versionsuffix}}.zoo':&
- This file contains the *complete* distribution
- of {\GAP} version {{versionnumber}}.
+ This file contains the *complete* standard distribution
+ of {\GAP} version {{versionnumber}} (it does not include the packages
+ contained in `accpkg{{versionsuffix}}.zoo' and
+ `deppkg{{versionsuffix}}.zoo').
 
 `basic{{versionsuffix}}.zoo':&
  This file contains a *minimal* distribution
@@ -232,13 +242,22 @@ which files you need, to avoid transferring those that you do not need.
  will also need to obtain the binaries separately from the `bin'
  subdirectory via ftp or from the links on the Distribution web page.
 
-`acceptedpkg{{versionsuffix}}.zoo':&
+`accpkg{{versionsuffix}}.zoo':&
  This file contains all accepted {\GAP} packages as of the release date.
+ It should be extracted in the `pkg' directory of a previously extracted
+ {\GAP} distribution or a user's private `pkg' directory.
 
 `deppkg{{versionsuffix}}.zoo':&
- This file contains all submitted, but not accepted, {\GAP} packages
+ This file contains all deposited, but not accepted, {\GAP} packages
  whose authors wish to make them available, as of the release date. They
  should be viewed as analogous to preprints.
+ It should be extracted in the `pkg' directory of a previously extracted
+ {\GAP} distribution or a user's private `pkg' directory.
+
+`tools{{versionsuffix}}.zoo':&
+ This file contains additional files not provided in the standard 
+ distribution, mainly needed by package developers for the purpose of
+ generating documentation.
 
 `util/unzoo.c':&
  A simple `zoo' archive extractor, which should be
@@ -258,12 +277,12 @@ which files you need, to avoid transferring those that you do not need.
  This directory contains the complete distribution
  of {\GAP} {{versionnumber}} in several smaller archives.
 
-`share':&
+`accpkg':&
  This directory contains all accepted {\GAP} packages in case you don't want
- to load the comprehensive `acceptedpkg' archive.
+ to load the comprehensive `accpkg' archive.
 
-`deposit/psh':&
- This directory contains all submitted but not accepted {\GAP} packages 
+`deposit/pkg':&
+ This directory contains all deposited but not yet accepted {\GAP} packages 
  whose authors wish to make them available, in
  case you don't want to load the comprehensive `deppkg' archive.
 \enditems
@@ -383,12 +402,12 @@ you@unix> ../unzoo -x ../fix{{versionsuffix}}n3.zoo
 \endtt
 
 If you got any {\GAP} packages, extract them in the `pkg' subdirectory in the
-same way. For example if you got the `acceptedpkg{{versionsuffix}}.zoo' and
+same way. For example if you got the `accpkg{{versionsuffix}}.zoo' and
 `deppkg{{versionsuffix}}.zoo' archives, you would issue:
 
 \begintt
 you@unix> cd pkg
-you@unix> ../../unzoo -x ../../acceptedpkg{{versionsuffix}}.zoo
+you@unix> ../../unzoo -x ../../accpkg{{versionsuffix}}.zoo
 you@unix> ../../unzoo -x ../../deppkg{{versionsuffix}}.zoo
 you@unix> cd ..
 \endtt
@@ -1053,7 +1072,7 @@ in another directory and how to test the installation.
 
 Some users report that the `rxvt' shell gives a btter windows environment
 for cut/paste etc. You can find information on this at
-\URL{http://www.gap-system.org/~gap/Forum/Pasechni.1/Dima.1/Re__Wind.1/1.html}
+\URL{http://www.gap-system.org/Forum/Pasechni.1/Dima.1/Re__Wind.1/1.html}
 
 If you decide to install {\GAP} in another directory you can do so, but you
 will have to edit a batch file and use this file to start {\GAP}.
@@ -1205,10 +1224,6 @@ folder you want to install {\GAP} {{versionnumber}}.
 {\GAP} will be installed in a subfolder `{{gapdirname}}' of this folder.
 You can later move {\GAP} to a different location.
 
-The following installation example assumes that you are installing {\GAP}
-in the folder `GAP' on a PowerPC Macintosh. (For a 68k Macintosh you should
-replace all references to `PPC' to ones referring to `68K'
-
 Note that certain parts of the output in the examples
 should only be taken as rough outline, especially file sizes and file
 dates are *not* to be taken literally.
@@ -1218,7 +1233,8 @@ this document.
 
 Get the Mac-specific files described  in  "Getting  GAP",  that  is,  the
 distribution   `gapmac{{versionsuffix}}.zoo',    the    binary    archive
-`unzoo-PPC.sit', the most recent bugfix, and the {\GAP} application  program  (also
+`unzoo4r3-PPC.sit', the most recent bugfix, and the {\GAP} application  
+program  (also
 called *binary* or  *executable*).  The  {\GAP}  application  program  is
 distributed     as     a     binary     archive.     It     is     called
 `bin{{versionsuffix}}-PPC.sit' if no  bugfixes  requiring  a  new  {\GAP}
@@ -1231,54 +1247,44 @@ subdirectory on the ftp servers.
 How you can get those
 files is described in the section "Getting GAP". Remember that the
 distribution consists of binary files and that you must transmit them in
-binary mode. Make sure all of the downloaded files are in the `GAP' folder.
+binary mode. 
 
 If the `sit' files did not extract automatically click on them to extract
 them. If even this fails use one of the standard 
 decompression utilities, such as `Stuffit Expander'.
 
-After this process you should end up with two binaries,
-`GAP 4 PPC' and `unzoo PPC' in the folder `GAP'.
+After this process you should end up with two applications,
+`GAP 4 PPC' and `unzoo 4.3 PPC'. 
 
-Click on `unzoo PPC'. You will get a new window with a prompt line. Type
-\begintt
--x gapmac{{versionsuffix}}.zoo
-\endtt
-followed by <return>. You will get many lines of output in this window. When
-you get the prompt again type simply <return> to leave `unzoo'.
-
-This should have created a folder `{{gapdirname}}' in the current folder.
-
-(The `zoo' archives we provide for {\GAP} contain comments which indicate
+The latter is used to uncompress the `.zoo' archives which contain most of 
+{\GAP}. The `zoo' archives we provide for {\GAP} contain comments which indicate
 whether files are text or binary files. The `unzoo' we provide uses these
 comments. If you use another zoo extractor you might lose this information
-and end up with files that contain text but cannot be opened as text files.)
+and end up with files that contain text but cannot be opened as text files.
+
+The following installation example assumes that you are installing {\GAP}
+in the folder `Applications' on a PowerPC Macintosh. (For a 68k Macintosh 
+you should replace all references to `PPC' to ones referring to `68K'
+
+Move the file `gapmac{{versionsuffix}}.zoo' into the folder `Applications'
+and drag it onto the icon of `unzoo 4.3 PPC'. You will get many lines of 
+output in this window. 
 
 This should have created a folder `{{gapdirname}}' in the current folder.
+
+(You will not need the file `gapmac{{versionsuffix}}.zoo' any
+longer. If you are short of disk space you can remove it now.)
 
 If you got not the full distribution file but several small files, extract
 all of them (*except the bug fixes and {\GAP} packages!*) in this way.
 
-Move `unzoo', `GAP 4 PPC' and the bugfix file in the folder `{{gapdirname}}'.
-
-(Afterwards you will not need the file `gapmac{{versionsuffix}}.zoo' any
-longer. If you are short of disk space you can remove it now.)
-
-Now go in the folder `{{gapdirname}}'. If you got a bug fix, extract
-it there. To expand the files in the right place, `unzoo' and the bugfix
-archive must be in the `{{gapdirname}}' folder. In this way, they are
-applicable even if you chose later to move the root folder `{{gapdirname}}'
-of your {\GAP} installation to another place.
-
-You can unpack a bugfix, by again starting `unzoo' and typing
-
-\begintt
--x -o fix{{versionsuffix}}n3.zoo
-\endtt
+Move  `GAP 4 PPC' and the bugfix file (if there is one) in the folder 
+`{{gapdirname}}'. Drag the bugfix file onto the icon of `unzoo 4.3 PPC'
+to decompress it. 
 
 If you got any {\GAP} packages, move them into the `pkg' folder in the folder 
-folder `{{gapdirname}}' along with `unzoo PPC' and extract them in the `pkg' 
-subdirectory in the same way as the bugfix.
+folder `{{gapdirname}}' extract them there, in the same way as the bugfix.
+
 Some {\GAP} packages are set up to load (or provide the documentation)
 automatically. To enable this, after installing all the packages you think
 you will need, you should list all the {\GAP} packages you have installed
@@ -1288,7 +1294,7 @@ Package" in the Reference Manual for details).
 After extraction you may discard all `.zoo' files if you are short of disk 
 space.
 
-The directories `trans', `small' and `prim' contain data
+The folders `trans', `small' and `prim' contain data
 libraries. If you are short of disk space you can erase some of them and
 any {\GAP} package directories in the `pkg' directory that you don't need,
 but then of course you will not be able to access these data and packages.
@@ -1296,9 +1302,6 @@ but then of course you will not be able to access these data and packages.
 and you may as well delete those; such packages typically describe in their
 `README' files that they require `configure' and `make' to complete their
 installation or have a `src' directory.)
-
-As there is a precompiled binary in the `{{gapdirname}}' folder, there is no
-need to compile {\GAP} yourself.
 
 Before you use {\GAP}, you should set up {\GAP}'s memory allocation, by 
 setting appropriate values by selecting the {\GAP} application and 
@@ -1626,6 +1629,12 @@ in your `.Xresources' or `.Xdefaults' file.
 A good test to see if you need this remedy is to check the display of:
 $\{1,\dots,n\}$; if you see an ellipsis (three dots) between the commas,
 you are ok, and if you see `1/4' you need the remedy!
+
+If you have problems viewing symbol fonts on the Mac, you may have 
+to choose Mac font encoding, sometimes called MacRoman, or Western (Mac).
+More information about the font setup on Macintoshes can be found 
+\URL{http://hutchinson.belmont.ma.us/tth/manual/sec12.html},
+Section 12.3.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{If Things Go Wrong}

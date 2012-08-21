@@ -7,6 +7,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains the implementations corresponding to the declarations
 ##  in `ctbl.gd'.
@@ -3483,7 +3484,6 @@ InstallMethod( IndicatorOp,
     "for a Brauer character table and <n> = 2",
     [ IsBrauerTable, IsHomogeneousList, IsPosInt ],
     function( modtbl, ibr, n )
-
     local ordtbl,
           irr,
           ordindicator,
@@ -3495,13 +3495,12 @@ InstallMethod( IndicatorOp,
 
     if n <> 2 then
       Error( "for Brauer table <modtbl> only for <n> = 2" );
-    elif Characteristic( modtbl ) = 2 then
+    elif UnderlyingCharacteristic( modtbl ) = 2 then
       Error( "for Brauer table <modtbl> only in odd characteristic" );
     fi;
 
     ordtbl:= OrdinaryCharacterTable( modtbl );
     irr:= Irr( ordtbl );
-#   ibr:= Irr( modtbl );
     ordindicator:= Indicator( ordtbl, irr, 2 );
     fus:= GetFusionMap( modtbl, ordtbl );
 
@@ -4781,7 +4780,7 @@ InstallMethod( CharacterTableDirectProduct,
           i, j;     # loop variables
 
     # Check that the result will in fact be a Brauer table.
-    if Size( tbl2 ) mod UnderlyingCharacteristic( tbl1 ) <> 0 then
+    if Size( tbl2 ) mod UnderlyingCharacteristic( tbl1 ) = 0 then
       Error( "no direct product of Brauer table and p-singular ordinary" );
     fi;
 
@@ -4844,7 +4843,7 @@ InstallMethod( CharacterTableDirectProduct,
           i, j;     # loop variables
 
     # Check that the result will in fact be a Brauer table.
-    if Size( tbl1 ) mod UnderlyingCharacteristic( tbl2 ) <> 0 then
+    if Size( tbl1 ) mod UnderlyingCharacteristic( tbl2 ) = 0 then
       Error( "no direct product of Brauer table and p-singular ordinary" );
     fi;
 
@@ -4926,19 +4925,25 @@ InstallMethod( CharacterTableDirectProduct,
                          List( Irr( tbl2 ), ValuesOfClassFunction ) ),
        vals -> Character( reg, vals ) ) );
 
-    # Store projections and embeddings
+    # Store projections.
     fus:= [];
     for i in [ 1 .. ncc1 ] do
       for j in [ 1 .. ncc2 ] do fus[ ( i - 1 ) * ncc2 + j ]:= i; od;
     od;
-    StoreFusion( reg, fus, tbl1 );
-
+    StoreFusion( reg,
+                 rec( map := fus,
+                      specification := "1" ),
+                 tbl1 );
     fus:= [];
     for i in [ 1 .. ncc1 ] do
       for j in [ 1 .. ncc2 ] do fus[ ( i - 1 ) * ncc2 + j ]:= j; od;
     od;
-    StoreFusion( reg, fus, tbl2 );
+    StoreFusion( reg,
+                 rec( map := fus,
+                      specification := "2" ),
+                 tbl2 );
 
+    # Store embeddings.
     StoreFusion( tbl1,
                  rec( map := [ 1, ncc2+1 .. (ncc1-1)*ncc2+1 ],
                       specification := "1" ),

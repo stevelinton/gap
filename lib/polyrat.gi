@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1999 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains functions for polynomials over the rationals
 ##
@@ -680,6 +681,12 @@ end);
 BindGlobal("RPIGcd", function(R,f,g)
 local a,t;
 
+  # special case zero:
+  if IsZero(f) then
+    return g;
+  elif IsZero(g) then
+    return f;
+  fi;
   # compute the Beauzamy bound for the gcd
   t := rec(prime := 1000);
   t.brci:=CIUnivPols(f,g);
@@ -2014,6 +2021,9 @@ end);
 InstallGlobalFunction(HeuGcdIntPolsCoeffs,function(f,g)
 local xi, t, h, i, lf, lg, lh,fr,gr;
   
+  if IsEmpty(f) or IsEmpty(g) then
+    return fail;
+  fi;
   # first test value for heuristic gcd:
   xi:=2+2*Minimum(Maximum(List(f,AbsInt)),Maximum(List(g,AbsInt)));
   i:=0;

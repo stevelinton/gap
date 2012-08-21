@@ -6,6 +6,7 @@
 **
 *Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 *Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+*Y  Copyright (C) 2002 The GAP Group
 **
 **  This file contains the functions of the objects package.
 */
@@ -710,6 +711,8 @@ Obj MutableCopyObjHandler (
 **
 */
 
+Obj PostMakeImmutableOp = 0;
+
 void (*MakeImmutableObjFuncs[LAST_REAL_TNUM+1])( Obj );
 
 
@@ -739,7 +742,7 @@ void MakeImmutableComObj( Obj obj)
     }
   */
   CALL_2ARGS( RESET_FILTER_OBJ, obj, IsMutableObjFilt );
-  
+  CALL_1ARGS( PostMakeImmutableOp, obj);
 }
 
 void MakeImmutablePosObj( Obj obj)
@@ -752,6 +755,7 @@ void MakeImmutablePosObj( Obj obj)
     }
   */
   CALL_2ARGS( RESET_FILTER_OBJ, obj, IsMutableObjFilt );
+  CALL_1ARGS( PostMakeImmutableOp, obj);
   
 }
 
@@ -1584,6 +1588,7 @@ static Int InitKernel (
 
     /* functions for 'to-be-defined' objects                               */
     ImportFuncFromLibrary( "IsToBeDefinedObj", &IsToBeDefinedObj );
+    ImportFuncFromLibrary( "PostMakeImmutable", &PostMakeImmutableOp );
     ImportGVarFromLibrary( "REREADING", &REREADING );
 
     /* init filters and functions                                          */

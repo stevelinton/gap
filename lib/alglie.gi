@@ -7,6 +7,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains methods for Lie algebras.
 ##
@@ -340,6 +341,11 @@ InstallMethod( LieCentralizer,
           vjl,
           pos;
 
+    # catch trivial case
+    if Dimension(S) = 0 then
+       return A;
+    fi;
+
     R:= LeftActingDomain( A );
     B:= Basis( A );
     T:= StructureConstantsTable( B );
@@ -418,6 +424,11 @@ InstallMethod( LieNormalizer,
           bas,
           b,
           pos;
+
+    # catch trivial case
+    if Dimension(U) = 0 then
+       return L;
+    fi;
 
     # We need not work if `U' knows to be an ideal in its parent `L'.
     if HasParent( U ) and IsIdenticalObj( L, Parent( U ) )
@@ -1928,9 +1939,12 @@ InstallMethod( DirectSumDecomposition,
           i:=1;
           while i<= Length( B ) do
 
-            comlist:= List( bb, x -> List( B[i], y -> x*y ) );
-            comlist:= Filtered( Flat( comlist ), x -> x <> Zero( L ) );
-            if comlist <> [] then
+            comlist:= [ ];
+            for j in [1..Length(bb)] do
+                Append( comlist, List( B[i], y -> bb[j]*y ) );
+            od;
+
+            if not ForAll( comlist, x -> x = Zero(L) ) then
               Append( bb, B[i] );
               B:= Filtered( B, x -> x <> B[i] );
               i:= 1;

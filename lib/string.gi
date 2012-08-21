@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains functions for strings.
 ##
@@ -676,6 +677,9 @@ InstallGlobalFunction(FileString, function(arg)
     append := arg[3];
   else
     append := false;
+  fi;
+  if not (IsString(name) and IsString(str) and IsBool(append)) then
+      Error("Usage: FileString(<name>, <str> [, <append> ])");
   fi;
   out := OutputTextFile(name, append);
   if out=fail then

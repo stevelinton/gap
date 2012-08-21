@@ -7,6 +7,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains generic methods for algebras and algebras-with-one.
 ##
@@ -570,8 +571,8 @@ InstallGlobalFunction( ReducedSCTable, function( T, one )
     od;
 
     # Store zero coefficient and symmetry flag.
-    new[ n+1 ]:= T[ n+1 ] * one;
-    new[ n+2 ]:= T[ n+2 ];
+    new[ n+1 ]:= T[ n+1 ];
+    new[ n+2 ]:= T[ n+2 ] * one;
 
     # Return the immutable new table.
     MakeImmutable( new );
@@ -1885,14 +1886,20 @@ InstallMethod( \=,
 
 #############################################################################
 ##
-#M  IsSubset( <G>, <H> )  . . . . . . . . . . . .  test for subset of FLMLORs
+#M  IsSubset( <A1>, <A2> )  . . . . . . . . . . .  test for subset of FLMLORs
 ##
 InstallMethod( IsSubset,
     "for two FLMLORs",
     IsIdenticalObj,
     [ IsFLMLOR, IsFLMLOR ],
     function( D1, D2 )
-    local inters;
+    local inters, F1, F2;
+    F1:= LeftActingDomain( D1 );
+    F2:= LeftActingDomain( D2 );
+    if not ( HasIsDivisionRing( F1 ) and IsDivisionRing( F1 ) and
+             HasIsDivisionRing( F2 ) and IsDivisionRing( F2 ) ) then
+      TryNextMethod();
+    fi;
     if LeftActingDomain( D1 ) = LeftActingDomain( D2 ) then
       return      GeneratorsOfLeftOperatorRing( D1 )
                 = GeneratorsOfLeftOperatorRing( D2 )
@@ -1909,11 +1916,25 @@ InstallMethod( IsSubset,
     "for two FLMLORs-with-one",
     IsIdenticalObj,
     [ IsFLMLORWithOne, IsFLMLORWithOne ],
-    function( G, H )
-    return     GeneratorsOfLeftOperatorRingWithOne( G )
-             = GeneratorsOfLeftOperatorRingWithOne( H )
-          or ( Dimension( H ) <= Dimension( G )
-               and IsSubset( G, GeneratorsOfLeftOperatorRingWithOne( H ) ) );
+    function( D1, D2 )
+    local inters, F1, F2;
+    F1:= LeftActingDomain( D1 );
+    F2:= LeftActingDomain( D2 );
+    if not ( HasIsDivisionRing( F1 ) and IsDivisionRing( F1 ) and
+             HasIsDivisionRing( F2 ) and IsDivisionRing( F2 ) ) then
+      TryNextMethod();
+    fi;
+    if LeftActingDomain( D1 ) = LeftActingDomain( D2 ) then
+      return      GeneratorsOfLeftOperatorRingWithOne( D1 )
+                = GeneratorsOfLeftOperatorRingWithOne( D2 )
+             or ( Dimension( D2 ) <= Dimension( D1 )
+                  and IsSubset( D1, GeneratorsOfAlgebraWithOne( D2 ) ) );
+    else
+      inters:= Intersection2( LeftActingDomain( D1 ),
+                              LeftActingDomain( D2 ) );
+      return IsSubset( AsFLMLORWithOne( inters, D1 ),
+                       AsFLMLORWithOne( inters, D2 ) );
+    fi;
     end );
 
 
@@ -2715,7 +2736,7 @@ InstallMethod( ProductSpace,
     C:= SubalgebraNC( P, BasisVectors( MB ), "basis" );
 
     SetIsTwoSidedIdealInParent( C, true );
-    SetBasis( C, ImmutableBasis( MB ) );
+    SetBasis( C, ImmutableBasis( MB, C ) );
 
     # Return the result.
     return C;
@@ -2743,7 +2764,7 @@ InstallMethod( ProductSpace,
     C:= SubalgebraNC( Parent( U ), BasisVectors( MB ), "basis" );
 
     SetIsTwoSidedIdealInParent( C, true );
-    SetBasis( C, ImmutableBasis( MB ) );
+    SetBasis( C, ImmutableBasis( MB, C ) );
 
     # Return the result.
     return C;

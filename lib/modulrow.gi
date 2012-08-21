@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains methods for *row modules*, that is,
 ##  free left modules consisting of row vectors.
@@ -68,12 +69,7 @@ InstallOtherMethod( \^,
 InstallMethod( IsRowModule,
     "for a free left module",
     [ IsFreeLeftModule ],
-    function( M )
-    local gens;
-    gens:= GeneratorsOfLeftModule( M );
-    return    ( IsEmpty( gens ) and IsRowVector( Zero( M ) ) )
-           or IsMatrix( gens );
-    end );
+    M -> IsRowVector( Zero( M ) ) );
 
 
 #############################################################################

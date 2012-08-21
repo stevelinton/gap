@@ -7,6 +7,7 @@
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains the methods for finitely presented groups (fp groups).
 ##  Methods for subgroups of fp groups can also be found in `sgpres.gi'.
@@ -574,7 +575,8 @@ function( G )
             row,        # a row of <mat>
             rel,        # a relator of <G>
             p,          # position of <g> or its inverse in <gens>
-            i;          # loop variable
+            i,          # loop variable
+	    inv;
 
     Fam := ElementsFamily( FamilyObj( G ) );
     gens := FreeGeneratorsOfFpGroup( G );
@@ -603,7 +605,14 @@ function( G )
     DiagonalizeMat( Integers, mat );
 
     # return the abelian invariants
-    return AbelianInvariantsOfList( DiagonalOfMat( mat ) );
+    inv:=AbelianInvariantsOfList( DiagonalOfMat( mat ) );
+    if 0 in inv then
+      SetSize(G,infinity);
+    elif Length(gens)=1 or (HasIsAbelian(G) and IsAbelian(G)) then
+      # abelian
+      SetSize(G,Product(inv));
+    fi;
+    return inv;
 end );
 
 
@@ -616,7 +625,7 @@ InstallMethod( AbelianInvariants,
   [ IsSubgroupFpGroup ], 0,
 function( H )
 
-    local G;
+    local G,inv;
 
     if IsGroupOfFamily( H ) then
       TryNextMethod();
@@ -626,7 +635,14 @@ function( H )
     G:= FamilyObj( H )!.wholeGroup;
 
     # Call the global function for subgroups of f.p. groups.
-    return AbelianInvariantsSubgroupFpGroup( G, H );
+    inv:=AbelianInvariantsSubgroupFpGroup( G, H );
+    if 0 in inv then
+      SetSize(H,infinity);
+    elif HasIsAbelian(H) and IsAbelian(H) then
+      # abelian
+      SetSize(H,Product(inv));
+    fi;
+    return inv;
 end );
 
 #############################################################################
@@ -1614,12 +1630,12 @@ InstallMethod(Intersection2,"subgroups of fp group by quotient",IsIdenticalObj,
 function ( G, H )
 local d,A,B,e1,e2,Ag,Bg,s,sg,u,v;
 
-  # its worth to check inclusion first
-  if IndexInWholeGroup(G)<=IndexInWholeGroup(H) and IsSubset(G,H) then
-    return H;
-  elif IndexInWholeGroup(H)<=IndexInWholeGroup(G) and IsSubset(H,G) then
-    return G;
-  fi;
+  # it is not worth to check inclusion first since we're reducing afterwards
+  #if IndexInWholeGroup(G)<=IndexInWholeGroup(H) and IsSubset(G,H) then
+  #  return H;
+  #elif IndexInWholeGroup(H)<=IndexInWholeGroup(G) and IsSubset(H,G) then
+  #  return G;
+  #fi;
 
   A:=G!.quot;
   B:=H!.quot;
@@ -1640,6 +1656,18 @@ local d,A,B,e1,e2,Ag,Bg,s,sg,u,v;
   v:=PreImagesSet(Projection(d,2),H!.sub);
   u:=Intersection(u,v);
   u:=Intersection(u,s);
+
+  # reduce
+  if IsPermGroup(s) then
+    d:=SmallerDegreePermutationRepresentation(s);
+    A:=Image(d,s);
+    if NrMovedPoints(A)<NrMovedPoints(s) then
+      Info(InfoFpGroup,3,"reduced degree from ",NrMovedPoints(s)," to ",
+           NrMovedPoints(A));
+      s:=A;
+      u:=Image(d,u);
+    fi;
+  fi;
 
   return SubgroupOfWholeGroupByQuotientSubgroup(FamilyObj(G),s,u);
 end);
@@ -2661,7 +2689,7 @@ BindGlobal( "DoLowIndexSubgroupsFpGroup", function ( arg )
 #		    sub:=SubgroupOfWholeGroupByCosetTable(FamilyObj(G),
 #		           tableInWholeGroup);
 
-		    if HasSize( G ) then
+		    if HasSize( G ) and Size(G)<>infinity then
 		      SetSize( sub, Size( G ) / Index(G,sub) );
 		    fi;
 
@@ -3860,7 +3888,8 @@ local A,B,Q,gens,int,i,fam;
   A:=U!.sub;
   # generators of G in permutation image
   gens:=List(GeneratorsOfGroup(G),elm->
-    MappedWord(elm,FreeGeneratorsOfWholeGroup(U),GeneratorsOfGroup(Q)));
+    MappedWord(UnderlyingElement(elm),
+      FreeGeneratorsOfWholeGroup(U),GeneratorsOfGroup(Q)));
   B:=Subgroup(Q,gens);
   int:=IntermediateSubgroups(B,A);
   B:=[];
@@ -3875,12 +3904,13 @@ end);
 ##
 #F  GQuotients(<F>,<G>)  . . . . . epimorphisms from F onto G up to conjugacy
 ##
-InstallMethod(GQuotients,"whole fp group",true,
+InstallMethod(GQuotients,"whole fp group to finite group",true,
   [IsSubgroupFpGroup and IsWholeFamily,IsGroup and IsFinite],1,
 function (F,G)
 local Fgens,	# generators of F
       rels,	# power relations
       cl,	# classes of G
+      imgo,imgos,sel,
       e,	# excluded orders (for which the presentation collapses
       u,	# trial generating set's group
       pimgs,	# possible images
@@ -3904,7 +3934,11 @@ local Fgens,	# generators of F
   elif Length(Fgens)=1 then
     Info(InfoMorph,1,"Cyclic group: only one quotient possible");
     # a cyclic group has at most one quotient
-    if not IsCyclic(G) then
+
+    # force size (in abelian invariants)
+    e:=AbelianInvariants(F);
+
+    if not IsCyclic(G) or (IsFinite(F) and not IsInt(Size(F)/Size(G))) then
       return [];
     else
       # get the cyclic gens
@@ -3965,12 +3999,18 @@ local Fgens,	# generators of F
   h:=MorClassLoop(G,pimgs, rec(gens:=Fgens,to:=G,from:=F,
 			       free:=FreeGeneratorsOfFpGroup(F),
                                rels:=List(RelatorsOfFpGroup(F),i->[i,1])),13);
-  Info(InfoMorph,2,"Test kernels");
+  Info(InfoMorph,2,"Found ",Length(h)," maps, test kernels");
+  imgos:=[];
   cl:=[];
   u:=[];
   for i in h do
-    if not KernelOfMultiplicativeGeneralMapping(i) in u then
+    imgo:=List(Fgens,j->Image(i,j));
+    imgo:=Concatenation(imgo,MorFroWords(imgo));
+    imgo:=List(imgo,Order);
+    sel:=Filtered([1..Length(imgos)],i->imgos[i]=imgo);
+    if not KernelOfMultiplicativeGeneralMapping(i) in u{sel} then
       Add(u,KernelOfMultiplicativeGeneralMapping(i));
+      Add(imgos,imgo);
       Add(cl,i);
     fi;
   od;

@@ -49,7 +49,7 @@ true
 gap> Dimension( w );
 1
 gap> n:= NiceVector( w, [ Z(27), Z(3), Z(3) ] );
-[ 0*Z(3), Z(3)^0, 0*Z(3), Z(3), 0*Z(3), 0*Z(3), Z(3), 0*Z(3), 0*Z(3) ]
+[ Z(3), Z(3), Z(3^2)^3, Z(3), 0*Z(3), 0*Z(3), Z(3), 0*Z(3), 0*Z(3) ]
 gap> UglyVector( w, n ) = [ Z(27), Z(3), Z(3) ];
 true
 
@@ -74,22 +74,22 @@ gap> SiftedVector( b, [ 0*Z(3), 0*Z(3), Z(3) ] );
 gap> b:= Basis( v, [ [ Z(3), Z(3), Z(3) ] ] );
 fail
 gap> b:= Basis( v, [ [ Z(3), Z(3), Z(3) ], [ Z(3), Z(3), 0*Z(3) ] ] );
-Basis( <vector space over GF(3^2), with 2 generators>,
+Basis( <vector space over GF(3^2), with 2 generators>, 
 [ [ Z(3), Z(3), Z(3) ], [ Z(3), Z(3), 0*Z(3) ] ] )
 gap> IsSemiEchelonized( b );
 false
 gap> b:= Basis( v, [ [ Z(3), Z(3), Z(3) ], [ 0*Z(3), 0*Z(3), Z(3) ] ] );
-Basis( <vector space over GF(3^2), with 2 generators>,
+Basis( <vector space over GF(3^2), with 2 generators>, 
 [ [ Z(3), Z(3), Z(3) ], [ 0*Z(3), 0*Z(3), Z(3) ] ] )
 gap> IsSemiEchelonized( b );
 false
 gap> b:= Basis( v, [ [ Z(3)^0, Z(3)^0, Z(3)^0 ], [ Z(3)^0, Z(3)^0, 0*Z(3) ] ] );
-Basis( <vector space over GF(3^2), with 2 generators>,
+Basis( <vector space over GF(3^2), with 2 generators>, 
 [ [ Z(3)^0, Z(3)^0, Z(3)^0 ], [ Z(3)^0, Z(3)^0, 0*Z(3) ] ] )
 gap> IsSemiEchelonized( b );
 false
 gap> b:= Basis( v, [ [ Z(3)^0, Z(3)^0, Z(3)^0 ], [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] );
-SemiEchelonBasis( <vector space over GF(3^2), with 2 generators>,
+SemiEchelonBasis( <vector space over GF(3^2), with 2 generators>, 
 [ [ Z(3)^0, Z(3)^0, Z(3)^0 ], [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] )
 gap> IsSemiEchelonized( b );
 true
@@ -135,24 +135,24 @@ true
 
 gap> BasisNC( v,
 >     [ [ Z(3)^0, Z(3)^0, Z(3)^0 ], [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] );
-SemiEchelonBasis( <vector space over GF(3^2), with 2 generators>,
+SemiEchelonBasis( <vector space over GF(3^2), with 2 generators>, 
 [ [ Z(3)^0, Z(3)^0, Z(3)^0 ], [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] )
 gap> Basis( v );
-SemiEchelonBasis( <vector space over GF(3^2), with 2 generators>,
+SemiEchelonBasis( <vector space over GF(3^2), with 2 generators>, 
 [ [ Z(3)^0, Z(3)^0, Z(3)^0 ], [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] )
 gap> SemiEchelonBasis( v );
-SemiEchelonBasis( <vector space over GF(3^2), with 2 generators>,
+SemiEchelonBasis( <vector space over GF(3^2), with 2 generators>, 
 [ [ Z(3)^0, Z(3)^0, Z(3)^0 ], [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] )
 gap> b:= SemiEchelonBasis( v,
 >         [ [ Z(3), Z(3), Z(3) ], [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] );
 fail
 gap> b:= SemiEchelonBasis( v,
 >         [ [ Z(3)^0, Z(3)^0, Z(3)^0 ], [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] );
-SemiEchelonBasis( <vector space over GF(3^2), with 2 generators>,
+SemiEchelonBasis( <vector space over GF(3^2), with 2 generators>, 
 [ [ Z(3)^0, Z(3)^0, Z(3)^0 ], [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] )
 gap> b:= SemiEchelonBasisNC( v,
 >         [ [ Z(3)^0, Z(3)^0, Z(3)^0 ], [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] );
-SemiEchelonBasis( <vector space over GF(3^2), with 2 generators>,
+SemiEchelonBasis( <vector space over GF(3^2), with 2 generators>, 
 [ [ Z(3)^0, Z(3)^0, Z(3)^0 ], [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] )
 gap> c1:= CanonicalBasis( v );;
 gap> Print( c1, "\n" );
@@ -174,7 +174,7 @@ gap> Basis( w );
 Basis( <vector space over GF(3^2), with 3 generators>, ... )
 gap> b:= Basis( w,
 >         [ [ 0*Z(3), Z(3), Z(3) ], [ Z(27), Z(3), Z(3) ] ] );
-Basis( <vector space of dimension 2 over GF(3^2)>,
+Basis( <vector space of dimension 2 over GF(3^2)>, 
 [ [ 0*Z(3), Z(3), Z(3) ], [ Z(3^3), Z(3), Z(3) ] ] )
 gap> IsBasisByNiceBasis( b );
 true
@@ -325,7 +325,7 @@ true
 gap> BasisVectors( mb );
 [ [ 1, 1, 1, 1 ], [ 0, 1, 1, 1 ], [ 0, 0, 1, 2 ], [ 0, 0, 0, 1 ] ]
 gap> ImmutableBasis( mb );
-SemiEchelonBasis( <vector space of dimension 4 over Rationals>,
+SemiEchelonBasis( <vector space of dimension 4 over Rationals>, 
 [ [ 1, 1, 1, 1 ], [ 0, 1, 1, 1 ], [ 0, 0, 1, 2 ], [ 0, 0, 0, 1 ] ] )
 
 gap> mb:= MutableBasis( Rationals, [], [ 0, 0, 0, 0 ] );
@@ -338,7 +338,7 @@ true
 gap> BasisVectors( mb );
 [ [ 1, 2, 3, 4 ], [ 0, 0, 0, 1 ] ]
 gap> ImmutableBasis( mb );
-SemiEchelonBasis( <vector space of dimension 2 over Rationals>,
+SemiEchelonBasis( <vector space of dimension 2 over Rationals>, 
 [ [ 1, 2, 3, 4 ], [ 0, 0, 0, 1 ] ] )
 
 #############################################################################
@@ -373,7 +373,7 @@ Z(2)^0+Z(2^2)*x_1+x_1^2+Z(2^2)^2*x_1^3+x_1^4+Z(2^2)*x_1^5+x_1^6
 gap> MinimalPolynomial(F, A);
 Z(2)^0+Z(2^2)*x_1+x_1^2+Z(2^2)^2*x_1^3+x_1^4+Z(2^2)*x_1^5+x_1^6
 
-gap> STOP_TEST( "vspcrow.tst", 155797500 );
+gap> STOP_TEST( "vspcrow.tst", 207000000 );
 
 
 #############################################################################

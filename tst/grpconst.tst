@@ -9,18 +9,18 @@
 
 gap> START_TEST("$Id$");
 gap> if RequirePackage( "grpconst" )=fail then
-gap> Print("\n\n",
-> "*** As you do not have the `grpconst' share package installed, ***\n",
-> "*** you will get some error messages. They should be ignored.  ***\n\n\n");
-> fi;
-#I -------- The AutPGroup share package ----------
-#I -- Computing automorphism groups of p-groups --
+#I ------ The AutPGrp package version: 1.1 ------- 
+#I -- Computing automorphism groups of p-groups -- 
     ----------------------------------------------- 
     ---- Algorithms to construct finite groups ---- 
     ----- Hans Ulrich Besche and Bettina Eick ----- 
     ----------------------------------------------- 
     --------------- See ?GrpConst ----------------- 
     ----------------------------------------------- 
+> Print("\n\n",
+> "*** Since you do not have the `grpconst' package installed,    ***\n",
+> "*** you will get some error messages. They should be ignored.  ***\n\n\n");
+> fi;
 gap> ConstructAndTestAllGroups := function( size )
 > local grps;
 >     grps := ConstructAllGroups( size );
@@ -40,7 +40,7 @@ gap> ConstructAndTestAllGroups( 1560 );;
 gap> ConstructAndTestAllGroups( 1800 );;
 gap> UnloadSmallGroupsData();
 
-gap> STOP_TEST( "grpconst.tst", 149383970000 );
+gap> STOP_TEST( "grpconst.tst", 130921000000 );
 
 #############################################################################
 ##

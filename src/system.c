@@ -12,6 +12,7 @@
 **
 *Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 *Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+*Y  Copyright (C) 2002 The GAP Group
 **
 **  The  files   "system.c" and  "sysfiles.c"  contains all  operating system
 **  dependent  functions.  This file contains  all system dependent functions
@@ -95,7 +96,7 @@ extern int    fputs ( const char *, FILE * );
 **
 *V  SyKernelVersion  . . . . . . . . . . . . . . . .  name of the architecture
 */
-const Char * SyKernelVersion = "4.3.0";
+const Char * SyKernelVersion = "4.3.5";
 
 /****************************************************************************
 *V  SyWindowsPath  . . . . . . . . . . . . . . . . . default path for Windows
@@ -308,7 +309,7 @@ UInt SyLineEdit = 1;
 
 /****************************************************************************
 **
-*V  SyAutoloadSharePackages  . . . . . . . .automatically load share packages
+*V  SyAutoloadSharePackages  . . . . . . . . . .  automatically load packages
 **
 **  0: no 
 **  1: yes
@@ -1443,6 +1444,16 @@ void SyExit (
 # endif
 #endif
 
+#if SYS_IS_CYGWIN32
+  if (ret!=0) {
+    Int c;
+    fputs("gap: Press <Enter> to end program\n",stderr);
+    do {
+	    c=SyGetch(1);   /* wait for the user to type <return> */
+    } while (c!='\n' && c!=' ');
+  }
+
+#endif
 
     exit( (int)ret );
 }

@@ -27,7 +27,7 @@ SL(7,2)
 gap> HasChainSubgroup(G);  
 true
 
-gap> STOP_TEST( "rss.tst", 123000000 );
+gap> STOP_TEST( "rss.tst", 83900000 );
 
 
 #############################################################################

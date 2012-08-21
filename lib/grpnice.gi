@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This  file  contains generic     methods   for groups handled    by  nice
 ##  monomorphisms..
@@ -425,25 +426,9 @@ GroupMethodByNiceMonomorphismCollColl( Intersection2,
 
 #############################################################################
 ##
-#M  IsCentral( <G>, <U> )  . . . . . . . . is a group centralized by another?
-##
-PropertyMethodByNiceMonomorphismCollColl( IsCentral,
-    [ IsGroup, IsGroup ] );
-
-
-#############################################################################
-##
 #M  IsCyclic( <G> ) . . . . . . . . . . . . . . . . test if a group is cyclic
 ##
 PropertyMethodByNiceMonomorphism( IsCyclic,
-    [ IsGroup ] );
-
-
-#############################################################################
-##
-#M  IsElementaryAbelian( <G> )  . . . . test if a group is elementary abelian
-##
-PropertyMethodByNiceMonomorphism( IsElementaryAbelian,
     [ IsGroup ] );
 
 

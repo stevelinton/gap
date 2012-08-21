@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen, Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 Revision.ghomperm_gi :=
     "@(#)$Id$";
@@ -580,7 +581,7 @@ InstallOtherMethod( StabChainMutable, "perm mapping by images",  true,
 
     if short then
       # compute how many perms we permit to store?
-      maxstor:=LargestMovedPoint(Source(hom));
+      maxstor:=LargestMovedPoint(Source(hom))+1;
       if maxstor>65535 then
         maxstor:=maxstor*2; # perms need twice as much memory
       fi;

@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains the declarations for semigroups defined by rws.
 ##
@@ -14,7 +15,7 @@ Revision.rwssmg_gi :=
 
 ############################################################################
 ##
-#A  ReducedConfluentSemigroupRws( <kbrws>)
+#F  ReducedConfluentSemigroupRwsNC( <kbrws>)
 ##
 ##  if we have a knuth bendix rws that we know is reduced and
 ##  confluent we can certainly transform it into a reduced
@@ -82,7 +83,7 @@ end);
 ##
 #A  ReducedConfluentRewritingSystem( <S>,<ordering>)
 ##
-##  returns a reduced confluent rewriting system of the fp semigroup
+##  returns a reduced confluent rewriting system of the fp semigroup/monoid
 ##  <S> with respect to a supplied reduction order.
 ##
 InstallOtherMethod(ReducedConfluentRewritingSystem,
@@ -96,14 +97,17 @@ function(S,ordering)
   # then we make it confluent (and reduced)
   MakeConfluent(kbrws);
 
-  # now we are sure we have a Knuth Bendix rws which is both confluent and
-  # reduced so we make into a ReducedConfluentRewritingSystem
-  rws := ReducedConfluentRwsFromKbrwsNC(kbrws);
+  # we now check whether the attribute is already set
+  # (for example, there is an implementation of MakeConfluent that
+  # stores it immediately)
+  # if the attribute is not set we set it here
+  if not(HasReducedConfluentRewritingSystem(S)) then
+    rws := ReducedConfluentRwsFromKbrwsNC(kbrws);
+    SetReducedConfluentRewritingSystem(S, rws);
+  fi;
 
-  # we now set the attribute
-  SetReducedConfluentRewritingSystem(S, rws);
+  return ReducedConfluentRewritingSystem(S);
 
-  return rws;
 end);
 
 InstallOtherMethod(ReducedConfluentRewritingSystem,
@@ -117,14 +121,16 @@ function(M,ordering)
   # then we make it confluent (and reduced)
   MakeConfluent(kbrws);
 
-  # now we are sure we have a Knuth Bendix rws which is both confluent and
-  # reduced so we make into a ReducedConfluentRewritingSystem
-  rws := ReducedConfluentRwsFromKbrwsNC(kbrws);
+  # we now check whether the attribute is already set
+  # (for example, there is an implementation of MakeConfluent that
+  # stores it immediately)
+  # if the attribute is not set we set it here
+  if not(HasReducedConfluentRewritingSystem(M)) then
+    rws := ReducedConfluentRwsFromKbrwsNC(kbrws);
+    SetReducedConfluentRewritingSystem(M, rws);
+  fi;
 
-  # we now set the attribute
-  SetReducedConfluentRewritingSystem(M, rws);
-
-  return rws;
+  return ReducedConfluentRewritingSystem(M);
 
 end);
 

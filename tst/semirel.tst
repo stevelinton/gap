@@ -115,7 +115,7 @@ gap> ForAll(GreensHClasses(t4),
 > and KernelOfTransformation(j) = KernelOfTransformation(Representative(i))
 > ));
 true
-gap> STOP_TEST( "semirel.tst", 100000000 );
+gap> STOP_TEST( "semirel.tst", 133000000 );
 #############################################################################
 ##
 #E  semirel.tst . . . . . . . . . . . . . . . . . . . . . . . . . ends here

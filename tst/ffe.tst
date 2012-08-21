@@ -110,7 +110,7 @@ gap> SquareRoots( GF(9), Z(3) );
 gap> List( AsSSortedList( GF(7) ), Int );
 [ 0, 1, 3, 2, 6, 4, 5 ]
 gap> Print(List( AsSSortedList( GF(8) ), String ),"\n");
-[ "0*Z(2)", "Z(2)", "Z(2^3)", "Z(2^3)^2", "Z(2^3)^3", "Z(2^3)^4", "Z(2^3)^5",
+[ "0*Z(2)", "Z(2)", "Z(2^3)", "Z(2^3)^2", "Z(2^3)^3", "Z(2^3)^4", "Z(2^3)^5", 
   "Z(2^3)^6" ]
 
 gap> FieldByGenerators( GF(2), [ Z(4), Z(8) ] );
@@ -139,7 +139,7 @@ gap> Subfields( GF(2^6) );
 [ GF(2), GF(2^2), GF(2^3), GF(2^6) ]
 
 
-gap> STOP_TEST( "ffe.tst", 18600000 );
+gap> STOP_TEST( "ffe.tst", 18000000 );
 
 
 #############################################################################

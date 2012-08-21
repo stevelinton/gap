@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This  file  contains declarations for Morpheus
 ##
@@ -366,7 +367,8 @@ end);
 ##
 #F  SomeVerbalSubgroups
 ##  
-SomeVerbalSubgroups:=function(g,h)
+## correspond simultaneously some verbal subgroups in g and h
+BindGlobal("SomeVerbalSubgroups",function(g,h)
 local l,m,i,j,cg,ch,pg;
   l:=[g];
   m:=[h];
@@ -393,7 +395,7 @@ local l,m,i,j,cg,ch,pg;
     i:=i+1;
   od;
   return [l,m];
-end;
+end);
 
 #############################################################################
 ##
@@ -1160,7 +1162,8 @@ local a,b,c,p;
       Info(InfoMorph,2,"test automorphism domain ",p);
       c:=GroupByGenerators(GeneratorsOfGroup(a.aut),One(a.aut));
       AssignNiceMonomorphismAutomorphismGroup(c,G); 
-      if LargestMovedPoint(Range(NiceMonomorphism(c)))<p then
+      if IsPermGroup(Range(NiceMonomorphism(c))) and
+	LargestMovedPoint(Range(NiceMonomorphism(c)))<p then
         Info(InfoMorph,1,"improved domain ",
 	     LargestMovedPoint(Range(NiceMonomorphism(c))));
 	a.aut:=c;
@@ -1218,14 +1221,14 @@ end);
 InstallMethod( InnerAutomorphismsAutomorphismGroup,
     "for automorphism groups",
     true,
-    [ IsAutomorphismGroup and IsFinite ], 0,
+    [ IsGroupOfAutomorphisms and IsFinite ], 0,
     function( A )
     local G, gens;
     G:= Source( Identity( A ) );
     gens:= GeneratorsOfGroup( G );
     # get the non-central generators
     gens:= Filtered( gens, i -> not ForAll( gens, j -> i*j = j*i ) );
-    return SubgroupNC( A, List( gens, i -> InnerAutomorphism( G, i ) ) );
+    return Subgroup( A, List( gens, i -> InnerAutomorphism( G, i ) ) );
     end );
 
 
@@ -1310,6 +1313,7 @@ local Fgens,	# generators of F
   # if a verbal subgroup is trivial in the image, it must be in the kernel
   vsu:=SomeVerbalSubgroups(F,G);
   vsu:=vsu[1]{Filtered([1..Length(vsu[2])],j->IsTrivial(vsu[2][j]))};
+  vsu:=Filtered(vsu,i->not IsTrivial(i));
   if Length(vsu)>1 then
     fak:=vsu[1];
     for i in [2..Length(vsu)] do
@@ -1445,8 +1449,8 @@ local cl,cnt,bg,bw,bo,bi,k,gens,go,imgs,params,emb,clg,sg,vsu,c,i;
     fi;
     if IsCyclic(G) then
       if IsCyclic(H) then
-        return GroupHomomorphismByImagesNC(H,G,[GeneratorOfCyclicGroup(H)],
-	  [GeneratorOfCyclicGroup(G)^(Size(G)/Size(H))]);
+        return [GroupHomomorphismByImagesNC(H,G,[GeneratorOfCyclicGroup(H)],
+	  [GeneratorOfCyclicGroup(G)^(Size(G)/Size(H))])];
       else
         return [];
       fi;

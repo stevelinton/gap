@@ -57,6 +57,7 @@ MODE:=[
 # abbreviation of names (and email) to save typing
 SIGS:=[["AH","Alexander Hulpke","ahulpke@math.colostate.edu"],
        ["JN","Joachim Neub&uuml;ser","Joachim.Neubueser@Math.RWTH-Aachen.DE" ],
+       ["FL","Frank L&uuml;beck","Frank.Luebeck@Math.RWTH-Aachen.De" ],
        ["TB","Thomas Breuer","Thomas.Breuer@Math.RWTH-Aachen.DE" ],
        ["GAP","GAP group","gap-trouble@dcs.st-and.ac.uk" ],
        ["WDJ","David Joyner","wdj@usna.edu"]

@@ -18,7 +18,7 @@ rec( basis := [  ], relations := [ [ 1, 0 ], [ 0, 1 ] ],
   transformation := [  ], mue := [  ], B := [  ] )
 
 
-gap> STOP_TEST( "zlattice.tst", 10000000 );
+gap> STOP_TEST( "zlattice.tst", 136000 );
 
 
 #############################################################################

@@ -8,6 +8,7 @@
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1999 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains the methods for rational functions that know that they
 ##  are univariate.
@@ -882,19 +883,26 @@ InstallGlobalFunction(GcdCoeffs,GCD_COEFFS);
 #M  GcdOp( <pring>, <upol>, <upol> )  . . . . . .  for univariate polynomials
 ##
 BindGlobal("GCD_UPOLY",function(f,g)
-local gcd,val,brci,fam;
+local gcd,val,brci,fam,fc,gc;
 
   brci:=CIUnivPols(f,g);
   fam:=FamilyObj(f);
   if brci=fail then TryNextMethod();fi;
 
-  f:=CoefficientsOfLaurentPolynomial(f);
-  g:=CoefficientsOfLaurentPolynomial(g);
+  fc:=CoefficientsOfLaurentPolynomial(f);
+  gc:=CoefficientsOfLaurentPolynomial(g);
+
+  # special case zero polynomial
+  if IsEmpty(fc[1]) then
+    return g;
+  elif IsEmpty(gc[1]) then
+    return f;
+  fi;
 
   # remove common x^i term
-  val:=Minimum(f[2],g[2]);
+  val:=Minimum(fc[2],gc[2]);
   # the gcd cannot contain any further x^i parts, we removed them all!
-  gcd:=GcdCoeffs(f[1],g[1]);
+  gcd:=GcdCoeffs(fc[1],gc[1]);
 
   # return the gcd
   val:=val+RemoveOuterCoeffs(gcd,fam!.zeroCoefficient);
@@ -1219,11 +1227,22 @@ end);
 # when testing a univariate rational function for polynomiality, we check
 # whether it is a laurent polynomial and then use the laurent polynomial
 # routines.
-RedispatchOnCondition( IsPolynomial, true,
-    [ IsUnivariateRationalFunction ], [ IsLaurentPolynomial ], 0 );
+InstallMethod(IsPolynomial,"univariate",true,[IsUnivariateRationalFunction],0,
+function(f)
+  if not IsLaurentPolynomial(f) then
+    return false;
+  fi;
+  return CoefficientsOfLaurentPolynomial(f)[2]>=0; # test valuation
+end);
 
-RedispatchOnCondition( ExtRepPolynomialRatFun, true,
-    [ IsUnivariateRationalFunction ], [ IsLaurentPolynomial ], 0 );
+InstallOtherMethod(ExtRepPolynomialRatFun,"univariate",true,
+  [IsUnivariateRationalFunction],0,
+function(f)
+  if not IsPolynomial(f) then
+    return false;
+  fi;
+  return EXTREP_POLYNOMIAL_LAURENT(f);
+end);
 
 RedispatchOnCondition( CoefficientsOfLaurentPolynomial, true,
     [ IsUnivariateRationalFunction ], [ IsLaurentPolynomial ], 0 );
@@ -1364,7 +1383,7 @@ local lc,rc;
      IndeterminateNumberOfUnivariateRationalFunction(r) then
     return false;
   fi;
-  return ProductCoeffs(lc[1],rc[2])=ProductCoeffs(lc[2],rc[1]);
+  return ProductCoeffs(lc[1],rc[2])=ProductCoeffs(lc[2],rc[1]) and lc[3]=rc[3];
 end);
 
 #############################################################################

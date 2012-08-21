@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains generic methods for semigroups.
 ##
@@ -119,6 +120,63 @@ InstallMethod( ViewObj,
            " generators>" );
 	fi;
     end );
+
+#############################################################################
+##
+#M  DisplaySemigroup( <S> )
+##
+InstallMethod(DisplaySemigroup, "for finite semigroups", true,
+    [IsSemigroup], 0,
+function(S)
+
+    local dc, i, len, sh, D, layer, displayDClass;
+
+    displayDClass:= function(D)
+        local h, sh;
+        h:= GreensHClassOfElement(AssociatedSemigroup(D),Representative(D));
+        if IsRegularDClass(D) then
+            Print("*");
+        fi;
+        Print("[H size = ", Size(h),", ", 
+        Size(GreensRClassOfElement(AssociatedSemigroup(D), 
+            Representative(h)))/Size(h), " L classes, ", 
+        Size(GreensLClassOfElement(AssociatedSemigroup(D), 
+            Representative(h)))/Size(h)," R classes]");
+				Print("\n");
+    end;
+
+    #########################################################################
+    ##
+    ##  Function Proper
+    ##
+    #########################################################################
+
+    # check finiteness
+    if not IsFinite(S) then
+      TryNextMethod();
+    fi;
+
+    # determine D classes and sort according to rank.
+    layer:= List([1..DegreeOfTransformationSemigroup(S)], x->[]);
+    for D in GreensDClasses(S) do
+        Add(layer[RankOfTransformation(Representative(D))], D);
+    od;
+
+    # loop over the layers.
+    len:= Length(layer);
+    for i in [len, len-1..1] do
+        if layer[i] <> [] then
+
+            # loop over D classes.
+            for D in layer[i] do
+                Print("Rank ", i, ": \c");
+                displayDClass(D);
+            od;
+        fi;
+    od;
+
+end);
+
 
 
 #############################################################################
@@ -591,8 +649,9 @@ InstallMethod(IsZeroSimpleSemigroup,
   true,
   [ IsSemigroup and HasGeneratorsOfSemigroup ], 
 	0,
-function(s)
-  local e,      	# enumerator for the semigroup s 
+function(s1)
+  local e,      	# enumerator for the semigroup s1
+        s,              # isomorphic image as transformation semigroup 
 				gens,			# a set of generators of the semigroup
 				x,				# a non zero generators of s
 				zero,			# the multiplicative zero of the semigroup
@@ -602,6 +661,7 @@ function(s)
 				i,j,			# loop variables
         jx,jt,ja; # J classes
 
+        s := Range(IsomorphismTransformationSemigroup(s1));
 	# the enumerator, the set of generators and the zero for s 
   e:=Enumerator(s);
 
@@ -647,12 +707,16 @@ function(s)
 	# and check that x is J less than or equal to every other nonzero
 	# element of the semigroup 
 	# Notice that x is at this point gens[i-1]
-  J:=GreensJRelation(s);
-  jx:=EquivalenceClassOfElementNC(J,x);
+  #J:=GreensJRelation(s);
+  #jx:=EquivalenceClassOfElementNC(J,x);
+
+        jx := GreensJClassOfElement(s,x);
+
 	j:=1;
 	while IsBound(e[j]) do
 		if e[j]<>zero then
-    	jt:=EquivalenceClassOfElementNC(J,e[j]);
+    	#jt:=EquivalenceClassOfElementNC(J,e[j]);
+        jt := GreensJClassOfElement(s,e[j]); 
 	    if not(IsGreensLessThanOrEqual(jx,jt)) then
   	    return false;
     	fi;
@@ -672,7 +736,8 @@ function(s)
 	while i<=Length(gens) do 
 		a:=gens[i];
 		if a<>zero then 
-	    ja:=EquivalenceClassOfElementNC(J,a);
+	    #ja:=EquivalenceClassOfElementNC(J,a);
+            ja := GreensJClassOfElement(s,a);
   	  if not(IsGreensLessThanOrEqual(ja,jx)) then
     	  return false;
 	    fi;

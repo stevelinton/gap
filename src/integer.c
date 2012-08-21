@@ -8,6 +8,7 @@
 **
 *Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 *Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+*Y  Copyright (C) 2002 The GAP Group
 **
 **  This file implements the  functions  handling  arbitrary  size  integers.
 **
@@ -1477,9 +1478,14 @@ Obj             ProdIntObj (
         res = ZERO( op );
     }
 
-    /* if the integer is one, return a copy of the operand                 */
+    /* if the integer is one, return the object if immutable
+       if mutable, add the object to its ZeroSameMutability to
+       ensure correct mutability propagation */
     else if ( TNUM_OBJ(n) == T_INT && INT_INTOBJ(n) ==  1 ) {
-        res = CopyObj( op, 0 );
+      if (IS_MUTABLE_OBJ(op))
+        res = SUM(ZERO(op),op);
+      else
+	res = op;
     }
 
     /* if the integer is minus one, return the inverse of the operand      */

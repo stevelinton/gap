@@ -6,6 +6,7 @@
 %A  @(#)$Id$
 %%
 %Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+%Y  Copyright (C) 2002 The GAP Group
 %%
 \Chapter{Finitely Presented Groups}
 
@@ -451,6 +452,7 @@ compute all conjugacy classes of torsion free subgroups of index at most
 24 in the group $G = \langle x,y,z \mid x^2, y^4, z^3, (xy)^3, (yz)^2,
 (xz)^3 \rangle$. It is know from theory that each torsion element of this
 group is conjugate to a power of $x$, $y$, $z$, $xy$, $xz$, or $yz$.
+(Note that this includes conjugates of $y^2$.)
 
 \beginexample
 gap> F := FreeGroup( "x", "y", "z" );;

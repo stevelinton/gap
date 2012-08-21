@@ -6,6 +6,7 @@
 %H  @(#)$Id$
 %%
 %Y  (C) 1999 School Math and Comp. Sci., University of St.  Andrews, Scotland
+%Y  Copyright (C) 2002 The GAP Group
 %%
 %%  This file describes the functions dealing with tables of marks.
 %%  The corresponding {\GAP} code is contained in the files `lib/tom.g[di]'

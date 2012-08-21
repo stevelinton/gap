@@ -7,6 +7,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains methods for tables of marks.
 ##
@@ -2713,6 +2714,21 @@ InstallMethod( EulerianFunction,
     [ IsGroup and HasTableOfMarks, IsPosInt ], 10,
     function( G, s )
     return EulerianFunctionByTom( TableOfMarks( G ), s );
+    end );
+
+
+#############################################################################
+##
+#M  EulerianFunction( <G>, <s> )
+##
+InstallMethod( EulerianFunction,
+    "for a group, compute table of marks",
+    [ IsGroup, IsPosInt ], 
+    -RankFilter (IsGroup)-RankFilter (IsPosInt), # rank 0
+    function( G, s )
+        Info (InfoWarning, 1, "EulerianFunction computes ",
+            "the table of marks. This may be slow.");
+        return EulerianFunctionByTom( TableOfMarks( G ), s );
     end );
 
 

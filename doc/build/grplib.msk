@@ -9,6 +9,7 @@
 %A  @(#)$Id$
 %%
 %Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+%Y  Copyright (C) 2002 The GAP Group
 %%
 \Chapter{Group Libraries}
 
@@ -268,31 +269,44 @@ InstallMethod( CyclicGroupCons,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{Selection Functions}
 
+\indextt{AllPrimitiveGroups}\indextt{AllTransitiveGroups}
 \>`All<Library>Groups( <fun1>, <val1>, ... )'{AllLibraryGroups}%
 @{`All\noexpand<Library>Groups'}
 
-For each of the following group libraries there is a *selection function*.
-This function permits one to select all groups from the library that have a
-given set of properties.
+For a number  of  the  group  libraries  two  *selection  functions*  are
+provided. Each `All<Library>Groups' selection  function  permits  one  to
+select *all* groups from the library <Library> that have a given  set  of
+properties.
+%The name of the selection  functions always begins  with `All' and always
+%ends with `Groups'. In between is a  name that hints at the nature of the
+%group library. 
+Currently, the library selection functions provided, of  this  type,  are
+`AllSmallGroups', `AllIrreducibleSolvableGroups',  `AllTransitiveGroups',
+and `AllPrimitiveGroups'. Corresponding to  each  of  these  there  is  a
+`One<Library>Group' function  (see~"OneLibraryGroup")  which  returns  at
+most one group.
 
-The name of the selection  functions always begins  with `All' and always
-ends with `Groups'. In between is a  name that hints at the nature of the
-group library. For example, the selection function for the library of all
-transitive  groups (see~"Transitive permutation groups") is called
-`AllTransitiveGroups'.
+These functions take an arbitrary number of pairs (but at least one pair)
+of arguments. The first argument in such a pair is a function that can be
+applied to the groups in the library, and the second argument is either a
+single value that this function must return in order to have  this  group
+included in the selection, or a list of such  values.  For  the  function
+`AllSmallGroups' the first such function must be `Size', and, unlike  the
+other library selection functions,  it  supports  an  alternative  syntax
+where   `Size'   is    omitted    (see~"AllSmallGroups").    Also,    see
+"AllIrreducibleSolvableGroups",     for     details     pertaining     to
+`AllIrreducibleSolvableGroups'.
 
-These  functions take an  arbitrary number of  pairs of  arguments.   The
-first argument in such a pair  is a function  that can  be applied to the
-groups in the library,  and the second  argument is either a single value
-that this  function must return in  order  to have this group included in
-the selection, or a list of such values. For example,
+For an example, let us consider the selection function for the library of
+transitive  groups  (also  see~"Transitive  permutation   groups").   The
+command,
 \begintt
-AllTransitiveGroups(NrMovedPoints,[10..15],
-		    Size,         [1..100],
-		    IsAbelian,    false    );
+gap> AllTransitiveGroups(NrMovedPoints,[10..15],
+                         Size,         [1..100],
+                         IsAbelian,    false    );
 \endtt
-returns a list of all transitive  groups with  degree between 10 and
-15 and size less than 100 that are not abelian.
+returns a list of all transitive groups with degree between 10 and 15 and
+size less than 100 that are not abelian.
 
 Thus  the `AllTransitiveGroups'  behaves  as if   it was implemented  by a
 function similar to the one defined below, where `TransitiveGroupsList' is a
@@ -324,8 +338,9 @@ selection process.
 In the description of each library we will
 list the properties that are stored for this library.
 
-\>`One<Library>Groups( <fun1>, <val1>, ... )'{OneLibraryGroups}%
-@{`One\noexpand<Library>Groups'}
+\indextt{OnePrimitiveGroup}\indextt{OneTransitiveGroup}
+\>`One<Library>Group( <fun1>, <val1>, ... )'{OneLibraryGroup}%
+@{`One\noexpand<Library>Group'}
 
 % If you  do not want  all groups with the  prescribed properties, but only
 % one example, you should call the *example function*. It returns `fail' if
@@ -337,9 +352,14 @@ list the properties that are stored for this library.
 % characteristic) and  (2)~its  number  in  the list  of all   groups  with
 % property~(1).
 
-This function simply returns the first (in the stored order) group  in the
-library that has the prescribed properties.
-It returns `fail' if no such group exists in the library.
+For each `All<Library>Groups' function (see~"AllLibraryGroups") there  is
+a  corresponding  function  `One<Library>Group'  on  exactly   the   same
+arguments,        i.e.\        there         are         `OneSmallGroup',
+`OneIrreducibleSolvableGroup',         `OneTransitiveGroup',          and
+`OnePrimitiveGroup'. Each function simply returns the  *first*  group  in
+the library (in the stored order) that  has  the  prescribed  properties,
+instead of *all* such groups. It returns `fail' if no such  group  exists
+in the library.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{Transitive Permutation Groups}
@@ -424,7 +444,7 @@ certain orders and their corresponding group identification routines. It
 is possible to install the first $n$ layers of the group library and the
 first $m$ layers of the group identification for each $1 \leq m \leq n
 \leq 8$. This might be useful to save disk space. There is an extensive
-README file for the Small Groups library available in the `small' directory
+`README' file for the Small Groups library available in the `small' directory
 of the {\GAP} distribution containing detailed information on the layers.
 In summary, the layers are:
 \beginlist%ordered
@@ -450,7 +470,7 @@ The data occupies about 26 MB (storing over 400 million groups in about
 200 megabits). The group identification occupies about 42 MB of which
 18 MB is used for the groups in layer (6). More information on the Small 
 Groups library can be found on
-\URL{http://www.math.rwth-aachen.de/~{}Hans-Ulrich.Besche/small.html}
+\URL{http://www.math.rwth-aachen.de/~Hans-Ulrich.Besche/small.html}
 
 This group library has been computed by Hans Ulrich Besche, Bettina Eick
 and E.~A.~O'Brien. A survey on this topic and an account of the history 
@@ -577,7 +597,7 @@ the following sizes:
 
 Except for these eleven sizes, the list of altogether 1096 perfect groups
 in the  library is complete. It  relies  on results  of Derek~F. Holt and
-Wilhelm Plesken which  are published in their  book  {\it Perfect Groups}
+Wilhelm Plesken which  are published in their  book    ``Perfect Groups''
 \cite{HP89}. Moreover,   they     have  supplied us    with    files with
 presentations of 488 of the groups. In terms of  these, the remaining 607
 nontrivial groups in the library can be described as 276 direct products,

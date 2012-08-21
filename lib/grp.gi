@@ -9,6 +9,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains generic methods for groups.
 ##
@@ -735,8 +736,7 @@ InstallMethod( ElementaryAbelianSeries,
     f := IsomorphismPcGroup( G );
 
     # convert back into <G>
-    return List( ElementaryAbelianSeries( Image( f ),
-                   x -> PreImage( f, x ) ) );
+    return List( ElementaryAbelianSeries( Image( f )), x -> PreImage( f, x ) );
     end );
 
 #############################################################################
@@ -3654,17 +3654,24 @@ end);
 ##
 #M  SmallGeneratingSet(<G>)
 ##
-InstallMethod(SmallGeneratingSet,"generators subset",true,[IsGroup],
+InstallMethod(SmallGeneratingSet,"generators subset",true,
+  [IsGroup and HasGeneratorsOfGroup],
 function (G)
-local  i, U, gens;
+local  i, U, gens,test;
   gens := Set(GeneratorsOfGroup(G));
   i := 1;
   while i < Length(gens)  do
-    U:=Subgroup(G,gens{Difference([1..Length(gens)],[i])});
-    if Size(U)<Size(G) then
-      i:=i+1;
+    U:= SubgroupNC( G, gens{ Difference( [ 1 .. Length( gens ) ], [ i ] ) } );
+    if HasIsFinite(G) and IsFinite(G) and CanComputeSizeAnySubgroup(G) then
+      test:=Size(U)=Size(G);
     else
+      test:=IsSubset(U,G);
+    fi;
+    if test then
       gens:=GeneratorsOfGroup(U);
+      # this throws out i, so i is the new i+1;
+    else
+      i:=i+1;
     fi;
   od;
   return gens;

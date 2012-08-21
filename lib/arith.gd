@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains the declarations of the arithmetic operations, and the
 ##  declarations of the categories for elements that allow those operations.
@@ -345,11 +346,20 @@ DeclareSynonym( "IsVectorTable",
 
 #############################################################################
 ##
+#F  IsOddAdditiveNestingDepthFamily( <Fam> )
+#F  IsOddAdditiveNestingDepthObject( <Fam> )
+##
+DeclareFilter( "IsOddAdditiveNestingDepthFamily" );
+DeclareFilter( "IsOddAdditiveNestingDepthObject" );
+
+
+#############################################################################
+##
 #C  IsRowVector( <obj> )
 ##
 ##  A *row vector* is a vector (see~"IsVector") that is also a
-##  homogeneous list.  Typical examples are lists of integers, lists
-##  of finite field elements of the same characteristic, lists of
+##  homogeneous list.  Typical examples are lists of integers and rationals,
+##  lists of finite field elements of the same characteristic, lists of
 ##  polynomials from a common polynomial ring, and matrices.
 ##
 ##  The additive operations of the vector must thus be compatible with
@@ -370,7 +380,8 @@ DeclareSynonym( "IsVectorTable",
 ## since `IsVector' may lead to a rank of the method below
 ##  that of the default method for row vectors (see file `vecmat.gi').
 ##
-DeclareSynonym( "IsRowVector", IsVector and IsHomogeneousList );
+DeclareSynonym( "IsRowVector",
+    IsVector and IsHomogeneousList and IsOddAdditiveNestingDepthObject );
 
 
 #############################################################################

@@ -218,7 +218,7 @@ Obj AddPartialGF2VecGF2Vec (
     /* both operands lie in the same field                                 */
     len = LEN_GF2VEC(vl);
     if ( len != LEN_GF2VEC(vr) ) {
-        ErrorQuit( "Vector +: vectors must have the same length",
+        ErrorMayQuit( "Vector +: vectors must have the same length",
                    0L, 0L );
         return 0;
     }
@@ -999,7 +999,7 @@ void PlainGF2Vec (
 
     /* check for representation lock */
     if (True == DoFilter( IsLockedRepresentationVector, list))
-      ErrorQuit("Cannot convert a locked GF2 vector into a plain list", 0, 0);
+      ErrorMayQuit("Cannot convert a locked GF2 vector into a plain list", 0, 0);
     
     /* resize the list and retype it, in this order                        */
     len = LEN_GF2VEC(list);
@@ -1360,6 +1360,10 @@ Obj FuncELM0_GF2VEC (
 {
     UInt                p;
 
+    
+    if (!IS_INTOBJ(pos))
+      ErrorMayQuit("ELM0_GF2VEC: position must be a small integer, not a %s",
+		(Int)TNAM_OBJ(pos),0L);
     p = INT_INTOBJ(pos);
     if ( LEN_GF2VEC(list) < p ) {
         return Fail;
@@ -1385,6 +1389,9 @@ Obj FuncELM_GF2VEC (
 {
     UInt                p;
 
+    if (!IS_INTOBJ(pos))
+      ErrorMayQuit("ELM_GF2VEC: position must be a small integer, not a %s",
+		(Int)TNAM_OBJ(pos),0L);
     p = INT_INTOBJ(pos);
     if ( LEN_GF2VEC(list) < p ) {
         ErrorReturnVoid(
@@ -1422,6 +1429,7 @@ Obj FuncELMS_GF2VEC (
     Int                 cut;            /* cut point in a <BIPEB> block    */
     Int                 inc;            /* increment in a range            */
     Int                 i;              /* loop variable                   */
+    Obj                 apos;
 
     /* get the length of <list>                                            */
     lenList = LEN_GF2VEC(list);
@@ -1440,19 +1448,24 @@ Obj FuncELMS_GF2VEC (
         for ( i = 1;  i <= lenPoss;  i++ ) {
 
             /* get next position                                           */
-            pos = INT_INTOBJ( ELMW_LIST( poss, i ) );
-            if ( lenList < pos ) {
-                ErrorQuit( "List Elements: <list>[%d] must have a value",
-                           pos, 0L );
-                return 0;
-            }
 
-            /* assign the element into <elms>                              */
-            if ( ELM_GF2VEC( list, pos ) == GF2One ) {
-                BLOCK_ELM_GF2VEC(elms,i) |= MASK_POS_GF2VEC(i);
-            }
+	  apos = ELM0_LIST( poss, i);
+	  if (!apos || !IS_INTOBJ(apos))
+	    ErrorMayQuit("ELMS_GF2VEC: error at position %d in positions list, entry must be bound to a small integer",
+		      i, 0L);
+	  pos = INT_INTOBJ( apos );
+	  if ( lenList < pos ) {
+	    ErrorMayQuit( "List Elements: <list>[%d] must have a value",
+		       pos, 0L );
+	    return 0;
+	  }
+	  
+	  /* assign the element into <elms>                              */
+	  if ( ELM_GF2VEC( list, pos ) == GF2One ) {
+	    BLOCK_ELM_GF2VEC(elms,i) |= MASK_POS_GF2VEC(i);
+	  }
         }
-
+	
     }
 
     /* special code for ranges                                             */
@@ -1465,12 +1478,12 @@ Obj FuncELMS_GF2VEC (
 
         /* check that no <position> is larger than <lenList>               */
         if ( lenList < pos ) {
-            ErrorQuit( "List Elements: <list>[%d] must have a value",
+            ErrorMayQuit( "List Elements: <list>[%d] must have a value",
                        pos, 0L );
             return 0;
         }
         if ( lenList < pos + (lenPoss-1) * inc ) {
-            ErrorQuit( "List Elements: <list>[%d] must have a value",
+            ErrorMayQuit( "List Elements: <list>[%d] must have a value",
                        pos + (lenPoss-1) * inc, 0L );
             return 0;
         }
@@ -1547,13 +1560,16 @@ Obj FuncASS_GF2VEC (
     }
 
     /* get the position                                                    */
+    if (!IS_INTOBJ(pos))
+      ErrorMayQuit("ASS_VEC8BIT: position must be a small integer, not a %s",
+		(Int)TNAM_OBJ(pos),0L);
     p = INT_INTOBJ(pos);
 
     /* if <elm> is Z(2) or 0*Z(2) and the position is OK, keep rep         */
     if ( p <= LEN_GF2VEC(list)+1 ) {
         if ( LEN_GF2VEC(list)+1 == p ) {
 	  if (DoFilter(IsLockedRepresentationVector, list) == True)
-	    ErrorQuit("Assignment forbidden beyond the end of locked GF2 vector", 0, 0);
+	    ErrorMayQuit("Assignment forbidden beyond the end of locked GF2 vector", 0, 0);
 	  ResizeBag( list, SIZE_PLEN_GF2VEC(p) );
 	  SET_LEN_GF2VEC( list, p );
         }
@@ -1627,6 +1643,9 @@ Obj FuncASS_GF2MAT (
     }
 
     /* get the position                                                    */
+    if (!IS_INTOBJ(pos))
+      ErrorMayQuit("ASS_GF2MAT: position must be a small integer, not a %s",
+		(Int)TNAM_OBJ(pos),0L);
     p = INT_INTOBJ(pos);
 
     /* if <elm> is a GF2 vector and the length is OK, keep the rep         */
@@ -1696,6 +1715,9 @@ Obj FuncUNB_GF2VEC (
     }
 
     /* get the position                                                    */
+    if (!IS_INTOBJ(pos))
+      ErrorMayQuit("UNB_GF2VEC: position must be a small integer, not a %s",
+		(Int)TNAM_OBJ(pos),0L);
     p = INT_INTOBJ(pos);
 
     /* if we unbind the last position keep the representation              */
@@ -1740,6 +1762,9 @@ Obj FuncUNB_GF2MAT (
     }
 
     /* get the position                                                    */
+    if (!IS_INTOBJ(pos))
+      ErrorMayQuit("UNB_GF2MAT: position must be a small integer, not a %s",
+		(Int)TNAM_OBJ(pos),0L);
     p = INT_INTOBJ(pos);
 
     /* if we unbind the last position keep the representation              */
@@ -1798,7 +1823,11 @@ Obj FuncZERO_GF2VEC_2 (
 {
     Obj                 zero;
 
-    /* create a new GF2 vector                                             */
+    /* create a new GF2 vector*/
+    if (!IS_INTOBJ(len))
+      ErrorMayQuit("ZERO_GF2VEC2: length must be a small integer, not a %s",
+		(Int)TNAM_OBJ(len),0L);
+    
     NEW_GF2VEC( zero, TYPE_LIST_GF2VEC, INT_INTOBJ(len) );
     SET_LEN_GF2VEC( zero, INT_INTOBJ(len) );
     return zero;
@@ -2237,19 +2266,27 @@ Obj FuncAPPEND_VECGF2( Obj self, Obj vecl, Obj vecr )
       return 0;
     }
   ResizeBag(vecl, SIZE_PLEN_GF2VEC(lenl+lenr));
-  ptrl = BLOCKS_GF2VEC(vecl) + (lenl-1)/BIPEB;
   ptrr = BLOCKS_GF2VEC(vecr);
-  offl = (lenl-1) % BIPEB + 1; /* number of significant bits in the last word */
-  off2 = BIPEB - offl;         /* number of insignificant bits in the last word */
   nextr = 0;
+  if (lenl != 0)
+    {
+      ptrl = BLOCKS_GF2VEC(vecl) + (lenl-1)/BIPEB;
+      offl = (lenl-1) % BIPEB + 1; /* number of significant bits in the last word */
+      off2 = BIPEB - offl;         /* number of insignificant bits in the last word */
 
-  /* mask out the last bits */
+      /* mask out the last bits */
 #ifdef SYS_IS_64_BIT
-  *ptrl &= 0xffffffffffffffff >> off2;
+      *ptrl &= 0xffffffffffffffff >> off2;
 #else
-  *ptrl &= 0xffffffff >> off2;
+      *ptrl &= 0xffffffff >> off2;
 #endif
-
+    }
+  else
+    {
+      ptrl = BLOCKS_GF2VEC(vecl)-1;
+      offl = BIPEB;
+      off2 = 0; /* just to please compiler, not actually used */
+    }
   if (offl == BIPEB)
     {
       while (nextr < lenr)
@@ -2710,7 +2747,7 @@ Obj FuncDIST_GF2VEC_GF2VEC (
   len = LEN_GF2VEC(vl);
 
   if ( len != LEN_GF2VEC(vr) ) {
-    ErrorQuit(
+    ErrorMayQuit(
       "DIST_GF2VEC_GF2VEC: vectors must have the same length",0L,0L);
     return 0;
   }
@@ -2893,6 +2930,11 @@ Obj FuncAClosVec(
 
   len = LEN_GF2VEC(vec);
 
+  if (!ARE_INTOBJS(cnt,stop))
+    ErrorMayQuit("AClosVec: cnt and stop must be small integers, not a %s and a %s",
+	      (Int)TNAM_OBJ(cnt), (Int)TNAM_OBJ(stop));
+  
+
   /* get space for sum vector and zero out */
   NEW_GF2VEC( sum, TYPE_LIST_GF2VEC, len );
   SET_LEN_GF2VEC( sum, len );
@@ -2990,6 +3032,11 @@ Obj FuncCOSET_LEADERS_INNER_GF2( Obj self, Obj veclis, Obj weight, Obj tofind, O
 {
   Obj v,w;
   UInt lenv, lenw;
+
+  if (!ARE_INTOBJS(weight,tofind))
+    ErrorMayQuit("COSET_LEADERS_INNER_GF2: weight and tofind must be smal integers, not a %s and a %s",
+	      (Int)TNAM_OBJ(weight), (Int)TNAM_OBJ(tofind));
+  
   lenv = LEN_PLIST(veclis);
   NEW_GF2VEC(v, TYPE_LIST_GF2VEC, lenv);
   SET_LEN_GF2VEC(v, lenv);
@@ -2997,7 +3044,7 @@ Obj FuncCOSET_LEADERS_INNER_GF2( Obj self, Obj veclis, Obj weight, Obj tofind, O
   NEW_GF2VEC(w, TYPE_LIST_GF2VEC,lenw );
   SET_LEN_GF2VEC(w,lenw);
   if (lenw > BIPEB-4)
-    ErrorQuit("COSET_LEADERS_INNER_GF2: too many cosets to return the leaders in a plain list",0,0);
+    ErrorMayQuit("COSET_LEADERS_INNER_GF2: too many cosets to return the leaders in a plain list",0,0);
   return INTOBJ_INT(CosetLeadersInnerGF2( veclis, v, w, INT_INTOBJ(weight), 1, leaders, INT_INTOBJ(tofind)));
 }
 
@@ -3104,13 +3151,12 @@ Obj FuncRESIZE_GF2VEC( Obj self, Obj vec, Obj newlen)
 		      "you may 'return;' to skip the operation");
       return (Obj)0;
     }
+  if (!IS_INTOBJ(newlen))
+    ErrorMayQuit("RESIZE_GF2VEC: newlen must be a small integer, not a %s",
+	      (Int)TNAM_OBJ(newlen), 0L);
   newlen1 = INT_INTOBJ(newlen);
-  while (newlen1 < 0)
-    {
-      newlen = ErrorReturnObj("RESIZE_GF2VEC: the new size must be a non-negative integer, not %d", newlen1, 0,
-			      "you may replace the new size <ns> via 'return <ns>;'");
-      newlen1 = INT_INTOBJ(newlen);
-    }
+  if (newlen1 < 0) 
+    ErrorMayQuit("RESIZE_GF2VEC: the new size must be a non-negative integer, not %d", newlen1, 0);
   ResizeGF2Vec(vec, newlen1);
   return (Obj)0;
 }
@@ -3169,19 +3215,18 @@ void ShiftLeftGF2Vec( Obj vec, UInt amount )
 Obj FuncSHIFT_LEFT_GF2VEC( Obj self, Obj vec, Obj amount)
 {
   Int amount1;
-  if (!IS_MUTABLE_OBJ(vec))
+  if (!IS_MUTABLE_OBJ(vec)) 
     {
       ErrorReturnVoid("SHIFT_LEFT_GF2VEC: the vector must be mutable", 0, 0,
 		      "you may 'return;' to skip the operation");
       return (Obj)0;
     }
+  if (!IS_INTOBJ(amount))
+    ErrorMayQuit("SHIFT_LEFT_GF2VEC: the amnount to shift must be a small integer, not a %d",
+	      (Int)TNAM_OBJ(amount), 0L);
   amount1 = INT_INTOBJ(amount);
-  while (amount1 < 0)
-    {
-      amount = ErrorReturnObj("SHIFT_LEFT_GF2VEC: <amount> must be a non-negative integer, not %d", amount1, 0,
-			      "you may replace <amount> via 'return <amount>;'");
-      amount1 = INT_INTOBJ(amount);
-    }
+  if (amount1 < 0)
+     ErrorMayQuit("SHIFT_LEFT_GF2VEC: <amount> must be a non-negative integer, not %d", amount1, 0);
   ShiftLeftGF2Vec(vec, amount1);
   return (Obj)0;
 }
@@ -3253,13 +3298,12 @@ Obj FuncSHIFT_RIGHT_GF2VEC( Obj self, Obj vec, Obj amount)
 		      "you may 'return;' to skip the operation");
       return (Obj)0;
     }
+  if (!IS_INTOBJ(amount))
+    ErrorMayQuit("SHIFT_RIGHT_GF2VEC: the amount to shift must be a small integer, not a %s",
+	      (Int)TNAM_OBJ(amount), 0L);
   amount1 = INT_INTOBJ(amount);
-  while (amount1 < 0)
-    {
-      amount = ErrorReturnObj("SHIFT_RIGHT_GF2VEC: <amount> must be a non-negative integer, not %d", amount1, 0,
-			      "you may replace <amount> via 'return <amount>;'");
-      amount1 = INT_INTOBJ(amount);
-    }
+  if (amount1 < 0)
+      ErrorMayQuit("SHIFT_RIGHT_GF2VEC: <amount> must be a non-negative integer, not %d", amount1, 0);
   ShiftRightGF2Vec(vec, amount1);
   return (Obj)0;
 }
@@ -3331,13 +3375,14 @@ void AddShiftedVecGF2VecGF2( Obj vec1, Obj vec2, UInt len2, UInt off )
 Obj FuncADD_GF2VEC_GF2VEC_SHIFTED( Obj self, Obj vec1, Obj vec2, Obj len2, Obj off)
 {
   Int off1, len2a;
+  if (!IS_INTOBJ(off))
+    ErrorMayQuit("ADD_GF2VEC_GF2VEC_SHIFTED: offset should be a small integer not a %s",
+	      (Int)TNAM_OBJ(off), 0L);
   off1 = INT_INTOBJ(off);
-  while (off1 < 0)
+  if (off1 < 0)
     {
-      off = ErrorReturnObj("ADD_GF2VEC_GF2VEC_SHIFTED: <offset> must be a non-negative integer",
-			   0,0,
-                           "you can replace <offset> via 'return <offset>;'");
-      off1 = INT_INTOBJ(off);
+       ErrorMayQuit("ADD_GF2VEC_GF2VEC_SHIFTED: <offset> must be a non-negative integer",
+			   0,0);
     }
   len2a = INT_INTOBJ(len2);
   while (len2a < 0 && len2a <= LEN_GF2VEC(vec2)) 
@@ -3411,22 +3456,17 @@ Obj FuncPROD_COEFFS_GF2VEC( Obj self, Obj vec1, Obj len1, Obj vec2, Obj len2 )
   UInt len1a, len2a;
   Obj prod;
   UInt last;
+  if (!ARE_INTOBJS(len1,len2))
+    ErrorMayQuit("PROD_COEFFS_GF2VEC: vector lengths must be small integers, not a %s and a %s",
+	      (Int)TNAM_OBJ(len1), (Int)TNAM_OBJ(len2));
   len2a = INT_INTOBJ(len2);
-  while ( len2a > LEN_GF2VEC(vec2)) 
-    {
-      len2 = ErrorReturnObj("PROD_COEFFS_GF2VEC: <len2> must not be more than the actual\nlength of the vector",
-			   0,0,
-                           "you can replace integer <len2> via 'return <len2>;'");
-      len2a = INT_INTOBJ(len2);
-    }
+   if (len2a > LEN_GF2VEC(vec2)) 
+       ErrorMayQuit("PROD_COEFFS_GF2VEC: <len2> must not be more than the actual\nlength of the vector",
+		 0,0);
   len1a = INT_INTOBJ(len1);
-  while (len1a > LEN_GF2VEC(vec1)) 
-    {
-      len1 = ErrorReturnObj("PROD_COEFFS_GF2VEC: <len1> must be not more than the actual\nlength of the vector",
-			   0,0,
-                           "you can replace integer <len1> via 'return <len1>;'");
-      len1a = INT_INTOBJ(len1);
-    }
+  if (len1a > LEN_GF2VEC(vec1)) 
+       ErrorMayQuit("PROD_COEFFS_GF2VEC: <len1> must be not more than the actual\nlength of the vector",
+		 0,0);
   prod = ProductCoeffsGF2Vec( vec1, len1a, vec2, len2a );
   last = RightMostOneGF2Vec(prod);
   if (last < LEN_GF2VEC(prod))
@@ -3475,21 +3515,20 @@ void ReduceCoeffsGF2Vec( Obj vec1, Obj vec2, UInt len2 )
 Obj FuncREDUCE_COEFFS_GF2VEC( Obj self, Obj vec1, Obj len1, Obj vec2, Obj len2)
 {
   UInt last;
-  UInt len2a;
-  while (INT_INTOBJ(len1) < 0 || INT_INTOBJ(len1) > LEN_GF2VEC(vec1))
-    {
-      len1 = ErrorReturnObj("ReduceCoeffs: given length <len1> of left argt (%d)\nis longer than the argt (%d)",
-			  INT_INTOBJ(len1), LEN_GF2VEC(vec1), 
-                          "you can replace integer <len1> via 'return <len1>;'");
-    }
+  Int len2a;
+  if (!IS_INTOBJ(len1))
+    ErrorMayQuit("REDUCE_COEFFS_GF2VEC: given length <len1> of left argt must be a small integer, not a %s",
+	      (Int)TNAM_OBJ(len1),0L);
+  if (INT_INTOBJ(len1) < 0 || INT_INTOBJ(len1) > LEN_GF2VEC(vec1))
+    ErrorMayQuit("ReduceCoeffs: given length <len1> of left argt (%d)\nis longer than the argt (%d)",
+	      INT_INTOBJ(len1), LEN_GF2VEC(vec1));
+  if (!IS_INTOBJ(len2))
+    ErrorMayQuit("REDUCE_COEFFS_GF2VEC: given length <len2> of right argt must be a small integer, not a %s",
+	      (Int)TNAM_OBJ(len2),0L);
   len2a = INT_INTOBJ(len2);
-  while (/* len2a < 0 ||*/  len2a > LEN_GF2VEC(vec2))
-    {
-      len2 = ErrorReturnObj("ReduceCoeffs: given length <len2> of right argt (%d)\nis longer than the argt (%d)",
-			  len2a, LEN_GF2VEC(vec2), 
-                          "you can replace integer <len2> via 'return <len2>;'");
-      len2a = INT_INTOBJ(len2);
-    }
+  if ( len2a < 0 ||  len2a > LEN_GF2VEC(vec2))
+    ErrorMayQuit("ReduceCoeffs: given length <len2> of right argt (%d)\nis longer than the argt (%d)",
+		     len2a, LEN_GF2VEC(vec2));
   ResizeGF2Vec(vec1, INT_INTOBJ(len1));
   
   while ( 0 < len2a ) {

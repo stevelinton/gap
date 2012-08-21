@@ -7,6 +7,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains methods for collections in general.
 ##
@@ -20,7 +21,7 @@ Revision.coll_gi :=
 ##
 InstallMethod( CollectionsFamily,
     "for a family",
-    true, [ IsFamily ], 90,
+    [ IsFamily ], 90,
     function ( F )
     local   colls, coll_req, coll_imp, elms_flags, tmp;
     coll_req := IsCollection;
@@ -31,8 +32,18 @@ InstallMethod( CollectionsFamily,
             coll_imp := coll_imp and tmp[2];
         fi;
     od;
-    colls := NewFamily( "CollectionsFamily(...)", coll_req, coll_imp );
+
+    if    ( not HasElementsFamily( F ) )
+       or not IsOddAdditiveNestingDepthFamily( F ) then
+      colls := NewFamily( "CollectionsFamily(...)", coll_req,
+                          coll_imp and IsOddAdditiveNestingDepthObject );
+      SetFilterObj( colls, IsOddAdditiveNestingDepthFamily );
+    else
+      colls := NewFamily( "CollectionsFamily(...)", coll_req, coll_imp );
+    fi;
+
     SetElementsFamily( colls, F );
+
     return colls;
 end );
 
@@ -2042,8 +2053,12 @@ InstallGlobalFunction( Intersection, function ( arg )
     od;
 
     # return the intersection
-    if IsList( I ) and not IsSSortedList( I ) then
-        I := Set( I );
+    if IsSSortedList( I ) then
+      if not copied  then
+        I:= ShallowCopy( I );
+      fi;
+    elif IsList( I ) then
+      I:= Set( I );
     fi;
     return I;
 end );
@@ -2192,25 +2207,25 @@ end );
 
 #############################################################################
 ##
-#M  Difference(<C1>,<C2>)
+#M  Difference( <C1>, <C2> )
 ##
 InstallOtherMethod( Difference,
     "for empty list, and collection",
-    true, [ IsList and IsEmpty, IsListOrCollection ], 0,
+    [ IsList and IsEmpty, IsListOrCollection ],
     function ( C1, C2 )
     return [];
     end );
 
 InstallOtherMethod( Difference,
     "for collection, and empty list",
-    true, [ IsCollection, IsList and IsEmpty ], 0,
+    [ IsCollection, IsList and IsEmpty ],
     function ( C1, C2 )
-    return ShallowCopy( C1 );
+    return Set( C1 );
     end );
 
 InstallOtherMethod( Difference,
     "for two lists (assume one can produce a sorted result)",
-    true, [ IsList, IsList ], 0,
+    [ IsList, IsList ],
     function ( C1, C2 )
     C1 := Set( C1 );
     SubtractSet( C1, C2 );
@@ -2219,7 +2234,7 @@ InstallOtherMethod( Difference,
 
 InstallMethod( Difference,
     "for two collections that are lists",
-    IsIdenticalObj, [ IsCollection and IsList, IsCollection and IsList ], 0,
+    IsIdenticalObj, [ IsCollection and IsList, IsCollection and IsList ],
     function ( C1, C2 )
     C1 := Set( C1 );
     SubtractSet( C1, C2 );
@@ -2228,7 +2243,7 @@ InstallMethod( Difference,
 
 InstallMethod( Difference,
     "for two collections",
-    IsIdenticalObj, [ IsCollection, IsCollection ], 0,
+    IsIdenticalObj, [ IsCollection, IsCollection ],
     function ( C1, C2 )
     local   D, elm;
     if IsFinite( C1 ) then
@@ -2251,7 +2266,7 @@ InstallMethod( Difference,
 
 InstallMethod( Difference,
     "for two collections, the first being a list",
-    IsIdenticalObj, [ IsCollection and IsList, IsCollection ], 0,
+    IsIdenticalObj, [ IsCollection and IsList, IsCollection ],
     function ( C1, C2 )
     local   D, elm;
     if IsFinite( C2 )  then
@@ -2270,7 +2285,7 @@ InstallMethod( Difference,
 
 InstallMethod( Difference,
     "for two collections, the second being a list",
-    IsIdenticalObj, [ IsCollection, IsCollection and IsList ], 0,
+    IsIdenticalObj, [ IsCollection, IsCollection and IsList ],
     function ( C1, C2 )
     local   D;
     if IsFinite( C1 ) then

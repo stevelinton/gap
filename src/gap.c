@@ -7,6 +7,7 @@
 **
 *Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 *Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+*Y  Copyright (C) 2002 The GAP Group
 **
 **  This file contains the various read-eval-print loops and  related  stuff.
 */
@@ -2237,7 +2238,6 @@ Obj FuncLoadedModules (
         }
         else if ( m->type == MODULE_STATIC ) {
             SET_ELM_PLIST( list, 3*i+1, ObjsChar[(Int)'s'] );
-            SET_ELM_PLIST( list, 3*i+1, ObjsChar[(Int)'d'] );
 	    CHANGED_BAG(list);
             C_NEW_STRING( str, SyStrlen(m->name), m->name );
             SET_ELM_PLIST( list, 3*i+2, str );

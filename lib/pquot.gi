@@ -309,7 +309,7 @@ end );
 
 #############################################################################
 ##
-#M  NumberOfNewGenerators . . . . . . .number of generators in the next layer
+#M  NumberOfNewGenerators . . . . . . number of generators in the next layer
 ##
 NumberOfNewGenerators := function( qs )
     local   nong,  d,  cl,  i;
@@ -531,6 +531,11 @@ function( qs )
     gens := GeneratorsOfRws( qs!.collector );
     n := GeneratorNumberOfQuotient(qs);
 
+    if n + NumberOfNewGenerators( qs ) >
+       qs!.collector![SCP_NUMBER_RWS_GENERATORS] then
+        return fail;
+    fi;
+
     ##  Add new generators to the p-quotient.
     for cl in Reversed([1..LengthOfDescendingSeries(qs)]) do
 
@@ -581,6 +586,9 @@ function( qs )
           qs!.numberOfHighestWeightGenerators, " new generators" );
 
     UpdateWeightInfo( qs );
+
+    return true;
+
 end );
 
 #############################################################################
@@ -1461,7 +1469,15 @@ function( arg )
               "Class ", LengthOfDescendingSeries(qs)+1, " quotient" );
 
         Info( InfoQuotientSystem, 2, "  Define new generators." );
-        DefineNewGenerators( qs );
+        if DefineNewGenerators( qs ) = fail then
+            Error( "Collector not large enough ",
+                   "to define generators for the next class.\n",
+                   "To return the current quotient (of class ",
+                   LengthOfDescendingSeries(qs), ") type `return;' ",
+                   "and `quit;' otherwise.\n" );
+
+            return qs;
+        fi;
 
         Info( InfoQuotientSystem, 2, "  Compute tails." );
         ComputeTails( qs );
@@ -1598,7 +1614,12 @@ end );
 PCover := function( qs )
     local   G,  range,  defByEpim,  g;
 
-    DefineNewGenerators( qs );
+    if DefineNewGenerators( qs ) = fail then
+        Error( "Collector not large enough ",
+               "to define generators for the next class.\n" );
+        return fail;
+    fi;
+
     ComputeTails( qs );
     EvaluateConsistency( qs );
     IncorporateCentralRelations( qs );

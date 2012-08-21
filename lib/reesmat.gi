@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1997,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 ##  This file contains the implementation of Rees Matrix semigroups
 ##
@@ -349,9 +350,9 @@ end );
 ##	for a 0-simple semigroup <S>.
 ##	
 BindGlobal( "BuildIsomorphismReesMatrixSemigroupWithMap",
-function( s,groupHclass, phi)
+function( s1,groupHclass, phi)
 
-	local	e,								# a representative of H
+	local	e,s,iso,								# a representative of H
 				lclassesrep,			# list of representatives of the L classes
 				rclassesrep,			# list of representatives of the R classes
 				R,L,							# greens R and L relations on s
@@ -363,7 +364,10 @@ function( s,groupHclass, phi)
 				semi,							# the underlying semigroup of the Rees Matrix smg
 				reesfun,
 				reessmg;					# the Rees Matrix Semigroup built from s
-			
+		
+        iso := IsomorphismTransformationSemigroup(s1);
+        s := Range(iso);
+	
 	if not( IsSimpleSemigroup(s) or IsZeroSimpleSemigroup(s) ) then
 		Error( "Can only build isomorphism for simple or 0-simple semigroups");
 	fi;
@@ -383,24 +387,27 @@ function( s,groupHclass, phi)
 	# now we need to build the matrix
 
 	# pick a representative of h
-	e := Representative( groupHclass );
+	e := Image(iso, groupHclass );
 	# now we have to fix an element in each of the H classes in the R class of e
 	# notice that this will also be a list of l classes rep for all l classes of s
 	lclassesrep := [];
 	R := GreensRRelation( s );
-	r := EquivalenceClassOfElementNC( R, e);
+        r := GreensRClassOfElement(s,e);
+	#r := EquivalenceClassOfElementNC( R, e);
 	for h in GreensHClasses(r) do
-		Add( lclassesrep, Representative(h) );
+		AddSet( lclassesrep, PreImage(iso,Representative(h)) );
 	od;
 
 	# do the same for the H classes in the L class of e
   rclassesrep := [];
   L := GreensLRelation( s );
-  l := EquivalenceClassOfElementNC( L, e);
+  l := GreensLClassOfElement(s,e);
+  #l := EquivalenceClassOfElementNC( L, e);
   for h in GreensHClasses(l) do
-    Add( rclassesrep, Representative(h) );
+    AddSet( rclassesrep, PreImage(iso,Representative(h)) );
   od;
  	
+  
 	# now build the matrix
 	# it is going to be a m times n matrix, where m is the length of el
 	# and m is the length of er
@@ -420,7 +427,7 @@ function( s,groupHclass, phi)
 			# the entries of the matrix corresponds to the products lclassesrep[j]*rclassesrep[i]
 			# in the permgroup (or zero perm group in zero simple case)
 			# so they will be the unique preimage under phi of lclassesrep[j]*rclassesrep[i]
-			p := ImagesRepresentative( InverseGeneralMapping(phi), lclassesrep[i]*rclassesrep[j]);
+			p := ImagesRepresentative( InverseGeneralMapping(phi), Image(iso,lclassesrep[i]*rclassesrep[j]));
 			Add( matrix[ i ], p );
 		od;
 	od;
@@ -439,7 +446,7 @@ function( s,groupHclass, phi)
 		local el,j,i,y;
 
 		if iszerosimple and ReesZeroMatrixSemigroupElementIsZero( x ) then
-			return MultiplicativeZero( s );
+			return MultiplicativeZero( s1 );
 		fi;
 
 		i := RowIndexOfReesMatrixSemigroupElement( x );
@@ -450,7 +457,7 @@ function( s,groupHclass, phi)
 		return el;
 	end;
 
-	return MagmaHomomorphismByFunctionNC( reessmg, s, reesfun);
+	return MagmaHomomorphismByFunctionNC( reessmg, s1, reesfun);
 
 end);
 
@@ -465,13 +472,14 @@ end);
 InstallMethod( IsomorphismReesMatrixSemigroup,
   "for a finite simple semigroup", true,
   [IsSimpleSemigroup], 0,
-function(s)
-	local	it,						# iterator od the semigroup
+function(s1)
+	local	it,s,iso,		# iterator od the semigroup
 				d,						# the unique D class of the semigroup
 				groupHclass,	# group H class of d
 				phi,					# isomorphism from groupHclass to a perm group
 				injection_perm_group;
-
+                iso := IsomorphismTransformationSemigroup(s1);
+                s := Range(IsomorphismTransformationSemigroup(s1));
 	#############################################
 	# for a simple semigroup and a group H class.
 	# Returns the injection from the perm group isomorphic to H, to S.
@@ -511,13 +519,17 @@ function(s)
 
 	# first get a group H class
 	it := Iterator( s );
-	d := EquivalenceClassOfElementNC( GreensDRelation( s ), NextIterator( it ) );
+ 
+        d := GreensDClassOfElement(s,NextIterator(it));       
+
+        #d := EquivalenceClassOfElementNC( GreensDRelation( s ), NextIterator( it ) );
 	groupHclass := GroupHClassOfGreensDClass( d );
 
 	# the a mapping from the perm group (to which groupHclass is isomorphic) to s 
-	phi := injection_perm_group( s, groupHclass );
+	phi := injection_perm_group( s, groupHclass);
 	
-	return BuildIsomorphismReesMatrixSemigroupWithMap( s, groupHclass, phi); 
+	return BuildIsomorphismReesMatrixSemigroupWithMap( s1, 
+               PreImage(iso,Representative(groupHclass)), phi); 
 
 end);
 
@@ -531,14 +543,16 @@ end);
 InstallMethod( IsomorphismReesMatrixSemigroup,
   "for a finite 0-simple semigroup", true,
   [IsZeroSimpleSemigroup], 0,
-function(s)
-  local e,						# an element of the semigroup
+function(s1)
+  local e,s,iso,						# an element of the semigroup
         it,           # iterator od the semigroup
         d,            # the unique D class of the semigroup
         groupHclass,  # group H class of d 
         phi,          # the mapping from permgroup with zero to s 
 				injection_zero_perm_group;
-
+ 
+        iso := IsomorphismTransformationSemigroup(s1);
+        s := Range(IsomorphismTransformationSemigroup(s1));
 	###########################################################
 	# for a zero simple semigroup and a non zero group H class.
 	# Returns the injection from the perm group with zero adjoined
@@ -608,7 +622,8 @@ function(s)
 	if e=MultiplicativeZero( s ) then
 		e := NextIterator( it );
 	fi;
-  d := EquivalenceClassOfElementNC( GreensDRelation( s ), e);
+  d:= GreensDClassOfElement(s,e);
+  #d := EquivalenceClassOfElementNC( GreensDRelation( s ), e);
 
 	# hence get a non zero h class of the semigroup
   groupHclass := GroupHClassOfGreensDClass( d );
@@ -618,7 +633,8 @@ function(s)
 	# to the semigroup s
 	phi := injection_zero_perm_group( s, groupHclass);
 
-  return BuildIsomorphismReesMatrixSemigroupWithMap( s, groupHclass, phi);
+  return BuildIsomorphismReesMatrixSemigroupWithMap( s1,
+         PreImage(iso,Representative(groupHclass)), phi);
 
 end);
 
@@ -632,7 +648,7 @@ function( D )
 
     local h, phi, g, gz, fun, map, r, l, rreps, lreps, n, m, mat;
 
-    if not IsFinite(Parent(D)) then
+    if not IsFinite(AssociatedSemigroup(D)) then
         TryNextMethod();
     fi;
 
@@ -655,15 +671,24 @@ function( D )
         return x^phi;
     end;
 
-    map:= MappingByFunction(Parent(D), gz, fun);
+    map:= MappingByFunction(AssociatedSemigroup(D), gz, fun);
 
-    r:= EquivalenceClassOfElement(GreensRRelation(Parent(D)), 
+    r:= EquivalenceClassOfElement(GreensRRelation(AssociatedSemigroup(D)), 
         Representative(D));
-    l:= EquivalenceClassOfElement(GreensLRelation(Parent(D)), 
+    l:= EquivalenceClassOfElement(GreensLRelation(AssociatedSemigroup(D)), 
         Representative(D));
 
+    # AS: Replace this
+    # rreps:= List(l, x->Representative(
+                          # GreensHClassOfElement(AssociatedSemigroup(D),x)));
+    # lreps:= List(r, x->Representative(
+                          # GreensHClassOfElement(AssociatedSemigroup(D),x)));
+
+
+    # AS: with this
     rreps:= List(GreensHClasses(l), Representative);
     lreps:= List(GreensHClasses(r), Representative);
+
 
     n:= Length(rreps);
     m:= Length(lreps);

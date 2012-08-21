@@ -92,60 +92,59 @@ end;
 ##  sed -e 's: );: ],:'
 ##
 TEST_FILES := [
-[ "alghom.tst", 58060000 ],
-[ "algmat.tst", 880820000 ],
-[ "algsc.tst", 408385000 ],
-[ "boolean.tst", 3000000 ],
-[ "combinat.tst", 30050000 ],
+[ "alghom.tst", 65350000 ],
+[ "algmat.tst", 1453000000 ],
+[ "algsc.tst", 299000000 ],
+[ "boolean.tst", 39000 ],
+[ "combinat.tst",27000000 ],
 #[ "compat3.tst", 10000 ],
-[ "ctblfuns.tst", 28292309 ],
-[ "ctblj4.tst", 3000000000 ],
-[ "ctblmoli.tst", 350007500 ],
-[ "ctblmono.tst", 231440000 ],
-[ "ctblsolv.tst", 70667500 ],
+[ "ctblfuns.tst", 31000000 ],
+[ "ctblmoli.tst", 325000000 ],
+[ "ctblmono.tst", 333000000 ],
+[ "ctblsolv.tst", 367000000 ],
 [ "cyclotom.tst", 5832500 ],
-[ "ffe.tst", 18600000 ],
-[ "fldabnum.tst", 87667500 ],
-[ "gaussian.tst", 3032500 ],
-[ "grpconst.tst", 149383970000 ],
-[ "grpfree.tst", 630000 ],
-[ "grplatt.tst", 5761430000 ],
-[ "grpmat.tst", 102570000 ],
-[ "grppc.tst", 82187500 ],
-[ "grppcnrm.tst", 1948650000 ],
-[ "grpperm.tst", 3218162500 ],
-[ "grpprmcs.tst", 18790865000 ],
-[ "listgen.tst", 1517500 ],
-[ "mapping.tst", 23067500 ],
-[ "matblock.tst", 1410500 ],
-[ "matrix.tst", 3897300000],
-[ "mgmring.tst", 21697500 ],
-[ "modfree.tst", 30792500 ],
-[ "morpheus.tst", 546842500 ],
-[ "onecohom.tst", 226515000 ],
-[ "ratfun.tst", 4602500 ],
-[ "relation.tst", 37930000  ],
-[ "rwspcgrp.tst", 304775000 ],
-[ "rwspcsng.tst", 403645000 ],
-[ "semigrp.tst", 74105000 ],
-[ "semicong.tst", 1517500 ],
-[ "semirel.tst", 1517500 ],
-[ "set.tst", 20930000 ],
-[ "unknown.tst", 320000 ],
-[ "vspchom.tst", 42737500 ],
-[ "vspcmali.tst", 35942500 ],
-[ "vspcmat.tst", 33682500 ],
-[ "vspcrow.tst", 155797500 ],
+[ "ffe.tst",  18000000],
+[ "fldabnum.tst", 90000000 ],
+[ "gaussian.tst", 640000 ],
+[ "grpconst.tst", 130921000000 ],
+[ "grpfree.tst", 5000000 ],
+[ "grplatt.tst", 4966000000 ],
+[ "grpmat.tst", 1730000000 ],
+[ "grppc.tst", 130800000 ],
+[ "grppcnrm.tst", 1726000000 ],
+[ "grpperm.tst", 2374000000 ],
+[ "grpprmcs.tst", 15360000000 ],
+[ "listgen.tst", 1440000 ],
+[ "mapping.tst", 31000000 ],
+[ "matblock.tst", 1200000 ],
+[ "matrix.tst", 3964000000],
+[ "mgmring.tst", 19000000 ],
+[ "modfree.tst", 36000000 ],
+[ "morpheus.tst", 588000000 ],
+[ "onecohom.tst", 334000000 ],
+[ "ratfun.tst", 9000000 ],
+[ "relation.tst",48010000  ],
+[ "rwspcgrp.tst", 267000000 ],
+[ "rwspcsng.tst", 372000000 ],
+[ "semigrp.tst",103000000 ],
+[ "semicong.tst", 46000000 ],
+[ "semirel.tst", 133000000 ],
+[ "set.tst", 21000000 ],
+[ "unknown.tst", 170000 ],
+[ "vspchom.tst", 80550000 ],
+[ "vspcmali.tst", 23900000 ],
+[ "vspcmat.tst", 36050000 ],
+[ "vspcrow.tst", 207000000 ],
 # [ "weakptr.tst", 24477500 ], too sensitive to compiler
 #               idiosyncracies SL
-[ "xgap.tst", 310142500 ],
-[ "zlattice.tst", 10000000 ],
-[ "zmodnz.tst", 10520000 ],
-[ "hash2.tst", 19260000 ],
-[ "quogphom.tst", 17600000 ],
-[ "eigen.tst", 16000000 ],
-[ "solmxgrp.tst", 80000000000 ],
-[ "rss.tst", 123000000 ]
+[ "xgap.tst", 544000000 ],
+[ "zlattice.tst", 136000 ],
+[ "zmodnz.tst", 21000000],
+[ "hash2.tst",  20000000 ],
+[ "quogphom.tst", 19000000 ],
+[ "eigen.tst", 17000000 ],
+[ "solmxgrp.tst", 1044000000 ],
+[ "rss.tst", 83900000 ]
 ];
 
 Sort( TEST_FILES, function(a,b) return a[2] < b[2]; end );
@@ -154,12 +153,11 @@ Sort( TEST_FILES, function(a,b) return a[2] < b[2]; end );
 ##
 #X  read all test files
 ##
-Print("You should start GAP4 using:  `gap -N -M -A -x 80 -r -m 30m'. The more\n");
+Print("You should start GAP4 using:  `gap -N -A -x 80 -r -m 100m'. The more\n");
 Print("GAP4stones you get, the faster your  system is.  The runtime of\n");
 Print("the following tests (in general)  increases.  You should expect\n");
-Print("about 10000 GAP4stones on a Pentium 5, 133 MHz,  about 28000 on\n");
-Print("a Pentium Pro, 200 Mhz.  The `next' time is an approximation of\n");
-Print("the running time for the next test.\n");
+Print("about 100000 GAP4stones on a Pentium 3, 1GHz.\n");
+Print("The `next' time is an approximation of the running time for the next test.\n");
 Print("\n");
 Print("Architecture: ", GAP_ARCHITECTURE, "\n");
 Print("\n");

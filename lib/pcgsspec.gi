@@ -6,6 +6,7 @@
 ##
 #Y  Copyright (C)  1996,  Lehrstuhl D fuer Mathematik,  RWTH Aachen,  Germany
 #Y  (C) 1998 School Math and Comp. Sci., University of St.  Andrews, Scotland
+#Y  Copyright (C) 2002 The GAP Group
 ##
 Revision.pcgsspec_gi :=
     "@(#)$Id$";
@@ -611,6 +612,7 @@ function( pcgs )
         SetLGWeights( newpcgs, pcgssys.weights );
         SetLGLayers( newpcgs, pcgssys.layers );
         SetLGFirst( newpcgs, pcgssys.first );
+        SetIndicesNormalSteps( newpcgs, pcgssys.first );
         SetIsFiniteOrdersPcgs( newpcgs, true );
         SetIsPrimeOrdersPcgs( newpcgs, true );
     fi;
@@ -712,6 +714,10 @@ local s,H,iso,pc;
   SetLGLayers(pc,LGLayers(s));
   SetLGFirst(pc,LGFirst(s));
   SetIsSpecialPcgs(pc,true);
+  if Length(LGWeights(pc)) = 0 or LGWeights(pc)[Length(LGWeights(pc))][1]=1 then
+	SetIsPcgsCentralSeries(pc,true);
+  fi;
+  SetIndicesNormalSteps( pc, LGFirst(pc) );
 
   iso:=GroupHomomorphismByImagesNC(G,H,s,pc);
   SetIsBijective( iso, true );
