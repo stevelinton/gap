@@ -18,8 +18,8 @@ pkgs:=SortedList(ShallowCopy(RecNames(pkgs)));
 recommended:=[ "atlasrep", "design", "grape", "guava", "example" ];
 
 # Hints for (some) packages that do not work under Windows 
-nowindows:=["ace", "anupq", "carat", "cohomolo", "fplsa", "gauss",
-"kbmag", "linboxing", "nq", "pargap", "xgap" ];
+nowindows:=["ace", "anupq", "carat", "cohomolo", "float", "fplsa", "gauss",
+"kbmag", "linboxing", "nq", "pargap", "polymakeinterface", "xgap" ];
 
 Print("=============================================================\n");
 # Packages needed by GAP
@@ -164,7 +164,7 @@ Print("# Packages that do not work under Windows end here\n\n");
 
 Print("=============================================================\n\n");
 for pkg in pkgs do
-  Print("LangString DESC_SecGAPpkg_", pkg, " ${LANG_ENGLISH} \"", GAPInfo.PackagesInfo.(pkg)[1].Subtitle, "\"\n");
+  Print("LangString DESC_SecGAPpkg_", pkg, " ${LANG_ENGLISH} \"", NormalizedWhitespace(GAPInfo.PackagesInfo.(pkg)[1].Subtitle), "\"\n");
 od;
 Print("=============================================================\n\n");
 for pkg in pkgs do
