@@ -622,7 +622,7 @@ Int SyStrncmp (
     const Char *        str2,
     UInt                len )
 {
-    return SyStrncmp( str1, str2, len );
+    return strncmp( str1, str2, len );
 }
 
 /****************************************************************************

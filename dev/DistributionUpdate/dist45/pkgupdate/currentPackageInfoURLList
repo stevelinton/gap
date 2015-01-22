@@ -14,6 +14,7 @@
 # The URL must be started with "http". The option "MOVE" is used to enforce
 # the change of the URL in case if the stored URL is different.
 
+4ti2Interface http://wwwb.math.rwth-aachen.de/~gutsche/gap_packages/4ti2Interface/PackageInfo.g
 ACE         http://school.maths.uwa.edu.au/~gregg/ACE/PackageInfo.g
 AClib       http://www.icm.tu-bs.de/~beick/soft/aclib/PackageInfo.g
 Alnuth      http://www.icm.tu-bs.de/ag_algebra/software/Alnuth/PackageInfo.g
@@ -68,6 +69,7 @@ hecke       http://home.in.tum.de/~traytel/hecke/PackageInfo.g
 homalg      http://homalg.math.rwth-aachen.de/~barakat/homalg-project/homalg/PackageInfo.g
 HomalgToCAS http://homalg.math.rwth-aachen.de/~barakat/homalg-project/HomalgToCAS/PackageInfo.g
 idrel       http://www.maths.bangor.ac.uk/chda/gap4/idrel/PackageInfo.g
+IntPic      http://www.fc.up.pt/cmup/mdelgado/intpic/PackageInfo.g
 IO          http://www-groups.mcs.st-and.ac.uk/~neunhoef/Computer/Software/Gap/iofor4.5/PackageInfo.g
 IO_ForHomalg http://homalg.math.rwth-aachen.de/~barakat/homalg-project/IO_ForHomalg/PackageInfo.g
 IRREDSOL    http://www.icm.tu-bs.de/~bhoeflin/irredsol/PackageInfo.g
