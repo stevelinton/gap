@@ -5047,8 +5047,8 @@ fi;
 ##
 #V  CharacterTableDisplayDefaults
 ##
-InstallValue( CharacterTableDisplayDefaults, MakeImmutable(rec(
-      Global:= rec(
+InstallValue( CharacterTableDisplayDefaults, MakeAtomicRecord(rec(
+      Global:= `rec(
         centralizers    := true,
 
         Display         := CharacterTableDisplayDefault,
