@@ -5844,25 +5844,29 @@ Obj DoSetterFunction (
         return 0L;
     }
 
-    /* if the attribute is already there *do not* chage it                 */
-    tmp = ENVI_FUNC(self);
-    tester = ELM_PLIST( tmp, 2 );
-    flag2  = INT_INTOBJ( FLAG2_FILT(tester) );
-    type   = TYPE_OBJ_FEO(obj);
-    flags  = FLAGS_TYPE(type);
-    if ( flag2 <= LEN_FLAGS(flags) && ELM_FLAGS(flags,flag2) == True ) {
-        return 0;
-    }
-
-    /* set the value                                                       */
+    if (!IS_MUTABLE_OBJ(obj))
+      {
+    
+	/* if the attribute is already there *do not* chage it                 */
+	tmp = ENVI_FUNC(self);
+	tester = ELM_PLIST( tmp, 2 );
+	flag2  = INT_INTOBJ( FLAG2_FILT(tester) );
+	type   = TYPE_OBJ_FEO(obj);
+	flags  = FLAGS_TYPE(type);
+	if ( flag2 <= LEN_FLAGS(flags) && ELM_FLAGS(flags,flag2) == True ) {
+	  return 0;
+	}
+	
+	/* set the value                                                       */
 #ifdef HPCGAP
-    if (atomic)
-      SetARecordField( obj, (UInt)INT_INTOBJ(ELM_PLIST(tmp,1)),
-        CopyObj(value,0) );
-    else
+	if (atomic)
+	  SetARecordField( obj, (UInt)INT_INTOBJ(ELM_PLIST(tmp,1)),
+			   CopyObj(value,0) );
+	else
 #endif
-      AssPRec( obj, (UInt)INT_INTOBJ(ELM_PLIST(tmp,1)), CopyObj(value,0) );
-    CALL_2ARGS( SET_FILTER_OBJ, obj, tester );
+	  AssPRec( obj, (UInt)INT_INTOBJ(ELM_PLIST(tmp,1)), CopyObj(value,0) );
+	CALL_2ARGS( SET_FILTER_OBJ, obj, tester );
+      }
     return 0;
 }
 
