@@ -1796,9 +1796,12 @@ static inline Obj CacheOper(Obj oper, UInt i)
 #endif
 
 /* This function actually searches the cache. Normally it should be called
-   with
-   n a compile-time constant to allow the optimiser to tidy things up */
+   with n a compile-time constant to allow the optimiser to tidy things up */
 
+#ifdef COUNT_OPERS
+static UInt CacheHitStatistics[CACHE_SIZE][CACHE_SIZE][7];
+static UInt CacheMissStatistics[CACHE_SIZE + 1][7];
+#endif
 
 static inline Obj __attribute__((always_inline))
 GetMethodCached(Obj oper, UInt n, Obj prec, Obj ids[])
@@ -1813,7 +1816,8 @@ GetMethodCached(Obj oper, UInt n, Obj prec, Obj ids[])
     /* Up to CACHE_SIZE methods might be in the cache */
     if (prec < INTOBJ_INT(CACHE_SIZE)) {
         /* This loop runs through those */
-        for (i = 0; i < (n + 2) * CACHE_SIZE; i += n + 2) {
+        UInt target = (n + 2) * INT_INTOBJ(prec);
+        for (i = target; i < (n + 2) * CACHE_SIZE; i += n + 2) {
             if (cache[i + 1] == prec) {
                 typematch = 1;
                 /* This loop runs over the arguments, should be compiled away
@@ -1826,6 +1830,19 @@ GetMethodCached(Obj oper, UInt n, Obj prec, Obj ids[])
                 }
                 if (typematch) {
                     method = cache[i];
+#ifdef COUNT_OPERS
+                    CacheHitStatistics[INT_INTOBJ(prec)][i / (n + 2)][n]++;
+#endif
+                    if (i > target) {
+                        Obj buf[n + 2];
+                        memmove((void *)buf, (void *)(cache + i),
+                                sizeof(Obj) * (n + 2));
+                        memmove((void *)(cache + target + n + 2),
+                                (void *)(cache + target),
+                                sizeof(Obj) * (i - target));
+                        memmove((void *)(cache + target), (void *)buf,
+                                sizeof(Obj) * (n + 2));
+                    }
                     break;
                 }
             }
@@ -1842,13 +1859,12 @@ CacheMethod(Obj oper, UInt n, Obj prec, Obj * ids, Obj method)
         return;
     Bag   cacheBag = GET_METHOD_CACHE(oper, n);
     Obj * cache = 1 + ADDR_OBJ(cacheBag);
-    UInt  index = STATE(CacheIndex);
-    STATE(CacheIndex) = (STATE(CacheIndex) + 1) % CACHE_SIZE;
-
-    cache[(n + 2) * index] = method;
-    cache[(n + 2) * index + 1] = prec;
+    memmove((void *)(cache + n + 2), (void *)cache,
+            sizeof(Obj) * (CACHE_SIZE - 1) * (n + 2));
+    cache[0] = method;
+    cache[1] = prec;
     for (UInt i = 0; i < n; i++)
-        cache[(n + 2) * index + 2 + i] = ids[i];
+        cache[2 + i] = ids[i];
     CHANGED_BAG(cacheBag);
 }
 
@@ -2014,8 +2030,12 @@ DoOperationNArgs(Obj  oper,
 #ifdef COUNT_OPERS
         if (method)
             OperationHit++;
-        else
+        else {
             OperationMiss++;
+            CacheMissStatistics[(INT_INTOBJ(prec) >= CACHE_SIZE)
+                                    ? CACHE_SIZE
+                                    : (INT_INTOBJ(prec))][n]++;
+        }
 #endif
 
         /* otherwise try to find one in the list of methods */
@@ -3646,12 +3666,10 @@ Obj FuncOPERS_CACHE_INFO (
     Obj                        self )
 {
     Obj                 list;
-#ifndef COUNT_OPERS
     Int                 i;
-#endif
 
-    list = NEW_PLIST( IMMUTABLE_TNUM(T_PLIST), 9 );
-    SET_LEN_PLIST( list, 9 );
+    list = NEW_PLIST( IMMUTABLE_TNUM(T_PLIST), 11 );
+    SET_LEN_PLIST( list, 11 );
 #ifdef COUNT_OPERS
     SET_ELM_PLIST( list, 1, INTOBJ_INT(AndFlagsCacheHit)    );
     SET_ELM_PLIST( list, 2, INTOBJ_INT(AndFlagsCacheMiss)   );
@@ -3662,8 +3680,45 @@ Obj FuncOPERS_CACHE_INFO (
     SET_ELM_PLIST( list, 7, INTOBJ_INT(IsSubsetFlagsCalls1) );
     SET_ELM_PLIST( list, 8, INTOBJ_INT(IsSubsetFlagsCalls2) );
     SET_ELM_PLIST( list, 9, INTOBJ_INT(OperationNext)       );
+    Obj tensor = NEW_PLIST(IMMUTABLE_TNUM(T_PLIST), CACHE_SIZE);
+    SET_LEN_PLIST(tensor, CACHE_SIZE);
+    for (i = 1; i <= CACHE_SIZE; i++) {
+        Obj mat = NEW_PLIST(IMMUTABLE_TNUM(T_PLIST), CACHE_SIZE);
+        SET_LEN_PLIST(mat, CACHE_SIZE);
+        SET_ELM_PLIST(tensor, i, mat);
+        CHANGED_BAG(tensor);
+        for (Int j = 1; j <= CACHE_SIZE; j++) {
+            Obj vec = NEW_PLIST(IMMUTABLE_TNUM(T_PLIST), 7);
+            SET_LEN_PLIST(vec, 7);
+            SET_ELM_PLIST(mat, j, vec);
+            CHANGED_BAG(mat);
+            for (Int k = 0; k <= 6; k++)
+                SET_ELM_PLIST(
+                    vec, k + 1,
+                    INTOBJ_INT(CacheHitStatistics[i - 1][j - 1][k]));
+        }
+    }    
+    SET_ELM_PLIST(list, 10, tensor);
+    CHANGED_BAG(list);
+
+    Obj mat = NEW_PLIST(IMMUTABLE_TNUM(T_PLIST), CACHE_SIZE+1);
+    SET_LEN_PLIST(mat, CACHE_SIZE+1);
+    for (Int j = 1; j <= CACHE_SIZE+1; j++) {
+      Obj vec = NEW_PLIST(IMMUTABLE_TNUM(T_PLIST), 7);
+      SET_LEN_PLIST(vec, 7);
+      SET_ELM_PLIST(mat, j, vec);
+      CHANGED_BAG(mat);
+      for (Int k = 0; k <= 6; k++)
+	SET_ELM_PLIST(
+		      vec, k + 1,
+		      INTOBJ_INT(CacheMissStatistics[j - 1][k]));
+    }    
+    SET_ELM_PLIST(list, 11, mat);
+    CHANGED_BAG(list);
+
+    
 #else
-    for (i = 1; i <= 9; i++)
+    for (i = 1; i <= 11; i++)
         SET_ELM_PLIST( list, i, INTOBJ_INT(0) );
 #endif
     return list;
@@ -3688,6 +3743,8 @@ Obj FuncCLEAR_CACHE_INFO (
     IsSubsetFlagsCalls1 = 0;
     IsSubsetFlagsCalls2 = 0;
     OperationNext = 0;
+    memset((void *)CacheHitStatistics, 0, sizeof(CacheHitStatistics));
+    memset((void *)CacheMissStatistics, 0, sizeof(CacheMissStatistics));
 #endif
 
     return 0;
