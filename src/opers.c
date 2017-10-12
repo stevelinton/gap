@@ -449,7 +449,7 @@ static Int IsSubsetFlagsCalls2;
 *F  UncheckedIS_SUBSET_FLAGS( <flags1>, <flags2> ) subset test with
 *F                                                         no safety check
 */
-static Obj UncheckedIS_SUBSET_FLAGS(Obj flags1, Obj flags2)
+static UInt UncheckedIS_SUBSET_FLAGS(Obj flags1, Obj flags2)
 {
     Int    len1;
     Int    len2;
@@ -472,25 +472,25 @@ static Obj UncheckedIS_SUBSET_FLAGS(Obj flags1, Obj flags2)
 #ifdef COUNT_OPERS
                 IsSubsetFlagsCalls1++;
 #endif
-                return False;
+                return 0;
             }
         }
         if (len2 == 0) {
-            return True;
+            return 1;
         }
         if (len2 < 16) {
 #ifdef COUNT_OPERS
             IsSubsetFlagsCalls2++;
 #endif
             if (LEN_FLAGS(flags1) < INT_INTOBJ(ELM_PLIST(trues, len2))) {
-                return False;
+                return 0;
             }
             for (i = len2; 0 < i; i--) {
                 if (!C_ELM_FLAGS(flags1, INT_INTOBJ(ELM_PLIST(trues, i)))) {
-                    return False;
+                    return 0;
                 }
             }
-            return True;
+            return 1;
         }
     }
 
@@ -502,22 +502,22 @@ static Obj UncheckedIS_SUBSET_FLAGS(Obj flags1, Obj flags2)
     if (len1 < len2) {
         for (i = len2 - 1; i >= len1; i--) {
             if (ptr2[i] != 0)
-                return False;
+	      return 0;
         }
         for (i = len1 - 1; i >= 0; i--) {
             UInt x = ptr2[i];
             if ((x & ptr1[i]) != x)
-                return False;
+                return 0;
         }
     }
     else {
         for (i = len2 - 1; i >= 0; i--) {
             UInt x = ptr2[i];
             if ((x & ptr1[i]) != x)
-                return False;
+                return 0;
         }
     }
-    return True;
+    return 1;
 }
 
 /****************************************************************************
@@ -541,7 +541,7 @@ Obj FuncIS_SUBSET_FLAGS (
             "you can replace <flags2> via 'return <flags2>;'" );
     }
     
-    return UncheckedIS_SUBSET_FLAGS(flags1, flags2);
+    return UncheckedIS_SUBSET_FLAGS(flags1, flags2) ? True: False;
 }
 
 /****************************************************************************
@@ -889,8 +889,8 @@ Obj FuncWITH_HIDDEN_IMPS_FLAGS(Obj self, Obj flags)
       changed = 0;
       for(i = hidden_imps_length; i >= 1; --i)
       {
-        if( UncheckedIS_SUBSET_FLAGS(with, ELM_PLIST(HIDDEN_IMPS, i*2)) == True &&
-           UncheckedIS_SUBSET_FLAGS(with, ELM_PLIST(HIDDEN_IMPS, i*2-1)) != True )
+        if( UncheckedIS_SUBSET_FLAGS(with, ELM_PLIST(HIDDEN_IMPS, i*2)) &&
+           !UncheckedIS_SUBSET_FLAGS(with, ELM_PLIST(HIDDEN_IMPS, i*2-1)))
         {
           with = FuncAND_FLAGS(0, with, ELM_PLIST(HIDDEN_IMPS, i*2-1));
           changed = 1;
@@ -1872,6 +1872,64 @@ CacheMethod(Obj oper, UInt n, Obj prec, Obj * ids, Obj method)
 static Obj MethodSelectors[2][7];
 static Obj VerboseMethodSelectors[2][7];
 
+Obj MethsOper(Obj operation, UInt n);
+
+static inline Obj MethodNArgs(Obj operation, UInt n, Obj types[])
+{
+    Obj  methods = MethsOper(operation, n);
+    UInt len = LEN_LIST(methods);
+    Obj  fams[n];
+    for (UInt j = 0; j < n; j++)
+        fams[j] = ELM_PLIST(types[j], 1);
+    for (UInt i = 1; i < len; i += (n + 4)) {
+      UInt applicable = 1;
+      for (UInt j = 0; j < n; j++) {
+            if (!UncheckedIS_SUBSET_FLAGS(ELM_PLIST(types[j], 2),
+                                          ELM_LIST(methods, i + 1 + j))) {
+                applicable = 0;
+                break;
+            }
+        }
+        if (applicable) {
+	  Obj fampred = ELM_LIST(methods, i);
+          switch (n) {
+          case 0:
+              applicable = (True == CALL_0ARGS(fampred));
+              break;
+          case 1:
+              applicable = (True == CALL_1ARGS(fampred, fams[0]));
+              break;
+          case 2:
+              applicable = (True == CALL_2ARGS(fampred, fams[0], fams[1]));
+              break;
+          case 3:
+              applicable =
+                  (True == CALL_3ARGS(fampred, fams[0], fams[1], fams[2]));
+              break;
+          case 4:
+              applicable = (True == CALL_4ARGS(fampred, fams[0], fams[1],
+                                               fams[2], fams[3]));
+              break;
+          case 5:
+              applicable = (True == CALL_5ARGS(fampred, fams[0], fams[1],
+                                               fams[2], fams[3], fams[4]));
+              break;
+          case 6:
+              applicable =
+                  (True == CALL_6ARGS(fampred, fams[0], fams[1], fams[2],
+                                      fams[3], fams[4], fams[5]));
+              break;
+          default:
+              GAP_ASSERT(0);
+          }
+          if (applicable)
+              return ELM_LIST(methods, i + n + 1);
+        }
+    }
+    return Fail;
+}
+
+
 static inline Obj __attribute__((always_inline))
 GetMethodUncached(UInt n, Obj oper, Obj prec, Obj types[], Obj selectors[][7])
 {
@@ -1879,6 +1937,9 @@ GetMethodUncached(UInt n, Obj oper, Obj prec, Obj types[], Obj selectors[][7])
     Obj  method = 0;
     UInt i;
     if (prec == INTOBJ_INT(0)) {
+      if (selectors == MethodSelectors)
+	method = MethodNArgs(oper,n,types);
+      else
         switch (n) {
         case 0:
             method = CALL_1ARGS(selectors[0][0], oper);
@@ -3898,6 +3959,8 @@ Obj FuncDO_NOTHING_SETTER( Obj self, Obj obj, Obj val)
 {
   return 0;
 }
+
+
 
 /****************************************************************************
 **
