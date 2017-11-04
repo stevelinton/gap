@@ -1055,11 +1055,16 @@ end);
 ##  </ManSection>
 ##  <#/GAPDoc>
 ##
+
+START_TEST_FLUSHES := true;
+
 START_TEST := function( name )
-    FlushCaches();
     RANDOM_SEED(1);
-    Reset(GlobalMersenneTwister, 1);
-    GASMAN( "collect" );
+    if START_TEST_FLUSHES then
+        FlushCaches();
+        Reset(GlobalMersenneTwister, 1);    
+        GASMAN( "collect" );
+    fi;   
     GAPInfo.TestData.START_TIME := Runtime();
     GAPInfo.TestData.START_NAME := name;
     GAPInfo.TestData.AssertionLevel:= AssertionLevel();

@@ -572,7 +572,7 @@ InstallGlobalFunction( "TestDirectory", function(arg)
            showProgress, suppressStatusMessage, exitGAP, c, files, 
            filetimes, filemems, recurseFiles, f, i, startTime, 
            startMem, testResult, time, mem, startGcTime, gctime,
-           totalGcTime, filegctimes, GcTime;
+           totalGcTime, filegctimes, GcTime, START_TEST_FLUSHES_CPY;
 
   testTotal := true;
   totalTime := 0;
@@ -664,11 +664,18 @@ InstallGlobalFunction( "TestDirectory", function(arg)
     Print( "Architecture: ", GAPInfo.Architecture, "\n\n" );
   fi;
   
+  
+  START_TEST_FLUSHES_CPY := START_TEST_FLUSHES;  
+  START_TEST_FLUSHES := false;
+  
   for i in [1..Length(files)] do
     if opts.showProgress then
       Print("testing: ", files[i].name, "\n");
     fi;
     
+    FlushCaches();
+    Reset(GlobalMersenneTwister, 1);    
+    GASMAN("collect");    
     startTime := Runtime();
     startMem := TotalMemoryAllocated();    
     startGcTime := GcTime();    
@@ -703,6 +710,7 @@ InstallGlobalFunction( "TestDirectory", function(arg)
     fi;
   od;       
   
+  START_TEST_FLUSHES := START_TEST_FLUSHES_CPY;  
   STOP_TEST := STOP_TEST_CPY;
   
   Print("-----------------------------------\n");
