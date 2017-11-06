@@ -2104,7 +2104,13 @@ Obj FuncDIFF_VEC8BIT_VEC8BIT( Obj self, Obj vl, Obj vr)
 **  deal with length variations
 */
 
-Int CmpVec8BitVec8Bit( Obj vl, Obj vr )
+
+/*  If all we care about is equality, we don't want to do the expensive 
+work of mapping entries back to GAP's FFEs to compare them to work out
+which vector is larger. So when the justEq parameter is non-zero, we 
+simply return 0 for equal and 1 for not equal. */
+
+static inline Int cmpVec8BitVec8Bit( Obj vl, Obj vr, UInt justEq )
 {
     Obj info;
     UInt q;
@@ -2125,6 +2131,8 @@ Int CmpVec8BitVec8Bit( Obj vl, Obj vr )
     info = GetFieldInfo8Bit(q);
     lenl = LEN_VEC8BIT(vl);
     lenr = LEN_VEC8BIT(vr);
+    if (justEq && lenl != lenr)
+        return 1;
     elts = ELS_BYTE_FIELDINFO_8BIT(info);
     ptrL = BYTES_VEC8BIT(vl);
     ptrR = BYTES_VEC8BIT(vr);
@@ -2140,6 +2148,8 @@ Int CmpVec8BitVec8Bit( Obj vl, Obj vr )
             ptrL++;
             ptrR++;
         } else {
+            if (justEq) // we know they are not equal 
+                return 1;
             for (e = 0; e < elts; e++) {
                 vall = gettab[*ptrL + 256 * e];
                 valr = gettab[*ptrR + 256 * e];
@@ -2171,7 +2181,7 @@ Int CmpVec8BitVec8Bit( Obj vl, Obj vr )
         vall = gettab[*ptrL + 256 * e];
         valr = gettab[*ptrR + 256 * e];
         if (vall != valr) {
-            if (LT(ffe_elt[vall], ffe_elt[valr]))
+            if (!justEq && LT(ffe_elt[vall], ffe_elt[valr]))
                 return -1;
             else
                 return 1;
@@ -2185,6 +2195,12 @@ Int CmpVec8BitVec8Bit( Obj vl, Obj vr )
     else
         return 1;
 }
+
+Int CmpVec8BitVec8Bit( Obj vl, Obj vr )
+{
+    return cmpVec8BitVec8Bit(vl, vr, 0);
+}
+
 
 /****************************************************************************
 **
@@ -2764,10 +2780,7 @@ Obj FuncEQ_VEC8BIT_VEC8BIT( Obj self, Obj vl, Obj vr )
     if (FIELD_VEC8BIT(vl) != FIELD_VEC8BIT(vr))
         return EqListList(vl, vr) ? True : False;
 
-    if (LEN_VEC8BIT(vl) != LEN_VEC8BIT(vr))
-        return False;
-
-    return (CmpVec8BitVec8Bit(vl, vr) == 0) ? True : False;
+    return (cmpVec8BitVec8Bit(vl, vr, 1) == 0) ? True : False;
 }
 
 /****************************************************************************
@@ -5594,7 +5607,7 @@ Obj FuncDETERMINANT_LIST_VEC8BITS( Obj self, Obj mat )
 **  Assumes the matrices are over compatible fields
 */
 
-Int Cmp_MAT8BIT_MAT8BIT( Obj ml, Obj mr)
+static inline Int cmp_MAT8BIT_MAT8BIT( Obj ml, Obj mr, UInt justEq)
 {
     UInt l1, l2, l, i;
     Int c;
@@ -5602,7 +5615,7 @@ Int Cmp_MAT8BIT_MAT8BIT( Obj ml, Obj mr)
     l2 = LEN_MAT8BIT(mr);
     l = (l1 < l2) ? l1 : l2;
     for (i = 1; i <= l; i++) {
-        c = CmpVec8BitVec8Bit(ELM_MAT8BIT(ml, i), ELM_MAT8BIT(mr, i));
+        c = cmpVec8BitVec8Bit(ELM_MAT8BIT(ml, i), ELM_MAT8BIT(mr, i), justEq);
         if (c != 0)
             return c;
     }
@@ -5613,6 +5626,12 @@ Int Cmp_MAT8BIT_MAT8BIT( Obj ml, Obj mr)
     return 0;
 
 }
+
+Int Cmp_MAT8BIT_MAT8BIT( Obj ml, Obj mr)
+{
+    return cmp_MAT8BIT_MAT8BIT(ml, mr, 0);
+}
+
 
 /****************************************************************************
 **
@@ -5627,7 +5646,7 @@ Obj FuncEQ_MAT8BIT_MAT8BIT( Obj self, Obj ml, Obj mr)
         return True;
     if (FIELD_VEC8BIT(ELM_MAT8BIT(ml, 1)) != FIELD_VEC8BIT(ELM_MAT8BIT(mr, 1)))
         return EqListList(ml, mr) ? True : False;
-    return (0 == Cmp_MAT8BIT_MAT8BIT(ml, mr)) ? True : False;
+    return (0 == cmp_MAT8BIT_MAT8BIT(ml, mr, 1)) ? True : False;
 }
 
 /****************************************************************************

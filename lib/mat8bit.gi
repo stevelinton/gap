@@ -908,7 +908,7 @@ end );
 
 InstallMethod( \<, "for two compressed 8 bit matrices", IsIdenticalObj,
         [ IsMatrix and IsFFECollColl and Is8BitMatrixRep, IsMatrix and IsFFECollColl and Is8BitMatrixRep ], 0,
-        LT_MAT8BIT_MAT8BIT);
+   LT_MAT8BIT_MAT8BIT);
 
 #############################################################################
 ##

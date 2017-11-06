@@ -163,7 +163,9 @@ Int             InList (
     Obj                 objL,
     Obj                 listR )
 {
-  return Fail != POS_LIST( listR, objL, INTOBJ_INT(0L) );
+    if (IS_PLIST(listR) && LEN_PLIST(listR) == 1)
+        return EQ(ELM_PLIST(listR,1), objL);
+    return Fail != POS_LIST( listR, objL, INTOBJ_INT(0L) );
 }
 
 Obj FuncIN_LIST_DEFAULT (
